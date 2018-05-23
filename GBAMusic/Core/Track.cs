@@ -5,14 +5,14 @@ namespace GBAMusic.Core
     internal class Track : ROMReader
     {
         internal readonly FMOD.ChannelGroup Group;
-
-        List<Instrument> Instruments; // Instruments being played by this track
+        internal readonly List<Instrument> Instruments; // Instruments being played by this track
         readonly FMOD.DSP Mod2;
 
         internal byte Voice, Volume, Priority,
             Delay,
             PrevCmd, PrevNote, PrevVelocity,
-            Bend, BendRange, MODDepth, MODType;
+            BendRange, MODDepth, MODType;
+        internal sbyte Bend;
         internal bool Stopped;
         internal uint EndOfPattern;
 
@@ -32,16 +32,15 @@ namespace GBAMusic.Core
             Voice = Volume = Priority
                 = Delay
                 = PrevCmd = PrevNote = PrevVelocity
-                = Bend = BendRange = MODDepth = MODType = 0;
+                = BendRange = MODDepth = MODType = 0;
+            Bend = 0;
             Stopped = false;
             EndOfPattern = 0;
         }
-        internal void PlayInstrument(Instrument i) => Instruments.Add(i);
-        internal void StopInstrument(Instrument i) => Instruments.Remove(i);
         internal void Tick()
         {
-            foreach (Instrument i in Instruments.ToArray())
-                if (i.Track == this) i.Tick();
+            foreach (Instrument i in Instruments.ToArray()) // The list can update from Tick()
+                i.Tick();
             if (Delay != 0)
                 Delay--;
         }
@@ -70,7 +69,7 @@ namespace GBAMusic.Core
         internal void SetPan(byte b) => Group.setPan((b - 64) / 64f);
         internal void SetBend(byte b)
         {
-            Bend = (byte)(b - 64);
+            Bend = (sbyte)(b - 64);
             UpdateFrequencies();
         }
         internal void SetBendRange(byte b)

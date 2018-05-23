@@ -1,6 +1,7 @@
 ﻿using MicroLibrary;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static GBAMusic.Core.M4AStructs;
 
 namespace GBAMusic.Core
@@ -17,13 +18,43 @@ namespace GBAMusic.Core
         FMOD.System system;
         FMOD.ChannelGroup parentGroup;
 
-        Instrument[] instruments;
+        Instrument[] dsInstruments;
+        Instrument[] gbInstruments;
         Track[] tracks;
         Dictionary<uint, FMOD.Sound> sounds;
+        internal static readonly uint SQUARE12_ID = 0xFFFFFFFF,
+            SQUARE25_ID = SQUARE12_ID - 1,
+            SQUARE50_ID = SQUARE25_ID - 1,
+            SQUARE75_ID = SQUARE50_ID - 1,
+            NOISE = SQUARE75_ID - 1;
 
         ushort tempo;
         MicroTimer timer;
 
+        void GenerateSquareWaves()
+        {
+            byte[] simple = { 1, 2, 4, 6 };
+            uint len = 0x100;
+
+            var buf = new byte[len + 32]; // FMOD API requires 16 bytes of padding on each side
+            for (uint i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < len; j++)
+                    buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 0xFF : 0x0);
+                var ex = new FMOD.CREATESOUNDEXINFO()
+                {
+                    defaultfrequency = 96000,
+                    format = FMOD.SOUND_FORMAT.PCM8,
+                    length = len,
+                    numchannels = 1
+                };
+                if (system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) == FMOD.RESULT.OK)
+                {
+                    snd.setLoopPoints(0, FMOD.TIMEUNIT.PCM, len - 1, FMOD.TIMEUNIT.PCM);
+                    sounds.Add(SQUARE12_ID - i, snd);
+                }
+            }
+        }
         internal MusicPlayer()
         {
             FMOD.Factory.System_Create(out system);
@@ -31,17 +62,17 @@ namespace GBAMusic.Core
             system.createChannelGroup(null, out parentGroup);
             parentGroup.setVolume(0.5f);
 
-            instruments = new Instrument[32]; // 28 Directsound, 4 GB
-            for (int i = 0; i < 32; i++)
-            {
-                instruments[i] = new Instrument();
-            }
-            sounds = new Dictionary<uint, FMOD.Sound>();
+            dsInstruments = new Instrument[28];
+            gbInstruments = new Instrument[4];
+            for (int i = 0; i < 28; i++)
+                dsInstruments[i] = new Instrument();
+            for (int i = 0; i < 4; i++)
+                gbInstruments[i] = new Instrument();
             tracks = new Track[16];
             for (int i = 0; i < 16; i++)
-            {
                 tracks[i] = new Track(system, parentGroup);
-            }
+            sounds = new Dictionary<uint, FMOD.Sound>();
+            GenerateSquareWaves();
 
             timer = new MicroTimer();
             timer.MicroTimerElapsed += (o, e) => PlayLoop();
@@ -86,7 +117,7 @@ namespace GBAMusic.Core
         internal void Stop()
         {
             timer.Stop();
-            foreach (Instrument i in instruments)
+            foreach (Instrument i in dsInstruments)
                 i.Stop();
             State = State.Stopped;
         }
@@ -109,20 +140,30 @@ namespace GBAMusic.Core
                 SongEnded?.Invoke();
             }
         }
-        internal (ushort, uint[], byte[], byte[], byte[]) GetTrackStates()
+
+        internal (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[]) GetTrackStates()
         {
             var positions = new uint[header.NumTracks];
             var volumes = new byte[header.NumTracks];
             var delays = new byte[header.NumTracks];
-            var notes = new byte[header.NumTracks];
+            var notes = new byte[header.NumTracks][];
+            var velocities = new float[header.NumTracks];
+            var voices = new byte[header.NumTracks];
+            var modulations = new byte[header.NumTracks];
+            var bends = new int[header.NumTracks];
             for (int i = 0; i < header.NumTracks; i++)
             {
                 positions[i] = tracks[i].Position;
                 volumes[i] = tracks[i].Volume;
                 delays[i] = tracks[i].Delay;
-                notes[i] = tracks[i].PrevNote;
+                voices[i] = tracks[i].Voice;
+                modulations[i] = tracks[i].MODDepth;
+                bends[i] = tracks[i].Bend * tracks[i].BendRange;
+                Instrument[] instruments = tracks[i].Instruments.ToArray();
+                notes[i] = instruments.Length == 0 ? new byte[0] : instruments.Select(ins => ins.Note).Distinct().ToArray();
+                velocities[i] = instruments.Length == 0 ? 0 : instruments.Select(ins => ins.Volume).Max();
             }
-            return (tempo, positions, volumes, delays, notes);
+            return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends);
         }
 
         void SetTempo(ushort t)
@@ -141,29 +182,28 @@ namespace GBAMusic.Core
             return add;
         }
 
-        Instrument FindInstrument(byte newPriority)
+        Instrument FindDSInstrument(byte newPriority)
         {
             Instrument instrument = null;
-            for (int i = 0; i < 28; i++)
-                if (!instruments[i].Playing)
+            foreach (Instrument i in dsInstruments)
+                if (!i.Playing)
                 {
-                    instrument = instruments[i];
+                    instrument = i;
                     break;
                 }
 
             if (instrument == null) // None free
-                for (int i = 0; i < 28; i++)
-                    if (instruments[i].Releasing)
-                        instrument = instruments[i];
+                foreach (Instrument i in dsInstruments)
+                    if (i.Releasing)
+                        instrument = i;
 
             if (instrument == null) // None releasing
-                for (int i = 0; i < 28; i++)
-                    if (newPriority > instruments[i].Track.Priority)
-                        instrument = instruments[i];
+                foreach (Instrument i in dsInstruments)
+                    if (newPriority > i.Track.Priority)
+                        instrument = i;
 
-            if (instrument == null) // None available, so get newest
-                instrument = instruments[27];
-            instrument.Stop();
+            if (instrument == null) // None available, so kill newest
+                instrument = dsInstruments.OrderBy(ins => ins.Age).ElementAt(0);
             return instrument;
         }
         void PlayNote(Track track, byte note, byte velocity, byte addedDelay = 0)
@@ -174,42 +214,44 @@ namespace GBAMusic.Core
             Instrument instrument = null;
             SVoice sVoice = voiceTable[track.Voice].Instrument; // Should be overwritten if something else is to be played
 
+            Read:
             switch (sVoice.VoiceType)
             {
                 case 0x0:
                 case 0x8:
-                    instrument = FindInstrument(track.Priority);
+                    instrument = FindDSInstrument(track.Priority);
                     break;
                 case 0x1:
                 case 0x9:
-                    instrument = instruments[28];
+                    instrument = gbInstruments[0];
                     break;
                 case 0x2:
                 case 0xA:
-                    instrument = instruments[29];
+                    instrument = gbInstruments[1];
                     break;
                 case 0x3:
                 case 0xB:
-                    instrument = instruments[30];
+                    instrument = gbInstruments[2];
                     break;
                 case 0x4:
                 case 0xC:
-                    instrument = instruments[31];
+                    instrument = gbInstruments[3];
                     break;
                 case 0x40:
-                    instrument = FindInstrument(track.Priority);
                     var split = (KeySplit)sVoice;
                     var multi = (Multi)voiceTable[track.Voice];
                     byte ins = ROM.Instance.ReadByte(split.Keys + note);
                     sVoice = multi.Table[ins].Instrument;
+                    goto Read;
                     break;
                 case 0x80:
-                    instrument = FindInstrument(track.Priority); // remove when I can
                     var drum = (Drum)voiceTable[track.Voice];
-                    //drum.Table[note].Instrument;
+                    sVoice = drum.Table[note].Instrument;
+                    goto Read;
                     break;
             }
-            instrument.Play(track, system, sounds, sVoice, track.PrevCmd == 0xCF ? (byte)255 : WaitFromCMD(0xD0, track.PrevCmd));
+            instrument.Stop();
+            instrument.Play(track, system, sounds, sVoice, track.PrevCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.PrevCmd));
         }
 
         void ExecuteNext(Track track)
@@ -296,11 +338,18 @@ namespace GBAMusic.Core
                     case 0xC8: track.ReadByte(); break; // TUNE
                     case 0xCD: track.ReadByte(); track.ReadByte(); break; // XCMD
                     case 0xCE: // EOT
+                        Instrument i = null;
                         if (track.PeekByte() < 128)
                         {
-                            byte whichOne = track.ReadByte();
-                            // Unfinished
+                            byte note = track.ReadByte();
+                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF && ins.Note == note);
                         }
+                        else
+                        {
+                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF);
+                        }
+                        if (i != null)
+                            i.TriggerRelease();
                         break;
                 }
             }

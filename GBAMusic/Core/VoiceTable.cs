@@ -21,8 +21,8 @@ namespace GBAMusic.Core
             if (s.Length == 0) return;
             var buf = new byte[s.Length + 32]; // FMOD API requires 16 bytes of padding on each side
             Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 16, (int)s.Length);
-            for (int i = 16; i < s.Length; i++)
-                buf[i] ^= 0x80; // unencrypt
+            for (int i = 0; i < s.Length; i++)
+                buf[i + 16] ^= 0x80; // unencrypt
             var ex = new FMOD.CREATESOUNDEXINFO()
             {
                 defaultfrequency = (int)s.Frequency / 1024,
@@ -30,11 +30,11 @@ namespace GBAMusic.Core
                 length = s.Length,
                 numchannels = 1
             };
-            if (system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW, ref ex, out FMOD.Sound snd) == FMOD.RESULT.OK)
+            if (system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) == FMOD.RESULT.OK)
             {
                 if (s.DoesLoop != 0)
                 {
-                    snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length, FMOD.TIMEUNIT.PCM);
+                    snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length - 1, FMOD.TIMEUNIT.PCM);
                     snd.setMode(FMOD.MODE.LOOP_NORMAL);
                 }
                 sounds.Add(direct.Address, snd);
@@ -69,10 +69,10 @@ namespace GBAMusic.Core
                 sounds.Add(wave.Address, snd); // Wrong frequency
         }
 
-        internal VoiceTable() => voices = new Voice[256]; // For Drums
+        internal VoiceTable() => voices = new Voice[256]; // It is possible to play notes outside of the 128 range
         internal void LoadDirectSamples(uint table, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
         {
-            for (uint i = 0; i < 256; i++)
+            for (uint i = 0; i < 128; i++)
             {
                 uint offset = table + (i * 0xC);
                 switch (ROM.Instance.ReadByte(offset)) // Check type
@@ -96,6 +96,10 @@ namespace GBAMusic.Core
                         var wave = ROM.Instance.ReadStruct<GBWave>(offset);
                         voices[i] = new Voice(wave);
                         LoadWave(wave, system, sounds);
+                        break;
+                    case 0x4:
+                    case 0xC:
+                        voices[i] = new Voice(ROM.Instance.ReadStruct<Noise>(offset));
                         break;
                     case 0x40:
                         var keySplit = ROM.Instance.ReadStruct<KeySplit>(offset);

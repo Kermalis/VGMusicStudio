@@ -115,8 +115,10 @@ namespace MicroLibrary
                                   ref _stopTimer);
             };
 
-            _threadTimer = new System.Threading.Thread(threadStart);
-            _threadTimer.Priority = System.Threading.ThreadPriority.Highest;
+            _threadTimer = new System.Threading.Thread(threadStart)
+            {
+                Priority = System.Threading.ThreadPriority.Highest
+            };
             _threadTimer.Start();
         }
 

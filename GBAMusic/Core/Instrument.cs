@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static GBAMusic.Core.M4AStructs;
 
 namespace GBAMusic.Core
@@ -11,44 +8,54 @@ namespace GBAMusic.Core
     {
         internal bool Playing { get; private set; }
         internal bool Releasing { get; private set; }
-        bool FixedFrequency;
+        internal byte Note { get; private set; }
+        internal byte NoteDuration { get; private set; }
+        byte NoteVelocity;
+        int Velocity;
+        internal float Volume { get { return ((NoteVelocity / 127f) * Velocity) / 255f; } }
+        internal ulong Age { get; private set; }
 
         internal Track Track { get; private set; }
         internal FMOD.Channel Channel { get; private set; }
 
-        ulong age;
-        byte A, D, S, R, stage, noteWait;
-        int velocity; // ADSR helper
+        byte A, D, S, R, stage;
+        bool FixedFrequency;
 
+        void UpdateVolume()
+        {
+            Channel.setVolume(Volume);
+        }
         internal void UpdateFrequency()
         {
-            if (Channel == null) return; // Can remove once all types are playing
+            if (Channel == null || Track == null) return; // Can remove once all types are playing
 
             Channel.setPaused(true);
             Channel.getCurrentSound(out FMOD.Sound sound);
             sound.getDefaults(out float soundFrequency, out int soundPriority);
-            float noteFrequency = (float)Math.Pow(2, ((Track.PrevNote - 60) / 12f)),
+            float noteFrequency = (float)Math.Pow(2, ((Note - 60) / 12f)),
                 bendFrequency = (float)Math.Pow(2, (Track.Bend * Track.BendRange) / (float)(64 * 12)),
                 frequency = soundFrequency * noteFrequency * bendFrequency;
             Channel.setFrequency(FixedFrequency ? soundFrequency : frequency); // Not sure if fixed frequency ignores bends yet
-            Channel.setVolume(Track.PrevVelocity / 127f);
+            UpdateVolume();
             Channel.setPaused(false);
         }
 
-        // Pass 255 to "wait" to trigger a TIE
-        internal void Play(Track track, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds, SVoice voice, byte wait)
+        // Pass 0xFF to "duration" to trigger a TIE
+        internal void Play(Track track, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds, SVoice voice, byte duration)
         {
             if (voice is SDrum) return; // Can remove once all types are playing
             Track = track;
-            noteWait = wait;
+            NoteDuration = duration;
+            Note = track.PrevNote;
+            NoteVelocity = track.PrevVelocity;
             Playing = true;
             Releasing = false;
-            age = 0;
-            velocity = 0;
+            Age = 0;
+            Velocity = 0;
             stage = 0;
 
-            dynamic t = voice; // ADSR are in the same spot in each struct anyway
-            A = t.A; D = t.D; S = t.S; R = t.R;
+            dynamic dyn = voice; // ADSR are in the same spot in each struct
+            A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
 
             if (voice is DirectSound direct)
             {
@@ -59,23 +66,37 @@ namespace GBAMusic.Core
             else // GB instrument
             {
                 FixedFrequency = false;
+                if (voice is SquareWave1 || voice is SquareWave2)
+                {
+                    uint id = MusicPlayer.SQUARE12_ID - dyn.Pattern;
+                    system.playSound(sounds[id], Track.Group, true, out FMOD.Channel c);
+                    Channel = c;
+                }
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
             if (A == 0) A = 255;
             UpdateFrequency();
-            track.PlayInstrument(this);
+            track.Instruments.Add(this);
+        }
+        internal void TriggerRelease()
+        {
+            stage = 2; // Make enum
+            Releasing = true;
         }
         internal void Stop()
         {
-            velocity = 0;
-            stage++;
+            Velocity = 0;
+            stage = 3; // Should make these an enum
             Releasing = false;
             Playing = false;
             if (Channel != null)
+            {
+                Channel.setVolume(0);
                 Channel.stop();
+            }
             if (Track != null)
             {
-                Track.StopInstrument(this);
+                Track.Instruments.Remove(this);
                 Track = null;
             }
         }
@@ -88,36 +109,33 @@ namespace GBAMusic.Core
             switch (stage)
             {
                 case 0:
-                    velocity += A;
-                    if (velocity >= 255)
+                    Velocity += A;
+                    if (Velocity >= 255)
                     {
-                        velocity = 255;
+                        Velocity = 255;
                         stage++;
                     }
-                    else if (age > noteWait)
+                    else if (NoteDuration != 0xFF && Age > NoteDuration)
                         stage++;
                     break;
                 case 1:
-                    velocity = (velocity * D) / 256;
-                    if (velocity < S)
-                        velocity = S;
-                    if (age >= noteWait)
-                    {
-                        stage++;
-                        Releasing = true;
-                    }
+                    Velocity = (Velocity * D) / 256;
+                    if (Velocity < S)
+                        Velocity = S;
+                    if (NoteDuration != 0xFF && Age >= NoteDuration)
+                        TriggerRelease();
                     break;
                 case 2:
-                    velocity = (velocity * R) / 256;
-                    if (velocity <= 0)
+                    Velocity = (Velocity * R) / 256;
+                    if (Velocity <= 0)
                     {
                         Stop();
                         return;
                     }
                     break;
             }
-            Channel.setVolume(velocity / 255f);
-            age++;
+            UpdateVolume();
+            Age++;
         }
     }
 }
