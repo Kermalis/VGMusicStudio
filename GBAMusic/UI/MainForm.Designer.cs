@@ -38,18 +38,13 @@
             this.stopButton = new System.Windows.Forms.Button();
             this.pauseButton = new System.Windows.Forms.Button();
             this.tempoLabel = new System.Windows.Forms.Label();
-            this.trackInfoControl1 = new GBAMusic.UI.TrackInfoControl();
+            this.creatorLabel = new System.Windows.Forms.Label();
+            this.gameLabel = new System.Windows.Forms.Label();
+            this.codeLabel = new System.Windows.Forms.Label();
+            this.trackInfoControl1 = new TrackInfoControl();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.songNumerical)).BeginInit();
             this.SuspendLayout();
-            // 
-            // trackInfoControl1
-            // 
-            this.trackInfoControl1.Font = new System.Drawing.Font("Microsoft Tai Le", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.trackInfoControl1.Location = new System.Drawing.Point(0, 27);
-            this.trackInfoControl1.Name = "trackInfoControl1";
-            this.trackInfoControl1.Size = new System.Drawing.Size(350, 576);
-            this.trackInfoControl1.TabIndex = 7;
             // 
             // menuStrip1
             // 
@@ -133,11 +128,50 @@
             this.tempoLabel.Text = "Tempo - 120";
             this.tempoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // creatorLabel
+            // 
+            this.creatorLabel.AutoSize = true;
+            this.creatorLabel.Location = new System.Drawing.Point(357, 198);
+            this.creatorLabel.Name = "creatorLabel";
+            this.creatorLabel.Size = new System.Drawing.Size(63, 13);
+            this.creatorLabel.TabIndex = 8;
+            this.creatorLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // gameLabel
+            // 
+            this.gameLabel.AutoSize = true;
+            this.gameLabel.Location = new System.Drawing.Point(356, 211);
+            this.gameLabel.Name = "gameLabel";
+            this.gameLabel.Size = new System.Drawing.Size(63, 13);
+            this.gameLabel.TabIndex = 9;
+            this.gameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // codeLabel
+            // 
+            this.codeLabel.AutoSize = true;
+            this.codeLabel.Location = new System.Drawing.Point(357, 236);
+            this.codeLabel.Name = "codeLabel";
+            this.codeLabel.Size = new System.Drawing.Size(63, 13);
+            this.codeLabel.TabIndex = 10;
+            this.codeLabel.Text = "Game Code";
+            this.codeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // trackInfoControl1
+            // 
+            this.trackInfoControl1.Font = new System.Drawing.Font("Microsoft Tai Le", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.trackInfoControl1.Location = new System.Drawing.Point(0, 27);
+            this.trackInfoControl1.Name = "trackInfoControl1";
+            this.trackInfoControl1.Size = new System.Drawing.Size(350, 576);
+            this.trackInfoControl1.TabIndex = 7;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(515, 650);
+            this.Controls.Add(this.codeLabel);
+            this.Controls.Add(this.gameLabel);
+            this.Controls.Add(this.creatorLabel);
             this.Controls.Add(this.tempoLabel);
             this.Controls.Add(this.pauseButton);
             this.Controls.Add(this.stopButton);
@@ -168,6 +202,9 @@
         private System.Windows.Forms.Button stopButton;
         private System.Windows.Forms.Button pauseButton;
         private System.Windows.Forms.Label tempoLabel;
+        private System.Windows.Forms.Label creatorLabel;
+        private System.Windows.Forms.Label gameLabel;
+        private System.Windows.Forms.Label codeLabel;
     }
 }
 

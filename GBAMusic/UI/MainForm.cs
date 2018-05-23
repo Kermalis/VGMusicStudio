@@ -1,6 +1,5 @@
 ﻿using GBAMusic.Core;
 using System;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace GBAMusic.UI
@@ -15,8 +14,8 @@ namespace GBAMusic.UI
         public MainForm()
         {
             InitializeComponent();
-            // Set song numerical max from config?
             timer1.Tick += Timer1_Tick;
+            codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
         }
 
         private void Timer1_Tick(object sender, EventArgs e)
@@ -41,6 +40,11 @@ namespace GBAMusic.UI
             if (d.ShowDialog() != DialogResult.OK) return;
 
             ROM.LoadROM(d.FileName);
+            // Set song numerical num
+            codeLabel.Text = ROM.Instance.GameCode;
+            gameLabel.Text = ROM.Instance.Config.GameName;
+            creatorLabel.Text = ROM.Instance.Config.CreatorName;
+
             trackInfoControl1.SetPlayer(player = new MusicPlayer());
             player.SongEnded += () => stopUI = true;
             playButton.Enabled = true;

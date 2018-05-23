@@ -84,13 +84,11 @@ namespace GBAMusic.Core
         internal State State { get; private set; }
         internal delegate void SongEndedEvent();
         internal event SongEndedEvent SongEnded;
-
-        uint songTable = 0x1E866BC; // PMD
-        //uint songTable = 0x06B49F0; // Emerald
+        
         internal void Play(ushort song)
         {
             Stop();
-            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(songTable + ((uint)8 * song)));
+            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Config.SongTable + ((uint)8 * song)));
             Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
             for (int i = 0; i < header.NumTracks; i++)
                 tracks[i].Init(header.Tracks[i]);

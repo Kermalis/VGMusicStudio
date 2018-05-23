@@ -6,20 +6,21 @@ namespace GBAMusic.Core
     class ROMReader
     {
         BinaryReader Reader;
+        protected void InitReader() => Reader = new BinaryReader(new MemoryStream(ROM.Instance.ROMFile));
 
-        protected ROMReader() => Reader = new BinaryReader(new MemoryStream(ROM.ROMFile));
-
-        object Parse(uint offset, uint amt, bool signed = false)
+        object Parse(uint offset, uint amt, bool signed = false, bool array = false)
         {
             if (ROM.IsValidRomOffset(offset))
                 SetOffset(offset);
+            if (array)
+                return Reader.ReadBytes((int)amt);
             switch (amt)
             {
                 case 1: return signed ? (object)Reader.ReadSByte() : (object)Reader.ReadByte();
                 case 2: return signed ? (object)Reader.ReadInt16() : (object)Reader.ReadUInt16();
                 case 4: return signed ? (object)Reader.ReadInt32() : (object)Reader.ReadUInt32();
-                default: return Reader.ReadBytes((int)amt);
             }
+            return null;
         }
 
         public byte PeekByte(uint offset = 0xFFFFFFFF)
@@ -30,7 +31,7 @@ namespace GBAMusic.Core
             return ret;
         }
 
-        public byte[] ReadBytes(uint amt, uint offset = 0xFFFFFFFF) => (byte[])Parse(offset, amt);
+        public byte[] ReadBytes(uint amt, uint offset = 0xFFFFFFFF) => (byte[])Parse(offset, amt, false, true);
         public byte ReadByte(uint offset = 0xFFFFFFFF) => (byte)Parse(offset, 1);
         public ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
         public int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);

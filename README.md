@@ -21,3 +21,4 @@ A tool that is designed to be an updated Sappy.
 15. Add base note
 16. Fix minor popping (I think it's the notes releasing too early)
 17. Fix notes deciding not to play at all
+18. Make MusicPlayer a singleton

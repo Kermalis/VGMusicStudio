@@ -18,6 +18,7 @@ namespace GBAMusic.Core
 
         internal Track(FMOD.System system, FMOD.ChannelGroup parentGroup) : base()
         {
+            InitReader();
             Instruments = new List<Instrument>();
             system.createChannelGroup(null, out Group);
             parentGroup.addGroup(Group, false, out FMOD.DSPConnection c);

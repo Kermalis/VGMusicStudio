@@ -1,26 +1,31 @@
-﻿using System.IO;
+﻿using GBAMusic.Config;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace GBAMusic.Core
 {
-    class ROM : ROMReader
+    internal class ROM : ROMReader
     {
-        public const uint Map = 0x8000000;
-        public const uint Capacity = 0x2000000;
+        internal const uint Map = 0x8000000;
+        internal const uint Capacity = 0x2000000;
 
-        public static byte[] ROMFile { get; private set; }
+        internal static ROM Instance { get; private set; } // If you want to read with the reader
 
-        public static ROM Instance { get; private set; }
+        internal readonly string GameCode;
+        internal readonly byte[] ROMFile;
+        internal readonly GConfig Config;
 
-        private ROM() : base() {}
-
-        public static void LoadROM(string filePath)
+        private ROM(string filePath)
         {
+            Instance = this;
             ROMFile = File.ReadAllBytes(filePath);
-            Instance = new ROM();
+            InitReader();
+            GameCode = System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC));
+            Config = new GConfig();
         }
+        internal static void LoadROM(string filePath) => new ROM(filePath);
 
-        public T ReadStruct<T>(uint offset = 0xFFFFFFFF)
+        internal T ReadStruct<T>(uint offset = 0xFFFFFFFF)
         {
             byte[] bytes = ReadBytes((uint)Marshal.SizeOf(typeof(T)), offset);
             GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
@@ -29,6 +34,6 @@ namespace GBAMusic.Core
             return theT;
         }
 
-        public static bool IsValidRomOffset(uint offset) => (offset < Capacity) || (offset >= Map && offset < Map + Capacity);
+        internal static bool IsValidRomOffset(uint offset) => (offset < Capacity) || (offset >= Map && offset < Map + Capacity);
     }
 }
