@@ -43,7 +43,7 @@ namespace GBAMusic.Core
                     buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 0xFF : 0x0);
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
-                    defaultfrequency = 96000,
+                    defaultfrequency = 112640,
                     format = FMOD.SOUND_FORMAT.PCM8,
                     length = len,
                     numchannels = 1
@@ -85,8 +85,8 @@ namespace GBAMusic.Core
         internal delegate void SongEndedEvent();
         internal event SongEndedEvent SongEnded;
 
-        //uint songTable = 0x1E866BC; // PMD
-        uint songTable = 0x06B49F0; // Emerald
+        uint songTable = 0x1E866BC; // PMD
+        //uint songTable = 0x06B49F0; // Emerald
         internal void Play(ushort song)
         {
             Stop();
