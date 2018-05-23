@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GBAMusic.UI
@@ -12,7 +9,10 @@ namespace GBAMusic.UI
     internal class TrackInfoControl : UserControl
     {
         IContainer components = null;
+        Color barColor = Color.FromArgb(0xa7, 0x44, 0xdd);
         Core.MusicPlayer player;
+
+        readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
 
         protected override void Dispose(bool disposing)
         {
@@ -40,33 +40,45 @@ namespace GBAMusic.UI
             Invalidate();
         }
 
-        private readonly string[] simplenotenumber =
-        {
-            "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn"
-        };
         void TrackInfoControl_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.FillRectangle(Brushes.Black, 0, 0, Width, Height);
-            if (player == null) return;
 
+            int my = 24;
+            e.Graphics.DrawString("Position", Font, Brushes.Lime, 0, 4);
+            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, 50, 4);
+            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, 85, 4);
+            e.Graphics.DrawLine(Pens.Gold, 0, my, Width, my);
+
+            if (player == null) return;
             var (_, positions, volumes, delays, notes, velocities, voices, modulations, bends) = player.GetTrackStates();
             for (int i = 0; i < positions.Length; i++)
             {
-                int y1 = i * 36;
+                int y1 = my + 3 + i * 36;
                 int y2 = y1 + 12;
+
+                byte velocity = (byte)(velocities[i] * 0xFF);
+
                 e.Graphics.DrawString(string.Format("0x{0:X}", positions[i]), Font, Brushes.Lime, 0, y1);
                 e.Graphics.DrawString(delays[i].ToString(), Font, Brushes.Crimson, 65, y1);
-                e.Graphics.DrawString(string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simplenotenumber[n % 12], (n / 12) - 2))), Font, Brushes.Turquoise, 85, y1);
 
                 e.Graphics.DrawString(voices[i].ToString(), Font, Brushes.OrangeRed, 15, y2);
-                e.Graphics.DrawString(((int)(velocities[i] * 255)).ToString(), Font, Brushes.PeachPuff, 35, y2);
-                e.Graphics.DrawString(volumes[i].ToString(), Font, Brushes.LightSeaGreen, 55, y2);
-                e.Graphics.DrawString(modulations[i].ToString(), Font, Brushes.SkyBlue, 75, y2);
-                e.Graphics.DrawString(bends[i].ToString(), Font, Brushes.Purple, 95, y2);
+                e.Graphics.DrawString(velocity.ToString(), Font, Brushes.PeachPuff, 40, y2);
+                e.Graphics.DrawString(volumes[i].ToString(), Font, Brushes.LightSeaGreen, 65, y2);
+                e.Graphics.DrawString(modulations[i].ToString(), Font, Brushes.SkyBlue, 90, y2);
+                e.Graphics.DrawString(bends[i].ToString(), Font, Brushes.Purple, 115, y2);
 
-                var rect = new Rectangle(200, y1 + 3, (int)(100 * velocities[i]), 19);
-                e.Graphics.FillRectangle(Brushes.Plum, rect);
+                int w = 128, bx = 160;
+                e.Graphics.DrawLine(Pens.Gold, bx, y2 + 3, bx, y2 + 10);
+                e.Graphics.DrawLine(Pens.Gold, bx + w - 1, y2 + 3, bx + w - 1, y2 + 10);
+
+                int vel = (int)(w * velocities[i]);
+                var brush = new LinearGradientBrush(new Point(bx, 10), new Point(bx + w, 10), Color.FromArgb(velocity, barColor), Color.Purple);
+                var rect = new Rectangle(bx + (w / 2) - (vel / 2) - 1, y1 + 3, vel, 19);
+                e.Graphics.FillRectangle(brush, rect);
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
+
+                e.Graphics.DrawString(string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simpleNotes[n % 12], (n / 12) - 2))), Font, Brushes.Turquoise, 85, y1);
             }
         }
     }
