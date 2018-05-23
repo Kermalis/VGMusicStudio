@@ -115,88 +115,100 @@ AXPE:
   songTable: 0x4554E8
   name: "Pokémon Sapphire Version"
   steal: "AXVE"
-B24P:
-  songTable: 0x1E866BC
-  name: "Pokémon Mystery Dungeon: Red Rescue Team"
+BPRE:
+  songTable: 0x4A32CC
+  name: "Pokémon Fire Red Version"
   creator: "Gamefreak"
   music:
-    0x1: Rescue Team Base
-    0x2: Swamp Friend Area
-    0x3: Caves Friend Area
-    0x4: Personality Test
-    0x5: Benevolent Spirit
-    0x6: The Legend of Ninetales
-    0x7: Pokémon Plaza
-    0x8: File Select
-    0x9: Danger
-    0xA: There's Trouble!
-    0xB: Boss Fight
-    0xC: Dream
-    0xD: Buried Relic
-    0xE: Thunderwave Cave
-    0xF: Sinister Woods
-    0x10: Pond Friend Area
-    0x11: Kecleon Shop
-    0x12: Stop! Thief!
-    0x13: World Calamity
-    0x14: Great Canyon
-    0x15: Stormy Sea
-    0x16: Sky Tower
-    0x17: Sky Tower Summit
-    0x18: Run Away
-    0x19: Mt. Blaze
-    0x1A: Rayquaza's Domain
-    0x1B: Stratos Lookout
-    0x1C: Rainbow Peak
-    0x1D: Dream Eater
-    0x1E: Deep-Sea Current
-    0x1F: Seafloor Cave
-    0x20: Legendary Battle
-    0x21: Mt. Blaze Peak
-    0x22: Volcanic Pit
-    0x23: Cryptic Cave
-    0x24: Escape Through the Snow
-    0x25: The Other Side
-    0x26: The Mountain of Fire
-    0x27: Frosty Grotto
-    0x28: Intro
-    0x29: Unknown 1
-    0x2A: Farewell
-    0x2B: Title
-    0x2C: Staff Roll
-    0x2D: Unknown 2
-    0x2E: Insert Title
-    0x33: Exploration Failed
-    0x34: Exploration Complete!
-    0x64: Unused 1
-    0x65: Awakening
-    0x66: Lapis Cave
-    0x67: Happiness
-    0x68: Frosty Forest
-    0x69: Steppe
-    0x6A: Oceanic
-    0x6B: Field
-    0x6C: Magma Cavern
-    0x6D: Unused 2
-    0x6E: Makuhita Dojo
-    0x6F: Mt. Thunder
-    0x70: Lab
-    0x71: Silent Chasm
-    0x72: At the End of the Road
-    0x73: Mt. Freeze
-    0x74: Wilds
-    0x75: Legendary Island
-    0x76: Southern Island
-    0x77: Enclosed Island
-    0x78: Mt. Steel
-    0x79: Forest
-    0x7A: Final Island
-    0x7B: Mt. Freeze Peak
-    0x7C: Magma Cavern Pit
-    0x7D: Tiny Woods
-    0x7E: Mt. Thunder Peak
-    0x7F: Healing Forest
-    0x80: Monster House!
+    0x100: Healing (RS)
+    0x101: Level Up 
+    0x107: Evolution Start
+    0x108: Evolution/Safari
+    0x109: Battle 1
+    0x10A: Battle 2
+    0x10C: Fanfare 1
+    0x10D: Fanfare 2
+    0x10E: You Fail It!
+    0x10F: You Fail It Again!
+    0x110: Follow Me
+    0x111: Game Corner
+    0x112: Evil Lurks
+    0x113: Gym
+    0x114: Jigglypff's Song
+    0x115: Introducion
+    0x116: Pokemon Theme
+    0x117: Cinnabar Island
+    0x118: Lavender Town
+    0x119: Healing
+    0x11A: Bicycle
+    0x11B: Encounter 1
+    0x11C: Encounter 2
+    0x11D: Encounter 3
+    0x11E: You're In The Hall Of Fame!
+    0x11F: Viridian Forest
+    0x120: Mount Moon
+    0x121: Abandoned Place
+    0x122: End Credits
+    0x123: Route Theme 1
+    0x124: Route Theme 2 / Intro
+    0x125: Route Theme 3
+    0x126: Route Theme 4
+    0x127: Indigo Plateau
+    0x128: Battle 3
+    0x129: Battle 4
+    0x12A: Battle 5
+    0x12B: Battle 6
+    0x12C: Pallet Town
+    0x12D: Oak's Lab
+    0x12E: Oak's Theme
+    0x12F: Pokémon Center
+    0x130: SS Anne
+    0x131: Surf's Up
+    0x132: Pokémon Tower
+    0x133: Silph Co.
+    0x134: Cerulean City
+    0x135: Celadon City
+    0x136: Victory 1
+    0x137: Victory 2
+    0x138: Victory 3
+    0x139: Vermillion City
+    0x13A: Viridian City
+    0x13B: Gary's Theme
+    0x13C: Gary's Theme (bis)
+    0x13D: Fanfare 3
+    0x13E: Fanfare 4
+    0x13F: You caught a Pokémon!
+    0x140: Trainer Card Photo
+    0x141: Gamefreak
+    0x142: Victory 2 (bis)
+    0x143: Intro Message 1
+    0x144: Intro Message 2
+    0x145: Intro Message 3
+    0x146: Game Corner (+1)
+    0x147: Game Corner (+2)
+    0x148: Net Center
+    0x149: Mystery Connection
+    0x14A: Game Corner (+3)
+    0x14B: Mount Ember
+    0x14C: Follow Me (alt)
+    0x14D: Water Labyrinth
+    0x14E: Tanoby Ruins
+    0x14F: Islands 1-3
+    0x150: Islands 4-5
+    0x151: Islands 6-7
+    0x152: PokéFlute
+    0x153: Battle - Deoxys
+    0x154: Battle 5 (+1)
+    0x155: Battle 5 (+2)
+    0x156: Encounter 4
+    0x157: Deoxys Encounter
+    0x158: Trainer Tower
+    0x159: Pallet Town (fame mix)
+    0x15A: Teachy TV
+BPGE:
+  songTable: 0x4A2BA8
+  name: "Pokémon Leaf Green Version"
+  steal: "BPRE"
 BPEE:
   songTable: 0x6B49F0
   name: "Pokémon Emerald Version"
@@ -411,3 +423,85 @@ BPEE:
     0x22C: Trainer Tower
     0x22D: Pallet Town (fame mix)
     0x22E: Teachy TV
+B24P:
+  songTable: 0x1E866BC
+  name: "Pokémon Mystery Dungeon: Red Rescue Team"
+  creator: "Gamefreak"
+  music:
+    0x1: Rescue Team Base
+    0x2: Swamp Friend Area
+    0x3: Caves Friend Area
+    0x4: Personality Test
+    0x5: Benevolent Spirit
+    0x6: The Legend of Ninetales
+    0x7: Pokémon Plaza
+    0x8: File Select
+    0x9: Danger
+    0xA: There's Trouble!
+    0xB: Boss Fight
+    0xC: Dream
+    0xD: Buried Relic
+    0xE: Thunderwave Cave
+    0xF: Sinister Woods
+    0x10: Pond Friend Area
+    0x11: Kecleon Shop
+    0x12: Stop! Thief!
+    0x13: World Calamity
+    0x14: Great Canyon
+    0x15: Stormy Sea
+    0x16: Sky Tower
+    0x17: Sky Tower Summit
+    0x18: Run Away
+    0x19: Mt. Blaze
+    0x1A: Rayquaza's Domain
+    0x1B: Stratos Lookout
+    0x1C: Rainbow Peak
+    0x1D: Dream Eater
+    0x1E: Deep-Sea Current
+    0x1F: Seafloor Cave
+    0x20: Legendary Battle
+    0x21: Mt. Blaze Peak
+    0x22: Volcanic Pit
+    0x23: Cryptic Cave
+    0x24: Escape Through the Snow
+    0x25: The Other Side
+    0x26: The Mountain of Fire
+    0x27: Frosty Grotto
+    0x28: Intro
+    0x29: Unknown 1
+    0x2A: Farewell
+    0x2B: Title
+    0x2C: Staff Roll
+    0x2D: Unknown 2
+    0x2E: Insert Title
+    0x33: Exploration Failed
+    0x34: Exploration Complete!
+    0x64: Unused 1
+    0x65: Awakening
+    0x66: Lapis Cave
+    0x67: Happiness
+    0x68: Frosty Forest
+    0x69: Steppe
+    0x6A: Oceanic
+    0x6B: Field
+    0x6C: Magma Cavern
+    0x6D: Unused 2
+    0x6E: Makuhita Dojo
+    0x6F: Mt. Thunder
+    0x70: Lab
+    0x71: Silent Chasm
+    0x72: At the End of the Road
+    0x73: Mt. Freeze
+    0x74: Wilds
+    0x75: Legendary Island
+    0x76: Southern Island
+    0x77: Enclosed Island
+    0x78: Mt. Steel
+    0x79: Forest
+    0x7A: Final Island
+    0x7B: Mt. Freeze Peak
+    0x7C: Magma Cavern Pit
+    0x7D: Tiny Woods
+    0x7E: Mt. Thunder Peak
+    0x7F: Healing Forest
+    0x80: Monster House!
