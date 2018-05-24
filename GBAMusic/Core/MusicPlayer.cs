@@ -139,7 +139,7 @@ namespace GBAMusic.Core
             }
         }
 
-        internal (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[]) GetTrackStates()
+        internal (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[]) GetTrackStates()
         {
             var positions = new uint[header.NumTracks];
             var volumes = new byte[header.NumTracks];
@@ -149,6 +149,7 @@ namespace GBAMusic.Core
             var voices = new byte[header.NumTracks];
             var modulations = new byte[header.NumTracks];
             var bends = new int[header.NumTracks];
+            var pans = new float[header.NumTracks];
             for (int i = 0; i < header.NumTracks; i++)
             {
                 positions[i] = tracks[i].Position;
@@ -157,11 +158,12 @@ namespace GBAMusic.Core
                 voices[i] = tracks[i].Voice;
                 modulations[i] = tracks[i].MODDepth;
                 bends[i] = tracks[i].Bend * tracks[i].BendRange;
-                Instrument[] instruments = tracks[i].Instruments.ToArray();
+                Instrument[] instruments = tracks[i].Instruments.ToArray(); // Need thread-safe
+                pans[i] = instruments.Length == 0 ? 0 : instruments.OrderByDescending(ins => ins.Volume).ElementAt(0).Panpot;
                 notes[i] = instruments.Length == 0 ? new byte[0] : instruments.Select(ins => ins.Note).Distinct().ToArray();
                 velocities[i] = instruments.Length == 0 ? 0 : instruments.Select(ins => ins.Volume).Max();
             }
-            return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends);
+            return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans);
         }
 
         void SetTempo(ushort t)

@@ -26,7 +26,7 @@ namespace GBAMusic.UI
                 return;
             }
             trackInfoControl1.Invalidate();
-            var (tempo, _, _, _, _, _, _, _, _) = player.GetTrackStates();
+            var (tempo, _, _, _, _, _, _, _, _, _) = player.GetTrackStates();
             tempoLabel.Text = string.Format("Tempo - {0}", tempo);
         }
 

@@ -51,7 +51,7 @@ namespace GBAMusic.UI
             e.Graphics.DrawLine(Pens.Gold, 0, my, Width, my);
 
             if (player == null) return;
-            var (_, positions, volumes, delays, notes, velocities, voices, modulations, bends) = player.GetTrackStates();
+            var (_, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans) = player.GetTrackStates();
             for (int i = 0; i < positions.Length; i++)
             {
                 int y1 = my + 3 + i * 36;
@@ -68,13 +68,20 @@ namespace GBAMusic.UI
                 e.Graphics.DrawString(modulations[i].ToString(), Font, Brushes.SkyBlue, 90, y2);
                 e.Graphics.DrawString(bends[i].ToString(), Font, Brushes.Purple, 115, y2);
 
-                int w = 128, bx = 160;
+                int w = 127, bx = 160;
                 e.Graphics.DrawLine(Pens.Gold, bx, y2 + 3, bx, y2 + 10);
                 e.Graphics.DrawLine(Pens.Gold, bx + w - 1, y2 + 3, bx + w - 1, y2 + 10);
 
-                int vel = (int)(w * velocities[i]);
+                float px = bx + (w / 2) + (w / 2 * pans[i]);
                 var brush = new LinearGradientBrush(new Point(bx, 10), new Point(bx + w, 10), Color.FromArgb(velocity, barColor), Color.Purple);
-                var rect = new Rectangle(bx + (w / 2) - (vel / 2) - 1, y1 + 3, vel, 19);
+                e.Graphics.DrawLine(Pens.OrangeRed, px, y1 + 3, px, y1 + 3 + 19); // Pan line
+
+                float percentRight = (pans[i] + 1) * velocities[i] / 2,
+                    percentLeft = (-pans[i] + 1) * velocities[i] / 2;
+
+                var rect = new Rectangle((int)(bx + (w / 2) - (percentLeft * w / 2)), y1 + 3, (int)((percentLeft + percentRight) * w / 2), 19);
+                if (pans[i] != 0)
+                    ;
                 e.Graphics.FillRectangle(brush, rect);
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
 

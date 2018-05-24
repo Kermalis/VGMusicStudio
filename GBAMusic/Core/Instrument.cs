@@ -13,6 +13,7 @@ namespace GBAMusic.Core
         byte NoteVelocity;
         int Velocity;
         internal float Volume { get { return ((NoteVelocity / 127f) * Velocity) / 255f; } }
+        internal float Panpot { get { return (ForcedPan != 0x7F ? ForcedPan : Track.Pan) / 64f; } }
         internal ulong Age { get; private set; }
 
         internal Track Track { get; private set; }
@@ -20,9 +21,16 @@ namespace GBAMusic.Core
 
         byte A, D, S, R, stage;
         bool FixedFrequency;
+        sbyte ForcedPan; // 0x7F counts as disabled
 
+        internal void UpdatePanpot()
+        {
+            if (Channel == null || Track == null) return; // Can remove once all types are playing
+            Channel.setPan(Panpot);
+        }
         void UpdateVolume()
         {
+            if (Channel == null || Track == null) return; // Can remove once all types are playing
             Channel.setVolume(Volume);
         }
         internal void UpdateFrequency()
@@ -36,6 +44,7 @@ namespace GBAMusic.Core
                 bendFrequency = (float)Math.Pow(2, (Track.Bend * Track.BendRange) / (float)(64 * 12)),
                 frequency = soundFrequency * noteFrequency * bendFrequency;
             Channel.setFrequency(FixedFrequency ? soundFrequency : frequency); // Not sure if fixed frequency ignores bends yet
+            UpdatePanpot();
             UpdateVolume();
             Channel.setPaused(false);
         }
@@ -54,18 +63,21 @@ namespace GBAMusic.Core
             Velocity = 0;
             stage = 0;
 
+            FixedFrequency = false;
+            ForcedPan = 0x7F;
+
             dynamic dyn = voice; // ADSR are in the same spot in each struct
             A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
 
             if (voice is DirectSound direct)
             {
                 FixedFrequency = direct.VoiceType == 0x8;
+                if (direct.Panpot >= 0x80) ForcedPan = (sbyte)((direct.Panpot ^ 0x80) - 64);
                 system.playSound(sounds[direct.Address], Track.Group, true, out FMOD.Channel c);
                 Channel = c;
             }
             else // GB instrument
             {
-                FixedFrequency = false;
                 if (voice is SquareWave1 || voice is SquareWave2)
                 {
                     uint id = MusicPlayer.SQUARE12_ID - dyn.Pattern;

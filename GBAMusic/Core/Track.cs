@@ -12,7 +12,7 @@ namespace GBAMusic.Core
             Delay,
             PrevCmd, PrevNote, PrevVelocity,
             BendRange, MODDepth, MODType;
-        internal sbyte Bend;
+        internal sbyte Bend, Pan;
         internal bool Stopped;
         internal uint EndOfPattern;
 
@@ -34,7 +34,7 @@ namespace GBAMusic.Core
                 = Delay
                 = PrevCmd = PrevNote = PrevVelocity
                 = BendRange = MODDepth = MODType = 0;
-            Bend = 0;
+            Bend = Pan = 0;
             Stopped = false;
             EndOfPattern = 0;
         }
@@ -49,9 +49,12 @@ namespace GBAMusic.Core
         void UpdateFrequencies()
         {
             foreach (Instrument i in Instruments)
-            {
                 i.UpdateFrequency();
-            }
+        }
+        void UpdatePanpots()
+        {
+            foreach (Instrument i in Instruments)
+                i.UpdatePanpot();
         }
         void UpdateModulation()
         {
@@ -67,7 +70,11 @@ namespace GBAMusic.Core
             Volume = b;
             Group.setVolume(b / 127f);
         }
-        internal void SetPan(byte b) => Group.setPan((b - 64) / 64f);
+        internal void SetPan(byte b)
+        {
+            Pan = (sbyte)(b - 64);
+            UpdatePanpots();
+        }
         internal void SetBend(byte b)
         {
             Bend = (sbyte)(b - 64);
