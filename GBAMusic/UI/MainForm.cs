@@ -40,6 +40,7 @@ namespace GBAMusic.UI
             };
             if (d.ShowDialog() != DialogResult.OK) return;
 
+            Stop(null, null);
             ROM.LoadROM(d.FileName);
             // Set song numerical num
             codeLabel.Text = ROM.Instance.GameCode;
@@ -66,12 +67,9 @@ namespace GBAMusic.UI
         void Stop(object sender, EventArgs e)
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
-            player.Stop();
-        }
-        
-        void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
             if (player != null) player.Stop();
         }
+        
+        void MainForm_FormClosing(object sender, FormClosingEventArgs e) => Stop(null, null);
     }
 }
