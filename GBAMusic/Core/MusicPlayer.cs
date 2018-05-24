@@ -40,10 +40,10 @@ namespace GBAMusic.Core
             for (uint i = 0; i < 4; i++)
             {
                 for (int j = 0; j < len; j++)
-                    buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 0xFF : 0x0);
+                    buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 72 : 0x0);
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
-                    defaultfrequency = 112640,
+                    defaultfrequency = 44100,
                     format = FMOD.SOUND_FORMAT.PCM8,
                     length = len,
                     numchannels = 1
@@ -94,6 +94,8 @@ namespace GBAMusic.Core
                 tracks[i].Init(header.Tracks[i]);
             voiceTable = new VoiceTable();
             voiceTable.LoadDirectSamples(header.VoiceTable, system, sounds);
+
+            new SF2Saver(sounds); // Testing
 
             SetTempo(120);
             timer.Start();
@@ -161,7 +163,7 @@ namespace GBAMusic.Core
                 Instrument[] instruments = tracks[i].Instruments.ToArray(); // Need thread-safe
                 pans[i] = instruments.Length == 0 ? 0 : instruments.OrderByDescending(ins => ins.Volume).ElementAt(0).Panpot;
                 notes[i] = instruments.Length == 0 ? new byte[0] : instruments.Select(ins => ins.Note).Distinct().ToArray();
-                velocities[i] = instruments.Length == 0 ? 0 : instruments.Select(ins => ins.Volume).Max();
+                velocities[i] = instruments.Length == 0 ? 0 : instruments.Select(ins => ins.Volume).Max() * (volumes[i] / 100f); // Not 127 since I want it to overflow sometimes
             }
             return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans);
         }

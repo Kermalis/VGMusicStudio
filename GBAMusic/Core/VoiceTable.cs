@@ -60,13 +60,13 @@ namespace GBAMusic.Core
             }
             var ex = new FMOD.CREATESOUNDEXINFO()
             {
-                defaultfrequency = 112640, // Wrong
+                defaultfrequency = 22050,
                 format = FMOD.SOUND_FORMAT.PCM16,
                 length = 32,
                 numchannels = 1
             };
             if (system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd) == FMOD.RESULT.OK)
-                sounds.Add(wave.Address, snd); // Wrong frequency
+                sounds.Add(wave.Address, snd);
         }
 
         internal VoiceTable() => voices = new Voice[256]; // It is possible to play notes outside of the 128 range

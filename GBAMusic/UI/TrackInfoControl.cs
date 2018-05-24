@@ -45,9 +45,9 @@ namespace GBAMusic.UI
             e.Graphics.FillRectangle(Brushes.Black, 0, 0, Width, Height);
 
             int my = 24;
-            e.Graphics.DrawString("Position", Font, Brushes.Lime, 0, 4);
-            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, 50, 4);
-            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, 85, 4);
+            e.Graphics.DrawString("Position", Font, Brushes.Lime, 0, 5);
+            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, 50, 5);
+            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, 85, 5);
             e.Graphics.DrawLine(Pens.Gold, 0, my, Width, my);
 
             if (player == null) return;
@@ -80,8 +80,6 @@ namespace GBAMusic.UI
                     percentLeft = (-pans[i] + 1) * velocities[i] / 2;
 
                 var rect = new Rectangle((int)(bx + (w / 2) - (percentLeft * w / 2)), y1 + 3, (int)((percentLeft + percentRight) * w / 2), 19);
-                if (pans[i] != 0)
-                    ;
                 e.Graphics.FillRectangle(brush, rect);
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
 

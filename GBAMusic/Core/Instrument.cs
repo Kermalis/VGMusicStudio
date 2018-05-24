@@ -69,23 +69,26 @@ namespace GBAMusic.Core
             dynamic dyn = voice; // ADSR are in the same spot in each struct
             A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
 
+            FMOD.Sound sound = null;
+
             if (voice is DirectSound direct)
             {
                 FixedFrequency = direct.VoiceType == 0x8;
                 if (direct.Panpot >= 0x80) ForcedPan = (sbyte)((direct.Panpot ^ 0x80) - 64);
-                system.playSound(sounds[direct.Address], Track.Group, true, out FMOD.Channel c);
-                Channel = c;
+                sound = sounds[direct.Address];
             }
             else // GB instrument
             {
                 if (voice is SquareWave1 || voice is SquareWave2)
-                {
-                    uint id = MusicPlayer.SQUARE12_ID - dyn.Pattern;
-                    system.playSound(sounds[id], Track.Group, true, out FMOD.Channel c);
-                    Channel = c;
-                }
+                    sound = sounds[MusicPlayer.SQUARE12_ID - dyn.Pattern];
+                //else if (voice is GBWave wave)
+                //    sound = sounds[wave.Address];
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
+            if (sound == null) return;
+
+            system.playSound(sound, Track.Group, true, out FMOD.Channel c);
+            Channel = c;
             if (A == 0) A = 255;
             UpdateFrequency();
             track.Instruments.Add(this);

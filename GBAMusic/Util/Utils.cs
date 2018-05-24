@@ -3,9 +3,9 @@ using System.Globalization;
 
 namespace GBAMusic.Util
 {
-    internal class Utils
+    public static class Utils
     {
-        internal static int ParseInt(string value)
+        public static int ParseInt(string value)
         {
             var provider = new CultureInfo("en-US");
             if (value.StartsWith("0x")) value = value.Substring(2);

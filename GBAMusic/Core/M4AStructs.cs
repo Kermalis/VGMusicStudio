@@ -20,8 +20,7 @@ namespace GBAMusic.Core
         [StructLayout(LayoutKind.Sequential)]
         internal struct Sample
         {
-            public ushort Padding;
-            public ushort DoesLoop; // Will be 0x4000 if true
+            public uint DoesLoop; // Will be 0x40000000 if true
             public uint Frequency; // Divide this by 1024
             public uint LoopPoint;
             public uint Length;

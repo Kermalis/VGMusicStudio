@@ -55,11 +55,15 @@
     <Compile Include="Core\MusicPlayer.cs" />
     <Compile Include="Core\ROM.cs" />
     <Compile Include="Core\ROMReader.cs" />
+    <Compile Include="Core\SF2Saver.cs" />
     <Compile Include="Core\Track.cs" />
     <Compile Include="Core\VoiceTable.cs" />
     <Compile Include="FMOD\fmod.cs" />
     <Compile Include="FMOD\fmod_dsp.cs" />
     <Compile Include="FMOD\fmod_errors.cs" />
+    <Compile Include="Soundfont\SF2.cs" />
+    <Compile Include="Soundfont\SF2Chunks.cs" />
+    <Compile Include="Soundfont\SF2Types.cs" />
     <Compile Include="UI\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
