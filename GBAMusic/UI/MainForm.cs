@@ -14,11 +14,12 @@ namespace GBAMusic.UI
         public MainForm()
         {
             InitializeComponent();
+            FormClosing += MainForm_FormClosing;
             timer1.Tick += Timer1_Tick;
             codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
         }
 
-        private void Timer1_Tick(object sender, EventArgs e)
+        void Timer1_Tick(object sender, EventArgs e)
         {
             if (stopUI)
             {
@@ -30,7 +31,7 @@ namespace GBAMusic.UI
             tempoLabel.Text = string.Format("Tempo - {0}", tempo);
         }
 
-        private void OpenROM(object sender, EventArgs e)
+        void OpenROM(object sender, EventArgs e)
         {
             var d = new OpenFileDialog
             {
@@ -50,22 +51,27 @@ namespace GBAMusic.UI
             playButton.Enabled = true;
         }
 
-        private void Play(object sender, EventArgs e)
+        void Play(object sender, EventArgs e)
         {
             timer1.Interval = (int)(1000f / refreshRate);
             timer1.Start();
             player.Play((ushort)songNumerical.Value);
             pauseButton.Enabled = stopButton.Enabled = true;
         }
-        private void Pause(object sender, EventArgs e)
+        void Pause(object sender, EventArgs e)
         {
             stopButton.Enabled = player.State != State.Playing;
             player.Pause();
         }
-        private void Stop(object sender, EventArgs e)
+        void Stop(object sender, EventArgs e)
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
             player.Stop();
+        }
+        
+        void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (player != null) player.Stop();
         }
     }
 }
