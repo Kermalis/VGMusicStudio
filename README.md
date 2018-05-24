@@ -9,7 +9,6 @@ A tool that is designed to be an updated Sappy.
 * Fix frequencies of SquareWave instruments
 * Fix playing a song while one is already playing stopping at first
 * Config & UI
-* Fix only DirectSound instruments stopping when the song ends
 * Add reverse playback
 * Add pitch & volume modulation
 * Add support for MIDI keyboards

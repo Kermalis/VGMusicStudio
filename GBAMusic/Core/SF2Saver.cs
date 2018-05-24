@@ -32,7 +32,8 @@ namespace GBAMusic.Core
         {
             sf2 = new SF2();
 
-            AddSample(sounds[0x86FF65C], "test");
+            foreach (var instrument in sounds)
+                AddSample(instrument.Value, "test");
 
             sf2.Write("test.sf2");
         }

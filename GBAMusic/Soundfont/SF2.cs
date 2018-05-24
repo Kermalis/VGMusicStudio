@@ -34,7 +34,7 @@ namespace GBAMusic.SoundFont
         {
             ushort len = (ushort)pcm16.Length;
             uint dir_offset = sdtalist_chunk.smpl_subchunk.AddSample(pcm16, len, bLoop, loop_pos);
-            // If the sample is looped const SF2 standard requires we add the 8 bytes from the start of the loop at the end
+            // If the sample is looped the standard requires us to add the 8 bytes from the start of the loop to the end
             uint dir_end, dir_loop_end, dir_loop_start;
 
             if (bLoop)

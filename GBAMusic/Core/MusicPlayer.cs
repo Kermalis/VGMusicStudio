@@ -117,7 +117,7 @@ namespace GBAMusic.Core
         internal void Stop()
         {
             timer.Stop();
-            foreach (Instrument i in dsInstruments)
+            foreach (Instrument i in dsInstruments.Union(gbInstruments))
                 i.Stop();
             State = State.Stopped;
         }
