@@ -19,6 +19,6 @@ A tool that is designed to be an updated Sappy.
 * Add KEYSH
 * Add "note off with noise" for SquareWaves
 * Add base note (especially for drums)
-* Fix minor popping (I think it's the notes releasing too early)
+* Fix minor popping (I think it's loop points)
 * Fix notes deciding not to play at all
 * Make MusicPlayer a singleton

@@ -163,11 +163,11 @@ namespace GBAMusic.Core
                 modulations[i] = tracks[i].MODDepth;
                 bends[i] = tracks[i].Bend * tracks[i].BendRange;
 
-                List<Instrument> instruments = tracks[i].Instruments.Clone();
-                bool none = instruments.Count == 0;
-                Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins == null ? 0 : ins.Volume).ElementAt(0);
-                pans[i] = none ? 0 : loudest.Panpot;
-                notes[i] = none ? new byte[0] : instruments.Select(ins => ins == null ? (byte)0xFF : ins.Note).Except(new byte[] { 0xFF }).Distinct().ToArray();
+                Instrument[] instruments = tracks[i].Instruments.Clone().Where(ins => ins != null && ins.Playing).ToArray();
+                bool none = instruments.Length == 0;
+                Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins.Volume).ElementAt(0);
+                pans[i] = none ? tracks[i].Pan / 64f : loudest.Panpot;
+                notes[i] = none ? new byte[0] : instruments.Select(ins => ins.Note).Distinct().ToArray();
                 velocities[i] = none ? 0 : loudest.Volume * (volumes[i] / 127f);
             }
             return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans);
