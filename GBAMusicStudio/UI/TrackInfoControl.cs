@@ -45,6 +45,8 @@ namespace GBAMusicStudio.UI
             e.Graphics.DrawString("Delay", Font, Brushes.Crimson, 50, 5);
             e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, 85, 5);
             e.Graphics.DrawLine(Pens.Gold, 0, my, Width, my);
+
+            if (Core.MusicPlayer.Instance == null) return; // MainForm being viewed in Visual Studio designer
             
             var (_, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans, types) = Core.MusicPlayer.Instance.GetTrackStates();
             for (int i = 0; i < positions.Length; i++)

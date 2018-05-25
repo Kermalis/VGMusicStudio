@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -52,7 +53,7 @@
             this.fileToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(515, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(627, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -135,6 +136,7 @@
             this.creatorLabel.Name = "creatorLabel";
             this.creatorLabel.Size = new System.Drawing.Size(63, 13);
             this.creatorLabel.TabIndex = 8;
+            this.codeLabel.Text = "Game Creator";
             this.creatorLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // gameLabel
@@ -144,6 +146,7 @@
             this.gameLabel.Name = "gameLabel";
             this.gameLabel.Size = new System.Drawing.Size(63, 13);
             this.gameLabel.TabIndex = 9;
+            this.codeLabel.Text = "Game Name";
             this.gameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // codeLabel
@@ -179,6 +182,7 @@
             this.Controls.Add(this.trackInfoControl1);
             this.Controls.Add(this.playButton);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "GBA Music Studio";
