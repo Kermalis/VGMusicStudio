@@ -93,7 +93,7 @@ namespace GBAMusic.UI
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
 
                 var strSize = e.Graphics.MeasureString(types[i], Font);
-                e.Graphics.DrawString(types[i], Font, Brushes.Azure, Width - 10 - strSize.Width, ly + 3);
+                e.Graphics.DrawString(types[i], Font, Brushes.Azure, Width - 8 - strSize.Width, ly + 3);
 
                 e.Graphics.DrawString(string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simpleNotes[n % 12], (n / 12) - 2))), Font, Brushes.Turquoise, 85, y1);
             }
