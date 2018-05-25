@@ -17,7 +17,7 @@ namespace GBAMusicStudio.UI
             FormClosing += MainForm_FormClosing;
             timer1.Tick += Timer1_Tick;
             MusicPlayer.Instance.SongEnded += () => stopUI = true;
-            codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
+            codeLabel.Text = gameLabel.Text = creatorLabel.Text = tempoLabel.Text = "";
         }
 
         void Timer1_Tick(object sender, EventArgs e)
@@ -27,8 +27,8 @@ namespace GBAMusicStudio.UI
                 Stop(null, null);
                 return;
             }
-            trackInfoControl1.Invalidate();
-            var (tempo, _, _, _, _, _, _, _, _, _, _) = MusicPlayer.Instance.GetTrackStates();
+            var (tempo, positions, volumes, delays, notes, velocities, voices, mods, bends, pans, types) = MusicPlayer.Instance.GetTrackStates();
+            trackInfoControl1.ReceiveData(positions, volumes, delays, notes, velocities, voices, mods, bends, pans, types);
             tempoLabel.Text = string.Format("Tempo - {0}", tempo);
         }
 
@@ -45,7 +45,7 @@ namespace GBAMusicStudio.UI
             new ROM(d.FileName);
 
             // Set song numerical num
-            Text = "GBA Music Studio - " + Path.GetFileNameWithoutExtension(d.FileName);
+            Text = "GBA Music Studio - " + Path.GetFileName(d.FileName); // Make song name instead
             codeLabel.Text = ROM.Instance.GameCode;
             gameLabel.Text = ROM.Instance.Config.GameName;
             creatorLabel.Text = ROM.Instance.Config.CreatorName;
@@ -67,8 +67,9 @@ namespace GBAMusicStudio.UI
         void Stop(object sender, EventArgs e)
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
-            MusicPlayer.Instance.Stop();
+            tempoLabel.Text = "";
             timer1.Stop();
+            MusicPlayer.Instance.Stop();
             trackInfoControl1.Invalidate();
         }
         
