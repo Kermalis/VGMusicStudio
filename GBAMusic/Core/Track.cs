@@ -10,7 +10,7 @@ namespace GBAMusic.Core
 
         internal byte Voice, Volume, Priority,
             Delay,
-            PrevCmd, PrevNote, PrevVelocity,
+            RunCmd, PrevNote, PrevVelocity,
             BendRange, MODDepth, MODType;
         internal sbyte Bend, Pan;
         internal bool Stopped;
@@ -32,7 +32,7 @@ namespace GBAMusic.Core
             SetOffset(offset);
             Voice = Volume = Priority
                 = Delay
-                = PrevCmd = PrevNote = PrevVelocity
+                = RunCmd = PrevNote = PrevVelocity
                 = BendRange = MODDepth = MODType = 0;
             Bend = Pan = 0;
             Stopped = false;

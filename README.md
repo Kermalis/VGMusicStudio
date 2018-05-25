@@ -17,5 +17,4 @@ A tool that is designed to be an updated Sappy.
 * Add SquareWave sweeping
 * Add KEYSH
 * Add "note off with noise" for SquareWaves
-* Fix commands deciding not to work sometimes (idek)
 * Make MusicPlayer a singleton

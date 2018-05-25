@@ -268,16 +268,18 @@ namespace GBAMusic.Core
             }
 
             instrument.Stop();
-            instrument.Play(track, system, sounds, voice, new_note, track.PrevCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.PrevCmd));
+            instrument.Play(track, system, sounds, voice, new_note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
         }
 
         void ExecuteNext(Track track)
         {
             byte cmd = track.ReadByte();
+            if (cmd >= 0xBD) // Commands that work within running status
+                track.RunCmd = cmd;
 
             #region TIE & Notes
 
-            if (track.PrevCmd >= 0xCF && cmd < 0x80)
+            if (track.RunCmd >= 0xCF && cmd < 0x80) // Within running status
             {
                 var o = track.Position;
                 byte peek1 = track.ReadByte(),
@@ -289,7 +291,6 @@ namespace GBAMusic.Core
             }
             else if (cmd >= 0xCF)
             {
-                track.PrevCmd = cmd;
                 var o = track.Position;
                 byte peek1 = track.ReadByte(),
                     peek2 = track.ReadByte(),
@@ -314,23 +315,22 @@ namespace GBAMusic.Core
 
             #region Commands
 
-            else if (track.PrevCmd < 0xCF && cmd < 0x80)
+            else if (track.RunCmd < 0xCF && cmd < 0x80) // Commands within running status
             {
-                switch (track.PrevCmd)
+                switch (track.RunCmd)
                 {
-                    case 0xBD: track.Voice = cmd; break;
-                    case 0xBE: track.SetVolume(cmd); break;
-                    case 0xBF: track.SetPan(cmd); break;
-                    case 0xC0: track.SetBend(cmd); break;
-                    case 0xC1: track.SetBendRange(cmd); break;
-                    case 0xC4: track.SetMODDepth(cmd); break;
-                    case 0xC5: track.SetMODType(cmd); break;
-                    case 0xCD: track.ReadByte(); break; // This command takes an argument
+                    case 0xBD: track.Voice = cmd; break; // VOICE
+                    case 0xBE: track.SetVolume(cmd); break; // VOL
+                    case 0xBF: track.SetPan(cmd); break; // PAN
+                    case 0xC0: track.SetBend(cmd); break; // BEND
+                    case 0xC1: track.SetBendRange(cmd); break; // BENDR
+                    case 0xC4: track.SetMODDepth(cmd); break; // MOD
+                    case 0xC5: track.SetMODType(cmd); break; // MODT
+                    case 0xCD: track.ReadByte(); break; // XCMD
                 }
             }
             else if (cmd > 0xB0 && cmd < 0xCF)
             {
-                track.PrevCmd = cmd;
                 switch (cmd)
                 {
                     case 0xB1: track.Stopped = true; break; // FINE
@@ -352,11 +352,12 @@ namespace GBAMusic.Core
                     case 0xBA: track.SetPriority(track.ReadByte()); break; // PRIO
                     case 0xBB: SetTempo((ushort)(track.ReadByte() * 2)); break; // TEMPO
                     case 0xBC: track.ReadByte(); break; // KEYSH
-                    case 0xBD: track.Voice = cmd; break;
-                    case 0xBE: track.SetVolume(track.ReadByte()); break;
-                    case 0xBF: track.SetPan(track.ReadByte()); break;
-                    case 0xC0: track.SetBend(track.ReadByte()); break;
-                    case 0xC1: track.SetBendRange(track.ReadByte()); break;
+                                                        // Commands that work within running status:
+                    case 0xBD: track.Voice = cmd; break; // VOICE
+                    case 0xBE: track.SetVolume(track.ReadByte()); break; // VOL
+                    case 0xBF: track.SetPan(track.ReadByte()); break; // PAN
+                    case 0xC0: track.SetBend(track.ReadByte()); break; // BEND
+                    case 0xC1: track.SetBendRange(track.ReadByte()); break; // BENDR
                     case 0xC2: track.ReadByte(); break; // LFOS
                     case 0xC3: track.ReadByte(); break; // LFODL
                     case 0xC4: track.SetMODDepth(track.ReadByte()); break;
@@ -378,6 +379,7 @@ namespace GBAMusic.Core
                         if (i != null)
                             i.TriggerRelease();
                         break;
+                    default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", track.Position, cmd); break;
                 }
             }
 
