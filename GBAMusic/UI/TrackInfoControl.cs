@@ -28,7 +28,7 @@ namespace GBAMusic.UI
             AutoScaleMode = AutoScaleMode.Font;
             DoubleBuffered = true;
             Name = "TrackInfoControl";
-            Size = new Size(350, 36 * 16);
+            Size = new Size(375, 27 + 36 * 16);
             Paint += TrackInfoControl_Paint;
             ResumeLayout(false);
         }
@@ -51,7 +51,7 @@ namespace GBAMusic.UI
             e.Graphics.DrawLine(Pens.Gold, 0, my, Width, my);
 
             if (player == null) return;
-            var (_, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans) = player.GetTrackStates();
+            var (_, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans, types) = player.GetTrackStates();
             for (int i = 0; i < positions.Length; i++)
             {
                 int y1 = my + 3 + i * 36;
@@ -61,6 +61,7 @@ namespace GBAMusic.UI
 
                 e.Graphics.DrawString(string.Format("0x{0:X}", positions[i]), Font, Brushes.Lime, 0, y1);
                 e.Graphics.DrawString(delays[i].ToString(), Font, Brushes.Crimson, 65, y1);
+                // notes
 
                 e.Graphics.DrawString(voices[i].ToString(), Font, Brushes.OrangeRed, 15, y2);
                 e.Graphics.DrawString(velocity.ToString(), Font, Brushes.PeachPuff, 40, y2);
@@ -90,6 +91,9 @@ namespace GBAMusic.UI
                     new LinearGradientBrush(new Point(bx, 10), new Point(bx + w, 10), Color.FromArgb(velocity, barColor), Color.Purple),
                     rect);
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
+
+                var strSize = e.Graphics.MeasureString(types[i], Font);
+                e.Graphics.DrawString(types[i], Font, Brushes.Azure, Width - 10 - strSize.Width, ly + 3);
 
                 e.Graphics.DrawString(string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simpleNotes[n % 12], (n / 12) - 2))), Font, Brushes.Turquoise, 85, y1);
             }

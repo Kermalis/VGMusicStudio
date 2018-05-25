@@ -6,9 +6,9 @@ namespace GBAMusic.Core
 {
     internal class VoiceTable
     {
-        readonly Voice[] voices;
+        readonly SVoice[] voices;
 
-        internal Voice this[int i]
+        internal SVoice this[int i]
         {
             get => voices[i];
             private set => voices[i] = value;
@@ -19,7 +19,7 @@ namespace GBAMusic.Core
             if (direct.Address == 0 || sounds.ContainsKey(direct.Address)) return;
             Sample s = ROM.Instance.ReadStruct<Sample>(direct.Address);
             if (s.Length == 0) return;
-            var buf = new byte[s.Length + 32]; // FMOD API requires 16 bytes of padding on each side
+            var buf = new byte[16 + s.Length + 16]; // FMOD API requires 16 bytes of padding on each side
             Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 16, (int)s.Length);
             for (int i = 0; i < s.Length; i++)
                 buf[i + 16] ^= 0x80; // Convert from u8 to s8
@@ -34,7 +34,7 @@ namespace GBAMusic.Core
             {
                 if (s.DoesLoop != 0)
                 {
-                    snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length - 1, FMOD.TIMEUNIT.PCM);
+                    snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length, FMOD.TIMEUNIT.PCM);
                     snd.setMode(FMOD.MODE.LOOP_NORMAL);
                 }
                 sounds.Add(direct.Address, snd);
@@ -43,33 +43,35 @@ namespace GBAMusic.Core
         void LoadWave(GBWave wave, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
         {
             if (wave.Address == 0 || sounds.ContainsKey(wave.Address)) return;
-            var buf = new byte[32 + 32]; // FMOD API requires 16 bytes of padding on each side
-            for (uint i = 0; i < 16; i++)
+            uint rept = 4;
+            uint byteLen = 16 * rept * 2 * 2;
+            var buf16 = new short[byteLen / 2];
+            for (uint i = 0, j = 0; i < 16; i++)
             {
                 byte b = ROM.Instance.ReadByte(wave.Address + i);
-                int h_nibble = b >> 4;
-                int l_nibble = b & 0xF;
-                h_nibble = (h_nibble > 8) ?
-                        0x80 + (9 * (h_nibble - 8)) :
-                        0x40 + (8 * h_nibble);
-                l_nibble = (l_nibble > 8) ?
-                        0x80 + (9 * (l_nibble - 8)) :
-                        0x40 + (8 * l_nibble);
-                buf[(i * 2) + 16] = (byte)h_nibble;
-                buf[(i * 2) + 17] = (byte)l_nibble;
+
+                short[] simple = { -0x4000, -0x3800, -0x3000, -0x2800, -0x2000, -0x1800, -0x0100, -0x0800,
+                        0x0000, 0x0800, 0x1000, 0x1800, 0x2000, 0x2800, 0x3000, 0x3800 };
+
+                for (int k = 0; k < rept; k++, j++)
+                    buf16[j] = simple[b >> 4];
+                for (int k = 0; k < rept; k++, j++)
+                    buf16[j] = simple[b & 0xF];
             }
             var ex = new FMOD.CREATESOUNDEXINFO()
             {
-                defaultfrequency = 22050,
+                defaultfrequency = (int)(22050 * Math.Pow(2, (-1 / 12f))), // Still trying to figure it out
                 format = FMOD.SOUND_FORMAT.PCM16,
-                length = 32,
+                length = byteLen,
                 numchannels = 1
             };
-            if (system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd) == FMOD.RESULT.OK)
+            var buf8 = new byte[16 + byteLen + 16]; // FMOD API requires 16 bytes of padding on each side
+            Buffer.BlockCopy(buf16, 0, buf8, 16, (int)byteLen);
+            if (system.createSound(buf8, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd) == FMOD.RESULT.OK)
                 sounds.Add(wave.Address, snd);
         }
 
-        internal VoiceTable() => voices = new Voice[256]; // It is possible to play notes outside of the 128 range
+        internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 range
         internal void LoadDirectSamples(uint table, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
         {
             for (uint i = 0; i < 128; i++)
@@ -80,30 +82,30 @@ namespace GBAMusic.Core
                     case 0x0:
                     case 0x8:
                         var direct = ROM.Instance.ReadStruct<DirectSound>(offset);
-                        voices[i] = new Voice(direct);
+                        voices[i] = new SVoice(direct);
                         LoadDirect(direct, system, sounds);
                         break;
                     case 0x1:
                     case 0x9:
-                        voices[i] = new Voice(ROM.Instance.ReadStruct<SquareWave1>(offset));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<SquareWave1>(offset));
                         break;
                     case 0x2:
                     case 0xA:
-                        voices[i] = new Voice(ROM.Instance.ReadStruct<SquareWave2>(offset));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<SquareWave2>(offset));
                         break;
                     case 0x3:
                     case 0xB:
                         var wave = ROM.Instance.ReadStruct<GBWave>(offset);
-                        voices[i] = new Voice(wave);
+                        voices[i] = new SVoice(wave);
                         LoadWave(wave, system, sounds);
                         break;
                     case 0x4:
                     case 0xC:
-                        voices[i] = new Voice(ROM.Instance.ReadStruct<Noise>(offset));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<Noise>(offset));
                         break;
                     case 0x40:
                         var keySplit = ROM.Instance.ReadStruct<KeySplit>(offset);
-                        var multi = new Multi(keySplit);
+                        var multi = new SMulti(keySplit);
                         voices[i] = multi;
                         for (uint j = 0; j < 128; j++)
                         {
@@ -111,13 +113,13 @@ namespace GBAMusic.Core
                             var ds = ROM.Instance.ReadStruct<DirectSound>(keySplit.Table + (uint)(key * 0xC));
                             if (ds.VoiceType == 0x0 || ds.VoiceType == 0x8)
                             {
-                                multi.Table[key] = new Voice(ds);
+                                multi.Table[key] = new SVoice(ds);
                                 LoadDirect(ds, system, sounds);
                             }
                         }
                         break;
                     case 0x80:
-                        voices[i] = new Drum(ROM.Instance.ReadStruct<SDrum>(offset), system, sounds);
+                        voices[i] = new SDrum(ROM.Instance.ReadStruct<Drum>(offset), system, sounds);
                         break;
                 }
             }

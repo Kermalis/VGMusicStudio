@@ -75,7 +75,7 @@
             // playButton
             // 
             this.playButton.Enabled = false;
-            this.playButton.Location = new System.Drawing.Point(350, 27);
+            this.playButton.Location = new System.Drawing.Point(375, 24);
             this.playButton.Name = "playButton";
             this.playButton.Size = new System.Drawing.Size(75, 23);
             this.playButton.TabIndex = 1;
@@ -85,7 +85,7 @@
             // 
             // songNumerical
             // 
-            this.songNumerical.Location = new System.Drawing.Point(430, 27);
+            this.songNumerical.Location = new System.Drawing.Point(455, 24);
             this.songNumerical.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -99,7 +99,7 @@
             // stopButton
             // 
             this.stopButton.Enabled = false;
-            this.stopButton.Location = new System.Drawing.Point(430, 56);
+            this.stopButton.Location = new System.Drawing.Point(455, 56);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(75, 23);
             this.stopButton.TabIndex = 4;
@@ -110,7 +110,7 @@
             // pauseButton
             // 
             this.pauseButton.Enabled = false;
-            this.pauseButton.Location = new System.Drawing.Point(350, 56);
+            this.pauseButton.Location = new System.Drawing.Point(375, 56);
             this.pauseButton.Name = "pauseButton";
             this.pauseButton.Size = new System.Drawing.Size(75, 23);
             this.pauseButton.TabIndex = 5;
@@ -121,7 +121,7 @@
             // tempoLabel
             // 
             this.tempoLabel.AutoSize = true;
-            this.tempoLabel.Location = new System.Drawing.Point(354, 82);
+            this.tempoLabel.Location = new System.Drawing.Point(379, 82);
             this.tempoLabel.Name = "tempoLabel";
             this.tempoLabel.Size = new System.Drawing.Size(67, 13);
             this.tempoLabel.TabIndex = 6;
@@ -131,7 +131,7 @@
             // creatorLabel
             // 
             this.creatorLabel.AutoSize = true;
-            this.creatorLabel.Location = new System.Drawing.Point(357, 198);
+            this.creatorLabel.Location = new System.Drawing.Point(385, 198);
             this.creatorLabel.Name = "creatorLabel";
             this.creatorLabel.Size = new System.Drawing.Size(63, 13);
             this.creatorLabel.TabIndex = 8;
@@ -140,7 +140,7 @@
             // gameLabel
             // 
             this.gameLabel.AutoSize = true;
-            this.gameLabel.Location = new System.Drawing.Point(356, 211);
+            this.gameLabel.Location = new System.Drawing.Point(385, 211);
             this.gameLabel.Name = "gameLabel";
             this.gameLabel.Size = new System.Drawing.Size(63, 13);
             this.gameLabel.TabIndex = 9;
@@ -149,7 +149,7 @@
             // codeLabel
             // 
             this.codeLabel.AutoSize = true;
-            this.codeLabel.Location = new System.Drawing.Point(357, 236);
+            this.codeLabel.Location = new System.Drawing.Point(385, 236);
             this.codeLabel.Name = "codeLabel";
             this.codeLabel.Size = new System.Drawing.Size(63, 13);
             this.codeLabel.TabIndex = 10;
@@ -159,16 +159,16 @@
             // trackInfoControl1
             // 
             this.trackInfoControl1.Font = new System.Drawing.Font("Microsoft Tai Le", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.trackInfoControl1.Location = new System.Drawing.Point(0, 27);
+            this.trackInfoControl1.Location = new System.Drawing.Point(0, 24);
             this.trackInfoControl1.Name = "trackInfoControl1";
-            this.trackInfoControl1.Size = new System.Drawing.Size(350, 576);
+            this.trackInfoControl1.Size = new System.Drawing.Size(375, 603);
             this.trackInfoControl1.TabIndex = 7;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(515, 650);
+            this.ClientSize = new System.Drawing.Size(627, 627);
             this.Controls.Add(this.codeLabel);
             this.Controls.Add(this.gameLabel);
             this.Controls.Add(this.creatorLabel);

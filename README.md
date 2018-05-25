@@ -6,10 +6,8 @@ A tool that is designed to be an updated Sappy.
 
 ## To Do (No particular order)
 
-* Fix pausing/stopping not always releasing the instruments
-* Fix playing a song while one is already playing stopping at first
-* Add Noise & Wave instruments
-* Fix frequencies of SquareWave instruments
+* Add Noise instruments
+* Fix WAVE instrument frequency
 * Config & UI
 * Add reverse playback
 * Add pitch & volume modulation
@@ -18,7 +16,5 @@ A tool that is designed to be an updated Sappy.
 * Add SquareWave sweeping
 * Add KEYSH
 * Add "note off with noise" for SquareWaves
-* Add base note (especially for drums)
-* Fix minor popping (I think it's loop points)
-* Fix notes deciding not to play at all
+* Fix commands deciding not to work sometimes (idek)
 * Make MusicPlayer a singleton
