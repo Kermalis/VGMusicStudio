@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace GBAMusic.UI
+namespace GBAMusicStudio.UI
 {
     internal class TrackInfoControl : UserControl
     {

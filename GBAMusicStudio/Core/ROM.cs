@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 
-namespace GBAMusic.Core
+namespace GBAMusicStudio.Core
 {
     public class ROM : ROMReader
     {

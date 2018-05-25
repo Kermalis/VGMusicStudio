@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using static GBAMusic.Core.M4A.M4AStructs;
+using static GBAMusicStudio.Core.M4A.M4AStructs;
 
-namespace GBAMusic.Core.M4A
+namespace GBAMusicStudio.Core.M4A
 {
     enum ADSRState
     {

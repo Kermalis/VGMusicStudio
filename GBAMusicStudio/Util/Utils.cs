@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace GBAMusic.Util
+namespace GBAMusicStudio.Util
 {
     public static class Utils
     {

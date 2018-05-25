@@ -1,4 +1,4 @@
-﻿namespace GBAMusic.UI
+﻿namespace GBAMusicStudio.UI
 {
     partial class MainForm
     {
@@ -181,7 +181,7 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
-            this.Text = "GBAMusic by Kermalis";
+            this.Text = "GBA Music Studio";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.songNumerical)).EndInit();
@@ -192,7 +192,7 @@
 
         #endregion
 
-        private GBAMusic.UI.TrackInfoControl trackInfoControl1;
+        private GBAMusicStudio.UI.TrackInfoControl trackInfoControl1;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;

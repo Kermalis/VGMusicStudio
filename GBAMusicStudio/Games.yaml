@@ -3,114 +3,127 @@ AXVE:
   name: "Pokémon Ruby Version"
   creator: "Gamefreak"
   music:
-    0x19E: Introduction
-    0x1BA: The Pokémon!
-    0x19D: Title Screen
-    0x195: Littleroot Town
-    0x16B: Oldale Town
-    0x16A: Petalburg City
-    0x18F: Rustboro City
-    0x1AB: Dewford Town
-    0x1B1: Slateport City
-    0x18E: Verdanturf Town
-    0x1B5: Lavaridge Town
-    0x17E: Fortree City
-    0x198: Lilycove City
-    0x1BD: Sootopolis City
-    0x1A6: Evergrande City
-    0x167: Route Theme 1
-    0x168: Route Theme 2
-    0x169: Route Theme 3
-    0x176: Route Theme 4
-    0x191: Route Theme 5
-    0x192: Route Theme 6
-    0x1A2: Route Theme 7
-    0x199: The Sandy Desert
-    0x16E: Caves and Darkness
-    0x17D: A Far-away Place
-    0x1A9: Riding the Cable Car
-    0x182: Meteor Falls
-    0x1B2: The Fog of Mt. Pyre
-    0x1B0: Shoal Cave
-    0x1AD: Victory Road
-    0x1B6: Island Cave
-    0x196: Sky Pillar
-    0x16D: Surfing
-    0x193: Bicycle Ride
-    0x19B: Underwater Dive
-    0x1AF: Sailing the Sea
-    0x1BB: The Flood
-    0x1BC: Unknown Place
-    0x190: Pokémon Center
-    0x194: Pokémart
-    0x16C: Gym
-    0x1AE: Team Hideout
-    0x1C0: You're Being Watched!
-    0x1C4: Beauty Contest Lobby
-    0x175: Lilycove Museum
-    0x177: Slateport Museum
-    0x1B3: Pokémon Trainer School
-    0x17F: Birch's Lab
-    0x1AA: Game Corner
-    0x180: Battle Tower
-    0x1AC: Safari Zone
-    0x1B8: Beauty Contest
-    0x1BE: Berry Blending Results
-    0x1A4: Show Me Around
-    0x17C: Boy Encounter
-    0x197: Girl Encounter
-    0x1C1: Kid Encounter
-    0x17B: Tuber Encounter
-    0x181: Swimmer Encounter
-    0x18D: Ship Encounter
-    0x1C3: Sailor Encounter
-    0x1A0: Electric Encounter
-    0x1A1: Biker Encounter
-    0x1A3: Aqua Encounter
-    0x1B9: Magma Encounter
-    0x1A7: Psychic Encounter
-    0x1C6: Unknown Encounter
-    0x1C2: Elite Four Theme
-    0x19F: May's Theme
-    0x1A5: Brendan's Theme
-    0x1C5: What's On TV?
-    0x19A: Help Me!
-    0x188: Unknown Theme 1
-    0x1C9: Battle - Wild Pokémon
-    0x1D0: Battle - Rival
-    0x1CB: Battle - Pokémon Trainer
-    0x1CC: Battle - Gym Leader
-    0x1CA: Battle - Aqua/Magma
-    0x1D2: Battle - Team Leader
-    0x1D1: Battle - Elite Four
-    0x1CD: Battle - Champion Steven
-    0x1CE: Battle - Regirock, Regice and Registeel
-    0x1CF: Battle - Legendary Pokémon
-    0x161: Wild Pokémon Defeat w/Intro
-    0x160: Wild Pokémon Defeat
-    0x19C: Trainer Defeat
-    0x162: Gym Leader Defeat
-    0x1A8: Important Defeat
-    0x1B7: Important 2 Defeat
-    0x163: Acquired Badge
-    0x16F: Level Up
-    0x170: Pokémon Healed
-    0x171: Big Victory
-    0x172: Acquired Item
-    0x173: Pokémon Caught
-    0x174: Got TM/HM
-    0x183: Got a Berry
-    0x178: Evolve Intro
-    0x179: Evolving
-    0x184: Unknown Victory 1
-    0x185: Unknown Victory 2
-    0x186: Unknown Victory 3
-    0x17A: Unknown Victory 4
-    0x187: Pay No Attention!
-    0x1BF: Hall of Fame
-    0x1B4: You're the Champ!
-    0x1C7: Ending Credits
-    0x1C8: The End!
+    disc1:
+      0x19E: 'Opening Movie: Setting out on a Journey in the Hoenn Region'
+      0x1BA: 'Opening Movie: Double Battles'
+      0x19D: Title Screen
+      0x176: Introductions
+      0x195: Littleroot Town
+      0x17F: Birch Pokémon Lab
+      0x19F: May
+      0x19A: H-Help Me!
+      0x1C9: Battle! (Wild Pokémon)
+      0x161: Victory! (Wild Pokémon) (W|Intro)
+      0x167: Route 101
+      0x16B: Oldale Town
+      0x190: Pokémon Center
+      0x170: Pokémon Healed
+      0x17C: Trainers' Eyes Meet (Youngster)
+      0x197: Trainers' Eyes Meet (Lass)
+      0x1CB: Battle! (Trainer Battle)
+      0x19C: Victory! (Trainer Battle)
+      0x16F: Level Up!
+      0x16A: Petalburg City
+      0x1A4: Hurry Along
+      0x191: Route 104
+      0x16E: Petalburg Woods
+      0x1B9: Team Magma Appears!
+      0x1CA: Battle! (Team Aqua / Team Magma)
+      0x1A8: Victory! (Team Aqua / Team Magma)
+      0x18F: Rustboro City
+      0x1B3: Trainers' School
+      0x1AF: Crossing the Sea
+      0x1AB: Dewford Town
+      0x17B: Trainers' Eyes Meet (Tuber♀)
+      0x1B1: Slateport City
+      0x177: Oceanic Museum
+      0x168: Route 110
+      0x193: Cycling
+      0x1AA: Game Corner
+      0x186: Win
+      0x187: Lose
+      0x188: Reel Time
+      0x185: Jackpot
+      0x18E: Verdanturf Town
+      0x1A2: Route 113
+      0x1C1: Twins
+      0x1B5: Fallarbor Town
+      0x1A9: Cable Car
+      0x196: Mt. Chimney
+      0x1C3: Trainers' Eyes Meet (Hiker)
+      0x199: Route 111
+      0x16C: Pokémon Gym
+      0x1CC: Battle! (Gym Leader)
+      0x162: Victory! (Gym Leader)
+      0x171: Obtained a Badge!
+      0x174: Obtained a TM!
+      0x16D: Surf
+    disc2:
+      0x192: Route 119
+      0x17E: Fortree City
+      0x169: Route 120
+      0x1C5: Interviewers
+      0x1AC: Safari Zone
+      0x18D: Trainers' Eyes Meet (Gentleman)
+      0x198: Lilycove City
+      0x175: Museum
+      0x17A: Move Deleted
+      0x1A5: Brendan
+      0x1D0: Battle! (Brendan/May)
+      0x178: Evolution (Intro)
+      0x179: Evolution
+      0x173: Congratulations! Your Pokémon Evolved!
+      0x194: Poké Mart
+      0x1B0: Mt. Pyre
+      0x1A0: Trainers' Eyes Meet (Psychic)
+      0x1A7: Trainers' Eyes Meet (Hex Maniac)
+      0x1B2: Mt. Pyre Exterior
+      0x1AE: Hideout
+      0x172: Obtained an Item!
+      0x1A3: Team Aqua Appears!
+      0x1D2: Battle! (Team Aqua/Team Magma Leaders)
+      0x184: The Super-Ancient Pokémon Awaken!
+      0x1BC: Drought
+      0x1BB: Heavy Rain
+      0x19B: Dive
+      0x1BD: Sootopolis City
+      0x182: Cave of Origin
+      0x1CF: Battle! (Super-Ancient Pokémon)
+      0x181: Trainers' Eyes Meet (Swimmer♀)
+      0x1A6: Evergrande City
+      0x183: Obtained a Berry!
+      0x1C4: Contest Lobby
+      0x1B8: Pokémon Contest!
+      0x1BE: Results Announcement
+      0x1B7: Contest Winner
+      0x1B6: Sealed Chamber
+      0x1CE: Battle! (Regirock/Regice/Registeel)
+      0x1C0: The Trick House
+      0x17D: Abandoned Ship
+      0x180: Battle Tower
+      0x1AD: Victory Road
+      0x1A1: Trainers' Eyes Meet (Cooltrainer)
+      0x1C2: The Elite Four Appear!
+      0x1D1: Battle! (Elite Four)
+      0x1C6: Champion Steven
+      0x1CD: Battle! (Steven)
+      0x163: Victory! (Steven)
+      0x1BF: Room of Glory
+      0x1B4: The Hall of Fame
+      0x1C7: Ending Theme
+      0x1C8: The End
+    other:
+      0x160: Victory! (Wild Pokémon)
+      0x15E: Unused - TETSUJI
+      0x15F: Unused - Route 38
+      0x164: Unused - Pokémon Center (2)
+      0x165: Unused - Viridian City
+      0x166: Unused - Battle! (Entei/Raikou/Suicune)
+      0x189: Unused - Pokémon Contest! (2)
+      0x18A: Unused - Pokémon Contest! (3)
+      0x18B: Unused - Pokémon Contest! (4)
+      0x18C: Unused - Pokémon Contest! (5)
+      0x1D3: Unused - Team Rocket Appears!
 AXPE:
   songTable: 0x4554E8
   name: "Pokémon Sapphire Version"
@@ -121,7 +134,7 @@ BPRE:
   creator: "Gamefreak"
   music:
     0x100: Healing (RS)
-    0x101: Level Up 
+    0x101: Level Up! 
     0x107: Evolution Start
     0x108: Evolution/Safari
     0x109: Battle 1
@@ -144,14 +157,14 @@ BPRE:
     0x11B: Encounter 1
     0x11C: Encounter 2
     0x11D: Encounter 3
-    0x11E: You're In The Hall Of Fame!
+    0x11E: You're In The Room of Glory!
     0x11F: Viridian Forest
     0x120: Mount Moon
     0x121: Abandoned Place
     0x122: End Credits
-    0x123: Route Theme 1
-    0x124: Route Theme 2 / Intro
-    0x125: Route Theme 3
+    0x123: Route 101
+    0x124: Route 110 / Intro
+    0x125: Route 120
     0x126: Route Theme 4
     0x127: Indigo Plateau
     0x128: Battle 3
@@ -216,111 +229,111 @@ BPEE:
   music:
     0x15E: Littleroot Town Test 'TETSUJI'
     0x15F: GS - Route 38
-    0x160: Wild Pokémon Defeat
-    0x161: Wild Pokémon Defeat w/Intro
-    0x162: Gym Leader Defeat
-    0x163: Acquired Badge
+    0x160: Victory! (Wild Pokémon)
+    0x161: Victory! (Wild Pokémon) w/Intro
+    0x162: Victory! (Gym Leader)
+    0x163: Victory! (Steven)
     0x164: Crystal - Pokémon Center
     0x165: GS - Saffron City
     0x166: Crystal - Battle with Legendary Dogs
-    0x167: Route Theme 1
-    0x168: Route Theme 2
-    0x169: Route Theme 3
+    0x167: Route 101
+    0x168: Route 110
+    0x169: Route 120
     0x16A: Petalburg City
     0x16B: Oldale Town
-    0x16C: Gym
-    0x16D: Surfing
-    0x16E: Caves and Darkness
-    0x16F: Level Up
+    0x16C: Pokémon Gym
+    0x16D: Surf
+    0x16E: Petalburg Woods
+    0x16F: Level Up!
     0x170: Pokémon Healed
-    0x171: Big Victory
-    0x172: Acquired Item
-    0x173: Pokémon Caught
-    0x174: Got TM/HM
-    0x175: Lilycove Museum
-    0x176: Route Theme 4
-    0x177: Slateport Museum
-    0x178: Evolve Intro
-    0x179: Evolving
-    0x17A: Unknown Victory 1
-    0x17B: Tuber Encounter
-    0x17C: Boy Encounter
-    0x17D: A Far-away Place
+    0x171: Obtained a Badge!
+    0x172: Obtained an Item!
+    0x173: Congratulations! Your Pokémon Evolved!
+    0x174: Obtained a TM!
+    0x175: Museum
+    0x176: Introductions
+    0x177: Oceanic Museum
+    0x178: Evolution (Intro)
+    0x179: Evolution
+    0x17A: The Super-Ancient Pokémon Awaken!
+    0x17B: Trainers' Eyes Meet (Tuber♀)
+    0x17C: Trainers' Eyes Meet (Youngster)
+    0x17D: Abandoned Ship
     0x17E: Fortree City
-    0x17F: Birch's Lab
+    0x17F: Birch Pokémon Lab
     0x180: Battle Tower
-    0x181: Swimmer Encounter
-    0x182: Meteor Falls
-    0x183: Got a Berry
-    0x184: Unknown Victory 1
-    0x185: Unknown Victory 3
-    0x186: Unknown Victory 4
-    0x187: Pay No Attention!
-    0x188: Unknown Theme 1
-    0x189: Beauty Contest Test 1
-    0x18A: Beauty Contest Test 2
-    0x18B: Beauty Contest Test 3
-    0x18C: Beauty Contest Test 4
-    0x18D: Ship Encounter
+    0x181: Trainers' Eyes Meet (Swimmer♀)
+    0x182: Cave of Origin
+    0x183: Obtained a Berry!
+    0x184: The Super-Ancient Pokémon Awaken!
+    0x185: Win
+    0x186: Move Deleted
+    0x187: Lose
+    0x188: Reel Time
+    0x189: Pokémon Contest! Test 1
+    0x18A: Pokémon Contest! Test 2
+    0x18B: Pokémon Contest! Test 3
+    0x18C: Pokémon Contest! Test 4
+    0x18D: Trainers' Eyes Meet (Gentleman)
     0x18E: Verdanturf Town
     0x18F: Rustboro City
     0x190: Pokémon Center
-    0x191: Route Theme 5
-    0x192: Route Theme 6
-    0x193: Bicycle Ride
-    0x194: PokéMart
+    0x191: Route 104
+    0x192: Route 119
+    0x193: Cycling
+    0x194: Poké Mart
     0x195: Littleroot Town
-    0x196: Sky Pillar
-    0x197: Girl Encounter
+    0x196: Mt. Chimney
+    0x197: Trainers' Eyes Meet (Lass)
     0x198: Lilycove City
-    0x199: The Sandy Desert
-    0x19A: Help Me!
-    0x19B: Underwater Dive
-    0x19C: Trainer Defeat
+    0x199: Route 111
+    0x19A: H-Help Me!
+    0x19B: Dive
+    0x19C: Victory! (Trainer Battle)
     0x19D: Title Screen
-    0x19E: Introduction
-    0x19F: May's Theme
-    0x1A0: Electric Encounter
-    0x1A1: Biker Encounter
-    0x1A2: Route Theme 7
-    0x1A3: Aqua Encounter
-    0x1A4: Show Me Around
-    0x1A5: Brendan's Theme
+    0x19E: 'Opening Movie: Setting out on a Journey in the Hoenn Region'
+    0x19F: May
+    0x1A0: Trainers' Eyes Meet (Psychic)
+    0x1A1: Trainers' Eyes Meet (Cooltrainer)
+    0x1A2: Route 113
+    0x1A3: Team Aqua Appears!
+    0x1A4: Hurry Along
+    0x1A5: Brendan
     0x1A6: Evergrande City
-    0x1A7: Psychic Encounter
-    0x1A8: Important Defeat
-    0x1A9: Riding the Cable Car
+    0x1A7: Trainers' Eyes Meet (Hex Maniac)
+    0x1A8: Victory! (Team Aqua / Team Magma)
+    0x1A9: Cable Car
     0x1AA: Game Corner
     0x1AB: Dewford Town
     0x1AC: Safari Zone
     0x1AD: Victory Road
-    0x1AE: Team Hideout
-    0x1AF: Sailing the Sea
-    0x1B0: Shoal Cave
+    0x1AE: Hideout
+    0x1AF: Crossing the Sea
+    0x1B0: Mt. Pyre
     0x1B1: Slateport City
-    0x1B2: The Fog of Mt. Pyre
-    0x1B3: Pokémon Trainer School
-    0x1B4: You're the Champ!
-    0x1B5: Lavaridge Town
-    0x1B6: Island Cave
-    0x1B7: Important 2 Defeat
-    0x1B8: Beauty Contest
-    0x1B9: Magma Encounter
-    0x1BA: The Pokémon!
-    0x1BB: The Flood
+    0x1B2: Mt. Pyre Exterior
+    0x1B3: Trainers' School
+    0x1B4: The Hall of Fame
+    0x1B5: Fallarbor Town
+    0x1B6: Sealed Chamber
+    0x1B7: Contest Winner
+    0x1B8: Pokémon Contest!
+    0x1B9: Team Magma Appears!
+    0x1BA: 'Opening Movie: Double Battles'
+    0x1BB: Heavy Rain
     0x1BC: The Drought
     0x1BD: Sootopolis City
-    0x1BE: Berry Blending Results
-    0x1BF: Hall of Fame
-    0x1C0: You're Being Watched!
-    0x1C1: Kid Encounter
-    0x1C2: Elite Four Theme
-    0x1C3: Sailor Encounter
-    0x1C4: Beauty Contest Lobby
-    0x1C5: What's On TV?
-    0x1C6: Unknown Encounter
-    0x1C7: Ending Credits
-    0x1C8: The End!
+    0x1BE: Results Announcement
+    0x1BF: Room of Glory
+    0x1C0: The Trick House
+    0x1C1: Twins
+    0x1C2: The Elite Four Appear!
+    0x1C3: Trainers' Eyes Meet (Hiker)
+    0x1C4: Contest Lobby
+    0x1C5: Interviewers
+    0x1C6: Champion Steven
+    0x1C7: Ending Theme
+    0x1C8: The End
     0x1C9: Battle Frontier
     0x1CA: Battle Arena
     0x1CB: Battle Point!
@@ -334,20 +347,20 @@ BPEE:
     0x1D3: Dome Tournament
     0x1D4: Battle Tube
     0x1D5: Battle Factory
-    0x1D6: Battle - Legendary Pokémon
+    0x1D6: Battle! (Super-Ancient Pokémon)
     0x1D7: Battle - Frontier Brains
     0x1D8: Battle - Mew
     0x1D9: Battle Dome Lobby
-    0x1DA: Battle - Wild Pokémon
-    0x1DB: Battle - Aqua/Magma
-    0x1DC: Battle - Pokémon Trainer
-    0x1DD: Battle - Gym Leader
+    0x1DA: Battle! (Wild Pokémon)
+    0x1DB: Battle! (Team Aqua / Team Magma)
+    0x1DC: Battle! (Trainer Battle)
+    0x1DD: Battle! (Gym Leader)
     0x1DE: Battle - Champion Wallace
-    0x1DF: Battle - Regirock, Regice and Registeel
-    0x1E0: Battle - Legendary Pokémon
-    0x1E1: Battle - Rival
-    0x1E2: Battle - Elite Four
-    0x1E3: Battle - Team Leader
+    0x1DF: Battle! (Regirock/Regice/Registeel)
+    0x1E0: Battle! (Super-Ancient Pokémon)
+    0x1E1: Battle! (Brendan/May)
+    0x1E2: Battle! (Elite Four)
+    0x1E3: Battle! (Team Aqua/Team Magma Leaders)
     0x1E4: Follow Me
     0x1E5: Game Corner
     0x1E6: Evil Lurks
@@ -362,15 +375,15 @@ BPEE:
     0x1EF: Encounter 1
     0x1F0: Encounter 2
     0x1F1: Encounter 3
-    0x1F2: You're in the Hall Of Fame!
+    0x1F2: You're in the Room of Glory!
     0x1F3: Viridian Forest
     0x1F4: Mount Moon
     0x1F5: Abandoned Place
     0x1F6: End Credits (FRLG)
     0x1F7: Route Theme 8
     0x1F8: Route Theme 9 (FRLG Intro)
-    0x1F9: Route Theme 10
-    0x1FA: Route Theme 11
+    0x1F9: Route 1010
+    0x1FA: Route 1011
     0x1FB: Indigo Plateau
     0x1FC: Battle 3
     0x1FD: Battle 4

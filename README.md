@@ -1,4 +1,4 @@
-# Kermalis's GBA Music Tool
+# Kermalis's GBA Music Studio
 
 A tool that is designed to be an updated Sappy.
 
@@ -17,3 +17,5 @@ A tool that is designed to be an updated Sappy.
 * Add SquareWave sweeping
 * Add KEYSH
 * Add "note off with noise" for SquareWaves
+* Add playing playlist from Games.yaml and fading out after a configurable amount of loops
+* Fix songs not releasing before dying

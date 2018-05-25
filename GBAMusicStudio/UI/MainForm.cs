@@ -1,8 +1,9 @@
-﻿using GBAMusic.Core;
+﻿using GBAMusicStudio.Core;
 using System;
+using System.IO;
 using System.Windows.Forms;
 
-namespace GBAMusic.UI
+namespace GBAMusicStudio.UI
 {
     public partial class MainForm : Form
     {
@@ -44,6 +45,7 @@ namespace GBAMusic.UI
             new ROM(d.FileName);
 
             // Set song numerical num
+            Text = "GBA Music Studio - " + Path.GetFileNameWithoutExtension(d.FileName);
             codeLabel.Text = ROM.Instance.GameCode;
             gameLabel.Text = ROM.Instance.Config.GameName;
             creatorLabel.Text = ROM.Instance.Config.CreatorName;

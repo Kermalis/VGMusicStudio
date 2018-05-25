@@ -2,10 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GBAMusic.Core.M4A;
-using static GBAMusic.Core.M4A.M4AStructs;
+using GBAMusicStudio.Core.M4A;
+using static GBAMusicStudio.Core.M4A.M4AStructs;
 
-namespace GBAMusic.Core
+namespace GBAMusicStudio.Core
 {
     enum State
     {

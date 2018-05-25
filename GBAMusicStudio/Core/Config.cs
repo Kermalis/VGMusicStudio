@@ -1,8 +1,8 @@
-﻿using GBAMusic.Util;
+﻿using GBAMusicStudio.Util;
 using System.IO;
 using YamlDotNet.RepresentationModel;
 
-namespace GBAMusic.Core
+namespace GBAMusicStudio.Core
 {
     public class Config
     {

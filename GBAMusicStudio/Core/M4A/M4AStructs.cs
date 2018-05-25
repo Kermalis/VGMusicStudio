@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace GBAMusic.Core.M4A
+namespace GBAMusicStudio.Core.M4A
 {
     internal class M4AStructs
     {

@@ -1,6 +1,6 @@
-﻿using GBAMusic.Util;
+﻿using ThreadSafeList;
 
-namespace GBAMusic.Core.M4A
+namespace GBAMusicStudio.Core.M4A
 {
     internal class Track : ROMReader
     {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GBAMusic.Util
+namespace ThreadSafeList
 {
     class ThreadSafeList<T> : IList<T>
     {
