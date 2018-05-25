@@ -33,8 +33,9 @@ namespace GBAMusic.Core
             Voice = Volume = Priority
                 = Delay
                 = RunCmd = PrevNote = PrevVelocity
-                = BendRange = MODDepth = MODType = 0;
+                = MODDepth = MODType = 0;
             Bend = Pan = 0;
+            BendRange = 2;
             Stopped = false;
             EndOfPattern = 0;
         }
