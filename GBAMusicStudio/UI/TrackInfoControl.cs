@@ -15,17 +15,13 @@ namespace GBAMusicStudio.UI
 
         readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
 
-        Tuple<int[], string[]> previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
-        uint[] positions = new uint[0];
-        byte[] volumes = new byte[0];
-        byte[] delays = new byte[0];
-        byte[][] notes = new byte[0][];
-        float[] velocities = new float[0];
-        byte[] voices = new byte[0];
-        byte[] mods = new byte[0];
-        int[] bends = new int[0];
-        float[] pans = new float[0];
-        string[] types = new string[0];
+        Tuple<int[], string[]> previousNotes;
+        uint[] positions;
+        byte[] volumes, delays, voices, mods;
+        float[] velocities, pans;
+        int[] bends;
+        string[] types;
+        byte[][] notes;
 
         protected override void Dispose(bool disposing)
         {
@@ -45,8 +41,7 @@ namespace GBAMusicStudio.UI
             Size = new Size(525, 675);
             Paint += TrackInfoControl_Paint;
             Resize += (o, s) => Invalidate();
-            for (int i = 0; i < 16; i++)
-                previousNotes.Item2[i] = noNotes;
+            DeleteData();
             ResumeLayout(false);
         }
 
@@ -55,6 +50,23 @@ namespace GBAMusicStudio.UI
         internal void ReceiveData(uint[] pos, byte[] vol, byte[] del, byte[][] note, float[] vel, byte[] voice, byte[] mod, int[] bend, float[] pan, string[] type)
         {
             positions = pos; volumes = vol; delays = del; notes = note; velocities = vel; voices = voice; mods = mod; bends = bend; pans = pan; types = type;
+            Invalidate();
+        }
+        internal void DeleteData()
+        {
+            previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
+            positions = new uint[0];
+            volumes = new byte[0];
+            delays = new byte[0];
+            notes = new byte[0][];
+            velocities = new float[0];
+            voices = new byte[0];
+            mods = new byte[0];
+            bends = new int[0];
+            pans = new float[0];
+            types = new string[0];
+            for (int i = 0; i < 16; i++)
+                previousNotes.Item2[i] = noNotes;
             Invalidate();
         }
 
@@ -122,7 +134,7 @@ namespace GBAMusicStudio.UI
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
 
                 var strSize = e.Graphics.MeasureString(types[i], Font);
-                e.Graphics.DrawString(types[i], Font, Brushes.Azure, Width - td - strSize.Width, by + (r2o / 2));
+                e.Graphics.DrawString(types[i], Font, Brushes.Azure, Width - td - strSize.Width, by + (r2o / (Font.Size / 2.5f)));
 
                 string theseNotes = string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simpleNotes[n % 12], (n / 12) - 2)));
                 bool empty = string.IsNullOrEmpty(theseNotes);

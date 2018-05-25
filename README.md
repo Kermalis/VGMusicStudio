@@ -2,7 +2,7 @@
 
 A tool that is designed to be an updated Sappy.
 
-![Preview](https://i.imgur.com/AUFUQyr.gif)
+![Preview](https://i.imgur.com/oTTNPMU.gif)
 
 ## To Do (No particular order)
 

@@ -69,8 +69,8 @@ namespace GBAMusicStudio.UI
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
             tempoLabel.Text = "";
             timer1.Stop();
+            trackInfoControl1.DeleteData();
             MusicPlayer.Instance.Stop();
-            trackInfoControl1.Invalidate();
         }
         
         void MainForm_FormClosing(object sender, FormClosingEventArgs e) => Stop(null, null);

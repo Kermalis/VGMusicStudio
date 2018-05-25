@@ -211,7 +211,7 @@
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = this.ClientSize;
+            this.MinimumSize = new System.Drawing.Size(541, 808);
             this.Name = "MainForm";
             this.Text = "GBA Music Studio";
             this.menuStrip1.ResumeLayout(false);
