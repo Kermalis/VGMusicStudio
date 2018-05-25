@@ -6,6 +6,7 @@ A tool that is designed to be an updated Sappy.
 
 ## To Do (No particular order)
 
+* Scalable UI
 * Add Noise instruments
 * Fix WAVE instrument frequency
 * Config & UI

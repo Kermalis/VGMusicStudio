@@ -67,7 +67,7 @@ namespace GBAMusic.Core
             Releasing = false;
             Age = 0;
             Velocity = 0;
-            state = ADSRState.Playing;
+            state = ADSRState.Rising;
 
             dynamic dyn = voice; // ADSR are in the same spot in each struct
             FixedFrequency = false;
@@ -128,10 +128,10 @@ namespace GBAMusic.Core
                     if (Velocity >= 255)
                     {
                         Velocity = 255;
-                        state++;
+                        state = ADSRState.Playing;
                     }
                     else if (NoteDuration != 0xFF && Age > NoteDuration)
-                        state++;
+                        state = ADSRState.Playing;
                     break;
                 case ADSRState.Playing:
                     Velocity = (Velocity * D) / 256;
