@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using static GBAMusic.Core.M4AStructs;
+using static GBAMusic.Core.M4A.M4AStructs;
 
-namespace GBAMusic.Core
+namespace GBAMusic.Core.M4A
 {
     enum ADSRState
     {
@@ -75,7 +75,7 @@ namespace GBAMusic.Core
             A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
             FMOD.Sound sound = null;
 
-            if (voice is DirectSound direct)
+            if (voice is Direct_Sound direct)
             {
                 FixedFrequency = direct.VoiceType == 0x8;
                 if (direct.Panpot >= 0x80) ForcedPan = (sbyte)((direct.Panpot ^ 0x80) - 64);
@@ -83,12 +83,13 @@ namespace GBAMusic.Core
             }
             else // GB instrument
             {
-                if (voice is SquareWave1 || voice is SquareWave2)
+                RootNote += 9;
+                if (voice is PSG_Square_1 || voice is PSG_Square_2)
                     sound = sounds[MusicPlayer.SQUARE12_ID - dyn.Pattern];
-                else if (voice is GBWave wave)
+                else if (voice is GB_Wave wave)
                     sound = sounds[wave.Address];
-                else if (voice is Noise noise)
-                    sound = sounds[MusicPlayer.NOISE_ID];
+                else if (voice is PSG_Noise noise)
+                    sound = sounds[MusicPlayer.NOISE0_ID - noise.Pattern];
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
 

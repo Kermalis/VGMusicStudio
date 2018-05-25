@@ -1,4 +1,5 @@
-﻿using SoundFont;
+﻿using GBAMusic.Core.M4A;
+using SoundFont;
 using System;
 using System.Collections.Generic;
 using System.Linq;

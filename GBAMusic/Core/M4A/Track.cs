@@ -1,6 +1,6 @@
 ﻿using GBAMusic.Util;
 
-namespace GBAMusic.Core
+namespace GBAMusic.Core.M4A
 {
     internal class Track : ROMReader
     {
@@ -18,7 +18,6 @@ namespace GBAMusic.Core
 
         internal Track(FMOD.System system, FMOD.ChannelGroup parentGroup) : base()
         {
-            InitReader();
             Instruments = new ThreadSafeList<Instrument>();
             system.createChannelGroup(null, out Group);
             parentGroup.addGroup(Group, false, out FMOD.DSPConnection c);
@@ -29,6 +28,7 @@ namespace GBAMusic.Core
 
         internal void Init(uint offset)
         {
+            InitReader();
             SetOffset(offset);
             Voice = Volume = Priority
                 = Delay

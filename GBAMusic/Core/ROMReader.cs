@@ -3,7 +3,7 @@ using System.IO;
 
 namespace GBAMusic.Core
 {
-    class ROMReader
+    public class ROMReader
     {
         BinaryReader Reader;
         protected void InitReader() => Reader = new BinaryReader(new MemoryStream(ROM.Instance.ROMFile));

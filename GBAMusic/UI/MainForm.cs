@@ -6,8 +6,7 @@ namespace GBAMusic.UI
 {
     public partial class MainForm : Form
     {
-        byte refreshRate = 60;
-        MusicPlayer player;
+        internal static readonly byte RefreshRate = 60;
 
         bool stopUI = false;
 
@@ -16,6 +15,7 @@ namespace GBAMusic.UI
             InitializeComponent();
             FormClosing += MainForm_FormClosing;
             timer1.Tick += Timer1_Tick;
+            MusicPlayer.Instance.SongEnded += () => stopUI = true;
             codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
         }
 
@@ -27,7 +27,7 @@ namespace GBAMusic.UI
                 return;
             }
             trackInfoControl1.Invalidate();
-            var (tempo, _, _, _, _, _, _, _, _, _, _) = player.GetTrackStates();
+            var (tempo, _, _, _, _, _, _, _, _, _, _) = MusicPlayer.Instance.GetTrackStates();
             tempoLabel.Text = string.Format("Tempo - {0}", tempo);
         }
 
@@ -41,33 +41,31 @@ namespace GBAMusic.UI
             if (d.ShowDialog() != DialogResult.OK) return;
 
             Stop(null, null);
-            ROM.LoadROM(d.FileName);
+            new ROM(d.FileName);
+
             // Set song numerical num
             codeLabel.Text = ROM.Instance.GameCode;
             gameLabel.Text = ROM.Instance.Config.GameName;
             creatorLabel.Text = ROM.Instance.Config.CreatorName;
-
-            trackInfoControl1.SetPlayer(player = new MusicPlayer());
-            player.SongEnded += () => stopUI = true;
             playButton.Enabled = true;
         }
 
         void Play(object sender, EventArgs e)
         {
             pauseButton.Enabled = stopButton.Enabled = true;
-            player.Play((ushort)songNumerical.Value);
-            timer1.Interval = (int)(1000f / refreshRate);
+            MusicPlayer.Instance.Play((ushort)songNumerical.Value);
+            timer1.Interval = (int)(1000f / RefreshRate);
             timer1.Start();
         }
         void Pause(object sender, EventArgs e)
         {
-            stopButton.Enabled = player.State != State.Playing;
-            player.Pause();
+            stopButton.Enabled = MusicPlayer.Instance.State != State.Playing;
+            MusicPlayer.Instance.Pause();
         }
         void Stop(object sender, EventArgs e)
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
-            if (player != null) player.Stop();
+            MusicPlayer.Instance.Stop();
             timer1.Stop();
             trackInfoControl1.Invalidate();
         }

@@ -2,7 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static GBAMusic.Core.M4AStructs;
+using GBAMusic.Core.M4A;
+using static GBAMusic.Core.M4A.M4AStructs;
 
 namespace GBAMusic.Core
 {
@@ -27,52 +28,17 @@ namespace GBAMusic.Core
             SQUARE25_ID = SQUARE12_ID - 1,
             SQUARE50_ID = SQUARE25_ID - 1,
             SQUARE75_ID = SQUARE50_ID - 1,
-            NOISE_ID = SQUARE75_ID - 1;
+            NOISE0_ID = SQUARE75_ID - 1,
+            NOISE1_ID = NOISE0_ID - 1;
 
         ushort tempo;
         MicroTimer timer;
 
-        void GenerateSquareWaves()
-        {
-            byte[] simple = { 1, 2, 4, 6 };
-            uint len = 0x100;
-
-            var buf = new byte[len + 32]; // FMOD API requires 16 bytes of padding on each side
-            for (uint i = 0; i < 4; i++) // Squares
-            {
-                for (int j = 0; j < len; j++)
-                    buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 0x7F : 0x0);
-                var ex = new FMOD.CREATESOUNDEXINFO()
-                {
-                    defaultfrequency = (int)(44100 * Math.Pow(2, (9 / 12f))), // Root note 69
-                    format = FMOD.SOUND_FORMAT.PCM8,
-                    length = len,
-                    numchannels = 1
-                };
-                if (system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) == FMOD.RESULT.OK)
-                {
-                    snd.setLoopPoints(0, FMOD.TIMEUNIT.PCM, len - 1, FMOD.TIMEUNIT.PCM);
-                    sounds.Add(SQUARE12_ID - i, snd);
-                }
-            }
-            // Right now I'm just putting a square in the place of noise temporarily
-            for (int j = 0; j < len; j++)
-                buf[16 + j] = (byte)(j < simple[0] * 0x20 ? 0xFF : 0x0);
-            var exn = new FMOD.CREATESOUNDEXINFO()
-            {
-                defaultfrequency = 1, // Sweet silence (but you can hear it popping)
-                format = FMOD.SOUND_FORMAT.PCM8,
-                length = len,
-                numchannels = 1
-            };
-            if (system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref exn, out FMOD.Sound sndn) == FMOD.RESULT.OK)
-            {
-                sndn.setLoopPoints(0, FMOD.TIMEUNIT.PCM, len - 1, FMOD.TIMEUNIT.PCM);
-                sounds.Add(NOISE_ID, sndn);
-            }
-        }
+        internal static MusicPlayer Instance { get; private set; }
         internal MusicPlayer()
         {
+            if (Instance != null) return;
+            Instance = this;
             FMOD.Factory.System_Create(out system);
             system.init(32, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
             system.createChannelGroup(null, out parentGroup);
@@ -88,10 +54,57 @@ namespace GBAMusic.Core
             for (int i = 0; i < 16; i++)
                 tracks[i] = new Track(system, parentGroup);
             sounds = new Dictionary<uint, FMOD.Sound>();
-            GenerateSquareWaves();
+            PSGSquare();
+            PSGNoise();
 
             timer = new MicroTimer();
             timer.MicroTimerElapsed += (o, e) => PlayLoop();
+        }
+
+        void PSGSquare()
+        {
+            byte[] simple = { 1, 2, 4, 6 };
+            uint len = 0x100;
+            var buf = new byte[16 + len + 16]; // FMOD API requires 16 bytes of padding on each side
+
+            for (uint i = 0; i < 4; i++) // Squares
+            {
+                for (int j = 0; j < len; j++)
+                    buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 0xBF : 0x0);
+                var ex = new FMOD.CREATESOUNDEXINFO()
+                {
+                    defaultfrequency = 44100, //(int)(44100 * Math.Pow(2, (9 / 12f))), // Root note 69
+                    format = FMOD.SOUND_FORMAT.PCM8,
+                    length = len,
+                    numchannels = 1
+                };
+                system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
+                sounds.Add(SQUARE12_ID - i, snd);
+            }
+        }
+        void PSGNoise()
+        {
+            uint[] simple = { 32768, 256 };
+            var rand = new Random();
+
+            for (uint i = 0; i < 2; i++)
+            {
+                uint len = simple[i];
+                var buf = new byte[16 + len + 16]; // FMOD API requires 16 bytes of padding on each side
+
+                for (int j = 0; j < len; j++)
+                    buf[j + 16] = (byte)rand.Next();
+
+                var ex = new FMOD.CREATESOUNDEXINFO()
+                {
+                    defaultfrequency = 22050,
+                    format = FMOD.SOUND_FORMAT.PCM8,
+                    length = len,
+                    numchannels = 1
+                };
+                system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
+                sounds.Add(NOISE0_ID - i, snd);
+            }
         }
 
         SongHeader header;
@@ -110,7 +123,7 @@ namespace GBAMusic.Core
             for (int i = 0; i < header.NumTracks; i++)
                 tracks[i].Init(header.Tracks[i]);
             voiceTable = new VoiceTable();
-            voiceTable.LoadDirectSamples(header.VoiceTable, system, sounds);
+            voiceTable.LoadPCMSamples(header.VoiceTable, system, sounds);
 
             new VoiceTableSaver(voiceTable, sounds); // Testing
 
@@ -184,7 +197,7 @@ namespace GBAMusic.Core
                 bool none = instruments.Length == 0;
                 Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins.Volume).ElementAt(0);
                 pans[i] = none ? tracks[i].Pan / 64f : loudest.Panpot;
-                notes[i] = none ? new byte[0] : instruments.Select(ins => ins.Note).Distinct().ToArray();
+                notes[i] = none ? new byte[0] : instruments.Where(ins => !ins.Releasing).Select(ins => ins.Note).Distinct().ToArray();
                 velocities[i] = none ? 0 : loudest.Volume * (volumes[i] / 127f);
             }
             return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
@@ -254,7 +267,7 @@ namespace GBAMusic.Core
                     instrument = gbInstruments[3];
                     break;
                 case 0x40:
-                    var split = (KeySplit)voice;
+                    var split = (Split)voice;
                     var multi = (SMulti)voiceTable[track.Voice];
                     byte ins = ROM.Instance.ReadByte(split.Keys + note);
                     voice = multi.Table[ins].Instrument;

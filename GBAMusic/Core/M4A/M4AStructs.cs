@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace GBAMusic.Core
+namespace GBAMusic.Core.M4A
 {
     internal class M4AStructs
     {
@@ -30,15 +30,20 @@ namespace GBAMusic.Core
         internal class SVoice
         {
             internal Voice Instrument;
-            internal SVoice(Voice i) => Instrument = i;
+            string name;
+            internal SVoice(Voice i)
+            {
+                Instrument = i;
+                name = Instrument.GetType().Name.Replace('_', ' ');
+            }
 
-            public override string ToString() => Instrument.GetType().Name;
+            public override string ToString() => name;
         }
         internal class SMulti : SVoice
         {
             internal VoiceTable Table;
 
-            internal SMulti(KeySplit ks) : base(ks) => Table = new VoiceTable();
+            internal SMulti(Split ks) : base(ks) => Table = new VoiceTable();
         }
         internal class SDrum : SVoice
         {
@@ -55,7 +60,7 @@ namespace GBAMusic.Core
                 {
                     Table = new VoiceTable();
                     LoadedDrums.Add(d.Address, Table);
-                    Table.LoadDirectSamples(d.Address, system, sounds);
+                    Table.LoadPCMSamples(d.Address, system, sounds);
                 }
             }
         }
@@ -69,14 +74,14 @@ namespace GBAMusic.Core
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal class DirectSound : Voice // 0x0, 0x8
+        internal class Direct_Sound : Voice // 0x0, 0x8
         {
             public byte Panpot;
             public uint Address;
             public byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class SquareWave1 : Voice // 0x1, 0x9
+        internal class PSG_Square_1 : Voice // 0x1, 0x9
         {
             public byte Sweep;
             public byte Pattern;
@@ -84,7 +89,7 @@ namespace GBAMusic.Core
             public byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class SquareWave2 : Voice // 0x2, 0xA
+        internal class PSG_Square_2 : Voice // 0x2, 0xA
         {
             public byte Padding2;
             public byte Pattern;
@@ -92,14 +97,14 @@ namespace GBAMusic.Core
             public byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class GBWave : Voice // 0x3, 0xB
+        internal class GB_Wave : Voice // 0x3, 0xB
         {
             public byte Padding2;
             public uint Address;
             public byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class Noise : Voice // 0x4, 0xC
+        internal class PSG_Noise : Voice // 0x4, 0xC
         {
             public byte Padding2;
             public byte Pattern;
@@ -107,7 +112,7 @@ namespace GBAMusic.Core
             public byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class KeySplit : Voice // 0x40
+        internal class Split : Voice // 0x40
         {
             public byte Padding2;
             public uint Table, Keys;

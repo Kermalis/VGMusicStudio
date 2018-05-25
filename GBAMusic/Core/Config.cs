@@ -1,17 +1,16 @@
-﻿using GBAMusic.Core;
-using GBAMusic.Util;
+﻿using GBAMusic.Util;
 using System.IO;
 using YamlDotNet.RepresentationModel;
 
-namespace GBAMusic.Config
+namespace GBAMusic.Core
 {
-    internal class GConfig
+    public class Config
     {
-        internal readonly uint SongTable;
-        internal readonly string GameName, CreatorName;
+        public readonly uint SongTable;
+        public readonly string GameName, CreatorName;
 
         YamlStream yaml;
-        internal GConfig()
+        public Config()
         {
             yaml = new YamlStream();
             yaml.Load(new StringReader(File.ReadAllText("Games.yaml")));
