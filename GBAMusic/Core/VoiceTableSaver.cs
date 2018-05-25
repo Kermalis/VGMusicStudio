@@ -1,4 +1,4 @@
-﻿using GBAMusic.SoundFont;
+﻿using SoundFont;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace GBAMusic.Core
 {
-    class SF2Saver
+    class VoiceTableSaver
     {
         static string[] general_MIDI_instr_names = {
             "Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano", "Honky-tonk Piano", "Rhodes Piano", "Chorused Piano",
@@ -28,7 +28,7 @@ namespace GBAMusic.Core
             "Applause", "Gunshot" };
         SF2 sf2;
 
-        internal SF2Saver(Dictionary<uint, FMOD.Sound> sounds)
+        internal VoiceTableSaver(VoiceTable table, Dictionary<uint, FMOD.Sound> sounds)
         {
             sf2 = new SF2();
 

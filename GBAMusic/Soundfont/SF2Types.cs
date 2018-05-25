@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace GBAMusic.SoundFont
+namespace SoundFont
 {
     public class SF2Types
     {

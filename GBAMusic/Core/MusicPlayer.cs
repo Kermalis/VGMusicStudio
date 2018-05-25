@@ -21,12 +21,13 @@ namespace GBAMusic.Core
         Instrument[] dsInstruments;
         Instrument[] gbInstruments;
         Track[] tracks;
+
         Dictionary<uint, FMOD.Sound> sounds;
         internal static readonly uint SQUARE12_ID = 0xFFFFFFFF,
             SQUARE25_ID = SQUARE12_ID - 1,
             SQUARE50_ID = SQUARE25_ID - 1,
             SQUARE75_ID = SQUARE50_ID - 1,
-            NOISE = SQUARE75_ID - 1;
+            NOISE_ID = SQUARE75_ID - 1;
 
         ushort tempo;
         MicroTimer timer;
@@ -84,7 +85,7 @@ namespace GBAMusic.Core
         internal State State { get; private set; }
         internal delegate void SongEndedEvent();
         internal event SongEndedEvent SongEnded;
-        
+
         internal void Play(ushort song)
         {
             Stop();
@@ -96,7 +97,7 @@ namespace GBAMusic.Core
             voiceTable = new VoiceTable();
             voiceTable.LoadDirectSamples(header.VoiceTable, system, sounds);
 
-            new SF2Saver(sounds); // Testing
+            new VoiceTableSaver(voiceTable, sounds); // Testing
 
             SetTempo(120);
             timer.Start();
@@ -161,10 +162,13 @@ namespace GBAMusic.Core
                 voices[i] = tracks[i].Voice;
                 modulations[i] = tracks[i].MODDepth;
                 bends[i] = tracks[i].Bend * tracks[i].BendRange;
-                Instrument[] instruments = tracks[i].Instruments.ToArray(); // Need thread-safe
-                pans[i] = instruments.Length == 0 ? 0 : instruments.OrderByDescending(ins => ins.Volume).ElementAt(0).Panpot;
-                notes[i] = instruments.Length == 0 ? new byte[0] : instruments.Select(ins => ins.Note).Distinct().ToArray();
-                velocities[i] = instruments.Length == 0 ? 0 : instruments.Select(ins => ins.Volume).Max() * (volumes[i] / 127f);
+
+                List<Instrument> instruments = tracks[i].Instruments.Clone();
+                bool none = instruments.Count == 0;
+                Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins == null ? 0 : ins.Volume).ElementAt(0);
+                pans[i] = none ? 0 : loudest.Panpot;
+                notes[i] = none ? new byte[0] : instruments.Select(ins => ins == null ? (byte)0xFF : ins.Note).Except(new byte[] { 0xFF }).Distinct().ToArray();
+                velocities[i] = none ? 0 : loudest.Volume * (volumes[i] / 127f);
             }
             return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans);
         }

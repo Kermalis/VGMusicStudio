@@ -22,7 +22,7 @@ namespace GBAMusic.Core
             var buf = new byte[s.Length + 32]; // FMOD API requires 16 bytes of padding on each side
             Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 16, (int)s.Length);
             for (int i = 0; i < s.Length; i++)
-                buf[i + 16] ^= 0x80; // unencrypt
+                buf[i + 16] ^= 0x80; // Convert from u8 to s8
             var ex = new FMOD.CREATESOUNDEXINFO()
             {
                 defaultfrequency = (int)s.Frequency / 1024,

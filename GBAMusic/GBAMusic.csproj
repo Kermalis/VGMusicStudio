@@ -55,7 +55,7 @@
     <Compile Include="Core\MusicPlayer.cs" />
     <Compile Include="Core\ROM.cs" />
     <Compile Include="Core\ROMReader.cs" />
-    <Compile Include="Core\SF2Saver.cs" />
+    <Compile Include="Core\VoiceTableSaver.cs" />
     <Compile Include="Core\Track.cs" />
     <Compile Include="Core\VoiceTable.cs" />
     <Compile Include="FMOD\fmod.cs" />
@@ -76,6 +76,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Util\MicroLibrary.cs" />
+    <Compile Include="Util\ThreadSafeList.cs" />
     <Compile Include="Util\Utils.cs" />
     <EmbeddedResource Include="UI\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

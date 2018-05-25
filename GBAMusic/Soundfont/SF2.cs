@@ -1,7 +1,7 @@
 ﻿using System.IO;
-using static GBAMusic.SoundFont.SF2Types;
+using static SoundFont.SF2Types;
 
-namespace GBAMusic.SoundFont
+namespace SoundFont
 {
     class SF2
     {

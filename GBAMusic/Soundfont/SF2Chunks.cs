@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using static GBAMusic.SoundFont.SF2Types;
+using static SoundFont.SF2Types;
 
-namespace GBAMusic.SoundFont
+namespace SoundFont
 {
     class SF2Chunks
     {

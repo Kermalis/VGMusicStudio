@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using GBAMusic.Util;
 
 namespace GBAMusic.Core
 {
     internal class Track : ROMReader
     {
         internal readonly FMOD.ChannelGroup Group;
-        internal readonly List<Instrument> Instruments; // Instruments being played by this track
+        internal readonly ThreadSafeList<Instrument> Instruments; // Instruments being played by this track
         readonly FMOD.DSP Mod2;
 
         internal byte Voice, Volume, Priority,
@@ -19,7 +19,7 @@ namespace GBAMusic.Core
         internal Track(FMOD.System system, FMOD.ChannelGroup parentGroup) : base()
         {
             InitReader();
-            Instruments = new List<Instrument>();
+            Instruments = new ThreadSafeList<Instrument>();
             system.createChannelGroup(null, out Group);
             parentGroup.addGroup(Group, false, out FMOD.DSPConnection c);
 
@@ -40,7 +40,7 @@ namespace GBAMusic.Core
         }
         internal void Tick()
         {
-            foreach (Instrument i in Instruments.ToArray()) // The list can update from Tick()
+            foreach (Instrument i in Instruments)
                 i.Tick();
             if (Delay != 0)
                 Delay--;
