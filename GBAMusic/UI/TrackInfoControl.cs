@@ -73,14 +73,22 @@ namespace GBAMusic.UI
                 e.Graphics.DrawLine(Pens.Gold, bx + w - 1, y2 + 3, bx + w - 1, y2 + 10);
 
                 float px = bx + (w / 2) + (w / 2 * pans[i]);
-                var brush = new LinearGradientBrush(new Point(bx, 10), new Point(bx + w, 10), Color.FromArgb(velocity, barColor), Color.Purple);
-                e.Graphics.DrawLine(Pens.OrangeRed, px, y1 + 3, px, y1 + 3 + 19); // Pan line
+                float cx = bx + (w / 2);
+                int ly = y1 + 3, lh = 19;
+                e.Graphics.DrawLine(Pens.BlueViolet, cx, ly, cx, ly + lh); // Center line
 
-                float percentRight = (pans[i] + 1) * velocities[i] / 2,
-                    percentLeft = (-pans[i] + 1) * velocities[i] / 2;
+                e.Graphics.DrawLine(Pens.OrangeRed, px, ly, px, ly + lh); // Pan line
 
-                var rect = new Rectangle((int)(bx + (w / 2) - (percentLeft * w / 2)), y1 + 3, (int)((percentLeft + percentRight) * w / 2), 19);
-                e.Graphics.FillRectangle(brush, rect);
+                float percentRight = (pans[i] + 1) * velocities[i],
+                    percentLeft = (-pans[i] + 1) * velocities[i];
+
+                var rect = new Rectangle((int)(bx + (w / 2) - (percentLeft * w / 2)) + 1,
+                    ly,
+                    (int)((percentLeft + percentRight) * w / 2),
+                    lh);
+                e.Graphics.FillRectangle(
+                    new LinearGradientBrush(new Point(bx, 10), new Point(bx + w, 10), Color.FromArgb(velocity, barColor), Color.Purple),
+                    rect);
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
 
                 e.Graphics.DrawString(string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simpleNotes[n % 12], (n / 12) - 2))), Font, Brushes.Turquoise, 85, y1);

@@ -2,8 +2,11 @@
 
 A tool that is designed to be an updated Sappy.
 
+![Preview](https://i.imgur.com/jtVTAPQ.gif)
+
 ## To Do (No particular order)
 
+* Fix pausing not always releasing the instruments
 * Fix cross-thread communications between the UI and the currently-playing instruments
 * Add Noise & Wave instruments
 * Fix frequencies of SquareWave instruments

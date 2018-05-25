@@ -54,10 +54,10 @@ namespace GBAMusic.UI
 
         void Play(object sender, EventArgs e)
         {
+            pauseButton.Enabled = stopButton.Enabled = true;
+            player.Play((ushort)songNumerical.Value);
             timer1.Interval = (int)(1000f / refreshRate);
             timer1.Start();
-            player.Play((ushort)songNumerical.Value);
-            pauseButton.Enabled = stopButton.Enabled = true;
         }
         void Pause(object sender, EventArgs e)
         {
@@ -68,6 +68,8 @@ namespace GBAMusic.UI
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
             if (player != null) player.Stop();
+            timer1.Stop();
+            trackInfoControl1.Invalidate();
         }
         
         void MainForm_FormClosing(object sender, FormClosingEventArgs e) => Stop(null, null);

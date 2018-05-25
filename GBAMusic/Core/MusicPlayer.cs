@@ -88,6 +88,7 @@ namespace GBAMusic.Core
         internal void Play(ushort song)
         {
             Stop();
+
             header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Config.SongTable + ((uint)8 * song)));
             Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
             for (int i = 0; i < header.NumTracks; i++)
@@ -163,7 +164,7 @@ namespace GBAMusic.Core
                 Instrument[] instruments = tracks[i].Instruments.ToArray(); // Need thread-safe
                 pans[i] = instruments.Length == 0 ? 0 : instruments.OrderByDescending(ins => ins.Volume).ElementAt(0).Panpot;
                 notes[i] = instruments.Length == 0 ? new byte[0] : instruments.Select(ins => ins.Note).Distinct().ToArray();
-                velocities[i] = instruments.Length == 0 ? 0 : instruments.Select(ins => ins.Volume).Max() * (volumes[i] / 100f); // Not 127 since I want it to overflow sometimes
+                velocities[i] = instruments.Length == 0 ? 0 : instruments.Select(ins => ins.Volume).Max() * (volumes[i] / 127f);
             }
             return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans);
         }
@@ -245,12 +246,10 @@ namespace GBAMusic.Core
                     byte ins = ROM.Instance.ReadByte(split.Keys + note);
                     sVoice = multi.Table[ins].Instrument;
                     goto Read;
-                    break;
                 case 0x80:
                     var drum = (Drum)voiceTable[track.Voice];
                     sVoice = drum.Table[note].Instrument;
                     goto Read;
-                    break;
             }
             instrument.Stop();
             instrument.Play(track, system, sounds, sVoice, track.PrevCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.PrevCmd));
