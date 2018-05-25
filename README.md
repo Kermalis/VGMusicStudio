@@ -7,7 +7,6 @@ A tool that is designed to be an updated Sappy.
 ## To Do (No particular order)
 
 * Figure out GB instrument frequency scale
-* Scalable UI
 * Config & UI
 * Add reverse playback
 * Add pitch & volume modulation

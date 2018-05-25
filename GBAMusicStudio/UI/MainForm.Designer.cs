@@ -43,8 +43,13 @@
             this.gameLabel = new System.Windows.Forms.Label();
             this.codeLabel = new System.Windows.Forms.Label();
             this.trackInfoControl1 = new TrackInfoControl();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.songNumerical)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -53,7 +58,7 @@
             this.fileToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(627, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(525, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -76,7 +81,7 @@
             // playButton
             // 
             this.playButton.Enabled = false;
-            this.playButton.Location = new System.Drawing.Point(375, 24);
+            this.playButton.Location = new System.Drawing.Point(3, 3);
             this.playButton.Name = "playButton";
             this.playButton.Size = new System.Drawing.Size(75, 23);
             this.playButton.TabIndex = 1;
@@ -86,7 +91,7 @@
             // 
             // songNumerical
             // 
-            this.songNumerical.Location = new System.Drawing.Point(455, 24);
+            this.songNumerical.Location = new System.Drawing.Point(245, 5);
             this.songNumerical.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -100,7 +105,7 @@
             // stopButton
             // 
             this.stopButton.Enabled = false;
-            this.stopButton.Location = new System.Drawing.Point(455, 56);
+            this.stopButton.Location = new System.Drawing.Point(164, 3);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(75, 23);
             this.stopButton.TabIndex = 4;
@@ -111,7 +116,7 @@
             // pauseButton
             // 
             this.pauseButton.Enabled = false;
-            this.pauseButton.Location = new System.Drawing.Point(375, 56);
+            this.pauseButton.Location = new System.Drawing.Point(84, 3);
             this.pauseButton.Name = "pauseButton";
             this.pauseButton.Size = new System.Drawing.Size(75, 23);
             this.pauseButton.TabIndex = 5;
@@ -122,7 +127,7 @@
             // tempoLabel
             // 
             this.tempoLabel.AutoSize = true;
-            this.tempoLabel.Location = new System.Drawing.Point(379, 82);
+            this.tempoLabel.Location = new System.Drawing.Point(296, 8);
             this.tempoLabel.Name = "tempoLabel";
             this.tempoLabel.Size = new System.Drawing.Size(67, 13);
             this.tempoLabel.TabIndex = 6;
@@ -132,27 +137,27 @@
             // creatorLabel
             // 
             this.creatorLabel.AutoSize = true;
-            this.creatorLabel.Location = new System.Drawing.Point(385, 198);
+            this.creatorLabel.Location = new System.Drawing.Point(3, 42);
             this.creatorLabel.Name = "creatorLabel";
-            this.creatorLabel.Size = new System.Drawing.Size(63, 13);
+            this.creatorLabel.Size = new System.Drawing.Size(72, 13);
             this.creatorLabel.TabIndex = 8;
-            this.codeLabel.Text = "Game Creator";
+            this.creatorLabel.Text = "Creator Name";
             this.creatorLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // gameLabel
             // 
             this.gameLabel.AutoSize = true;
-            this.gameLabel.Location = new System.Drawing.Point(385, 211);
+            this.gameLabel.Location = new System.Drawing.Point(3, 29);
             this.gameLabel.Name = "gameLabel";
-            this.gameLabel.Size = new System.Drawing.Size(63, 13);
+            this.gameLabel.Size = new System.Drawing.Size(66, 13);
             this.gameLabel.TabIndex = 9;
-            this.codeLabel.Text = "Game Name";
+            this.gameLabel.Text = "Game Name";
             this.gameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // codeLabel
             // 
             this.codeLabel.AutoSize = true;
-            this.codeLabel.Location = new System.Drawing.Point(385, 236);
+            this.codeLabel.Location = new System.Drawing.Point(3, 55);
             this.codeLabel.Name = "codeLabel";
             this.codeLabel.Size = new System.Drawing.Size(63, 13);
             this.codeLabel.TabIndex = 10;
@@ -161,26 +166,48 @@
             // 
             // trackInfoControl1
             // 
-            this.trackInfoControl1.Font = new System.Drawing.Font("Microsoft Tai Le", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.trackInfoControl1.Location = new System.Drawing.Point(0, 24);
+            this.trackInfoControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.trackInfoControl1.Font = new System.Drawing.Font("Microsoft Tai Le", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.trackInfoControl1.Location = new System.Drawing.Point(0, 0);
             this.trackInfoControl1.Name = "trackInfoControl1";
-            this.trackInfoControl1.Size = new System.Drawing.Size(375, 603);
-            this.trackInfoControl1.TabIndex = 7;
+            this.trackInfoControl1.Size = new System.Drawing.Size(525, 690);
+            this.trackInfoControl1.TabIndex = 12;
+            // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.splitContainer1.IsSplitterFixed = true;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 24);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(0);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.playButton);
+            this.splitContainer1.Panel1.Controls.Add(this.creatorLabel);
+            this.splitContainer1.Panel1.Controls.Add(this.gameLabel);
+            this.splitContainer1.Panel1.Controls.Add(this.codeLabel);
+            this.splitContainer1.Panel1.Controls.Add(this.pauseButton);
+            this.splitContainer1.Panel1.Controls.Add(this.stopButton);
+            this.splitContainer1.Panel1.Controls.Add(this.songNumerical);
+            this.splitContainer1.Panel1.Controls.Add(this.tempoLabel);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.trackInfoControl1);
+            this.splitContainer1.Size = new System.Drawing.Size(525, 746);
+            this.splitContainer1.SplitterDistance = 70;
+            this.splitContainer1.SplitterWidth = 1;
+            this.splitContainer1.TabIndex = 11;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(627, 627);
-            this.Controls.Add(this.codeLabel);
-            this.Controls.Add(this.gameLabel);
-            this.Controls.Add(this.creatorLabel);
-            this.Controls.Add(this.tempoLabel);
-            this.Controls.Add(this.pauseButton);
-            this.Controls.Add(this.stopButton);
-            this.Controls.Add(this.songNumerical);
-            this.Controls.Add(this.trackInfoControl1);
-            this.Controls.Add(this.playButton);
+            this.ClientSize = new System.Drawing.Size(525, 770);
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
@@ -189,14 +216,18 @@
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.songNumerical)).EndInit();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private GBAMusicStudio.UI.TrackInfoControl trackInfoControl1;
+        
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
@@ -209,6 +240,8 @@
         private System.Windows.Forms.Label creatorLabel;
         private System.Windows.Forms.Label gameLabel;
         private System.Windows.Forms.Label codeLabel;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private GBAMusicStudio.UI.TrackInfoControl trackInfoControl1;
     }
 }
 
