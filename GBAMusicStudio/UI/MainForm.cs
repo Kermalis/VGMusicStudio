@@ -1,6 +1,8 @@
 ﻿using GBAMusicStudio.Core;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
@@ -15,21 +17,40 @@ namespace GBAMusicStudio.UI
         {
             InitializeComponent();
             FormClosing += MainForm_FormClosing;
-            timer1.Tick += Timer1_Tick;
+            timer1.Tick += UpdateUI;
             MusicPlayer.Instance.SongEnded += () => stopUI = true;
-            codeLabel.Text = gameLabel.Text = creatorLabel.Text = tempoLabel.Text = "";
+            songNumerical.ValueChanged += SongNumerical_ValueChanged;
+            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
+            codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
         }
 
-        void Timer1_Tick(object sender, EventArgs e)
+        private void SongNumerical_ValueChanged(object sender, EventArgs e)
+        {
+            Playlist mainPlaylist = ROM.Instance.Config.Playlists[0];
+            List<Song> songs = mainPlaylist.Songs.ToList();
+            Song song = songs.Single(s => s.Index == songNumerical.Value);
+            Text = "GBA Music Studio - " + song.Name;
+            songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 for the Playlist index
+            if (MusicPlayer.Instance.State == State.Playing) // Play new song if one is already playing
+                Play(null, null);
+        }
+        private void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Song song = (songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item as Song;
+            if (song == null) return; // A playlist was selected
+            songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
+            songNumerical.Value = song.Index;
+            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
+        }
+
+        void UpdateUI(object sender, EventArgs e)
         {
             if (stopUI)
             {
                 Stop(null, null);
                 return;
             }
-            var (tempo, positions, volumes, delays, notes, velocities, voices, mods, bends, pans, types) = MusicPlayer.Instance.GetTrackStates();
-            trackInfoControl1.ReceiveData(positions, volumes, delays, notes, velocities, voices, mods, bends, pans, types);
-            tempoLabel.Text = string.Format("Tempo - {0}", tempo);
+            trackInfoControl1.ReceiveData();
         }
 
         void OpenROM(object sender, EventArgs e)
@@ -44,12 +65,23 @@ namespace GBAMusicStudio.UI
             Stop(null, null);
             new ROM(d.FileName);
 
-            // Set song numerical num
-            Text = "GBA Music Studio - " + Path.GetFileName(d.FileName); // Make song name instead
+            PopulatePlaylists(ROM.Instance.Config.Playlists);
             codeLabel.Text = ROM.Instance.GameCode;
             gameLabel.Text = ROM.Instance.Config.GameName;
             creatorLabel.Text = ROM.Instance.Config.CreatorName;
-            playButton.Enabled = true;
+            songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
+        }
+
+        void PopulatePlaylists(List<Playlist> playlists)
+        {
+            songsComboBox.ComboBoxClear();
+            foreach (var playlist in playlists)
+            {
+                songsComboBox.ComboBoxAddItem(new ImageComboBox.ImageComboBoxItem(playlist) { ImageIndex = 0 });
+                songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBox.ImageComboBoxItem(s) { ImageIndex = 1, IndentLevel = 1 }).ToArray());
+            }
+            songNumerical.Value = playlists[0].Songs[0].Index;
+            songsComboBox.SelectedIndex = 0; // Select main playlist
         }
 
         void Play(object sender, EventArgs e)
@@ -67,12 +99,11 @@ namespace GBAMusicStudio.UI
         void Stop(object sender, EventArgs e)
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
-            tempoLabel.Text = "";
             timer1.Stop();
             trackInfoControl1.DeleteData();
             MusicPlayer.Instance.Stop();
         }
-        
+
         void MainForm_FormClosing(object sender, FormClosingEventArgs e) => Stop(null, null);
     }
 }

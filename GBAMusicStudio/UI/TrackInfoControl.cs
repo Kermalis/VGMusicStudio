@@ -16,6 +16,7 @@ namespace GBAMusicStudio.UI
         readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
 
         Tuple<int[], string[]> previousNotes;
+        ushort tempo;
         uint[] positions;
         byte[] volumes, delays, voices, mods;
         float[] velocities, pans;
@@ -47,14 +48,16 @@ namespace GBAMusicStudio.UI
 
         internal TrackInfoControl() => InitializeComponent();
 
-        internal void ReceiveData(uint[] pos, byte[] vol, byte[] del, byte[][] note, float[] vel, byte[] voice, byte[] mod, int[] bend, float[] pan, string[] type)
+        internal void ReceiveData()
         {
-            positions = pos; volumes = vol; delays = del; notes = note; velocities = vel; voices = voice; mods = mod; bends = bend; pans = pan; types = type;
+            var (speed, pos, vol, del, note, vel, voice, mod, bend, pan, type) = Core.MusicPlayer.Instance.GetTrackStates();
+            tempo = speed; positions = pos; volumes = vol; delays = del; notes = note; velocities = vel; voices = voice; mods = mod; bends = bend; pans = pan; types = type;
             Invalidate();
         }
         internal void DeleteData()
         {
             previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
+            tempo = 120;
             positions = new uint[0];
             volumes = new byte[0];
             delays = new byte[0];
@@ -78,6 +81,8 @@ namespace GBAMusicStudio.UI
             float dex = Width / 5.75f; // Del x
             float dx = dex - e.Graphics.MeasureString("Delay", Font).Width + e.Graphics.MeasureString("99", Font).Width; // "Delay" x
             float nx = Width / 4.4f; // Notes x
+            float td = Width / 100f; // Voice type difference
+            float ix = Width - td - e.Graphics.MeasureString("Instrument Type", Font).Width; // "Instrument Type" x
             float vox = Width / 25f; // Voices x
             float r2d = Width / 15f; // Row 2's addition per element
 
@@ -90,11 +95,15 @@ namespace GBAMusicStudio.UI
             int bw = (int)(Width / 2.95f); // Bar width
             int cx = bx + (bw / 2); // Bar center x
             int bwd = bw % 2; // Add/Subtract by 1 if the bar width is odd
-            float td = Width / 100f; // Voice type difference
+
+            string tempoStr = "Tempo - " + tempo.ToString();
+            float tx = cx - (e.Graphics.MeasureString(tempoStr, Font).Width / 2); // "Tempo - 120" x
 
             e.Graphics.DrawString("Position", Font, Brushes.Lime, 0, 5);
             e.Graphics.DrawString("Delay", Font, Brushes.Crimson, dx, 5);
             e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, nx, 5);
+            e.Graphics.DrawString(tempoStr, Font, Brushes.OrangeRed, tx, 5);
+            e.Graphics.DrawString("Instrument Type", Font, Brushes.DeepPink, ix, 5);
             e.Graphics.DrawLine(Pens.Gold, 0, ih, Width, ih);
 
             for (int i = 0; i < positions.Length; i++)
@@ -133,15 +142,15 @@ namespace GBAMusicStudio.UI
                     rect);
                 e.Graphics.DrawRectangle(Pens.Purple, rect);
 
-                var strSize = e.Graphics.MeasureString(types[i], Font);
-                e.Graphics.DrawString(types[i], Font, Brushes.Azure, Width - td - strSize.Width, by + (r2o / (Font.Size / 2.5f)));
-
                 string theseNotes = string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simpleNotes[n % 12], (n / 12) - 2)));
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? noNotes : theseNotes;
                 if (empty && previousNotes.Item1[i]++ < MainForm.RefreshRate) theseNotes = previousNotes.Item2[i];
                 else if (previousNotes.Item2[i] != theseNotes) { previousNotes.Item1[i] = 0; previousNotes.Item2[i] = theseNotes; }
                 e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, nx, r1y);
+
+                var strSize = e.Graphics.MeasureString(types[i], Font);
+                e.Graphics.DrawString(types[i], Font, Brushes.DeepPink, Width - td - strSize.Width, by + (r2o / (Font.Size / 2.5f)));
             }
         }
     }

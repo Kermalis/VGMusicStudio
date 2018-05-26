@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace GBAMusicStudio.Util
 {
@@ -14,6 +16,14 @@ namespace GBAMusicStudio.Util
             if (int.TryParse(value, NumberStyles.Integer, provider, out int dec))
                 return dec;
             throw new ArgumentException("\"value\" was invalid.");
+        }
+
+        public static IEnumerable<T> UniteAll<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            IEnumerable<T> output = new T[0];
+            foreach (IEnumerable<T> i in source)
+                output = output.Union(i);
+            return output;
         }
     }
 }

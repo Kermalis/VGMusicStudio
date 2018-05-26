@@ -38,12 +38,13 @@
             this.songNumerical = new System.Windows.Forms.NumericUpDown();
             this.stopButton = new System.Windows.Forms.Button();
             this.pauseButton = new System.Windows.Forms.Button();
-            this.tempoLabel = new System.Windows.Forms.Label();
             this.creatorLabel = new System.Windows.Forms.Label();
             this.gameLabel = new System.Windows.Forms.Label();
             this.codeLabel = new System.Windows.Forms.Label();
             this.trackInfoControl1 = new TrackInfoControl();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.songsComboBox = new ImageComboBox.ImageComboBox();
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.songNumerical)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -91,14 +92,15 @@
             // 
             // songNumerical
             // 
-            this.songNumerical.Location = new System.Drawing.Point(245, 5);
+            this.songNumerical.Enabled = false;
+            this.songNumerical.Location = new System.Drawing.Point(245, 4);
             this.songNumerical.Maximum = new decimal(new int[] {
             1000,
             0,
             0,
             0});
             this.songNumerical.Name = "songNumerical";
-            this.songNumerical.Size = new System.Drawing.Size(45, 20);
+            this.songNumerical.Size = new System.Drawing.Size(45, 23);
             this.songNumerical.TabIndex = 3;
             this.songNumerical.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
@@ -123,16 +125,6 @@
             this.pauseButton.Text = "Pause";
             this.pauseButton.UseVisualStyleBackColor = true;
             this.pauseButton.Click += new System.EventHandler(this.Pause);
-            // 
-            // tempoLabel
-            // 
-            this.tempoLabel.AutoSize = true;
-            this.tempoLabel.Location = new System.Drawing.Point(296, 8);
-            this.tempoLabel.Name = "tempoLabel";
-            this.tempoLabel.Size = new System.Drawing.Size(67, 13);
-            this.tempoLabel.TabIndex = 6;
-            this.tempoLabel.Text = "Tempo - 120";
-            this.tempoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // creatorLabel
             // 
@@ -173,6 +165,23 @@
             this.trackInfoControl1.Size = new System.Drawing.Size(525, 690);
             this.trackInfoControl1.TabIndex = 12;
             // 
+            // imageList1
+            // 
+            this.imageList1.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
+            this.imageList1.ImageSize = new System.Drawing.Size(48, 48);
+            this.imageList1.Images.Add(((System.Drawing.Image)(resources.GetObject("PlaylistIcon"))));
+            this.imageList1.Images.Add(((System.Drawing.Image)(resources.GetObject("SongIcon"))));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // songsComboBox
+            // 
+            this.songsComboBox.Enabled = false;
+            this.songsComboBox.ImageList = this.imageList1;
+            this.songsComboBox.Indent = 15;
+            this.songsComboBox.Location = new System.Drawing.Point(296, 4);
+            this.songsComboBox.Name = "songsComboBox";
+            this.songsComboBox.Size = new System.Drawing.Size(225, 23);
+            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -192,7 +201,7 @@
             this.splitContainer1.Panel1.Controls.Add(this.pauseButton);
             this.splitContainer1.Panel1.Controls.Add(this.stopButton);
             this.splitContainer1.Panel1.Controls.Add(this.songNumerical);
-            this.splitContainer1.Panel1.Controls.Add(this.tempoLabel);
+            this.splitContainer1.Panel1.Controls.Add(this.songsComboBox);
             // 
             // splitContainer1.Panel2
             // 
@@ -237,12 +246,13 @@
         private System.Windows.Forms.NumericUpDown songNumerical;
         private System.Windows.Forms.Button stopButton;
         private System.Windows.Forms.Button pauseButton;
-        private System.Windows.Forms.Label tempoLabel;
         private System.Windows.Forms.Label creatorLabel;
         private System.Windows.Forms.Label gameLabel;
         private System.Windows.Forms.Label codeLabel;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private GBAMusicStudio.UI.TrackInfoControl trackInfoControl1;
+        private ImageComboBox.ImageComboBox songsComboBox;
+        private System.Windows.Forms.ImageList imageList1;
     }
 }
 

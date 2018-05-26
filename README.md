@@ -6,6 +6,7 @@ A tool that is designed to be an updated Sappy.
 
 ## To Do (No particular order)
 
+* Fix Drums only showing note 60 (because of root note override)
 * Figure out GB instrument frequency scale
 * Config & UI
 * Add reverse playback
