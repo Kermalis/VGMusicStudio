@@ -49,10 +49,12 @@ namespace GBAMusicStudio.UI
 
         internal TrackInfoControl() => InitializeComponent();
 
-        internal void ReceiveData()
+        internal void ReceiveData((ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) tup)
         {
-            var (speed, pos, vol, del, note, vel, voice, mod, bend, pan, type) = Core.MusicPlayer.Instance.GetTrackStates();
-            tempo = speed; positions = pos; volumes = vol; delays = del; notes = note; velocities = vel; voices = voice; mods = mod; bends = bend; pans = pan; types = type;
+            tempo = tup.Item1; positions = tup.Item2; volumes = tup.Item3;
+            delays = tup.Item4; notes = tup.Item5; velocities = tup.Item6;
+            voices = tup.Item7; mods = tup.Item8; bends = tup.Item9;
+            pans = tup.Item10; types = tup.Item11;
             Invalidate();
         }
         internal void DeleteData()

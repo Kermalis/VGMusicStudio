@@ -16,6 +16,7 @@ namespace GBAMusicStudio
         static void Main()
         {
             LoadLibrary(System.IO.Path.GetFullPath(string.Format(@"FMOD\{0}\fmod.dll", Environment.Is64BitProcess ? 64 : 32)));
+            new MIDI.MIDIKeyboard();
             new Core.MusicPlayer();
 
             Application.EnableVisualStyles();

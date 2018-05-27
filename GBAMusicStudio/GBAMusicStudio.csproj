@@ -42,6 +42,21 @@
     <Reference Include="ImageComboBox">
       <HintPath>Properties\ImageComboBox.dll</HintPath>
     </Reference>
+    <Reference Include="Sanford.Collections">
+      <HintPath>Dependencies\Sanford.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Sanford.Multimedia">
+      <HintPath>Dependencies\Sanford.Multimedia.dll</HintPath>
+    </Reference>
+    <Reference Include="Sanford.Multimedia.Midi">
+      <HintPath>Dependencies\Sanford.Multimedia.Midi.dll</HintPath>
+    </Reference>
+    <Reference Include="Sanford.Multimedia.Timers">
+      <HintPath>Dependencies\Sanford.Multimedia.Timers.dll</HintPath>
+    </Reference>
+    <Reference Include="Sanford.Threading">
+      <HintPath>Dependencies\Sanford.Threading.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -70,6 +85,7 @@
     <Compile Include="FMOD\fmod.cs" />
     <Compile Include="FMOD\fmod_dsp.cs" />
     <Compile Include="FMOD\fmod_errors.cs" />
+    <Compile Include="MIDI\MIDIKeyboard.cs" />
     <Compile Include="Soundfont\SF2.cs" />
     <Compile Include="Soundfont\SF2Chunks.cs" />
     <Compile Include="Soundfont\SF2Types.cs" />

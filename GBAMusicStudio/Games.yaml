@@ -13,7 +13,7 @@ AXVE:
       0x19F: "May"
       0x19A: "H-Help Me!"
       0x1C9: "Battle! (Wild Pokémon)"
-      0x161: "Victory! (Wild Pokémon) (W|Intro)"
+      0x161: "Victory! (Wild Pokémon)"
       0x167: "Route 101"
       0x16B: "Oldale Town"
       0x190: "Pokémon Center"
@@ -113,7 +113,7 @@ AXVE:
       0x1C7: "Ending Theme"
       0x1C8: "The End"
     Other:
-      0x160: "Victory! (Wild Pokémon)"
+      0x160: "Victory! (Wild Pokémon) (No Intro)"
       0x15E: "Unused - TETSUJI"
       0x15F: "Unused - Route 38"
       0x164: "Unused - Pokémon Center (2)"

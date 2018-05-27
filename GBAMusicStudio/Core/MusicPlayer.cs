@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GBAMusicStudio.Core.M4A;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
+using GBAMusicStudio.MIDI;
 
 namespace GBAMusicStudio.Core
 {
@@ -21,6 +22,7 @@ namespace GBAMusicStudio.Core
 
         Instrument[] dsInstruments;
         Instrument[] gbInstruments;
+        Instrument[] allInstruments;
 
         Dictionary<uint, FMOD.Sound> sounds;
         internal static readonly uint SQUARE12_ID = 0xFFFFFFFF,
@@ -47,15 +49,57 @@ namespace GBAMusicStudio.Core
                 dsInstruments[i] = new Instrument();
             for (int i = 0; i < 4; i++)
                 gbInstruments[i] = new Instrument();
+            allInstruments = dsInstruments.Union(gbInstruments).ToArray();
+
             tracks = new Track[16];
             for (int i = 0; i < 16; i++)
                 tracks[i] = new Track(system);
+
             sounds = new Dictionary<uint, FMOD.Sound>();
             PSGSquare();
             PSGNoise();
 
             timer = new MicroTimer();
-            timer.MicroTimerElapsed += (o, e) => PlayLoop();
+            timer.MicroTimerElapsed += PlayLoop;
+
+            MIDIKeyboard.Instance.AddHandler(HandleChannelMessageReceived);
+        }
+
+        Dictionary<byte, FMOD.Channel> keys = new Dictionary<byte, FMOD.Channel>();
+        void HandleChannelMessageReceived(object sender, Sanford.Multimedia.Midi.ChannelMessageEventArgs e)
+        {
+            var note = (byte)e.Message.Data1;
+            if ((e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn && e.Message.Data2 == 0)
+                || e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOff)
+            {
+                if (keys.ContainsKey(note))
+                {
+                    keys[note].stop();
+                    keys.Remove(note);
+                }
+            }
+            else if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn)
+            {
+                if (keys.ContainsKey(note))
+                {
+                    keys[note].stop();
+                    keys.Remove(note);
+                }
+                else
+                {
+                    keys.Add(note, null);
+                }
+                var ins = ((voiceTable[48] as SMulti).Table[0].Instrument as Direct_Sound); // Testing
+                var sound = sounds[ins.Address];
+                system.playSound(sound, null, true, out FMOD.Channel c);
+                keys[note] = c;
+                sound.getDefaults(out float soundFrequency, out int soundPriority);
+                float noteFrequency = (float)Math.Pow(2, ((note - (120 - ins.RootNote)) / 12f)),
+                    frequency = soundFrequency * noteFrequency;
+                c.setFrequency(frequency);
+                c.setPaused(false);
+            }
+            system.update();
         }
 
         void PSGSquare()
@@ -123,24 +167,30 @@ namespace GBAMusicStudio.Core
             timer.Interval = (long)(2.5 * 1000 * 1000) / t;
         }
 
-        internal void Play(ushort song)
+        internal void LoadSong(ushort song)
+        {
+            Stop();
+            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Config.SongTable + ((uint)8 * song)));
+            Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
+
+            voiceTable = new VoiceTable();
+            voiceTable.LoadPCMSamples(header.VoiceTable, system, sounds);
+            new VoiceTableSaver(voiceTable, sounds); // Testing
+
+            MIDIKeyboard.Instance.Start();
+        }
+        internal void Play()
         {
             Stop();
 
-            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Config.SongTable + ((uint)8 * song)));
             if (header.NumTracks == 0 || header.NumTracks > 16) // Maybe header.isvalid or something
             {
                 SongEnded?.Invoke();
                 return;
             }
 
-            Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
             for (int i = 0; i < header.NumTracks; i++)
                 tracks[i].Init(header.Tracks[i]);
-            voiceTable = new VoiceTable();
-            voiceTable.LoadPCMSamples(header.VoiceTable, system, sounds);
-
-            new VoiceTableSaver(voiceTable, sounds); // Testing
 
             SetTempo(120);
             timer.Start();
@@ -162,11 +212,11 @@ namespace GBAMusicStudio.Core
         internal void Stop()
         {
             timer.StopAndWait();
-            foreach (Instrument i in dsInstruments.Union(gbInstruments))
+            foreach (Instrument i in allInstruments)
                 i.Stop();
             State = State.Stopped;
         }
-        void PlayLoop()
+        void PlayLoop(object sender, MicroTimerEventArgs e)
         {
             bool allStopped = true;
             for (int i = 0; i < header.NumTracks; i++)
@@ -289,7 +339,7 @@ namespace GBAMusicStudio.Core
                     new_note = 60; // See, I told you it was nice
                     goto Read;
             }
-            
+
             instrument.Play(track, system, sounds, voice, new_note, note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
         }
 

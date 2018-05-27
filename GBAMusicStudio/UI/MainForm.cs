@@ -1,7 +1,6 @@
 ﻿using GBAMusicStudio.Core;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -12,6 +11,7 @@ namespace GBAMusicStudio.UI
         internal static readonly byte RefreshRate = 60;
 
         bool stopUI = false;
+        byte[] uiNotes = new byte[0];
 
         public MainForm()
         {
@@ -26,8 +26,6 @@ namespace GBAMusicStudio.UI
 
         private void SongNumerical_ValueChanged(object sender, EventArgs e)
         {
-            if (MusicPlayer.Instance.State == State.Playing) // Play new song if one is already playing
-                Play(null, null);
             Playlist mainPlaylist = ROM.Instance.Config.Playlists[0];
             List<Song> songs = mainPlaylist.Songs.ToList();
             Song song = songs.SingleOrDefault(s => s.Index == songNumerical.Value);
@@ -36,6 +34,10 @@ namespace GBAMusicStudio.UI
                 Text = "GBA Music Studio - " + song.Name;
                 songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 for the Playlist index
             }
+            bool playing = MusicPlayer.Instance.State == State.Playing;
+            MusicPlayer.Instance.LoadSong((ushort)songNumerical.Value);
+            if (playing) // Play new song if one is already playing
+                Play(null, null);
         }
         private void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -53,7 +55,13 @@ namespace GBAMusicStudio.UI
                 Stop(null, null);
                 return;
             }
-            trackInfoControl1.ReceiveData();
+            foreach (byte n in uiNotes)
+                pianoControl.ReleasePianoKey(n);
+            var tup = MusicPlayer.Instance.GetTrackStates();
+            uiNotes = tup.Item5[0];
+            foreach (byte n in uiNotes)
+                pianoControl.PressPianoKey(n);
+            trackInfoControl.ReceiveData(tup);
         }
 
         void OpenROM(object sender, EventArgs e)
@@ -90,7 +98,7 @@ namespace GBAMusicStudio.UI
         void Play(object sender, EventArgs e)
         {
             pauseButton.Enabled = stopButton.Enabled = true;
-            MusicPlayer.Instance.Play((ushort)songNumerical.Value);
+            MusicPlayer.Instance.Play();
             timer1.Interval = (int)(1000f / RefreshRate);
             timer1.Start();
         }
@@ -103,7 +111,9 @@ namespace GBAMusicStudio.UI
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
             timer1.Stop();
-            trackInfoControl1.DeleteData();
+            foreach (byte n in uiNotes)
+                pianoControl.ReleasePianoKey(n);
+            trackInfoControl.DeleteData();
             MusicPlayer.Instance.Stop();
         }
 

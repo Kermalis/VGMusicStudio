@@ -25,5 +25,19 @@ namespace GBAMusicStudio.Util
                 output = output.Union(i);
             return output;
         }
+
+        public static string ToSafeFileName(this string s)
+        {
+            return s
+                .Replace("\\", "")
+                .Replace("/", "")
+                .Replace("\"", "")
+                .Replace("*", "")
+                .Replace(":", "")
+                .Replace("?", "")
+                .Replace("<", "")
+                .Replace(">", "")
+                .Replace("|", "");
+        }
     }
 }

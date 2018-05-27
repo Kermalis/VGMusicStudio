@@ -41,7 +41,8 @@
             this.creatorLabel = new System.Windows.Forms.Label();
             this.gameLabel = new System.Windows.Forms.Label();
             this.codeLabel = new System.Windows.Forms.Label();
-            this.trackInfoControl1 = new TrackInfoControl();
+            this.pianoControl = new Sanford.Multimedia.Midi.UI.PianoControl();
+            this.trackInfoControl = new GBAMusicStudio.UI.TrackInfoControl();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.songsComboBox = new ImageComboBox.ImageComboBox();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
@@ -82,18 +83,19 @@
             // playButton
             // 
             this.playButton.Enabled = false;
+            this.playButton.ForeColor = System.Drawing.Color.DarkGreen;
             this.playButton.Location = new System.Drawing.Point(3, 3);
             this.playButton.Name = "playButton";
             this.playButton.Size = new System.Drawing.Size(75, 23);
             this.playButton.TabIndex = 1;
-            this.playButton.Text = "Start";
+            this.playButton.Text = "Play";
             this.playButton.UseVisualStyleBackColor = true;
             this.playButton.Click += new System.EventHandler(this.Play);
             // 
             // songNumerical
             // 
             this.songNumerical.Enabled = false;
-            this.songNumerical.Location = new System.Drawing.Point(245, 4);
+            this.songNumerical.Location = new System.Drawing.Point(246, 4);
             this.songNumerical.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -107,6 +109,7 @@
             // stopButton
             // 
             this.stopButton.Enabled = false;
+            this.stopButton.ForeColor = System.Drawing.Color.MediumVioletRed;
             this.stopButton.Location = new System.Drawing.Point(164, 3);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(75, 23);
@@ -118,6 +121,7 @@
             // pauseButton
             // 
             this.pauseButton.Enabled = false;
+            this.pauseButton.ForeColor = System.Drawing.Color.DarkSlateBlue;
             this.pauseButton.Location = new System.Drawing.Point(84, 3);
             this.pauseButton.Name = "pauseButton";
             this.pauseButton.Size = new System.Drawing.Size(75, 23);
@@ -156,19 +160,27 @@
             this.codeLabel.Text = "Game Code";
             this.codeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // trackInfoControl1
+            // pianoControl
             // 
-            this.trackInfoControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.trackInfoControl1.Font = new System.Drawing.Font("Microsoft Tai Le", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.trackInfoControl1.Location = new System.Drawing.Point(0, 0);
-            this.trackInfoControl1.Name = "trackInfoControl1";
-            this.trackInfoControl1.Size = new System.Drawing.Size(525, 690);
-            this.trackInfoControl1.TabIndex = 12;
+            this.pianoControl.Location = new System.Drawing.Point(4, 72);
+            this.pianoControl.Name = "pianoControl";
+            this.pianoControl.NoteOnColor = System.Drawing.Color.FromArgb(0xA7, 0x44, 0xDD);
+            this.pianoControl.Size = new System.Drawing.Size(520, 50);
+            this.pianoControl.TabIndex = 12;
+            // 
+            // trackInfoControl
+            // 
+            this.trackInfoControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.trackInfoControl.Font = new System.Drawing.Font("Microsoft Tai Le", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.trackInfoControl.Location = new System.Drawing.Point(0, 0);
+            this.trackInfoControl.Name = "trackInfoControl";
+            this.trackInfoControl.Size = new System.Drawing.Size(525, 690);
+            this.trackInfoControl.TabIndex = 13;
             // 
             // imageList1
             // 
             this.imageList1.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
-            this.imageList1.ImageSize = new System.Drawing.Size(48, 48);
+            this.imageList1.ImageSize = new System.Drawing.Size(64, 64);
             this.imageList1.Images.Add(((System.Drawing.Image)(resources.GetObject("PlaylistIcon"))));
             this.imageList1.Images.Add(((System.Drawing.Image)(resources.GetObject("SongIcon"))));
             this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
@@ -178,12 +190,13 @@
             this.songsComboBox.Enabled = false;
             this.songsComboBox.ImageList = this.imageList1;
             this.songsComboBox.Indent = 15;
-            this.songsComboBox.Location = new System.Drawing.Point(296, 4);
+            this.songsComboBox.Location = new System.Drawing.Point(299, 4);
             this.songsComboBox.Name = "songsComboBox";
             this.songsComboBox.Size = new System.Drawing.Size(225, 23);
             // 
             // splitContainer1
             // 
+            this.splitContainer1.BackColor = System.Drawing.Color.FromArgb(85, 50, 125);
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.IsSplitterFixed = true;
@@ -202,12 +215,13 @@
             this.splitContainer1.Panel1.Controls.Add(this.stopButton);
             this.splitContainer1.Panel1.Controls.Add(this.songNumerical);
             this.splitContainer1.Panel1.Controls.Add(this.songsComboBox);
+            this.splitContainer1.Panel1.Controls.Add(this.pianoControl);
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.trackInfoControl1);
+            this.splitContainer1.Panel2.Controls.Add(this.trackInfoControl);
             this.splitContainer1.Size = new System.Drawing.Size(525, 746);
-            this.splitContainer1.SplitterDistance = 70;
+            this.splitContainer1.SplitterDistance = 125;
             this.splitContainer1.SplitterWidth = 1;
             this.splitContainer1.TabIndex = 11;
             // 
@@ -215,12 +229,12 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(525, 770);
+            this.ClientSize = new System.Drawing.Size(528, 825);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(541, 808);
+            this.MinimumSize = new System.Drawing.Size(544, 863);
             this.Name = "MainForm";
             this.Text = "GBA Music Studio";
             this.menuStrip1.ResumeLayout(false);
@@ -250,7 +264,8 @@
         private System.Windows.Forms.Label gameLabel;
         private System.Windows.Forms.Label codeLabel;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private GBAMusicStudio.UI.TrackInfoControl trackInfoControl1;
+        private Sanford.Multimedia.Midi.UI.PianoControl pianoControl;
+        private GBAMusicStudio.UI.TrackInfoControl trackInfoControl;
         private ImageComboBox.ImageComboBox songsComboBox;
         private System.Windows.Forms.ImageList imageList1;
     }

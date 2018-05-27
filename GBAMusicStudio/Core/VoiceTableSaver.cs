@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Core.M4A;
+using GBAMusicStudio.Util;
 using SoundFont;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace GBAMusicStudio.Core
                 if (instrument.Key < MusicPlayer.NOISE1_ID)
                     AddSample(instrument.Value, string.Format("Sample 0x{0:X}", instrument.Key));
 
-            sf2.Save(string.Format("{0}.sf2", ROM.Instance.Config.GameName));
+            sf2.Save(string.Format("{0}.sf2", ROM.Instance.Config.GameName).ToSafeFileName());
         }
 
         // Add a new sample and create corresponding header
