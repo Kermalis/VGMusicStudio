@@ -35,7 +35,7 @@ namespace GBAMusicStudio.Core
 
             foreach (var instrument in sounds)
                 if (instrument.Key < MusicPlayer.NOISE1_ID)
-                    AddSample(instrument.Value, string.Format("Sample 0x{0:X}" + instrument.Key));
+                    AddSample(instrument.Value, string.Format("Sample 0x{0:X}", instrument.Key));
 
             sf2.Save(string.Format("{0}.sf2", ROM.Instance.Config.GameName));
         }
