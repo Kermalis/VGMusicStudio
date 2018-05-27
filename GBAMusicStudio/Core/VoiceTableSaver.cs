@@ -31,28 +31,35 @@ namespace GBAMusicStudio.Core
 
         internal VoiceTableSaver(VoiceTable table, Dictionary<uint, FMOD.Sound> sounds)
         {
-            sf2 = new SF2();
+            sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Config.CreatorName, "", "GBA Music Studio by Kermalis");
 
             foreach (var instrument in sounds)
-                AddSample(instrument.Value, "test");
+                if (instrument.Key < MusicPlayer.NOISE1_ID)
+                    AddSample(instrument.Value, string.Format("Sample 0x{0:X}" + instrument.Key));
 
-            sf2.Write("test.sf2");
+            sf2.Save(string.Format("{0}.sf2", ROM.Instance.Config.GameName));
         }
 
         // Add a new sample and create corresponding header
         void AddSample(FMOD.Sound sound, string name)
         {
+            // Get properties
             sound.getLength(out uint length, FMOD.TIMEUNIT.PCMBYTES);
             sound.getLoopPoints(out uint loop_start, FMOD.TIMEUNIT.PCMBYTES, out uint loop_end, FMOD.TIMEUNIT.PCMBYTES);
             sound.getLoopCount(out int loopCount);
             sound.getDefaults(out float frequency, out int priority);
 
+            // Get sample data
+            // FMOD requires 16 bytes at the start
+            if (loop_start != 0)
+                loop_start -= 16;
             sound.@lock(16, length, out IntPtr snd, out IntPtr idc, out uint len, out uint idc2);
             var pcm8 = new byte[len];
             Marshal.Copy(snd, pcm8, 0, (int)len);
             sound.unlock(snd, idc, len, idc2);
-
             short[] pcm16 = pcm8.Select(i => (short)(i << 8)).ToArray();
+
+            // Add to file
             sf2.AddSample(pcm16, name, loopCount == -1, loop_start, (uint)frequency, 60, 0);
         }
     }

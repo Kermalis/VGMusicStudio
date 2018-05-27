@@ -26,13 +26,16 @@ namespace GBAMusicStudio.UI
 
         private void SongNumerical_ValueChanged(object sender, EventArgs e)
         {
-            Playlist mainPlaylist = ROM.Instance.Config.Playlists[0];
-            List<Song> songs = mainPlaylist.Songs.ToList();
-            Song song = songs.Single(s => s.Index == songNumerical.Value);
-            Text = "GBA Music Studio - " + song.Name;
-            songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 for the Playlist index
             if (MusicPlayer.Instance.State == State.Playing) // Play new song if one is already playing
                 Play(null, null);
+            Playlist mainPlaylist = ROM.Instance.Config.Playlists[0];
+            List<Song> songs = mainPlaylist.Songs.ToList();
+            Song song = songs.SingleOrDefault(s => s.Index == songNumerical.Value);
+            if (song != null)
+            {
+                Text = "GBA Music Studio - " + song.Name;
+                songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 for the Playlist index
+            }
         }
         private void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {

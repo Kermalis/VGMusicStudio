@@ -36,6 +36,9 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Humanizer, Version=2.2.0.0, Culture=neutral, PublicKeyToken=979442b78dfc278e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Humanizer.Core.2.2.0\lib\netstandard1.0\Humanizer.dll</HintPath>
+    </Reference>
     <Reference Include="ImageComboBox">
       <HintPath>Properties\ImageComboBox.dll</HintPath>
     </Reference>
@@ -121,7 +124,6 @@
     <Content Include="Icon.ico" />
     <None Include="Properties\Song.png" />
     <None Include="Properties\Playlist.png" />
-    <None Include="Resources\%24this.Icon.ico" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

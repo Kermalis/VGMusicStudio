@@ -2,25 +2,39 @@
 
 namespace SoundFont
 {
-    public class SF2Types
+    internal class SF2Types
     {
-        // From the SF2 spec v2.1 page 19
+        // SF2 v2.1 spec page 16
+        internal class SFVersionTag
+        {
+            internal static uint Size = 4;
+
+            internal readonly ushort wMajor;
+            internal readonly ushort wMinor;
+
+            internal SFVersionTag(ushort major, ushort minor)
+            {
+                wMajor = major; wMinor = minor;
+            }
+        }
+
+        // SF2 spec v2.1 page 19
         // Two bytes that can handle either two 8-bit values or a single 16-bit value
         [StructLayout(LayoutKind.Explicit)]
-        public class GenAmountType
+        internal class GenAmountType
         {
             [FieldOffset(0)] byte byLo;
             [FieldOffset(1)] byte byHi;
             [FieldOffset(0)] short shAmount;
             [FieldOffset(0)] ushort wAmount;
 
-            public short Value { get => shAmount; }
+            internal short Value { get => shAmount; }
 
-            public GenAmountType(ushort value = 0)
+            internal GenAmountType(ushort value = 0)
             {
                 wAmount = value;
             }
-            public GenAmountType(byte lo, byte hi)
+            internal GenAmountType(byte lo, byte hi)
             {
                 byLo = lo;
                 byHi = hi;
@@ -28,7 +42,7 @@ namespace SoundFont
         }
 
         // SF2 v2.1 spec page 20
-        public enum SF2SampleLink : ushort
+        internal enum SF2SampleLink : ushort
         {
             monoSample = 1,
             rightSample = 2,
@@ -41,7 +55,7 @@ namespace SoundFont
         }
 
         // SF2 v2.1 spec page 38
-        public enum SF2Generator : ushort
+        internal enum SF2Generator : ushort
         {
             startAddrsOffset = 0,
             endAddrsOffset = 1,
@@ -98,9 +112,9 @@ namespace SoundFont
             endOper = 60
         }
 
-        // Modulator's public enumeration class
+        // Modulator's internal enumeration class
         // SF2 v2.1 spec page 50
-        public enum SF2Modulator : ushort
+        internal enum SF2Modulator : ushort
         {
             none = 0,
             noteOnVelocity = 1,
@@ -112,7 +126,7 @@ namespace SoundFont
         }
 
         // SF2 v2.1 spec page 52
-        public enum SF2Transform : ushort
+        internal enum SF2Transform : ushort
         {
             linear = 0,
             concave = 1,

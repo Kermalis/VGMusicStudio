@@ -24,7 +24,7 @@ namespace GBAMusicStudio.Core.M4A
             public uint Frequency; // Divide this by 1024
             public uint LoopPoint;
             public uint Length;
-            // 0x10 - byte[Length] of raw data
+            // 0x10 - byte[Length] of unsigned PCM8 data
         }
 
         internal class SVoice

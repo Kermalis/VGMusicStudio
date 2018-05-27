@@ -6,40 +6,43 @@ namespace GBAMusicStudio.Core.M4A
 {
     enum ADSRState
     {
+        Dead,
         Rising,
         Playing,
-        Releasing,
-        Dead
+        Releasing
     }
 
     internal class Instrument
     {
-        internal bool Playing { get; private set; }
-        internal bool Releasing { get; private set; }
-        internal float Volume { get { return ((NoteVelocity / 127f) * Velocity) / 255f; } }
+        internal ADSRState State;
+        internal float Velocity { get { return ((NoteVelocity / 127f) * CurrentVelocity) / 255f; } }
         internal float Panpot { get { return (ForcedPan != 0x7F ? ForcedPan : Track.Pan) / 64f; } }
         internal ulong Age { get; private set; }
 
         internal Track Track { get; private set; }
-        internal FMOD.Channel Channel { get; private set; }
-        internal byte Note { get; private set; }
+        FMOD.Channel Channel;
+        internal byte DisplayNote { get; private set; }
+        byte Note;
         internal byte NoteDuration { get; private set; }
         byte NoteVelocity;
-        int Velocity;
-        byte RootNote;
+        int CurrentVelocity;
 
         byte A, D, S, R;
-        ADSRState state;
+        byte RootNote;
         bool FixedFrequency;
         sbyte ForcedPan; // 0x7F counts as disabled
 
+        internal void SetPriority(byte priority)
+        {
+            Channel.setPriority(priority);
+        }
         internal void UpdatePanpot()
         {
             Channel.setPan(Panpot);
         }
         void UpdateVolume()
         {
-            Channel.setVolume(Volume);
+            Channel.setVolume(Velocity);
         }
         internal void UpdateFrequency()
         {
@@ -56,18 +59,18 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         // Pass 0xFF to "duration" to trigger a TIE
-        internal void Play(Track track, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds, Voice voice, byte note, byte duration)
+        internal void Play(Track track, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds, Voice voice, byte note, byte display_note, byte duration)
         {
+            Stop();
             Track = track;
             Note = note;
+            DisplayNote = display_note;
             RootNote = voice.RootNote;
             NoteDuration = duration;
             NoteVelocity = track.PrevVelocity;
-            Playing = true;
-            Releasing = false;
             Age = 0;
-            Velocity = 0;
-            state = ADSRState.Rising;
+            CurrentVelocity = 0;
+            State = ADSRState.Rising;
 
             dynamic dyn = voice; // ADSR are in the same spot in each struct
             FixedFrequency = false;
@@ -93,57 +96,47 @@ namespace GBAMusicStudio.Core.M4A
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
 
-            system.playSound(sound, Track.Group, true, out FMOD.Channel c);
-            Channel = c;
+            system.playSound(sound, Track.Group, true, out Channel);
             if (A == 0) A = 255;
             UpdateFrequency();
             track.Instruments.Add(this);
         }
-        internal void TriggerRelease()
-        {
-            state = ADSRState.Releasing;
-            Releasing = true;
-        }
+
         internal void Stop()
         {
-            Playing = false;
-            Releasing = false;
-            Velocity = 0;
-            state = ADSRState.Dead;
-            if (Age != 0)
-            {
-                Channel.setVolume(0);
-                Channel.stop();
-                Track.Instruments.Remove(this);
-            }
+            if (State == ADSRState.Dead) return;
+            CurrentVelocity = 0;
+            State = ADSRState.Dead;
+            Channel.stop();
+            Track.Instruments.Remove(this);
         }
 
         internal void Tick()
         {
-            if (!Playing) return;
+            if (State == ADSRState.Dead) return;
 
-            switch (state)
+            switch (State)
             {
                 case ADSRState.Rising:
-                    Velocity += A;
-                    if (Velocity >= 255)
+                    CurrentVelocity += A;
+                    if (CurrentVelocity >= 255)
                     {
-                        Velocity = 255;
-                        state = ADSRState.Playing;
+                        CurrentVelocity = 255;
+                        State = ADSRState.Playing;
                     }
                     else if (NoteDuration != 0xFF && Age > NoteDuration)
-                        state = ADSRState.Playing;
+                        State = ADSRState.Playing;
                     break;
                 case ADSRState.Playing:
-                    Velocity = (Velocity * D) / 256;
-                    if (Velocity < S)
-                        Velocity = S;
+                    CurrentVelocity = (CurrentVelocity * D) / 256;
+                    if (CurrentVelocity < S)
+                        CurrentVelocity = S;
                     if (NoteDuration != 0xFF && Age >= NoteDuration)
-                        TriggerRelease();
+                        State = ADSRState.Releasing;
                     break;
                 case ADSRState.Releasing:
-                    Velocity = (Velocity * R) / 256;
-                    if (Velocity <= 0)
+                    CurrentVelocity = (CurrentVelocity * R) / 256;
+                    if (CurrentVelocity <= 0)
                     {
                         Stop();
                         return;

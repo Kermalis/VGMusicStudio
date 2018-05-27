@@ -1,53 +1,72 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using static SoundFont.SF2Types;
 
 namespace SoundFont
 {
-    class SF2Chunks
+    internal class SF2Chunk
     {
-        char[] chunk_name; // 4 max
-        public uint Size; // Size in bytes of the subchunk
+        char[] chunk_name; // Length 4
+        internal uint Size; // Size in bytes
 
         protected SF2 sf2;
 
-        protected SF2Chunks(SF2 inSf2, string subName, uint subSize = 0)
+        protected SF2Chunk(SF2 inSf2, string name)
         {
-            chunk_name = subName.ToCharArray();
-            if (chunk_name.Length > 4) chunk_name = chunk_name.Take(4).ToArray();
-            Size = subSize;
+            chunk_name = name.ToCharArray();
             sf2 = inSf2;
         }
 
-        public virtual void Write()
+        internal virtual void Write()
         {
             sf2.Writer.Write(chunk_name);
             sf2.Writer.Write(Size);
         }
     }
 
-    class SF2PresetHeader
+    internal class ListChunk : SF2Chunk
     {
-        char[] ach_preset_name; // Max 20
+        char[] chunk_name; // Length 4
+
+        protected ListChunk(SF2 inSf2, string name) : base(inSf2, "LIST")
+        {
+            chunk_name = name.ToCharArray();
+            Size = 4;
+        }
+
+        internal override void Write()
+        {
+            base.Write();
+            sf2.Writer.Write(chunk_name);
+        }
+    }
+
+    internal class SF2PresetHeader
+    {
+        internal static uint Size = 38;
+        SF2 sf2;
+
+        char[] ach_preset_name; // Length 20
         ushort wPreset; // Patch #
         ushort wBank; // Bank #
         ushort wPresetBagNdx; // Index to "bag" of instruments
         const uint dwLibrary = 0;
         const uint dwGenre = 0;
         const uint dwMorphology = 0;
-        SF2 sf2;
 
-        public SF2PresetHeader(SF2 inSf2, string name, ushort patch, ushort bank)
+        internal SF2PresetHeader(SF2 inSf2, string name, ushort patch, ushort bank)
         {
             sf2 = inSf2;
-            ach_preset_name = name.ToCharArray();
-            if (ach_preset_name.Length > 20) ach_preset_name = ach_preset_name.Take(20).ToArray();
+            ach_preset_name = new char[20];
+            var temp = name.ToCharArray().Take(20).ToArray();
+            Buffer.BlockCopy(temp, 0, ach_preset_name, 0, temp.Length * 2);
             wPreset = patch;
             wBank = bank;
             wPresetBagNdx = (ushort)sf2.PBAGCount;
         }
 
-        public void Write()
+        internal void Write()
         {
             sf2.Writer.Write(ach_preset_name);
             sf2.Writer.Write(wPreset);
@@ -59,13 +78,15 @@ namespace SoundFont
         }
     }
 
-    class SF2Bag
+    internal class SF2Bag
     {
-        ushort wGenNdx; // Index of list of generators
-        ushort wModNdx; // Index of list of modulators
+        internal static uint Size = 4;
         SF2 sf2;
 
-        public SF2Bag(SF2 inSf2, bool preset)
+        ushort wGenNdx; // Index of list of generators
+        ushort wModNdx; // Index of list of modulators
+
+        internal SF2Bag(SF2 inSf2, bool preset)
         {
             sf2 = inSf2;
             if (preset)
@@ -80,28 +101,30 @@ namespace SoundFont
             }
         }
 
-        public void Write()
+        internal void Write()
         {
             sf2.Writer.Write(wGenNdx);
             sf2.Writer.Write(wModNdx);
         }
     }
 
-    class SF2ModList
+    internal class SF2ModList
     {
+        internal static uint Size = 10;
+        SF2 sf2;
+
         SF2Modulator sfModSrcOper;
         SF2Generator sfModDestOper;
         ushort modAmount;
         SF2Modulator sfModAmtSrcOper;
         SF2Transform sfModTransOper;
-        SF2 sf2;
 
-        public SF2ModList(SF2 inSf2)
+        internal SF2ModList(SF2 inSf2)
         {
             sf2 = inSf2;
         }
 
-        public void Write()
+        internal void Write()
         {
             sf2.Writer.Write((ushort)sfModSrcOper);
             sf2.Writer.Write((ushort)sfModDestOper);
@@ -111,55 +134,63 @@ namespace SoundFont
         }
     }
 
-    class SF2GenList
+    internal class SF2GenList
     {
-        SF2Generator sfGenOper;
-        GenAmountType genAmount;
+        internal static uint Size = 4;
         SF2 sf2;
 
-        public SF2GenList(SF2 inSf2)
+        SF2Generator sfGenOper;
+        GenAmountType genAmount;
+
+        internal SF2GenList(SF2 inSf2)
         {
             sf2 = inSf2;
             genAmount = new GenAmountType();
         }
-        public SF2GenList(SF2 inSf2, SF2Generator operation, GenAmountType amount)
+        internal SF2GenList(SF2 inSf2, SF2Generator operation, GenAmountType amount)
         {
             sf2 = inSf2;
             sfGenOper = operation;
             genAmount = amount;
         }
 
-        public void Write()
+        internal void Write()
         {
             sf2.Writer.Write((ushort)sfGenOper);
             sf2.Writer.Write(genAmount.Value);
         }
     }
 
-    class SF2Inst
+    internal class SF2Inst
     {
-        char[] achInstName; // Max 20
-        ushort wInstBagNdx;
+        internal static uint Size = 22;
         SF2 sf2;
 
-        public SF2Inst(SF2 inSf2, string name)
+        char[] achInstName; // Length 20
+        ushort wInstBagNdx;
+
+        internal SF2Inst(SF2 inSf2, string name)
         {
             sf2 = inSf2;
-            achInstName = name.ToCharArray();
-            if (achInstName.Length > 20) achInstName = achInstName.Take(20).ToArray();
+            achInstName = new char[20];
+            var temp = name.ToCharArray().Take(20).ToArray();
+            Buffer.BlockCopy(temp, 0, achInstName, 0, temp.Length * 2);
             wInstBagNdx = (ushort)sf2.IBAGCount;
         }
 
-        public void Write()
+        internal void Write()
         {
             sf2.Writer.Write(achInstName);
             sf2.Writer.Write(wInstBagNdx);
         }
     }
 
-    class SF2Sample
+    internal class SF2Sample
     {
-        char[] achSampleName; // Max 20
+        internal static uint Size = 46;
+        SF2 sf2;
+
+        char[] achSampleName; // Length 20
         uint dwStart;
         uint dwEnd;
         uint dwStartloop;
@@ -169,12 +200,12 @@ namespace SoundFont
         sbyte chPitchCorrection;
         ushort wSampleLink;
         SF2SampleLink sfSampleType;
-        SF2 sf2;
 
-        public SF2Sample(SF2 inSf2, string name, uint start, uint end, uint start_loop, uint end_loop, uint sample_rate, sbyte original_pitch, sbyte pitch_correction)
+        internal SF2Sample(SF2 inSf2, string name, uint start, uint end, uint start_loop, uint end_loop, uint sample_rate, sbyte original_pitch, sbyte pitch_correction)
         {
-            achSampleName = name.ToCharArray();
-            if (achSampleName.Length > 20) achSampleName = achSampleName.Take(20).ToArray();
+            achSampleName = new char[20];
+            var temp = name.ToCharArray().Take(20).ToArray();
+            Buffer.BlockCopy(temp, 0, achSampleName, 0, temp.Length * 2);
             dwStart = start;
             dwEnd = end;
             dwStartloop = start_loop;
@@ -187,7 +218,7 @@ namespace SoundFont
             sf2 = inSf2;
         }
 
-        public void Write()
+        internal void Write()
         {
             sf2.Writer.Write(achSampleName);
             sf2.Writer.Write(dwStart);
@@ -204,112 +235,131 @@ namespace SoundFont
 
     #region Sub-Chunks
 
-    class IFILSubChunk : SF2Chunks
+    internal class VersionSubChunk : SF2Chunk
     {
         // Output format is SoundFont v2.1
-        ushort wMajor;
-        ushort wMinor;
+        SFVersionTag revision;
 
-        public IFILSubChunk(SF2 inSf2) : base(inSf2, "ifil", 4)
+        internal VersionSubChunk(SF2 inSf2, string subchunk_type, SFVersionTag version) : base(inSf2, subchunk_type)
         {
-            wMajor = 2; wMinor = 1;
+            revision = version;
+            Size += SFVersionTag.Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
-            sf2.Writer.Write(wMajor);
-            sf2.Writer.Write(wMinor);
+            sf2.Writer.Write(revision.wMajor);
+            sf2.Writer.Write(revision.wMinor);
         }
     }
 
-    class HeaderSubChunk : SF2Chunks
+    internal class HeaderSubChunk : SF2Chunk
     {
         char[] field;
 
-        public HeaderSubChunk(SF2 inSf2, string subchunk_type, string s) : base(inSf2, subchunk_type, (uint)s.Length + 1)
+        internal HeaderSubChunk(SF2 inSf2, string subchunk_type, string s, int max_size = 0x100) : base(inSf2, subchunk_type) // Maybe maxsize must go here
         {
-            field = s.ToCharArray();
+            var test = s.ToCharArray().ToList();
+            if (test.Count >= max_size) // Input too long, cut it down
+            {
+                test = test.Take(max_size).ToList();
+                test[max_size - 1] = '\0';
+            }
+            else if (test.Count % 2 == 0) // Even amount of characters
+            {
+                test.Add('\0'); // Add two null-terminators to keep the byte count even
+                test.Add('\0');
+            }
+            else // Odd amount of characters
+            {
+                test.Add('\0'); // Add one null-terminator since that would make byte the count even
+            }
+            field = test.ToArray();
+            Size += (uint)field.Length;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
             sf2.Writer.Write(field);
-            sf2.Writer.Write((byte)0); // Write the string followed by a null byte
         }
     }
 
-    class SMPLSubChunk : SF2Chunks
+    internal class SMPLSubChunk : SF2Chunk
     {
         List<short[]> wave_list; // Samples
-        List<ushort> size_list; // Size of the data sample
-        List<bool> loop_flag_list; // Loop flag for samples (required as we need to copy data after the loop)
-        List<uint> loop_pos_list; // Loop start data (irrelevent if loop flag is clear - add dummy data)
+        List<bool> loop_flag_list; // Loop flag for samples
+        List<uint> loop_pos_list; // Loop start data
 
-        public SMPLSubChunk(SF2 inSf2) : base(inSf2, "smpl") { }
+        internal SMPLSubChunk(SF2 inSf2) : base(inSf2, "smpl")
+        {
+            wave_list = new List<short[]>();
+            loop_flag_list = new List<bool>();
+            loop_pos_list = new List<uint>();
+        }
 
         // Returns directory index of the start of the sample
-        public uint AddSample(short[] pcm16, ushort len, bool bLoop, uint loop_pos)
+        internal uint AddSample(short[] pcm16, bool bLoop, uint loop_pos)
         {
-            wave_list = new List<short[]>() { pcm16 };
-            size_list = new List<ushort>() { len };
-            loop_flag_list = new List<bool>() { bLoop };
-            loop_pos_list = new List<uint>() { loop_pos };
+            wave_list.Add(pcm16);
+            loop_flag_list.Add(bLoop);
+            loop_pos_list.Add(loop_pos);
 
-            uint dir_offset = (uint)(len >> 1);
+            uint len = (uint)pcm16.Length;
+            uint dir_offset = Size >> 1;
             // 2 bytes per sample
-            // Compute size including the 8 samples after loop point
-            // And 46 dummy samples
+            // 8 samples after looping
+            // 46 empty samples
             if (bLoop)
-                Size += (uint)(len + 8 + 46) * 2;
+                Size += (len + 8 + 46) * 2;
             else
-                Size += (uint)(len + 46) * 2;
+                Size += (len + 46) * 2;
 
             return dir_offset;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
             for (int i = 0; i < wave_list.Count; i++)
             {
                 // Write wave
-                for (int j = 0; j < size_list[i]; j++)
+                for (int j = 0; j < wave_list[i].Length; j++)
                     sf2.Writer.Write(wave_list[i][j]);
 
-                // If looping is enabled, you must write 8 samples after the loop point
+                // If looping is enabled, write 8 samples from after the loop point
                 if (loop_flag_list[i])
                     for (int j = 0; j < 8; j++)
                         sf2.Writer.Write(wave_list[i][loop_pos_list[i] + j]);
 
-                // Write 46 dummy samples at the end because it is required
+                // Write 46 empty samples
                 for (int j = 0; j < 46; j++)
                     sf2.Writer.Write((short)0);
             }
         }
     }
 
-    class PHDRSubChunk : SF2Chunks
+    internal class PHDRSubChunk : SF2Chunk
     {
         List<SF2PresetHeader> preset_list;
-        public int Count { get => preset_list.Count; }
+        internal int Count { get => preset_list.Count; }
 
-        public PHDRSubChunk(SF2 inSf2) : base(inSf2, "phdr")
+        internal PHDRSubChunk(SF2 inSf2) : base(inSf2, "phdr")
         {
             preset_list = new List<SF2PresetHeader>();
         }
 
-        public void AddPreset(SF2PresetHeader preset)
+        internal void AddPreset(SF2PresetHeader preset)
         {
             preset_list.Add(preset);
-            Size += 38;
+            Size += SF2PresetHeader.Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
@@ -318,23 +368,23 @@ namespace SoundFont
         }
     }
 
-    class INSTSubChunk : SF2Chunks
+    internal class INSTSubChunk : SF2Chunk
     {
         List<SF2Inst> instrument_list;
-        public int Count { get => instrument_list.Count; }
+        internal int Count { get => instrument_list.Count; }
 
-        public INSTSubChunk(SF2 inSf2) : base(inSf2, "inst")
+        internal INSTSubChunk(SF2 inSf2) : base(inSf2, "inst")
         {
             instrument_list = new List<SF2Inst>();
         }
 
-        public void AddInstrument(SF2Inst instrument)
+        internal void AddInstrument(SF2Inst instrument)
         {
             instrument_list.Add(instrument);
-            Size += 22;
+            Size += SF2Inst.Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
@@ -343,23 +393,23 @@ namespace SoundFont
         }
     }
 
-    class BAGSubChunk : SF2Chunks
+    internal class BAGSubChunk : SF2Chunk
     {
         List<SF2Bag> bag_list;
-        public int Count { get => bag_list.Count; }
+        internal int Count { get => bag_list.Count; }
 
-        public BAGSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pbag" : "ibag")
+        internal BAGSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pbag" : "ibag")
         {
             bag_list = new List<SF2Bag>();
         }
 
-        public void AddBag(SF2Bag bag)
+        internal void AddBag(SF2Bag bag)
         {
             bag_list.Add(bag);
-            Size += 4;
+            Size += SF2Bag.Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
@@ -368,23 +418,23 @@ namespace SoundFont
         }
     }
 
-    class MODSubChunk : SF2Chunks
+    internal class MODSubChunk : SF2Chunk
     {
         List<SF2ModList> modulator_list;
-        public int Count { get => modulator_list.Count; }
+        internal int Count { get => modulator_list.Count; }
 
-        public MODSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pmod" : "imod")
+        internal MODSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pmod" : "imod")
         {
             modulator_list = new List<SF2ModList>();
         }
 
-        public void AddModulator(SF2ModList modulator)
+        internal void AddModulator(SF2ModList modulator)
         {
             modulator_list.Add(modulator);
-            Size += 10;
+            Size += SF2ModList.Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
@@ -393,23 +443,23 @@ namespace SoundFont
         }
     }
 
-    class GENSubChunk : SF2Chunks
+    internal class GENSubChunk : SF2Chunk
     {
         List<SF2GenList> generator_list;
-        public int Count { get => generator_list.Count; }
+        internal int Count { get => generator_list.Count; }
 
-        public GENSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pgen" : "igen")
+        internal GENSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pgen" : "igen")
         {
             generator_list = new List<SF2GenList>();
         }
 
-        public void AddGenerator(SF2GenList generator)
+        internal void AddGenerator(SF2GenList generator)
         {
             generator_list.Add(generator);
-            Size += 4;
+            Size += SF2GenList.Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
@@ -418,23 +468,23 @@ namespace SoundFont
         }
     }
 
-    class SHDRSubChunk : SF2Chunks
+    internal class SHDRSubChunk : SF2Chunk
     {
         List<SF2Sample> sample_list;
-        public int Count { get => sample_list.Count; }
+        internal int Count { get => sample_list.Count; }
 
-        public SHDRSubChunk(SF2 inSf2) : base(inSf2, "shdr")
+        internal SHDRSubChunk(SF2 inSf2) : base(inSf2, "shdr")
         {
             sample_list = new List<SF2Sample>();
         }
 
-        public void AddSample(SF2Sample sample)
+        internal void AddSample(SF2Sample sample)
         {
             sample_list.Add(sample);
-            Size += 46;
+            Size += SF2Sample.Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
@@ -447,74 +497,87 @@ namespace SoundFont
 
     #region Main Chunks
 
-    class InfoListChunk : SF2Chunks
+    internal class InfoChunk : ListChunk
     {
-        List<SF2Chunks> subs;
+        List<SF2Chunk> sub_chunks;
 
-        public InfoListChunk(SF2 inSf2) : base(inSf2, "LIST", 4)
+        internal InfoChunk(SF2 inSf2, string engine, string bank, string rom, SFVersionTag rom_revision, string date, string designer, string products, string copyright, string comment, string tools)
+            : base(inSf2, "INFO")
         {
-            subs = new List<SF2Chunks>() {
-                new IFILSubChunk(inSf2),
-                new HeaderSubChunk(inSf2, "isng", "EMU8000"),
-                new HeaderSubChunk(inSf2, "INAM", "Nintendo Game Boy Advance SoundFont"),
-                new HeaderSubChunk(inSf2, "ICOP", "GBAMusic by Kermalis"),
+            sub_chunks = new List<SF2Chunk>() // Mandatory sub-chunks
+            {
+                new VersionSubChunk(inSf2, "ifil", new SFVersionTag(2, 1)),
+                new HeaderSubChunk(inSf2, "isng", string.IsNullOrEmpty(engine) ? "EMU8000" : engine),
+                new HeaderSubChunk(inSf2, "INAM", string.IsNullOrEmpty(bank) ? "General MIDI" : bank),
             };
-        }
 
-        public uint CalcSize()
-        {
-            foreach (var sub in subs)
+            // Optional sub-chunks
+            if (!string.IsNullOrEmpty(rom))
+                sub_chunks.Add(new HeaderSubChunk(inSf2, "irom", rom));
+            if (rom_revision != null)
+                sub_chunks.Add(new VersionSubChunk(inSf2, "iver", rom_revision));
+            if (!string.IsNullOrEmpty(date))
+                sub_chunks.Add(new HeaderSubChunk(inSf2, "ICRD", date));
+            if (!string.IsNullOrEmpty(designer))
+                sub_chunks.Add(new HeaderSubChunk(inSf2, "IENG", designer));
+            if (!string.IsNullOrEmpty(products))
+                sub_chunks.Add(new HeaderSubChunk(inSf2, "IPRD", products));
+            if (!string.IsNullOrEmpty(copyright))
+                sub_chunks.Add(new HeaderSubChunk(inSf2, "ICOP", copyright));
+            if (!string.IsNullOrEmpty(comment))
+                sub_chunks.Add(new HeaderSubChunk(inSf2, "ICMT", comment, 0x10000));
+            if (!string.IsNullOrEmpty(tools))
+                sub_chunks.Add(new HeaderSubChunk(inSf2, "ISFT", tools));
+
+            foreach (var sub in sub_chunks)
                 Size += sub.Size + 8;
-            return Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
-            sf2.Writer.Write("INFO".ToCharArray());
-            foreach (var sub in subs)
+            foreach (var sub in sub_chunks)
                 sub.Write();
         }
     }
 
-    class SdtaListChunk : SF2Chunks
+    internal class SdtaChunk : ListChunk
     {
-        public readonly SMPLSubChunk smpl_subchunk;
+        internal readonly SMPLSubChunk smpl_subchunk;
 
-        public SdtaListChunk(SF2 inSf2) : base(inSf2, "LIST", 4)
+        internal SdtaChunk(SF2 inSf2) : base(inSf2, "sdta")
         {
             smpl_subchunk = new SMPLSubChunk(inSf2);
         }
 
-        public uint CalcSize()
+        internal uint CalcSize()
         {
             Size += smpl_subchunk.Size + 8;
             return Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
-            sf2.Writer.Write("sdta".ToCharArray());
             smpl_subchunk.Write();
         }
     }
 
-    class HydraChunk : SF2Chunks
+    internal class HydraChunk : ListChunk
     {
-        public readonly PHDRSubChunk phdr_subchunk;
-        public readonly BAGSubChunk pbag_subchunk;
-        public readonly MODSubChunk pmod_subchunk;
-        public readonly GENSubChunk pgen_subchunk;
-        public readonly INSTSubChunk inst_subchunk;
-        public readonly BAGSubChunk ibag_subchunk;
-        public readonly MODSubChunk imod_subchunk;
-        public readonly GENSubChunk igen_subchunk;
-        public readonly SHDRSubChunk shdr_subchunk;
+        internal readonly PHDRSubChunk phdr_subchunk;
+        internal readonly BAGSubChunk pbag_subchunk;
+        internal readonly MODSubChunk pmod_subchunk;
+        internal readonly GENSubChunk pgen_subchunk;
+        internal readonly INSTSubChunk inst_subchunk;
+        internal readonly BAGSubChunk ibag_subchunk;
+        internal readonly MODSubChunk imod_subchunk;
+        internal readonly GENSubChunk igen_subchunk;
+        internal readonly SHDRSubChunk shdr_subchunk;
 
-        public HydraChunk(SF2 inSf2) : base(inSf2, "LIST", 4)
+        internal HydraChunk(SF2 inSf2) : base(inSf2, "pdta")
         {
             phdr_subchunk = new PHDRSubChunk(inSf2);
             pbag_subchunk = new BAGSubChunk(inSf2, true);
@@ -527,7 +590,7 @@ namespace SoundFont
             shdr_subchunk = new SHDRSubChunk(inSf2);
         }
 
-        public uint CalcSize()
+        internal uint CalcSize()
         {
             Size += phdr_subchunk.Size + 8;
             Size += pbag_subchunk.Size + 8;
@@ -542,11 +605,10 @@ namespace SoundFont
             return Size;
         }
 
-        public override void Write()
+        internal override void Write()
         {
             base.Write();
 
-            sf2.Writer.Write("pdta".ToCharArray());
             phdr_subchunk.Write();
             pbag_subchunk.Write();
             pmod_subchunk.Write();

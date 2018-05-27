@@ -6,7 +6,6 @@ A tool that is designed to be an updated Sappy.
 
 ## To Do (No particular order)
 
-* Fix Drums only showing note 60 (because of root note override)
 * Figure out GB instrument frequency scale
 * Config & UI
 * Add reverse playback
@@ -19,3 +18,6 @@ A tool that is designed to be an updated Sappy.
 * Add "note off with noise" for SquareWaves
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Fix songs not releasing before dying
+* Configurable amount of DirectSound at once, or automatically scan the limit from the ROM
+* Fix audible velocity abruption when notes are overridden by others (noticeable when the DirectSound limit is 5)
+* Finish integrating SF2 writing

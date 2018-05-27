@@ -10,10 +10,11 @@ namespace GBAMusicStudio.UI
     internal class TrackInfoControl : UserControl
     {
         IContainer components = null;
-        Color barColor = Color.FromArgb(0xa7, 0x44, 0xdd);
+        Color barColor = Color.FromArgb(0xA7, 0x44, 0xDD);
         readonly string noNotes = "…";
 
-        readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
+        //readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
+        readonly string[] simpleNotes = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 
         Tuple<int[], string[]> previousNotes;
         ushort tempo;
@@ -146,7 +147,7 @@ namespace GBAMusicStudio.UI
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? noNotes : theseNotes;
                 if (empty && previousNotes.Item1[i]++ < MainForm.RefreshRate) theseNotes = previousNotes.Item2[i];
-                else if (previousNotes.Item2[i] != theseNotes) { previousNotes.Item1[i] = 0; previousNotes.Item2[i] = theseNotes; }
+                else if (!empty || previousNotes.Item2[i] != theseNotes) { previousNotes.Item1[i] = 0; previousNotes.Item2[i] = theseNotes; }
                 e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, nx, r1y);
 
                 var strSize = e.Graphics.MeasureString(types[i], Font);

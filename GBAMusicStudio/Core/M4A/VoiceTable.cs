@@ -16,9 +16,9 @@ namespace GBAMusicStudio.Core.M4A
 
         void LoadDirect(Direct_Sound direct, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
         {
-            if (direct.Address == 0 || sounds.ContainsKey(direct.Address)) return;
+            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address) || sounds.ContainsKey(direct.Address)) return;
             Sample s = ROM.Instance.ReadStruct<Sample>(direct.Address);
-            if (s.Length == 0) return;
+            if (s.Length == 0 || s.Length >= 0x1000000) return; // Invalid lengths
             var buf = new byte[16 + s.Length + 16]; // FMOD API requires 16 bytes of padding on each side
             Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 16, (int)s.Length);
             for (int i = 0; i < s.Length; i++)

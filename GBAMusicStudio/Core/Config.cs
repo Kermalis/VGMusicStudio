@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Util;
+using Humanizer;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,17 +27,18 @@ namespace GBAMusicStudio.Core
 
         public Playlist(string name, Song[] songs)
         {
-            Name = name.Replace('_', ' ');
+            Name = name.Humanize();
             Songs = songs;
         }
 
-        public override string ToString() => string.Format("{0} - ({1} Songs)", Name, Songs.Length);
+        public override string ToString() => string.Format("{0} - ({1})", Name, "Song".ToQuantity(Songs.Length));
     }
 
     public class Config
     {
         public readonly uint SongTable;
         public readonly string GameName, CreatorName;
+        public readonly byte DirectCount;
 
         public readonly List<Playlist> Playlists;
 
@@ -47,6 +49,7 @@ namespace GBAMusicStudio.Core
             yaml.Load(new StringReader(File.ReadAllText("Games.yaml")));
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
+            DirectCount = (byte)Utils.ParseInt(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
             var game = (YamlMappingNode)mapping.Children[new YamlScalarNode(ROM.Instance.GameCode)];
 
             // Basic info
@@ -62,18 +65,28 @@ namespace GBAMusicStudio.Core
 
             // Load playlists
             Playlists = new List<Playlist>();
-            var music = (YamlMappingNode)game.Children[new YamlScalarNode("Music")];
-            foreach (var kvp in music)
+            if (game.Children.ContainsKey(new YamlScalarNode("Music")))
             {
-                var songs = new List<Song>();
-                foreach (var song in (YamlMappingNode)kvp.Value)
-                    songs.Add(new Song((ushort)Utils.ParseInt(song.Key.ToString()), song.Value.ToString()));
-                Playlists.Add(new Playlist(kvp.Key.ToString(), songs.ToArray()));
+                var music = (YamlMappingNode)game.Children[new YamlScalarNode("Music")];
+                foreach (var kvp in music)
+                {
+                    var songs = new List<Song>();
+                    foreach (var song in (YamlMappingNode)kvp.Value)
+                        songs.Add(new Song((ushort)Utils.ParseInt(song.Key.ToString()), song.Value.ToString()));
+                    Playlists.Add(new Playlist(kvp.Key.ToString(), songs.ToArray()));
+                }
             }
 
             // Full playlist
             if (!Playlists.Any(p => p.Name == "Music"))
                 Playlists.Insert(0, new Playlist("Music", Playlists.Select(p => p.Songs).UniteAll().OrderBy(s => s.Index).ToArray()));
+
+            // If playlist is empty add an empty entry
+            for (int i = 0; i < Playlists.Count; i++)
+            {
+                if (Playlists[i].Songs.Length == 0)
+                    Playlists[i] = new Playlist(Playlists[i].Name, new Song[] { new Song(0, "Playlist is empty.") });
+            }
         }
     }
 }

@@ -16,12 +16,10 @@ namespace GBAMusicStudio.Core.M4A
         internal bool Stopped;
         internal uint EndOfPattern;
 
-        internal Track(FMOD.System system, FMOD.ChannelGroup parentGroup) : base()
+        internal Track(FMOD.System system) : base()
         {
             Instruments = new ThreadSafeList<Instrument>();
             system.createChannelGroup(null, out Group);
-            parentGroup.addGroup(Group, false, out FMOD.DSPConnection c);
-
             system.createDSPByType(FMOD.DSP_TYPE.TREMOLO, out Mod2);
             Group.addDSP(2, Mod2);
         }
@@ -100,7 +98,7 @@ namespace GBAMusicStudio.Core.M4A
         {
             Priority = b;
             foreach (Instrument i in Instruments)
-                i.Channel.setPriority(b);
+                i.SetPriority(b);
         }
     }
 }
