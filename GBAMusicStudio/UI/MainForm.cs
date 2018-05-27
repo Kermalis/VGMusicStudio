@@ -56,11 +56,13 @@ namespace GBAMusicStudio.UI
                 return;
             }
             foreach (byte n in uiNotes)
-                pianoControl.ReleasePianoKey(n);
+                if (n != 0)
+                    pianoControl.ReleasePianoKey(n);
             var tup = MusicPlayer.Instance.GetTrackStates();
             uiNotes = tup.Item5[0];
             foreach (byte n in uiNotes)
-                pianoControl.PressPianoKey(n);
+                if (n != 0)
+                    pianoControl.PressPianoKey(n);
             trackInfoControl.ReceiveData(tup);
         }
 

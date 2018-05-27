@@ -6,12 +6,14 @@ namespace GBAMusicStudio.MIDI
 {
     internal class MIDIKeyboard
     {
-        InputDevice inDevice = null;
+        bool bGood = false;
+        InputDevice inDevice;
 
         internal static MIDIKeyboard Instance { get; private set; }
         internal MIDIKeyboard()
         {
             if (Instance != null) return;
+            Instance = this;
 
             if (InputDevice.DeviceCount == 0)
             {
@@ -35,16 +37,17 @@ namespace GBAMusicStudio.MIDI
                     return;
                 }
             }
-
-            Instance = this;
+            bGood = true;
         }
 
         internal void AddHandler(EventHandler<ChannelMessageEventArgs> handler)
         {
+            if (!bGood) return;
             inDevice.ChannelMessageReceived += handler;
         }
         internal void Start()
         {
+            if (!bGood) return;
             try
             {
                 inDevice.StartRecording();
