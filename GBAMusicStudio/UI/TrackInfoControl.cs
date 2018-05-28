@@ -84,6 +84,7 @@ namespace GBAMusicStudio.UI
             e.Graphics.FillRectangle(Brushes.Black, 0, 0, Width, Height);
 
             float ih = Height / 25.125f; // Info height
+            float iy = ih - (e.Graphics.MeasureString("A", Font).Height * 1.125f); // Info y
             float dex = Width / 5.75f; // Del x
             float dx = dex - e.Graphics.MeasureString("Delay", Font).Width + e.Graphics.MeasureString("99", Font).Width; // "Delay" x
             float nx = Width / 4.4f; // Notes x
@@ -93,7 +94,6 @@ namespace GBAMusicStudio.UI
             float r2d = Width / 15f; // Row 2's addition per element
 
             float ym = Height / 201f; // y margin
-            float xm = Width / 125f; // x margin
             float th = (Height - ym) / 16f; // Track height
             float r2o = th / 2.5f;
             int bh = (int)(Height / 30.3f); // Bar height
@@ -105,11 +105,11 @@ namespace GBAMusicStudio.UI
             string tempoStr = "Tempo - " + tempo.ToString();
             float tx = cx - (e.Graphics.MeasureString(tempoStr, Font).Width / 2); // "Tempo - 120" x
 
-            e.Graphics.DrawString("Position", Font, Brushes.Lime, 0, 5);
-            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, dx, 5);
-            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, nx, 5);
-            e.Graphics.DrawString(tempoStr, Font, Brushes.OrangeRed, tx, 5);
-            e.Graphics.DrawString("Instrument Type", Font, Brushes.DeepPink, ix, 5);
+            e.Graphics.DrawString("Position", Font, Brushes.Lime, 0, iy);
+            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, dx, iy);
+            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, nx, iy);
+            e.Graphics.DrawString(tempoStr, Font, Brushes.OrangeRed, tx, iy);
+            e.Graphics.DrawString("Instrument Type", Font, Brushes.DeepPink, ix, iy);
             e.Graphics.DrawLine(Pens.Gold, 0, ih, Width, ih);
 
             for (int i = 0; i < Core.MusicPlayer.Instance.NumTracks; i++)
