@@ -75,6 +75,8 @@ namespace GBAMusicStudio.Core.M4A
             for (uint i = 0; i < 128; i++)
             {
                 uint offset = table + (i * 0xC);
+                if (!ROM.IsValidRomOffset(offset))
+                    break;
                 switch (ROM.Instance.ReadByte(offset)) // Check type
                 {
                     case 0x0:
@@ -105,14 +107,40 @@ namespace GBAMusicStudio.Core.M4A
                         var keySplit = ROM.Instance.ReadStruct<Split>(offset);
                         var multi = new SMulti(keySplit);
                         voices[i] = multi;
+                        if (!ROM.IsValidRomOffset(keySplit.Table) || !ROM.IsValidRomOffset(keySplit.Keys))
+                            break;
+
                         for (uint j = 0; j < 128; j++)
                         {
                             byte key = ROM.Instance.ReadByte(keySplit.Keys + j);
-                            var ds = ROM.Instance.ReadStruct<Direct_Sound>(keySplit.Table + (uint)(key * 0xC));
-                            if (ds.VoiceType == 0x0 || ds.VoiceType == 0x8)
+                            if (key > 0x7F) continue;
+                            uint mOffset = keySplit.Table + (uint)(key * 0xC);
+                            switch (ROM.Instance.ReadByte(mOffset)) // Check type
                             {
-                                multi.Table[key] = new SVoice(ds);
-                                LoadDirect(ds, system, sounds);
+                                case 0x0:
+                                case 0x8:
+                                    var ds = ROM.Instance.ReadStruct<Direct_Sound>(offset);
+                                    multi.Table[key] = new SVoice(ds);
+                                    LoadDirect(ds, system, sounds);
+                                    break;
+                                case 0x1:
+                                case 0x9:
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_1>(offset));
+                                    break;
+                                case 0x2:
+                                case 0xA:
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_2>(offset));
+                                    break;
+                                case 0x3:
+                                case 0xB:
+                                    var wv = ROM.Instance.ReadStruct<GB_Wave>(offset);
+                                    multi.Table[key] = new SVoice(wv);
+                                    LoadWave(wv, system, sounds);
+                                    break;
+                                case 0x4:
+                                case 0xC:
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Noise>(offset));
+                                    break;
                             }
                         }
                         break;
