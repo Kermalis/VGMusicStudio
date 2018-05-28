@@ -19,3 +19,4 @@ A tool that is designed to be an updated Sappy.
 * Maybe a nice waveform
 * Fix audible velocity abruption when notes are overridden by others (noticeable when the DirectSound limit is 5)
 * Finish integrating SF2 writing
+* Let KeySplits support non-DirectSound instruments
