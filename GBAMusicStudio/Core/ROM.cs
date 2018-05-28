@@ -17,6 +17,8 @@ namespace GBAMusicStudio.Core
         public ROM(string filePath)
         {
             Instance = this;
+            MusicPlayer.Instance.Stop();
+            MusicPlayer.Instance.ClearSamples();
             ROMFile = File.ReadAllBytes(filePath);
             InitReader();
             GameCode = System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC));

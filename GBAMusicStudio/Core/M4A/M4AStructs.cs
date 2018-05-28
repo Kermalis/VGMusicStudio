@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Humanizer;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace GBAMusicStudio.Core.M4A
@@ -34,7 +35,7 @@ namespace GBAMusicStudio.Core.M4A
             internal SVoice(Voice i)
             {
                 Instrument = i;
-                name = Instrument.GetType().Name.Replace('_', ' ');
+                name = Instrument.GetType().Name.Humanize();
             }
 
             public override string ToString() => name;

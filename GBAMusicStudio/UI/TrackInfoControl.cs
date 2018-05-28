@@ -61,18 +61,21 @@ namespace GBAMusicStudio.UI
         {
             previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
             tempo = 120;
-            positions = new uint[0];
-            volumes = new byte[0];
-            delays = new byte[0];
-            notes = new byte[0][];
-            velocities = new float[0];
-            voices = new byte[0];
-            mods = new byte[0];
-            bends = new int[0];
-            pans = new float[0];
-            types = new string[0];
+            positions = new uint[16];
+            volumes = new byte[16];
+            delays = new byte[16];
+            notes = new byte[16][];
+            velocities = new float[16];
+            voices = new byte[16];
+            mods = new byte[16];
+            bends = new int[16];
+            pans = new float[16];
+            types = new string[16];
             for (int i = 0; i < 16; i++)
+            {
+                notes[i] = new byte[0];
                 previousNotes.Item2[i] = noNotes;
+            }
             Invalidate();
         }
 
@@ -109,7 +112,7 @@ namespace GBAMusicStudio.UI
             e.Graphics.DrawString("Instrument Type", Font, Brushes.DeepPink, ix, 5);
             e.Graphics.DrawLine(Pens.Gold, 0, ih, Width, ih);
 
-            for (int i = 0; i < positions.Length; i++)
+            for (int i = 0; i < Core.MusicPlayer.Instance.NumTracks; i++)
             {
                 float r1y = ih + ym + (i * th); // Row 1 y
                 float r2y = r1y + r2o; // Row 2 y

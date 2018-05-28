@@ -36,6 +36,7 @@ namespace GBAMusicStudio.UI
             }
             bool playing = MusicPlayer.Instance.State == State.Playing;
             MusicPlayer.Instance.LoadSong((ushort)songNumerical.Value);
+            trackInfoControl.Invalidate();
             if (playing) // Play new song if one is already playing
                 Play(null, null);
         }
@@ -58,7 +59,7 @@ namespace GBAMusicStudio.UI
             foreach (byte n in uiNotes)
                 if (n >= pianoControl.LowNoteID && n <= pianoControl.HighNoteID)
                     pianoControl.ReleasePianoKey(n);
-            var tup = MusicPlayer.Instance.GetTrackStates();
+            var tup = MusicPlayer.Instance.GetSongState();
             uiNotes = tup.Item5[0];
             foreach (byte n in uiNotes)
                 if (n >= pianoControl.LowNoteID && n <= pianoControl.HighNoteID)

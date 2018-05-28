@@ -55,14 +55,27 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < 16; i++)
                 tracks[i] = new Track(system);
 
-            sounds = new Dictionary<uint, FMOD.Sound>();
-            PSGSquare();
-            PSGNoise();
+            ClearSamples();
 
             timer = new MicroTimer();
             timer.MicroTimerElapsed += PlayLoop;
 
             MIDIKeyboard.Instance.AddHandler(HandleChannelMessageReceived);
+        }
+        internal void ClearSamples()
+        {
+            if (sounds != null)
+            {
+                foreach (var s in sounds.Values)
+                    s.release();
+                sounds.Clear();
+            }
+            else
+            {
+                sounds = new Dictionary<uint, FMOD.Sound>();
+            }
+            PSGSquare();
+            PSGNoise();
         }
 
         Dictionary<byte, FMOD.Channel> keys = new Dictionary<byte, FMOD.Channel>();
@@ -149,6 +162,7 @@ namespace GBAMusicStudio.Core
         }
 
         SongHeader header;
+        internal byte NumTracks { get => header.NumTracks; }
         VoiceTable voiceTable;
 
         internal State State { get; private set; }
@@ -236,7 +250,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetTrackStates()
+        internal (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
             var positions = new uint[header.NumTracks];
             var volumes = new byte[header.NumTracks];

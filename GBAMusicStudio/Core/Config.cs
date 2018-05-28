@@ -81,7 +81,7 @@ namespace GBAMusicStudio.Core
             if (!Playlists.Any(p => p.Name == "Music"))
                 Playlists.Insert(0, new Playlist("Music", Playlists.Select(p => p.Songs).UniteAll().OrderBy(s => s.Index).ToArray()));
 
-            // If playlist is empty add an empty entry
+            // If playlist is empty, add an empty entry
             for (int i = 0; i < Playlists.Count; i++)
             {
                 if (Playlists[i].Songs.Length == 0)
