@@ -36,6 +36,7 @@ namespace GBAMusicStudio.UI
             }
             bool playing = MusicPlayer.Instance.State == State.Playing;
             MusicPlayer.Instance.LoadSong((ushort)songNumerical.Value);
+            trackInfoControl.DeleteData();
             trackInfoControl.Invalidate();
             if (playing) // Play new song if one is already playing
                 Play(null, null);

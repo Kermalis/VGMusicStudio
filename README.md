@@ -22,3 +22,4 @@ A tool that is designed to be an updated Sappy.
 * Configurable amount of DirectSound at once, or automatically scan the limit from the ROM
 * Songtable finder
 * Re-enable 256 length voice tables
+* Give instruments a defined color and have the bars show those colors, along with the keys on the piano

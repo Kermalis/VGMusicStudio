@@ -136,8 +136,8 @@ namespace GBAMusicStudio.UI
                 e.Graphics.DrawLine(Pens.OrangeRed, px, by, px, by + bh); // Pan line
                 e.Graphics.DrawLine(Pens.GreenYellow, bx + bw - bwd, by, bx + bw - bwd, by + bh); // Right bar bound line
 
-                float percentRight = (pans[i] + 1) * velocities[i],
-                    percentLeft = (-pans[i] + 1) * velocities[i];
+                float percentRight = (pans[i] + 1) * velocities[i] / 2,
+                    percentLeft = (-pans[i] + 1) * velocities[i] / 2;
 
                 var rect = new Rectangle((int)(bx + (bw / 2) - (percentLeft * bw / 2)) + bwd,
                     by,
