@@ -10,9 +10,8 @@ namespace GBAMusicStudio.Core
 
         public static ROM Instance { get; private set; } // If you want to read with the reader
 
-        public readonly string GameCode;
         public readonly byte[] ROMFile;
-        public readonly Config Config;
+        public Game Game { get; private set; }
 
         public ROM(string filePath)
         {
@@ -21,8 +20,11 @@ namespace GBAMusicStudio.Core
             MusicPlayer.Instance.ClearSamples();
             ROMFile = File.ReadAllBytes(filePath);
             InitReader();
-            GameCode = System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC));
-            Config = new Config();
+            ReloadGameConfig();
+        }
+        public void ReloadGameConfig()
+        {
+            Game = Config.Games[System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC))];
         }
 
         public T ReadStruct<T>(uint offset = 0xFFFFFFFF)

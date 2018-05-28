@@ -43,7 +43,7 @@ namespace GBAMusicStudio.Core
             FMOD.Factory.System_Create(out system);
             system.init(32, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
 
-            dsInstruments = new Instrument[28]; // Config
+            dsInstruments = new Instrument[Config.DirectCount];
             gbInstruments = new Instrument[4];
             for (int i = 0; i < dsInstruments.Length; i++)
                 dsInstruments[i] = new Instrument();
@@ -184,7 +184,7 @@ namespace GBAMusicStudio.Core
         internal void LoadSong(ushort song)
         {
             Stop();
-            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Config.SongTable + ((uint)8 * song)));
+            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTable + ((uint)8 * song)));
             Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
 
             voiceTable = new VoiceTable();
@@ -233,7 +233,7 @@ namespace GBAMusicStudio.Core
         void PlayLoop(object sender, MicroTimerEventArgs e)
         {
             bool allStopped = true;
-            for (int i = 0; i < header.NumTracks; i++)
+            for (int i = header.NumTracks - 1; i >= 0; i--)
             {
                 Track track = tracks[i];
                 if (!track.Stopped)

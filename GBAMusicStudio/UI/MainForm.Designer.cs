@@ -33,6 +33,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.configToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.playButton = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.songNumerical = new System.Windows.Forms.NumericUpDown();
@@ -42,6 +43,7 @@
             this.gameLabel = new System.Windows.Forms.Label();
             this.codeLabel = new System.Windows.Forms.Label();
             this.pianoControl = new Sanford.Multimedia.Midi.UI.PianoControl();
+            this.volumeBar = new System.Windows.Forms.TrackBar();
             this.trackInfoControl = new GBAMusicStudio.UI.TrackInfoControl();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.songsComboBox = new ImageComboBox.ImageComboBox();
@@ -67,7 +69,8 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openToolStripMenuItem});
+            this.openToolStripMenuItem,
+            this.configToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
@@ -79,6 +82,14 @@
             this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenROM);
+            // 
+            // configToolStripMenuItem
+            // 
+            this.configToolStripMenuItem.Name = "configToolStripMenuItem";
+            this.configToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.configToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.configToolStripMenuItem.Text = "Refresh Config";
+            this.configToolStripMenuItem.Click += new System.EventHandler(this.ReloadConfig);
             // 
             // playButton
             // 
@@ -105,6 +116,7 @@
             this.songNumerical.Size = new System.Drawing.Size(45, 23);
             this.songNumerical.TabIndex = 3;
             this.songNumerical.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.songNumerical.ValueChanged += new System.EventHandler(this.SongNumerical_ValueChanged);
             // 
             // stopButton
             // 
@@ -168,6 +180,16 @@
             this.pianoControl.Size = new System.Drawing.Size(520, 50);
             this.pianoControl.TabIndex = 12;
             // 
+            // volumeBar
+            // 
+            this.volumeBar.LargeChange = 10;
+            this.volumeBar.Location = new System.Drawing.Point(299, 35);
+            this.volumeBar.Maximum = 100;
+            this.volumeBar.Size = new System.Drawing.Size(225, 27);
+            this.volumeBar.SmallChange = 5;
+            this.volumeBar.TickFrequency = 10;
+            this.volumeBar.ValueChanged += new System.EventHandler(this.ChangeVolume);
+            // 
             // trackInfoControl
             // 
             this.trackInfoControl.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -192,6 +214,7 @@
             this.songsComboBox.Indent = 15;
             this.songsComboBox.Location = new System.Drawing.Point(299, 4);
             this.songsComboBox.Name = "songsComboBox";
+            this.songsComboBox.SelectedIndexChanged += new System.EventHandler(this.SongsComboBox_SelectedIndexChanged);
             this.songsComboBox.Size = new System.Drawing.Size(225, 23);
             // 
             // splitContainer1
@@ -216,6 +239,7 @@
             this.splitContainer1.Panel1.Controls.Add(this.songNumerical);
             this.splitContainer1.Panel1.Controls.Add(this.songsComboBox);
             this.splitContainer1.Panel1.Controls.Add(this.pianoControl);
+            this.splitContainer1.Panel1.Controls.Add(this.volumeBar);
             // 
             // splitContainer1.Panel2
             // 
@@ -232,6 +256,7 @@
             this.ClientSize = new System.Drawing.Size(528, 825);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.menuStrip1);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(544, 863);
@@ -251,10 +276,11 @@
         }
 
         #endregion
-        
+
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem configToolStripMenuItem;
         private System.Windows.Forms.Button playButton;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.NumericUpDown songNumerical;
@@ -265,6 +291,7 @@
         private System.Windows.Forms.Label codeLabel;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private Sanford.Multimedia.Midi.UI.PianoControl pianoControl;
+        private System.Windows.Forms.TrackBar volumeBar;
         private GBAMusicStudio.UI.TrackInfoControl trackInfoControl;
         private ImageComboBox.ImageComboBox songsComboBox;
         private System.Windows.Forms.ImageList imageList1;

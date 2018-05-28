@@ -32,13 +32,13 @@ namespace GBAMusicStudio.Core
 
         internal VoiceTableSaver(VoiceTable table, Dictionary<uint, FMOD.Sound> sounds)
         {
-            sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Config.CreatorName, "", "GBA Music Studio by Kermalis");
+            sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Game.Creator, "", "GBA Music Studio by Kermalis");
 
             foreach (var instrument in sounds)
                 if (instrument.Key < MusicPlayer.NOISE1_ID)
                     AddSample(instrument.Value, string.Format("Sample 0x{0:X}", instrument.Key));
 
-            sf2.Save(string.Format("{0}.sf2", ROM.Instance.Config.GameName).ToSafeFileName());
+            sf2.Save(string.Format("{0}.sf2", ROM.Instance.Game.Name).ToSafeFileName());
         }
 
         // Add a new sample and create corresponding header

@@ -19,7 +19,7 @@ A tool that is designed to be an updated Sappy.
 * Fix audible velocity abruption when notes are overridden by others (noticeable when the DirectSound limit is 5)
 * Finish integrating SF2 writing
 * MIDI saving of songs
-* Configurable amount of DirectSound at once, or automatically scan the limit from the ROM
 * Songtable finder
 * Re-enable 256 length voice tables
 * Give instruments a defined color and have the bars show those colors, along with the keys on the piano
+* Exception handling for config

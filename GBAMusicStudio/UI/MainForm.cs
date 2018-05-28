@@ -16,17 +16,19 @@ namespace GBAMusicStudio.UI
         public MainForm()
         {
             InitializeComponent();
-            FormClosing += MainForm_FormClosing;
             timer1.Tick += UpdateUI;
             MusicPlayer.Instance.SongEnded += () => stopUI = true;
-            songNumerical.ValueChanged += SongNumerical_ValueChanged;
-            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
             codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
+            volumeBar.Value = Config.Volume;
         }
 
-        private void SongNumerical_ValueChanged(object sender, EventArgs e)
+        void ChangeVolume(object sender, EventArgs e)
         {
-            Playlist mainPlaylist = ROM.Instance.Config.Playlists[0];
+            MusicPlayer.Instance.SetVolume(volumeBar.Value / 100f);
+        }
+        void SongNumerical_ValueChanged(object sender, EventArgs e)
+        {
+            Playlist mainPlaylist = ROM.Instance.Game.Playlists[0];
             List<Song> songs = mainPlaylist.Songs.ToList();
             Song song = songs.SingleOrDefault(s => s.Index == songNumerical.Value);
             if (song != null)
@@ -41,7 +43,7 @@ namespace GBAMusicStudio.UI
             if (playing) // Play new song if one is already playing
                 Play(null, null);
         }
-        private void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             Song song = (songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item as Song;
             if (song == null) return; // A playlist was selected
@@ -78,13 +80,27 @@ namespace GBAMusicStudio.UI
             if (d.ShowDialog() != DialogResult.OK) return;
 
             Stop(null, null);
-            new ROM(d.FileName);
 
-            PopulatePlaylists(ROM.Instance.Config.Playlists);
-            codeLabel.Text = ROM.Instance.GameCode;
-            gameLabel.Text = ROM.Instance.Config.GameName;
-            creatorLabel.Text = ROM.Instance.Config.CreatorName;
+            new ROM(d.FileName);
+            RefreshConfig();
+
             songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
+        }
+        void ReloadConfig(object sender, EventArgs e)
+        {
+            Config.Load();
+            if (ROM.Instance != null)
+            {
+                ROM.Instance.ReloadGameConfig();
+                RefreshConfig();
+            }
+        }
+        void RefreshConfig()
+        {
+            PopulatePlaylists(ROM.Instance.Game.Playlists);
+            codeLabel.Text = ROM.Instance.Game.Code;
+            gameLabel.Text = ROM.Instance.Game.Name;
+            creatorLabel.Text = ROM.Instance.Game.Creator;
         }
 
         void PopulatePlaylists(List<Playlist> playlists)

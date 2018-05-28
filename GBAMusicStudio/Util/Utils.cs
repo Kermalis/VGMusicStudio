@@ -7,13 +7,13 @@ namespace GBAMusicStudio.Util
 {
     public static class Utils
     {
-        public static int ParseInt(string value)
+        public static uint ParseUInt(string value)
         {
             var provider = new CultureInfo("en-US");
             if (value.StartsWith("0x"))
-                if (int.TryParse(value.Substring(2), NumberStyles.HexNumber, provider, out int hex))
+                if (uint.TryParse(value.Substring(2), NumberStyles.HexNumber, provider, out uint hex))
                     return hex;
-            if (int.TryParse(value, NumberStyles.Integer, provider, out int dec))
+            if (uint.TryParse(value, NumberStyles.Integer, provider, out uint dec))
                 return dec;
             throw new ArgumentException("\"value\" was invalid.");
         }
