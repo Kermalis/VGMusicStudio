@@ -6,6 +6,7 @@ A tool that is designed to be an updated Sappy.
 
 ## To Do (No particular order)
 
+* Drums are a bit funky sometimes, I have to check how they work again
 * Figure out GB instrument frequency scale
 * Add reverse playback
 * Add pitch & volume modulation
@@ -18,3 +19,4 @@ A tool that is designed to be an updated Sappy.
 * Maybe a nice waveform
 * Fix audible velocity abruption when notes are overridden by others (noticeable when the DirectSound limit is 5)
 * Finish integrating SF2 writing
+* MIDI saving of songs
