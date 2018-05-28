@@ -72,7 +72,7 @@ namespace GBAMusicStudio.Core
                 {
                     var songs = new List<Song>();
                     foreach (var song in (YamlMappingNode)kvp.Value)
-                        songs.Add(new Song((ushort)Utils.ParseInt(song.Key.ToString()), song.Value.ToString()));
+                        songs.Add(new Song(ushort.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
                     Playlists.Add(new Playlist(kvp.Key.ToString(), songs.ToArray()));
                 }
             }
