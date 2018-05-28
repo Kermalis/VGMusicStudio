@@ -119,27 +119,27 @@ namespace GBAMusicStudio.Core.M4A
                             {
                                 case 0x0:
                                 case 0x8:
-                                    var ds = ROM.Instance.ReadStruct<Direct_Sound>(offset);
+                                    var ds = ROM.Instance.ReadStruct<Direct_Sound>(mOffset);
                                     multi.Table[key] = new SVoice(ds);
                                     LoadDirect(ds, system, sounds);
                                     break;
                                 case 0x1:
                                 case 0x9:
-                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_1>(offset));
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_1>(mOffset));
                                     break;
                                 case 0x2:
                                 case 0xA:
-                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_2>(offset));
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_2>(mOffset));
                                     break;
                                 case 0x3:
                                 case 0xB:
-                                    var wv = ROM.Instance.ReadStruct<GB_Wave>(offset);
+                                    var wv = ROM.Instance.ReadStruct<GB_Wave>(mOffset);
                                     multi.Table[key] = new SVoice(wv);
                                     LoadWave(wv, system, sounds);
                                     break;
                                 case 0x4:
                                 case 0xC:
-                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Noise>(offset));
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Noise>(mOffset));
                                     break;
                             }
                         }
