@@ -36,6 +36,10 @@ namespace GBAMusicStudio.Core.M4A
                 snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length, FMOD.TIMEUNIT.PCM);
                 snd.setMode(FMOD.MODE.LOOP_NORMAL);
             }
+            else
+            {
+                snd.setLoopCount(0);
+            }
             sounds.Add(direct.Address, snd);
         }
         void LoadWave(GB_Wave wave, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)

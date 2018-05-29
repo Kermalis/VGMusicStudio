@@ -9,7 +9,7 @@ namespace SoundFont
         InfoChunk infolist_chunk;
         SdtaChunk sdtalist_chunk;
         HydraChunk pdtalist_chunk;
-        
+
         internal BinaryWriter Writer { get; private set; }
 
         internal int IBAGCount { get => pdtalist_chunk.ibag_subchunk.Count; }
@@ -26,7 +26,7 @@ namespace SoundFont
             sdtalist_chunk = new SdtaChunk(this);
             pdtalist_chunk = new HydraChunk(this);
         }
-        
+
         // Add a new sample and create corresponding header
         public void AddSample(short[] pcm16, string name, bool bLoop, uint loop_pos, uint sample_rate, sbyte original_pitch, sbyte pitch_correction)
         {
@@ -43,7 +43,7 @@ namespace SoundFont
             }
             else
             {
-                dir_end = dir_offset + size;
+                dir_end = dir_offset + len;
                 dir_loop_end = 0;
                 dir_loop_start = 0;
             }
