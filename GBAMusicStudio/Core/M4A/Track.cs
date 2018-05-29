@@ -4,6 +4,7 @@ namespace GBAMusicStudio.Core.M4A
 {
     internal class Track : ROMReader
     {
+        internal readonly byte Index;
         internal readonly FMOD.ChannelGroup Group;
         internal readonly ThreadSafeList<Instrument> Instruments; // Instruments being played by this track
         readonly FMOD.DSP Mod2;
@@ -16,8 +17,9 @@ namespace GBAMusicStudio.Core.M4A
         internal bool Stopped;
         internal uint EndOfPattern;
 
-        internal Track(FMOD.System system) : base()
+        internal Track(FMOD.System system, byte i) : base()
         {
+            Index = i;
             Instruments = new ThreadSafeList<Instrument>();
             system.createChannelGroup(null, out Group);
             system.createDSPByType(FMOD.DSP_TYPE.TREMOLO, out Mod2);

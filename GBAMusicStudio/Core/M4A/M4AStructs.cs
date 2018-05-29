@@ -98,7 +98,7 @@ namespace GBAMusicStudio.Core.M4A
             public byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class GB_Wave : Voice // 0x3, 0xB
+        internal class PSG_Wave : Voice // 0x3, 0xB
         {
             public byte Padding2;
             public uint Address;

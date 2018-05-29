@@ -52,6 +52,7 @@ namespace GBAMusicStudio.Core
     public static class Config
     {
         public static byte DirectCount { get; private set; }
+        public static byte RefreshRate { get; private set; }
         public static byte Volume { get; private set; }
 
         public static Dictionary<string, Game> Games { get; private set; }
@@ -66,6 +67,7 @@ namespace GBAMusicStudio.Core
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
+            RefreshRate = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
             Volume = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("Volume")].ToString());
 
             Games = new Dictionary<string, Game>();

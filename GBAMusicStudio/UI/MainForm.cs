@@ -8,8 +8,6 @@ namespace GBAMusicStudio.UI
 {
     public partial class MainForm : Form
     {
-        internal static readonly byte RefreshRate = 60;
-
         bool stopUI = false;
         byte[] uiNotes = new byte[0];
 
@@ -120,7 +118,7 @@ namespace GBAMusicStudio.UI
         {
             pauseButton.Enabled = stopButton.Enabled = true;
             MusicPlayer.Instance.Play();
-            timer1.Interval = (int)(1000f / RefreshRate);
+            timer1.Interval = (int)(1000f / Config.RefreshRate);
             timer1.Start();
         }
         void Pause(object sender, EventArgs e)

@@ -7,7 +7,6 @@ namespace GBAMusicStudio.Core.M4A
     internal class VoiceTable
     {
         readonly SVoice[] voices;
-
         internal SVoice this[int i]
         {
             get => voices[i];
@@ -42,7 +41,7 @@ namespace GBAMusicStudio.Core.M4A
             }
             sounds.Add(direct.Address, snd);
         }
-        void LoadWave(GB_Wave wave, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
+        void LoadWave(PSG_Wave wave, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
         {
             if (wave.Address == 0 || sounds.ContainsKey(wave.Address)) return;
             uint rept = 4;
@@ -99,7 +98,7 @@ namespace GBAMusicStudio.Core.M4A
                         break;
                     case 0x3:
                     case 0xB:
-                        var wave = ROM.Instance.ReadStruct<GB_Wave>(offset);
+                        var wave = ROM.Instance.ReadStruct<PSG_Wave>(offset);
                         voices[i] = new SVoice(wave);
                         LoadWave(wave, system, sounds);
                         break;
@@ -137,7 +136,7 @@ namespace GBAMusicStudio.Core.M4A
                                     break;
                                 case 0x3:
                                 case 0xB:
-                                    var wv = ROM.Instance.ReadStruct<GB_Wave>(mOffset);
+                                    var wv = ROM.Instance.ReadStruct<PSG_Wave>(mOffset);
                                     multi.Table[key] = new SVoice(wv);
                                     LoadWave(wv, system, sounds);
                                     break;
@@ -152,6 +151,47 @@ namespace GBAMusicStudio.Core.M4A
                         voices[i] = new SDrum(ROM.Instance.ReadStruct<Drum>(offset), system, sounds);
                         break;
                 }
+            }
+        }
+
+        internal FMOD.Sound GetSoundFromNote(Dictionary<uint, FMOD.Sound> sounds, byte voice, byte note)
+        {
+            Voice v = voices[voice].Instrument;
+            Read:
+            switch (v.VoiceType)
+            {
+                case 0x0:
+                case 0x8:
+                    var direct = v as Direct_Sound;
+                    return sounds[direct.Address];
+                case 0x1:
+                case 0x2:
+                case 0x9:
+                case 0xA:
+                    dynamic dyn = v;
+                    return sounds[MusicPlayer.SQUARE12_ID - dyn.Pattern];
+                case 0x3:
+                case 0xB:
+                    var wave = v as PSG_Wave;
+                    return sounds[wave.Address];
+                case 0x4:
+                case 0xC:
+                    var noise = v as PSG_Noise;
+                    return sounds[MusicPlayer.NOISE0_ID - noise.Pattern];
+                case 0x40:
+                    var split = (Split)v;
+                    var multi = (SMulti)voices[voice];
+                    byte inst = ROM.Instance.ReadByte(split.Keys + note);
+                    v = multi.Table[inst].Instrument;
+                    //new_note = note; // In case there is a multi within a drum
+                    goto Read;
+                case 0x80:
+                    var drum = (SDrum)voices[voice];
+                    v = drum.Table[note].Instrument;
+                    //new_note = 60; // See, I told you it was nice
+                    goto Read;
+                default:
+                    return null;
             }
         }
     }

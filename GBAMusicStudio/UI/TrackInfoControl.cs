@@ -151,7 +151,7 @@ namespace GBAMusicStudio.UI
                 string theseNotes = string.Join(" ", notes[i].Select(n => string.Format("{0}{1}", simpleNotes[n % 12], (n / 12) - 2)));
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? noNotes : theseNotes;
-                if (empty && previousNotes.Item1[i]++ < MainForm.RefreshRate) theseNotes = previousNotes.Item2[i];
+                if (empty && previousNotes.Item1[i]++ < Core.Config.RefreshRate) theseNotes = previousNotes.Item2[i];
                 else if (!empty || previousNotes.Item2[i] != theseNotes) { previousNotes.Item1[i] = 0; previousNotes.Item2[i] = theseNotes; }
                 e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, nx, r1y);
 

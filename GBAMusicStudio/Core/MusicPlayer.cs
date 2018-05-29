@@ -52,8 +52,8 @@ namespace GBAMusicStudio.Core
             allInstruments = dsInstruments.Union(gbInstruments).ToArray();
 
             tracks = new Track[16];
-            for (int i = 0; i < 16; i++)
-                tracks[i] = new Track(system);
+            for (byte i = 0; i < 16; i++)
+                tracks[i] = new Track(system, i);
 
             ClearSamples();
 
@@ -78,43 +78,6 @@ namespace GBAMusicStudio.Core
             PSGNoise();
         }
 
-        Dictionary<byte, FMOD.Channel> keys = new Dictionary<byte, FMOD.Channel>();
-        void HandleChannelMessageReceived(object sender, Sanford.Multimedia.Midi.ChannelMessageEventArgs e)
-        {
-            var note = (byte)e.Message.Data1;
-            if ((e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn && e.Message.Data2 == 0)
-                || e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOff)
-            {
-                if (keys.ContainsKey(note))
-                {
-                    keys[note].stop();
-                    keys.Remove(note);
-                }
-            }
-            else if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn)
-            {
-                if (keys.ContainsKey(note))
-                {
-                    keys[note].stop();
-                    keys.Remove(note);
-                }
-                else
-                {
-                    keys.Add(note, null);
-                }
-                var ins = ((voiceTable[48] as SMulti).Table[0].Instrument as Direct_Sound); // Testing
-                var sound = sounds[ins.Address];
-                system.playSound(sound, null, true, out FMOD.Channel c);
-                keys[note] = c;
-                sound.getDefaults(out float soundFrequency, out int soundPriority);
-                float noteFrequency = (float)Math.Pow(2, ((note - (120 - ins.RootNote)) / 12f)),
-                    frequency = soundFrequency * noteFrequency;
-                c.setFrequency(frequency);
-                c.setPaused(false);
-            }
-            system.update();
-        }
-
         void PSGSquare()
         {
             byte[] simple = { 1, 2, 4, 6 };
@@ -127,7 +90,7 @@ namespace GBAMusicStudio.Core
                     buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 0xBF : 0x0);
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
-                    defaultfrequency = 44100, //(int)(44100 * Math.Pow(2, (9 / 12f))), // Root note 69
+                    defaultfrequency = 44100,
                     format = FMOD.SOUND_FORMAT.PCM8,
                     length = len,
                     numchannels = 1
@@ -291,7 +254,6 @@ namespace GBAMusicStudio.Core
                 add += added[i % 4];
             return add;
         }
-
         void PlayNote(Track track, byte note, byte velocity, byte addedDelay = 0)
         {
             // new_note is for drums to have a nice root note
@@ -300,13 +262,14 @@ namespace GBAMusicStudio.Core
 
             Instrument instrument = null;
             Voice voice = voiceTable[track.Voice].Instrument;
+            FMOD.Sound sound = voiceTable.GetSoundFromNote(sounds, track.Voice, note);
 
             Read:
             switch (voice.VoiceType)
             {
                 case 0x0:
                 case 0x8:
-                    var byAge = dsInstruments.OrderByDescending(ins => ins.Age);
+                    var byAge = dsInstruments.OrderByDescending(ins => (ins.Track == null ? 16 : ins.Track.Index)).ThenByDescending(ins => ins.Age);
                     foreach (Instrument i in byAge) // Find free
                         if (i.State == ADSRState.Dead)
                         {
@@ -316,13 +279,23 @@ namespace GBAMusicStudio.Core
                     if (instrument == null) // Find prioritized
                         foreach (Instrument i in byAge)
                             if (track.Priority > i.Track.Priority)
+                            {
                                 instrument = i;
+                                break;
+                            }
                     if (instrument == null) // Find releasing
                         foreach (Instrument i in byAge)
                             if (i.State == ADSRState.Releasing)
+                            {
                                 instrument = i;
-                    if (instrument == null) // None available; kill newest
-                        instrument = byAge.Last();
+                                break;
+                            }
+                    if (instrument == null) // None available
+                    {
+                        var lowestOldest = byAge.First(); // Kill lowest track's oldest instrument if the track is lower than this one
+                        if (lowestOldest.Track.Index >= track.Index)
+                            instrument = lowestOldest;
+                    }
                     break;
                 case 0x1:
                 case 0x9:
@@ -354,7 +327,44 @@ namespace GBAMusicStudio.Core
                     goto Read;
             }
 
-            instrument.Play(track, system, sounds, voice, new_note, note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
+            if (instrument != null)
+                instrument.Play(track, system, sounds, voice, sound, new_note, note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
+        }
+
+        Dictionary<byte, FMOD.Channel> keys = new Dictionary<byte, FMOD.Channel>();
+        void HandleChannelMessageReceived(object sender, Sanford.Multimedia.Midi.ChannelMessageEventArgs e)
+        {
+            var note = (byte)e.Message.Data1;
+            if ((e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn && e.Message.Data2 == 0)
+                || e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOff)
+            {
+                if (keys.ContainsKey(note))
+                {
+                    keys[note].stop();
+                    keys.Remove(note);
+                }
+            }
+            else if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn)
+            {
+                if (keys.ContainsKey(note))
+                {
+                    keys[note].stop();
+                    keys.Remove(note);
+                }
+                else
+                {
+                    keys.Add(note, null);
+                }
+                var sound = voiceTable.GetSoundFromNote(sounds, 60, note);
+                system.playSound(sound, null, true, out FMOD.Channel c);
+                keys[note] = c;
+                sound.getDefaults(out float soundFrequency, out int soundPriority);
+                float noteFrequency = (float)Math.Pow(2, ((note - 60) / 12f)),
+                    frequency = soundFrequency * noteFrequency;
+                c.setFrequency(frequency);
+                c.setPaused(false);
+            }
+            system.update();
         }
 
         void ExecuteNext(Track track)

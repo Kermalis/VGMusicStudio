@@ -59,7 +59,7 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         // Pass 0xFF to "duration" to trigger a TIE
-        internal void Play(Track track, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds, Voice voice, byte note, byte display_note, byte duration)
+        internal void Play(Track track, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds, Voice voice, FMOD.Sound sound, byte note, byte display_note, byte duration)
         {
             Stop();
             Track = track;
@@ -76,23 +76,16 @@ namespace GBAMusicStudio.Core.M4A
             FixedFrequency = false;
             ForcedPan = 0x7F;
             A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
-            FMOD.Sound sound = null;
 
             if (voice is Direct_Sound direct)
             {
                 FixedFrequency = direct.VoiceType == 0x8;
-                if (direct.Panpot >= 0x80) ForcedPan = (sbyte)((direct.Panpot ^ 0x80) - 64);
-                sound = sounds[direct.Address];
+                if (direct.Panpot >= 0x80)
+                    ForcedPan = (sbyte)((direct.Panpot ^ 0x80) - 64);
             }
             else // GB instrument
             {
                 RootNote += 9;
-                if (voice is PSG_Square_1 || voice is PSG_Square_2)
-                    sound = sounds[MusicPlayer.SQUARE12_ID - dyn.Pattern];
-                else if (voice is GB_Wave wave)
-                    sound = sounds[wave.Address];
-                else if (voice is PSG_Noise noise)
-                    sound = sounds[MusicPlayer.NOISE0_ID - noise.Pattern];
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
 
