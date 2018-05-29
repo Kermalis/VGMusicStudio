@@ -75,7 +75,7 @@ namespace GBAMusicStudio.Core.M4A
         internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 range
         internal void LoadPCMSamples(uint table, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
         {
-            for (uint i = 0; i < 128; i++)
+            for (uint i = 0; i < 256; i++)
             {
                 uint offset = table + (i * 0xC);
                 if (!ROM.IsValidRomOffset(offset))
@@ -113,7 +113,7 @@ namespace GBAMusicStudio.Core.M4A
                         if (!ROM.IsValidRomOffset(keySplit.Table) || !ROM.IsValidRomOffset(keySplit.Keys))
                             break;
 
-                        for (uint j = 0; j < 128; j++)
+                        for (uint j = 0; j < 256; j++)
                         {
                             byte key = ROM.Instance.ReadByte(keySplit.Keys + j);
                             if (key > 0x7F) continue;
@@ -156,6 +156,7 @@ namespace GBAMusicStudio.Core.M4A
 
         internal FMOD.Sound GetSoundFromNote(Dictionary<uint, FMOD.Sound> sounds, byte voice, byte note)
         {
+            SVoice sv = voices[voice];
             Voice v = voices[voice].Instrument;
             Read:
             switch (v.VoiceType)
@@ -180,15 +181,13 @@ namespace GBAMusicStudio.Core.M4A
                     return sounds[MusicPlayer.NOISE0_ID - noise.Pattern];
                 case 0x40:
                     var split = (Split)v;
-                    var multi = (SMulti)voices[voice];
+                    var multi = (SMulti)sv;
                     byte inst = ROM.Instance.ReadByte(split.Keys + note);
                     v = multi.Table[inst].Instrument;
-                    //new_note = note; // In case there is a multi within a drum
                     goto Read;
                 case 0x80:
-                    var drum = (SDrum)voices[voice];
+                    var drum = (SDrum)sv;
                     v = drum.Table[note].Instrument;
-                    //new_note = 60; // See, I told you it was nice
                     goto Read;
                 default:
                     return null;

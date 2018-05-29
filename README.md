@@ -27,6 +27,6 @@ A tool that is designed to be an updated Sappy.
 * Finish integrating SF2 writing
 * MIDI saving of songs
 * Songtable finder
-* Re-enable 256 length voice tables
 * Give instruments a defined color and have the bars show those colors, along with the keys on the piano
-* Exception handling for config
+* Exception handling for invalid config
+* Mute checkboxes next to tracks, along with another that indicates the piano will reflect the notes
