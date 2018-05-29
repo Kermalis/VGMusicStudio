@@ -182,7 +182,7 @@
             // 
             // volumeBar
             // 
-            this.volumeBar.LargeChange = 10;
+            this.volumeBar.LargeChange = 20;
             this.volumeBar.Location = new System.Drawing.Point(299, 35);
             this.volumeBar.Maximum = 100;
             this.volumeBar.Size = new System.Drawing.Size(225, 27);

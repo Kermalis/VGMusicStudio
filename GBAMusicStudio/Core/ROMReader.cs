@@ -37,7 +37,7 @@ namespace GBAMusicStudio.Core
         public int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
         public uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);
         public uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Map;
-        
+
         public void SetOffset(uint offset)
         {
             if (offset > ROM.Capacity)

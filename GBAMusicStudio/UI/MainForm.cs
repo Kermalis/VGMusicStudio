@@ -83,6 +83,7 @@ namespace GBAMusicStudio.UI
 
             new ROM(d.FileName);
             RefreshConfig();
+            SongNumerical_ValueChanged(null, null);
 
             songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
