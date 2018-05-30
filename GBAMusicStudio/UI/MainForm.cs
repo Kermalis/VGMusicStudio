@@ -15,14 +15,14 @@ namespace GBAMusicStudio.UI
         {
             InitializeComponent();
             timer1.Tick += UpdateUI;
-            MusicPlayer.Instance.SongEnded += () => stopUI = true;
+            MusicPlayer.SongEnded += () => stopUI = true;
             codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
             volumeBar.Value = Config.Volume;
         }
 
         void ChangeVolume(object sender, EventArgs e)
         {
-            MusicPlayer.Instance.SetVolume(volumeBar.Value / 100f);
+            MusicPlayer.SetVolume(volumeBar.Value / 100f);
         }
         void SongNumerical_ValueChanged(object sender, EventArgs e)
         {
@@ -34,8 +34,8 @@ namespace GBAMusicStudio.UI
                 Text = "GBA Music Studio - " + song.Name;
                 songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 for the Playlist index
             }
-            bool playing = MusicPlayer.Instance.State == State.Playing;
-            MusicPlayer.Instance.LoadSong((ushort)songNumerical.Value);
+            bool playing = MusicPlayer.State == State.Playing;
+            MusicPlayer.LoadSong((ushort)songNumerical.Value);
             trackInfoControl.DeleteData();
             trackInfoControl.Invalidate();
             if (playing) // Play new song if one is already playing
@@ -43,8 +43,7 @@ namespace GBAMusicStudio.UI
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Song song = (songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item as Song;
-            if (song == null) return; // A playlist was selected
+            if (!((songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item is Song song)) return; // A playlist was selected
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             songNumerical.Value = song.Index;
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -60,7 +59,7 @@ namespace GBAMusicStudio.UI
             foreach (byte n in uiNotes)
                 if (n >= pianoControl.LowNoteID && n <= pianoControl.HighNoteID)
                     pianoControl.ReleasePianoKey(n);
-            var tup = MusicPlayer.Instance.GetSongState();
+            var tup = MusicPlayer.GetSongState();
             uiNotes = tup.Item5[0];
             foreach (byte n in uiNotes)
                 if (n >= pianoControl.LowNoteID && n <= pianoControl.HighNoteID)
@@ -118,15 +117,15 @@ namespace GBAMusicStudio.UI
         {
             pauseButton.Enabled = stopButton.Enabled = true;
             pauseButton.Text = "Pause";
-            MusicPlayer.Instance.Play();
+            MusicPlayer.Play();
             timer1.Interval = (int)(1000f / Config.RefreshRate);
             timer1.Start();
         }
         void Pause(object sender, EventArgs e)
         {
-            stopButton.Enabled = MusicPlayer.Instance.State != State.Playing;
-            pauseButton.Text = MusicPlayer.Instance.State != State.Playing ? "Pause" : "Unpause";
-            MusicPlayer.Instance.Pause();
+            stopButton.Enabled = MusicPlayer.State != State.Playing;
+            pauseButton.Text = MusicPlayer.State != State.Playing ? "Pause" : "Unpause";
+            MusicPlayer.Pause();
         }
         void Stop(object sender, EventArgs e)
         {
@@ -135,7 +134,7 @@ namespace GBAMusicStudio.UI
             foreach (byte n in uiNotes)
                 pianoControl.ReleasePianoKey(n);
             trackInfoControl.DeleteData();
-            MusicPlayer.Instance.Stop();
+            MusicPlayer.Stop();
         }
 
         void MainForm_FormClosing(object sender, FormClosingEventArgs e) => Stop(null, null);

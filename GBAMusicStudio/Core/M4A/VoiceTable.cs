@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 
 namespace GBAMusicStudio.Core.M4A
@@ -13,9 +12,9 @@ namespace GBAMusicStudio.Core.M4A
             private set => voices[i] = value;
         }
 
-        void LoadDirect(Direct_Sound direct, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
+        void LoadDirect(Direct_Sound direct)
         {
-            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address) || sounds.ContainsKey(direct.Address)) return;
+            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address) || MusicPlayer.Sounds.ContainsKey(direct.Address)) return;
             Sample s = ROM.Instance.ReadStruct<Sample>(direct.Address);
             if (s.Length == 0 || s.Length >= 0x1000000) return; // Invalid lengths
             var buf = new byte[16 + s.Length + 16]; // FMOD API requires 16 bytes of padding on each side
@@ -29,7 +28,7 @@ namespace GBAMusicStudio.Core.M4A
                 length = s.Length,
                 numchannels = 1
             };
-            system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
+            MusicPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
             if (s.DoesLoop != 0)
             {
                 snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length, FMOD.TIMEUNIT.PCM);
@@ -39,11 +38,11 @@ namespace GBAMusicStudio.Core.M4A
             {
                 snd.setLoopCount(0);
             }
-            sounds.Add(direct.Address, snd);
+            MusicPlayer.Sounds.Add(direct.Address, snd);
         }
-        void LoadWave(PSG_Wave wave, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
+        void LoadWave(PSG_Wave wave)
         {
-            if (wave.Address == 0 || sounds.ContainsKey(wave.Address)) return;
+            if (wave.Address == 0 || MusicPlayer.Sounds.ContainsKey(wave.Address)) return;
             uint rept = 4;
             uint byteLen = 16 * rept * 2 * 2;
             var buf16 = new short[byteLen / 2];
@@ -68,12 +67,12 @@ namespace GBAMusicStudio.Core.M4A
             };
             var buf8 = new byte[16 + byteLen + 16]; // FMOD API requires 16 bytes of padding on each side
             Buffer.BlockCopy(buf16, 0, buf8, 16, (int)byteLen);
-            system.createSound(buf8, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd);
-            sounds.Add(wave.Address, snd);
+            MusicPlayer.System.createSound(buf8, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd);
+            MusicPlayer.Sounds.Add(wave.Address, snd);
         }
 
         internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 range
-        internal void LoadPCMSamples(uint table, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds)
+        internal void Load(uint table)
         {
             for (uint i = 0; i < 256; i++)
             {
@@ -86,7 +85,7 @@ namespace GBAMusicStudio.Core.M4A
                     case 0x8:
                         var direct = ROM.Instance.ReadStruct<Direct_Sound>(offset);
                         voices[i] = new SVoice(direct);
-                        LoadDirect(direct, system, sounds);
+                        LoadDirect(direct);
                         break;
                     case 0x1:
                     case 0x9:
@@ -100,7 +99,7 @@ namespace GBAMusicStudio.Core.M4A
                     case 0xB:
                         var wave = ROM.Instance.ReadStruct<PSG_Wave>(offset);
                         voices[i] = new SVoice(wave);
-                        LoadWave(wave, system, sounds);
+                        LoadWave(wave);
                         break;
                     case 0x4:
                     case 0xC:
@@ -124,7 +123,7 @@ namespace GBAMusicStudio.Core.M4A
                                 case 0x8:
                                     var ds = ROM.Instance.ReadStruct<Direct_Sound>(mOffset);
                                     multi.Table[key] = new SVoice(ds);
-                                    LoadDirect(ds, system, sounds);
+                                    LoadDirect(ds);
                                     break;
                                 case 0x1:
                                 case 0x9:
@@ -138,7 +137,7 @@ namespace GBAMusicStudio.Core.M4A
                                 case 0xB:
                                     var wv = ROM.Instance.ReadStruct<PSG_Wave>(mOffset);
                                     multi.Table[key] = new SVoice(wv);
-                                    LoadWave(wv, system, sounds);
+                                    LoadWave(wv);
                                     break;
                                 case 0x4:
                                 case 0xC:
@@ -148,49 +147,63 @@ namespace GBAMusicStudio.Core.M4A
                         }
                         break;
                     case 0x80:
-                        voices[i] = new SDrum(ROM.Instance.ReadStruct<Drum>(offset), system, sounds);
+                        voices[i] = new SDrum(ROM.Instance.ReadStruct<Drum>(offset));
                         break;
                 }
             }
         }
 
-        internal FMOD.Sound GetSoundFromNote(Dictionary<uint, FMOD.Sound> sounds, byte voice, byte note)
+        // The following should only be called after Load()
+        internal Voice GetVoiceFromNote(byte voice, byte note, out byte forcedNote)
         {
+            forcedNote = note;
+
             SVoice sv = voices[voice];
-            Voice v = voices[voice].Instrument;
+            Voice v = voices[voice].Voice;
             Read:
-            switch (v.VoiceType)
+            switch (v.Type)
+            {
+                case 0x40:
+                    var split = (Split)v;
+                    var multi = (SMulti)sv;
+                    byte inst = ROM.Instance.ReadByte(split.Keys + note);
+                    v = multi.Table[inst].Voice;
+                    forcedNote = note; // In case there is a multi within a drum
+                    goto Read;
+                case 0x80:
+                    var drum = (SDrum)sv;
+                    v = drum.Table[note].Voice;
+                    forcedNote = 60;
+                    goto Read;
+                default:
+                    return v;
+            }
+        }
+        internal FMOD.Sound GetSoundFromNote(byte voice, byte note)
+        {
+            Voice v = GetVoiceFromNote(voice, note, out byte idc);
+            switch (v.Type)
             {
                 case 0x0:
                 case 0x8:
                     var direct = v as Direct_Sound;
-                    return sounds[direct.Address];
+                    return MusicPlayer.Sounds[direct.Address];
                 case 0x1:
                 case 0x2:
                 case 0x9:
                 case 0xA:
                     dynamic dyn = v;
-                    return sounds[MusicPlayer.SQUARE12_ID - dyn.Pattern];
+                    return MusicPlayer.Sounds[MusicPlayer.SQUARE12_ID - dyn.Pattern];
                 case 0x3:
                 case 0xB:
                     var wave = v as PSG_Wave;
-                    return sounds[wave.Address];
+                    return MusicPlayer.Sounds[wave.Address];
                 case 0x4:
                 case 0xC:
                     var noise = v as PSG_Noise;
-                    return sounds[MusicPlayer.NOISE0_ID - noise.Pattern];
-                case 0x40:
-                    var split = (Split)v;
-                    var multi = (SMulti)sv;
-                    byte inst = ROM.Instance.ReadByte(split.Keys + note);
-                    v = multi.Table[inst].Instrument;
-                    goto Read;
-                case 0x80:
-                    var drum = (SDrum)sv;
-                    v = drum.Table[note].Instrument;
-                    goto Read;
+                    return MusicPlayer.Sounds[MusicPlayer.NOISE0_ID - noise.Pattern];
                 default:
-                    return null;
+                    return null; // Will not occur
             }
         }
     }

@@ -10,7 +10,7 @@ namespace GBAMusicStudio.UI
     internal class TrackInfoControl : UserControl
     {
         IContainer components = null;
-        Color barColor = Color.FromArgb(0xA7, 0x44, 0xDD);
+        readonly Color barColor = Color.FromArgb(0xA7, 0x44, 0xDD);
         readonly string noNotes = "…";
 
         //readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
@@ -112,7 +112,7 @@ namespace GBAMusicStudio.UI
             e.Graphics.DrawString("Instrument Type", Font, Brushes.DeepPink, ix, iy);
             e.Graphics.DrawLine(Pens.Gold, 0, ih, Width, ih);
 
-            for (int i = 0; i < Core.MusicPlayer.Instance.NumTracks; i++)
+            for (int i = 0; i < Core.MusicPlayer.NumTracks; i++)
             {
                 float r1y = ih + ym + (i * th); // Row 1 y
                 float r2y = r1y + r2o; // Row 2 y

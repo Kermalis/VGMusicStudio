@@ -5,6 +5,8 @@ using System.Linq;
 using GBAMusicStudio.Core.M4A;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 using GBAMusicStudio.MIDI;
+using System.Timers;
+using ThreadSafeList;
 
 namespace GBAMusicStudio.Core
 {
@@ -15,16 +17,21 @@ namespace GBAMusicStudio.Core
         Stopped
     }
 
-    internal class MusicPlayer
+    internal static class MusicPlayer
     {
-        FMOD.System system;
-        MicroTimer timer;
+        internal static readonly FMOD.System System;
+        static readonly MicroTimer tempoTimer;
 
-        Instrument[] dsInstruments;
-        Instrument[] gbInstruments;
-        Instrument[] allInstruments;
+        static readonly Instrument[] dsInstruments;
+        static readonly Instrument[] gbInstruments;
+        static readonly Instrument[] allInstruments;
 
-        Dictionary<uint, FMOD.Sound> sounds;
+        // MIDI keyboard stuff
+        static byte mkeyVolume = 127;
+        static readonly Timer mkeyTimer;
+        static readonly ThreadSafeList<Instrument> mkeyInstruments;
+
+        internal static Dictionary<uint, FMOD.Sound> Sounds { get; private set; }
         internal static readonly uint SQUARE12_ID = 0xFFFFFFFF,
             SQUARE25_ID = SQUARE12_ID - 1,
             SQUARE50_ID = SQUARE25_ID - 1,
@@ -32,16 +39,17 @@ namespace GBAMusicStudio.Core
             NOISE0_ID = SQUARE75_ID - 1,
             NOISE1_ID = NOISE0_ID - 1;
 
-        ushort tempo;
-        Track[] tracks;
+        static ushort tempo;
+        static readonly Track[] tracks;
 
-        internal static MusicPlayer Instance { get; private set; }
-        internal MusicPlayer()
+        static SongHeader header;
+        internal static byte NumTracks { get => header.NumTracks; }
+        internal static VoiceTable VoiceTable { get; private set; }
+
+        static MusicPlayer()
         {
-            if (Instance != null) return;
-            Instance = this;
-            FMOD.Factory.System_Create(out system);
-            system.init(32, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
+            FMOD.Factory.System_Create(out System);
+            System.init(32, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
 
             dsInstruments = new Instrument[Config.DirectCount];
             gbInstruments = new Instrument[4];
@@ -50,35 +58,38 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < 4; i++)
                 gbInstruments[i] = new Instrument();
             allInstruments = dsInstruments.Union(gbInstruments).ToArray();
+            mkeyInstruments = new ThreadSafeList<Instrument>();
 
             tracks = new Track[16];
             for (byte i = 0; i < 16; i++)
-                tracks[i] = new Track(system, i);
+                tracks[i] = new Track(i);
 
             ClearSamples();
 
-            timer = new MicroTimer();
-            timer.MicroTimerElapsed += PlayLoop;
+            tempoTimer = new MicroTimer();
+            tempoTimer.MicroTimerElapsed += PlayLoop;
+            mkeyTimer = new Timer() { Interval = 1000 / 60 };
+            mkeyTimer.Elapsed += MIDIKeyboardTick;
 
-            MIDIKeyboard.Instance.AddHandler(HandleChannelMessageReceived);
+            MIDIKeyboard.AddHandler(HandleChannelMessageReceived);
         }
-        internal void ClearSamples()
+
+        internal static void ClearSamples()
         {
-            if (sounds != null)
+            if (Sounds != null)
             {
-                foreach (var s in sounds.Values)
+                foreach (var s in Sounds.Values)
                     s.release();
-                sounds.Clear();
+                Sounds.Clear();
             }
             else
             {
-                sounds = new Dictionary<uint, FMOD.Sound>();
+                Sounds = new Dictionary<uint, FMOD.Sound>();
             }
             PSGSquare();
             PSGNoise();
         }
-
-        void PSGSquare()
+        static void PSGSquare()
         {
             byte[] simple = { 1, 2, 4, 6 };
             uint len = 0x100;
@@ -95,11 +106,11 @@ namespace GBAMusicStudio.Core
                     length = len,
                     numchannels = 1
                 };
-                system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
-                sounds.Add(SQUARE12_ID - i, snd);
+                System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
+                Sounds.Add(SQUARE12_ID - i, snd);
             }
         }
-        void PSGNoise()
+        static void PSGNoise()
         {
             uint[] simple = { 32768, 256 };
             var rand = new Random();
@@ -119,44 +130,41 @@ namespace GBAMusicStudio.Core
                     length = len,
                     numchannels = 1
                 };
-                system.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
-                sounds.Add(NOISE0_ID - i, snd);
+                System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
+                Sounds.Add(NOISE0_ID - i, snd);
             }
         }
 
-        SongHeader header;
-        internal byte NumTracks { get => header.NumTracks; }
-        VoiceTable voiceTable;
-
-        internal State State { get; private set; }
+        internal static State State { get; private set; }
         internal delegate void SongEndedEvent();
-        internal event SongEndedEvent SongEnded;
+        internal static event SongEndedEvent SongEnded;
 
-        internal void SetVolume(float v)
+        internal static void SetVolume(float v)
         {
-            system.getMasterSoundGroup(out FMOD.SoundGroup parentGroup);
+            System.getMasterSoundGroup(out FMOD.SoundGroup parentGroup);
             parentGroup.setVolume(v);
         }
-        internal void SetTempo(ushort t)
+        internal static void SetTempo(ushort t)
         {
             if (t > 510) return;
             tempo = t;
-            timer.Interval = (long)(2.5 * 1000 * 1000) / t;
+            tempoTimer.Interval = (long)(2.5 * 1000 * 1000) / t;
         }
 
-        internal void LoadSong(ushort song)
+        internal static void LoadSong(ushort song)
         {
             Stop();
             header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTable + ((uint)8 * song)));
             Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
 
-            voiceTable = new VoiceTable();
-            voiceTable.LoadPCMSamples(header.VoiceTable, system, sounds);
-            new VoiceTableSaver(voiceTable, sounds); // Testing
+            VoiceTable = new VoiceTable();
+            VoiceTable.Load(header.VoiceTable);
+            new VoiceTableSaver(); // Testing
 
-            MIDIKeyboard.Instance.Start();
+            MIDIKeyboard.Start();
+            mkeyTimer.Start();
         }
-        internal void Play()
+        internal static void Play()
         {
             Stop();
 
@@ -170,14 +178,14 @@ namespace GBAMusicStudio.Core
                 tracks[i].Init(header.Tracks[i]);
 
             SetTempo(120);
-            timer.Start();
+            tempoTimer.Start();
             State = State.Playing;
         }
-        internal void Pause()
+        internal static void Pause()
         {
             if (State == State.Paused)
             {
-                timer.Start();
+                tempoTimer.Start();
                 State = State.Playing;
             }
             else
@@ -186,14 +194,24 @@ namespace GBAMusicStudio.Core
                 State = State.Paused;
             }
         }
-        internal void Stop()
+        internal static void Stop()
         {
-            timer.StopAndWait();
+            tempoTimer.StopAndWait();
             foreach (Instrument i in allInstruments)
                 i.Stop();
             State = State.Stopped;
         }
-        void PlayLoop(object sender, MicroTimerEventArgs e)
+        static void MIDIKeyboardTick(object sender, ElapsedEventArgs e)
+        {
+            foreach (var i in mkeyInstruments)
+            {
+                i.Tick();
+                if (i.State == ADSRState.Dead)
+                    mkeyInstruments.Remove(i);
+            }
+            System.update();
+        }
+        static void PlayLoop(object sender, MicroTimerEventArgs e)
         {
             bool allStopped = true;
             for (int i = header.NumTracks - 1; i >= 0; i--)
@@ -205,7 +223,7 @@ namespace GBAMusicStudio.Core
                     ExecuteNext(track);
                 track.Tick();
             }
-            system.update();
+            System.update();
             if (allStopped)
             {
                 Stop();
@@ -213,7 +231,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
+        internal static (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
             var positions = new uint[header.NumTracks];
             var volumes = new byte[header.NumTracks];
@@ -233,7 +251,7 @@ namespace GBAMusicStudio.Core
                 voices[i] = tracks[i].Voice;
                 modulations[i] = tracks[i].MODDepth;
                 bends[i] = tracks[i].Bend * tracks[i].BendRange;
-                types[i] = voiceTable[tracks[i].Voice].ToString();
+                types[i] = VoiceTable[tracks[i].Voice].ToString();
 
                 Instrument[] instruments = tracks[i].Instruments.Clone().ToArray();
                 bool none = instruments.Length == 0;
@@ -245,7 +263,7 @@ namespace GBAMusicStudio.Core
             return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
         }
 
-        byte WaitFromCMD(byte startCMD, byte cmd)
+        static byte WaitFromCMD(byte startCMD, byte cmd)
         {
             byte[] added = { 4, 4, 2, 2 };
             byte wait = (byte)(cmd - startCMD);
@@ -254,18 +272,15 @@ namespace GBAMusicStudio.Core
                 add += added[i % 4];
             return add;
         }
-        void PlayNote(Track track, byte note, byte velocity, byte addedDelay = 0)
+        static void PlayNote(Track track, byte note, byte velocity, byte addedDelay = 0)
         {
-            // new_note is for drums to have a nice root note
-            byte new_note = track.PrevNote = note;
+            track.PrevNote = note;
             track.PrevVelocity = velocity;
 
-            Instrument instrument = null;
-            Voice voice = voiceTable[track.Voice].Instrument;
-            FMOD.Sound sound = voiceTable.GetSoundFromNote(sounds, track.Voice, note);
+            Voice voice = VoiceTable.GetVoiceFromNote(track.Voice, note, out byte forcedNote);
 
-            Read:
-            switch (voice.VoiceType)
+            Instrument instrument = null;
+            switch (voice.Type)
             {
                 case 0x0:
                 case 0x8:
@@ -313,61 +328,37 @@ namespace GBAMusicStudio.Core
                 case 0xC:
                     instrument = gbInstruments[3];
                     break;
-                case 0x40:
-                    var split = (Split)voice;
-                    var multi = (SMulti)voiceTable[track.Voice];
-                    byte inst = ROM.Instance.ReadByte(split.Keys + note);
-                    voice = multi.Table[inst].Instrument;
-                    new_note = note; // In case there is a multi within a drum
-                    goto Read;
-                case 0x80:
-                    var drum = (SDrum)voiceTable[track.Voice];
-                    voice = drum.Table[note].Instrument;
-                    new_note = 60; // See, I told you it was nice
-                    goto Read;
             }
 
             if (instrument != null)
-                instrument.Play(track, system, sounds, voice, sound, new_note, note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
+                instrument.Play(track, note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
         }
 
-        Dictionary<byte, FMOD.Channel> keys = new Dictionary<byte, FMOD.Channel>();
-        void HandleChannelMessageReceived(object sender, Sanford.Multimedia.Midi.ChannelMessageEventArgs e)
+        static void HandleChannelMessageReceived(object sender, Sanford.Multimedia.Midi.ChannelMessageEventArgs e)
         {
+            byte vNum = 48; // Voice number from the voice table
+
             var note = (byte)e.Message.Data1;
-            if ((e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn && e.Message.Data2 == 0)
+
+            if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.Controller && e.Message.Data1 == 7) // Volume
+            {
+                mkeyVolume = (byte)e.Message.Data2;
+            }
+            else if ((e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn && e.Message.Data2 == 0) // Note off
                 || e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOff)
             {
-                if (keys.ContainsKey(note))
-                {
-                    keys[note].stop();
-                    keys.Remove(note);
-                }
+                foreach (var i in mkeyInstruments.Where(ins => ins.DisplayNote == note))
+                    i.State = ADSRState.Releasing;
             }
-            else if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn)
+            else if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn) // Note on
             {
-                if (keys.ContainsKey(note))
-                {
-                    keys[note].stop();
-                    keys.Remove(note);
-                }
-                else
-                {
-                    keys.Add(note, null);
-                }
-                var sound = voiceTable.GetSoundFromNote(sounds, 60, note);
-                system.playSound(sound, null, true, out FMOD.Channel c);
-                keys[note] = c;
-                sound.getDefaults(out float soundFrequency, out int soundPriority);
-                float noteFrequency = (float)Math.Pow(2, ((note - 60) / 12f)),
-                    frequency = soundFrequency * noteFrequency;
-                c.setFrequency(frequency);
-                c.setPaused(false);
+                var i = new Instrument();
+                i.Play(new Track(16) { Voice = vNum, PrevVelocity = mkeyVolume }, note, 0xFF);
+                mkeyInstruments.Add(i);
             }
-            system.update();
         }
 
-        void ExecuteNext(Track track)
+        static void ExecuteNext(Track track)
         {
             byte cmd = track.ReadByte();
             if (cmd >= 0xBD) // Commands that work within running status

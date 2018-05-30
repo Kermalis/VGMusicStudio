@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 
 namespace GBAMusicStudio.Core.M4A
@@ -59,12 +58,14 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         // Pass 0xFF to "duration" to trigger a TIE
-        internal void Play(Track track, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds, Voice voice, FMOD.Sound sound, byte note, byte display_note, byte duration)
+        internal void Play(Track track, byte note, byte duration)
         {
             Stop();
+            Voice voice = MusicPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out Note);
+            FMOD.Sound sound = MusicPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
+
             Track = track;
-            Note = note;
-            DisplayNote = display_note;
+            DisplayNote = note;
             RootNote = voice.RootNote;
             NoteDuration = duration;
             NoteVelocity = track.PrevVelocity;
@@ -79,17 +80,17 @@ namespace GBAMusicStudio.Core.M4A
 
             if (voice is Direct_Sound direct)
             {
-                FixedFrequency = direct.VoiceType == 0x8;
+                FixedFrequency = direct.Type == 0x8;
                 if (direct.Panpot >= 0x80)
                     ForcedPan = (sbyte)((direct.Panpot ^ 0x80) - 64);
             }
-            else // GB instrument
+            else // PSG instrument
             {
                 RootNote += 9;
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
 
-            system.playSound(sound, Track.Group, true, out Channel);
+            MusicPlayer.System.playSound(sound, Track.Group, true, out Channel);
             if (A == 0) A = 255;
             UpdateFrequency();
             track.Instruments.Add(this);

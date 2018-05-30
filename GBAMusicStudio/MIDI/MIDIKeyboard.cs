@@ -4,17 +4,13 @@ using System;
 
 namespace GBAMusicStudio.MIDI
 {
-    internal class MIDIKeyboard
+    internal static class MIDIKeyboard
     {
-        bool bGood = false;
-        InputDevice inDevice;
-
-        internal static MIDIKeyboard Instance { get; private set; }
-        internal MIDIKeyboard()
+        static readonly bool bGood = false;
+        static InputDevice inDevice;
+        
+        static MIDIKeyboard()
         {
-            if (Instance != null) return;
-            Instance = this;
-
             if (InputDevice.DeviceCount == 0)
             {
                 Console.WriteLine("No MIDI input devices available.");
@@ -40,12 +36,12 @@ namespace GBAMusicStudio.MIDI
             bGood = true;
         }
 
-        internal void AddHandler(EventHandler<ChannelMessageEventArgs> handler)
+        internal static void AddHandler(EventHandler<ChannelMessageEventArgs> handler)
         {
             if (!bGood) return;
             inDevice.ChannelMessageReceived += handler;
         }
-        internal void Start()
+        internal static void Start()
         {
             if (!bGood) return;
             try
@@ -58,11 +54,11 @@ namespace GBAMusicStudio.MIDI
             }
         }
 
-        void LogChannelMessageReceived(object sender, ChannelMessageEventArgs e)
+        static void LogChannelMessageReceived(object sender, ChannelMessageEventArgs e)
         {
             Console.WriteLine("{0}\t\t{1}\t{2}\t{3}", e.Message.Command, e.Message.MidiChannel, e.Message.Data1, e.Message.Data2);
         }
-        void LogError(object sender, ErrorEventArgs e)
+        static void LogError(object sender, ErrorEventArgs e)
         {
             Console.WriteLine(e.Error.Message);
         }

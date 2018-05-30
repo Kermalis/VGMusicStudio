@@ -36,12 +36,12 @@ namespace GBAMusicStudio.Core
         public ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
         public int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
         public uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);
-        public uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Map;
+        public uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Pak;
 
         public void SetOffset(uint offset)
         {
             if (offset > ROM.Capacity)
-                offset -= ROM.Map;
+                offset -= ROM.Pak;
             if (!ROM.IsValidRomOffset(offset))
                 throw new ArgumentOutOfRangeException("\"offset\" was invalid.");
             Reader.BaseStream.Position = offset;

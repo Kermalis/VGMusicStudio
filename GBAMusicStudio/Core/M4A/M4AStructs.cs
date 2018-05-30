@@ -30,12 +30,12 @@ namespace GBAMusicStudio.Core.M4A
 
         internal class SVoice
         {
-            internal Voice Instrument;
+            internal Voice Voice;
             string name;
             internal SVoice(Voice i)
             {
-                Instrument = i;
-                name = Instrument.GetType().Name.Humanize();
+                Voice = i;
+                name = Voice.GetType().Name.Humanize();
             }
 
             public override string ToString() => name;
@@ -51,7 +51,7 @@ namespace GBAMusicStudio.Core.M4A
             internal VoiceTable Table;
 
             static Dictionary<uint, VoiceTable> LoadedDrums = new Dictionary<uint, VoiceTable>(); // Prevent stack overflow
-            internal SDrum(Drum d, FMOD.System system, Dictionary<uint, FMOD.Sound> sounds) : base(d)
+            internal SDrum(Drum d) : base(d)
             {
                 if (LoadedDrums.ContainsKey(d.Address))
                 {
@@ -61,7 +61,7 @@ namespace GBAMusicStudio.Core.M4A
                 {
                     Table = new VoiceTable();
                     LoadedDrums.Add(d.Address, Table);
-                    Table.LoadPCMSamples(d.Address, system, sounds);
+                    Table.Load(d.Address);
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace GBAMusicStudio.Core.M4A
         [StructLayout(LayoutKind.Sequential)]
         internal class Voice
         {
-            public byte VoiceType;
+            public byte Type;
             public byte RootNote;
             public byte Padding;
         }

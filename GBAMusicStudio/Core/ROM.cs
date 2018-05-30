@@ -5,7 +5,7 @@ namespace GBAMusicStudio.Core
 {
     public class ROM : ROMReader
     {
-        public const uint Map = 0x8000000;
+        public const uint Pak = 0x8000000;
         public const uint Capacity = 0x2000000;
 
         public static ROM Instance { get; private set; } // If you want to read with the reader
@@ -16,8 +16,8 @@ namespace GBAMusicStudio.Core
         public ROM(string filePath)
         {
             Instance = this;
-            MusicPlayer.Instance.Stop();
-            MusicPlayer.Instance.ClearSamples();
+            MusicPlayer.Stop();
+            MusicPlayer.ClearSamples();
             ROMFile = File.ReadAllBytes(filePath);
             InitReader();
             ReloadGameConfig();
@@ -36,6 +36,6 @@ namespace GBAMusicStudio.Core
             return theT;
         }
 
-        public static bool IsValidRomOffset(uint offset) => (offset < Capacity) || (offset >= Map && offset < Map + Capacity);
+        public static bool IsValidRomOffset(uint offset) => (offset < Capacity) || (offset >= Pak && offset < Pak + Capacity);
     }
 }

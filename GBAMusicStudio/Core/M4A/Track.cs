@@ -17,12 +17,12 @@ namespace GBAMusicStudio.Core.M4A
         internal bool Stopped;
         internal uint EndOfPattern;
 
-        internal Track(FMOD.System system, byte i) : base()
+        internal Track(byte i) : base()
         {
             Index = i;
             Instruments = new ThreadSafeList<Instrument>();
-            system.createChannelGroup(null, out Group);
-            system.createDSPByType(FMOD.DSP_TYPE.TREMOLO, out Mod2);
+            MusicPlayer.System.createChannelGroup(null, out Group);
+            MusicPlayer.System.createDSPByType(FMOD.DSP_TYPE.TREMOLO, out Mod2);
             Group.addDSP(2, Mod2);
         }
 

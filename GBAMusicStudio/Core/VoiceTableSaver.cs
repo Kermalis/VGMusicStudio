@@ -1,16 +1,15 @@
-﻿using GBAMusicStudio.Core.M4A;
-using GBAMusicStudio.Util;
+﻿using GBAMusicStudio.Util;
 using SoundFont;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using static GBAMusicStudio.Core.M4A.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {
     class VoiceTableSaver
     {
-        static string[] general_MIDI_instr_names = {
+        static readonly string[] instrumentNames = {
             "Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano", "Honky-tonk Piano", "Rhodes Piano", "Chorused Piano",
             "Harpsichord",  "Clavinet", "Celesta", "Glockenspiel", "Music Box", "Vibraphone", "Marimba", "Xylophone", "Tubular Bells", "Dulcimer",
             "Hammond Organ", "Percussive Organ", "Rock Organ", "Church Organ", "Reed Organ", "Accordion", "Harmonica", "Tango Accordion",
@@ -30,11 +29,11 @@ namespace GBAMusicStudio.Core
             "Applause", "Gunshot" };
         SF2 sf2;
 
-        internal VoiceTableSaver(VoiceTable table, Dictionary<uint, FMOD.Sound> sounds)
+        internal VoiceTableSaver()
         {
             sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Game.Creator, "", "GBA Music Studio by Kermalis");
 
-            foreach (var instrument in sounds)
+            foreach (var instrument in MusicPlayer.Sounds)
                 if (instrument.Key < MusicPlayer.NOISE1_ID)
                     AddSample(instrument.Value, string.Format("Sample 0x{0:X}", instrument.Key));
 
