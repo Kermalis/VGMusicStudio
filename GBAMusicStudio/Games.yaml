@@ -5,6 +5,7 @@ Volume: 50 # Value between 0 and 100.
 
 # These can be reloaded in the program:
 
+MIDIKeyboardFixedVelocity: True # True or False
 RefreshRate: 60 # Value over 0.
 Games:
   AXVE:

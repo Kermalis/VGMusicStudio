@@ -5,8 +5,6 @@ using System.Linq;
 using GBAMusicStudio.Core.M4A;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 using GBAMusicStudio.MIDI;
-using System.Timers;
-using ThreadSafeList;
 
 namespace GBAMusicStudio.Core
 {
@@ -20,16 +18,11 @@ namespace GBAMusicStudio.Core
     internal static class MusicPlayer
     {
         internal static readonly FMOD.System System;
-        static readonly MicroTimer tempoTimer;
+        static readonly MicroTimer timer;
 
         static readonly Instrument[] dsInstruments;
         static readonly Instrument[] gbInstruments;
         static readonly Instrument[] allInstruments;
-
-        // MIDI keyboard stuff
-        static byte mkeyVolume = 127;
-        static readonly Timer mkeyTimer;
-        static readonly ThreadSafeList<Instrument> mkeyInstruments;
 
         internal static Dictionary<uint, FMOD.Sound> Sounds { get; private set; }
         internal static readonly uint SQUARE12_ID = 0xFFFFFFFF,
@@ -58,7 +51,6 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < 4; i++)
                 gbInstruments[i] = new Instrument();
             allInstruments = dsInstruments.Union(gbInstruments).ToArray();
-            mkeyInstruments = new ThreadSafeList<Instrument>();
 
             tracks = new Track[16];
             for (byte i = 0; i < 16; i++)
@@ -66,12 +58,8 @@ namespace GBAMusicStudio.Core
 
             ClearSamples();
 
-            tempoTimer = new MicroTimer();
-            tempoTimer.MicroTimerElapsed += PlayLoop;
-            mkeyTimer = new Timer() { Interval = 1000 / 60 };
-            mkeyTimer.Elapsed += MIDIKeyboardTick;
-
-            MIDIKeyboard.AddHandler(HandleChannelMessageReceived);
+            timer = new MicroTimer();
+            timer.MicroTimerElapsed += PlayLoop;
         }
 
         internal static void ClearSamples()
@@ -148,7 +136,7 @@ namespace GBAMusicStudio.Core
         {
             if (t > 510) return;
             tempo = t;
-            tempoTimer.Interval = (long)(2.5 * 1000 * 1000) / t;
+            timer.Interval = (long)(2.5 * 1000 * 1000) / t;
         }
 
         internal static void LoadSong(ushort song)
@@ -162,7 +150,6 @@ namespace GBAMusicStudio.Core
             new VoiceTableSaver(); // Testing
 
             MIDIKeyboard.Start();
-            mkeyTimer.Start();
         }
         internal static void Play()
         {
@@ -178,14 +165,14 @@ namespace GBAMusicStudio.Core
                 tracks[i].Init(header.Tracks[i]);
 
             SetTempo(120);
-            tempoTimer.Start();
+            timer.Start();
             State = State.Playing;
         }
         internal static void Pause()
         {
             if (State == State.Paused)
             {
-                tempoTimer.Start();
+                timer.Start();
                 State = State.Playing;
             }
             else
@@ -196,20 +183,10 @@ namespace GBAMusicStudio.Core
         }
         internal static void Stop()
         {
-            tempoTimer.StopAndWait();
+            timer.StopAndWait();
             foreach (Instrument i in allInstruments)
                 i.Stop();
             State = State.Stopped;
-        }
-        static void MIDIKeyboardTick(object sender, ElapsedEventArgs e)
-        {
-            foreach (var i in mkeyInstruments)
-            {
-                i.Tick();
-                if (i.State == ADSRState.Dead)
-                    mkeyInstruments.Remove(i);
-            }
-            System.update();
         }
         static void PlayLoop(object sender, MicroTimerEventArgs e)
         {
@@ -332,30 +309,6 @@ namespace GBAMusicStudio.Core
 
             if (instrument != null)
                 instrument.Play(track, note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
-        }
-
-        static void HandleChannelMessageReceived(object sender, Sanford.Multimedia.Midi.ChannelMessageEventArgs e)
-        {
-            byte vNum = 48; // Voice number from the voice table
-
-            var note = (byte)e.Message.Data1;
-
-            if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.Controller && e.Message.Data1 == 7) // Volume
-            {
-                mkeyVolume = (byte)e.Message.Data2;
-            }
-            else if ((e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn && e.Message.Data2 == 0) // Note off
-                || e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOff)
-            {
-                foreach (var i in mkeyInstruments.Where(ins => ins.DisplayNote == note))
-                    i.State = ADSRState.Releasing;
-            }
-            else if (e.Message.Command == Sanford.Multimedia.Midi.ChannelCommand.NoteOn) // Note on
-            {
-                var i = new Instrument();
-                i.Play(new Track(16) { Voice = vNum, PrevVelocity = mkeyVolume }, note, 0xFF);
-                mkeyInstruments.Add(i);
-            }
         }
 
         static void ExecuteNext(Track track)

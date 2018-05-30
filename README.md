@@ -29,3 +29,6 @@ A tool that is designed to be an updated Sappy.
 * Give instruments a defined color and have the bars show those colors, along with the keys on the piano
 * Exception handling for invalid config
 * Mute checkboxes next to tracks, along with another that indicates the piano will reflect their notes
+* Add shortcuts for the UI
+* Let on-screen piano play notes or interact with MIDI keyboard
+* Fix application hanging when you close it

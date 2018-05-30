@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Core;
+using GBAMusicStudio.MIDI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace GBAMusicStudio.UI
         public MainForm()
         {
             InitializeComponent();
-            timer1.Tick += UpdateUI;
+            timer.Tick += UpdateUI;
             MusicPlayer.SongEnded += () => stopUI = true;
             codeLabel.Text = gameLabel.Text = creatorLabel.Text = "";
             volumeBar.Value = Config.Volume;
@@ -118,8 +119,8 @@ namespace GBAMusicStudio.UI
             pauseButton.Enabled = stopButton.Enabled = true;
             pauseButton.Text = "Pause";
             MusicPlayer.Play();
-            timer1.Interval = (int)(1000f / Config.RefreshRate);
-            timer1.Start();
+            timer.Interval = (int)(1000f / Config.RefreshRate);
+            timer.Start();
         }
         void Pause(object sender, EventArgs e)
         {
@@ -130,13 +131,17 @@ namespace GBAMusicStudio.UI
         void Stop(object sender, EventArgs e)
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
-            timer1.Stop();
+            timer.Stop();
             foreach (byte n in uiNotes)
                 pianoControl.ReleasePianoKey(n);
             trackInfoControl.DeleteData();
             MusicPlayer.Stop();
         }
 
-        void MainForm_FormClosing(object sender, FormClosingEventArgs e) => Stop(null, null);
+        void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Stop(null, null);
+            MIDIKeyboard.Stop();
+        }
     }
 }
