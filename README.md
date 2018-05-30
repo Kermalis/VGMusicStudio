@@ -21,7 +21,6 @@ A tool that is designed to be an updated Sappy.
 * Add KEYSH
 * Add "note off with noise" for SquareWaves
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
-* Fix songs not releasing before dying
 * Fix seemingly-random audible velocity abruption (noticeable with a MIDI keyboard)
 * Maybe a nice waveform
 * Finish integrating SF2 writing

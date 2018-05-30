@@ -217,7 +217,7 @@ namespace GBAMusicStudio.Core
             for (int i = header.NumTracks - 1; i >= 0; i--)
             {
                 Track track = tracks[i];
-                if (!track.Stopped)
+                if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
                     allStopped = false;
                 while (track.Delay == 0 && !track.Stopped)
                     ExecuteNext(track);
