@@ -13,7 +13,6 @@ A tool that is designed to be an updated Sappy.
 
 ## To Do (No particular order)
 
-* Drums are a bit funky sometimes, I have to check how they work again
 * Figure out GB instrument frequency scale
 * Add reverse playback
 * Add pitch & volume modulation

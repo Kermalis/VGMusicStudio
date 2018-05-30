@@ -117,6 +117,7 @@ namespace GBAMusicStudio.UI
         void Play(object sender, EventArgs e)
         {
             pauseButton.Enabled = stopButton.Enabled = true;
+            pauseButton.Text = "Pause";
             MusicPlayer.Instance.Play();
             timer1.Interval = (int)(1000f / Config.RefreshRate);
             timer1.Start();
@@ -124,6 +125,7 @@ namespace GBAMusicStudio.UI
         void Pause(object sender, EventArgs e)
         {
             stopButton.Enabled = MusicPlayer.Instance.State != State.Playing;
+            pauseButton.Text = MusicPlayer.Instance.State != State.Playing ? "Pause" : "Unpause";
             MusicPlayer.Instance.Pause();
         }
         void Stop(object sender, EventArgs e)
