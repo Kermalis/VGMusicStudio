@@ -377,7 +377,9 @@ namespace GBAMusicStudio.Core
                     case 0xCD: track.ReadByte(); break; // XCMD
                     case 0xCE:
                         byte note = (byte)(cmd + track.KeyShift).Clamp(0, 127);
-                        track.Instruments.First(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note).State = ADSRState.Releasing;
+                        var i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note);
+                        if (i != null)
+                            i.State = ADSRState.Releasing;
                         track.PrevNote = note;
                         break; // EOT
                 }
@@ -418,16 +420,19 @@ namespace GBAMusicStudio.Core
                     case 0xC8: track.SetTune(track.ReadByte()); break; // TUNE
                     case 0xCD: track.ReadByte(); track.ReadByte(); break; // XCMD
                     case 0xCE: // EOT
+                        Instrument i = null;
                         if (track.PeekByte() < 128)
                         {
                             byte note = (byte)(track.ReadByte() + track.KeyShift).Clamp(0, 127);
-                            track.Instruments.First(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note).State = ADSRState.Releasing;
+                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note);
                             track.PrevNote = note;
                         }
                         else
                         {
-                            track.Instruments.First(ins => ins.NoteDuration == 0xFF).State = ADSRState.Releasing;
+                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF);
                         }
+                        if (i != null)
+                            i.State = ADSRState.Releasing;
                         break;
                     default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", track.Position, cmd); break;
                 }
