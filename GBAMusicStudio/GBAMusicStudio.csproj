@@ -40,7 +40,7 @@
       <HintPath>..\packages\Humanizer.Core.2.2.0\lib\netstandard1.0\Humanizer.dll</HintPath>
     </Reference>
     <Reference Include="ImageComboBox">
-      <HintPath>Properties\ImageComboBox.dll</HintPath>
+      <HintPath>Dependencies\ImageComboBox.dll</HintPath>
     </Reference>
     <Reference Include="Sanford.Collections">
       <HintPath>Dependencies\Sanford.Collections.dll</HintPath>

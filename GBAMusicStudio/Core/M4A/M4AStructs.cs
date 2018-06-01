@@ -9,29 +9,29 @@ namespace GBAMusicStudio.Core.M4A
         [StructLayout(LayoutKind.Sequential)]
         internal struct SongHeader
         {
-            public byte NumTracks;
-            public byte NumBlocks;
-            public byte Priority;
-            public byte Reverb;
-            public uint VoiceTable;
+            internal byte NumTracks;
+            internal byte NumBlocks;
+            internal byte Priority;
+            internal byte Reverb;
+            internal uint VoiceTable;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-            public uint[] Tracks;
+            internal uint[] Tracks;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct Sample
         {
-            public uint DoesLoop; // Will be 0x40000000 if true
-            public uint Frequency; // Divide this by 1024
-            public uint LoopPoint;
-            public uint Length;
+            internal uint DoesLoop; // Will be 0x40000000 if true
+            internal uint Frequency; // Divide this by 1024
+            internal uint LoopPoint;
+            internal uint Length;
             // 0x10 - byte[Length] of unsigned PCM8 data
         }
 
         internal class SVoice
         {
-            internal Voice Voice;
-            string name;
+            internal readonly Voice Voice;
+            readonly string name;
             internal SVoice(Voice i)
             {
                 Voice = i;
@@ -42,13 +42,13 @@ namespace GBAMusicStudio.Core.M4A
         }
         internal class SMulti : SVoice
         {
-            internal VoiceTable Table;
+            internal readonly VoiceTable Table;
 
             internal SMulti(Split ks) : base(ks) => Table = new VoiceTable();
         }
         internal class SDrum : SVoice
         {
-            internal VoiceTable Table;
+            internal readonly VoiceTable Table;
 
             static Dictionary<uint, VoiceTable> LoadedDrums = new Dictionary<uint, VoiceTable>(); // Prevent stack overflow
             internal SDrum(Drum d) : base(d)
@@ -69,61 +69,61 @@ namespace GBAMusicStudio.Core.M4A
         [StructLayout(LayoutKind.Sequential)]
         internal class Voice
         {
-            public byte Type;
-            public byte RootNote;
-            public byte Padding;
+            internal byte Type;
+            internal byte RootNote;
+            internal byte Padding;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         internal class Direct_Sound : Voice // 0x0, 0x8
         {
-            public byte Panpot;
-            public uint Address;
-            public byte A, D, S, R;
+            internal byte Panpot;
+            internal uint Address;
+            internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
         internal class PSG_Square_1 : Voice // 0x1, 0x9
         {
-            public byte Sweep;
-            public byte Pattern;
-            public byte Padding2, Padding3, Padding4;
-            public byte A, D, S, R;
+            internal byte Sweep;
+            internal byte Pattern;
+            internal byte Padding2, Padding3, Padding4;
+            internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
         internal class PSG_Square_2 : Voice // 0x2, 0xA
         {
-            public byte Padding2;
-            public byte Pattern;
-            public byte Padding3, Padding4, Padding5;
-            public byte A, D, S, R;
+            internal byte Padding2;
+            internal byte Pattern;
+            internal byte Padding3, Padding4, Padding5;
+            internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
         internal class PSG_Wave : Voice // 0x3, 0xB
         {
-            public byte Padding2;
-            public uint Address;
-            public byte A, D, S, R;
+            internal byte Padding2;
+            internal uint Address;
+            internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
         internal class PSG_Noise : Voice // 0x4, 0xC
         {
-            public byte Padding2;
-            public byte Pattern;
-            public byte Padding3, Padding4, Padding5;
-            public byte A, D, S, R;
+            internal byte Panpot;
+            internal byte Pattern;
+            internal byte Padding2, Padding3, Padding4;
+            internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
         internal class Split : Voice // 0x40
         {
-            public byte Padding2;
-            public uint Table, Keys;
+            internal byte Padding2;
+            internal uint Table, Keys;
         }
         [StructLayout(LayoutKind.Sequential)]
         internal class Drum : Voice // 0x80
         {
-            public byte Padding2;
-            public uint Address;
-            public uint Padding3;
+            internal byte Padding2;
+            internal uint Address;
+            internal uint Padding3;
         }
     }
 }

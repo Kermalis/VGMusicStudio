@@ -94,7 +94,7 @@ namespace GBAMusicStudio.MIDI
         {
             Console.WriteLine("{0}\t\t{1}\t{2}\t{3}", e.Message.Command, e.Message.MidiChannel, e.Message.Data1, e.Message.Data2);
 
-            byte vNum = 48; // Voice number from the voice table
+            byte vNum = 56; // Voice number from the voice table
 
             var note = (byte)e.Message.Data1;
 
@@ -110,8 +110,9 @@ namespace GBAMusicStudio.MIDI
             else if (e.Message.Command == ChannelCommand.NoteOn) // Note on
             {
                 var i = new Instrument();
-                i.Play(new Core.M4A.Track(16) { Voice = vNum, PrevVelocity = (byte)(volume * (Config.MIDIKeyboardFixedVelocity ? 127 : e.Message.Data2) / 127) }, note, 0xFF);
+                i.Play(new Core.M4A.Track(16) { Voice = vNum, Volume = volume, PrevVelocity = (byte)(Config.MIDIKeyboardFixedVelocity ? 127 : e.Message.Data2) }, note, 0xFF);
                 instruments.Add(i);
+                Tick(null, null); // Prevent input delay
             }
         }
         static void LogError(object sender, ErrorEventArgs e)

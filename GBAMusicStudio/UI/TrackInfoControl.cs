@@ -133,7 +133,7 @@ namespace GBAMusicStudio.UI
 
                 e.Graphics.DrawLine(Pens.GreenYellow, bx, by, bx, by + bh); // Left bar bound line
                 e.Graphics.DrawLine(Pens.Purple, cx, by, cx, by + bh); // Center line
-                e.Graphics.DrawLine(Pens.OrangeRed, px, by, px, by + bh); // Pan line
+                if (Core.Config.PanpotIndicators) e.Graphics.DrawLine(Pens.OrangeRed, px, by, px, by + bh); // Pan line
                 e.Graphics.DrawLine(Pens.GreenYellow, bx + bw - bwd, by, bx + bw - bwd, by + bh); // Right bar bound line
 
                 float percentRight = (pans[i] + 1) * velocities[i] / 2,

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GBAMusicStudio.Util;
+using System;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 
 namespace GBAMusicStudio.Core.M4A
@@ -15,10 +16,11 @@ namespace GBAMusicStudio.Core.M4A
     {
         internal ADSRState State;
         internal float Velocity { get { return ((NoteVelocity / 127f) * CurrentVelocity) / 255f; } }
-        internal float Panpot { get { return (ForcedPan != 0x7F ? ForcedPan : Track.Pan) / 64f; } }
+        internal float Panpot { get { return ForcedPan != 0x7F ? ForcedPan / 64f : Track.APan; } }
         internal ulong Age { get; private set; }
 
         internal Track Track { get; private set; }
+        Voice Voice;
         FMOD.Channel Channel;
         internal byte DisplayNote { get; private set; }
         byte Note;
@@ -27,7 +29,6 @@ namespace GBAMusicStudio.Core.M4A
         int CurrentVelocity;
 
         byte A, D, S, R;
-        byte RootNote;
         bool FixedFrequency;
         sbyte ForcedPan; // 0x7F counts as disabled
 
@@ -39,19 +40,31 @@ namespace GBAMusicStudio.Core.M4A
         {
             Channel.setPan(Panpot);
         }
-        void UpdateVolume()
+        internal void UpdateVolume()
         {
-            Channel.setVolume(Velocity);
+            Channel.setVolume(Velocity * Track.AVolume);
         }
         internal void UpdateFrequency()
         {
             Channel.setPaused(true);
             Channel.getCurrentSound(out FMOD.Sound sound);
             sound.getDefaults(out float soundFrequency, out int soundPriority);
-            float noteFrequency = (float)Math.Pow(2, ((Note - (120 - RootNote)) / 12f)),
-                bendFrequency = (float)Math.Pow(2, (Track.Bend * Track.BendRange) / (float)(64 * 12)),
-                frequency = soundFrequency * noteFrequency * bendFrequency;
-            Channel.setFrequency(FixedFrequency ? soundFrequency : frequency); // Not sure if fixed frequency ignores bends yet
+            float frequency;
+            if (Voice is Direct_Sound)
+            {
+                frequency = soundFrequency * (float)Math.Pow(2, (Note - (120 - Voice.RootNote)) / 12f + Track.APitch / 768f);
+            }
+            else
+            {
+                float fundamental = 440 * (float)Math.Pow(2, (Note - 69) / 12f + Track.APitch / 768f);
+                if (Voice is PSG_Noise)
+                    frequency = (0x1000 * (float)Math.Pow(8, (Note - (120 - Voice.RootNote)) / 12f + Track.APitch / 768f)).Clamp(8, 0x80000);
+                else if (Voice is PSG_Wave)
+                    frequency = fundamental * 0x10;
+                else // Squares
+                    frequency = fundamental * 0x100;
+            }
+            Channel.setFrequency(FixedFrequency ? soundFrequency : frequency);
             UpdatePanpot();
             UpdateVolume();
             Channel.setPaused(false);
@@ -61,32 +74,38 @@ namespace GBAMusicStudio.Core.M4A
         internal void Play(Track track, byte note, byte duration)
         {
             Stop();
-            Voice voice = MusicPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out Note);
+            Voice = MusicPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out Note);
             FMOD.Sound sound = MusicPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
 
             Track = track;
             DisplayNote = note;
-            RootNote = voice.RootNote;
             NoteDuration = duration;
             NoteVelocity = track.PrevVelocity;
             Age = 0;
             CurrentVelocity = 0;
             State = ADSRState.Rising;
 
-            dynamic dyn = voice; // ADSR are in the same spot in each struct
+            dynamic dyn = Voice; // ADSR are in the same spot in each struct
             FixedFrequency = false;
             ForcedPan = 0x7F;
             A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
 
-            if (voice is Direct_Sound direct)
+            if (Voice is PSG_Square_1 square1) // Square1s have sweeping
+            {
+                // TODO: Add sweeping
+            }
+            else if (Voice is Direct_Sound || Voice is PSG_Noise) // Direct & Noise have panpot
+            {
+                if (dyn.Panpot >= 0x80)
+                    ForcedPan = (sbyte)((dyn.Panpot - 0x80) - 64);
+            }
+
+            if (Voice is Direct_Sound direct)
             {
                 FixedFrequency = direct.Type == 0x8;
-                if (direct.Panpot >= 0x80)
-                    ForcedPan = (sbyte)((direct.Panpot ^ 0x80) - 64);
             }
             else // PSG instrument
             {
-                RootNote += 9;
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
 
@@ -137,7 +156,7 @@ namespace GBAMusicStudio.Core.M4A
                     }
                     break;
             }
-            UpdateVolume();
+            UpdateFrequency();
             Age++;
         }
     }

@@ -17,10 +17,10 @@ namespace GBAMusicStudio.Core.M4A
             if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address) || MusicPlayer.Sounds.ContainsKey(direct.Address)) return;
             Sample s = ROM.Instance.ReadStruct<Sample>(direct.Address);
             if (s.Length == 0 || s.Length >= 0x1000000) return; // Invalid lengths
-            var buf = new byte[16 + s.Length + 16]; // FMOD API requires 16 bytes of padding on each side
-            Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 16, (int)s.Length);
+            var buf = new byte[s.Length];
+            Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 0, (int)s.Length);
             for (int i = 0; i < s.Length; i++)
-                buf[i + 16] ^= 0x80; // Convert from u8 to s8
+                buf[i] ^= 0x80; // Convert from s8 to u8
             var ex = new FMOD.CREATESOUNDEXINFO()
             {
                 defaultfrequency = (int)s.Frequency / 1024,
@@ -43,35 +43,30 @@ namespace GBAMusicStudio.Core.M4A
         void LoadWave(PSG_Wave wave)
         {
             if (wave.Address == 0 || MusicPlayer.Sounds.ContainsKey(wave.Address)) return;
-            uint rept = 4;
-            uint byteLen = 16 * rept * 2 * 2;
-            var buf16 = new short[byteLen / 2];
-            for (uint i = 0, j = 0; i < 16; i++)
+            
+            var buf = new byte[32];
+            for (uint i = 0; i < 16; i++)
             {
                 byte b = ROM.Instance.ReadByte(wave.Address + i);
-
-                short[] simple = { -0x4000, -0x3800, -0x3000, -0x2800, -0x2000, -0x1800, -0x0100, -0x0800,
-                        0x0000, 0x0800, 0x1000, 0x1800, 0x2000, 0x2800, 0x3000, 0x3800 };
-
-                for (int k = 0; k < rept; k++, j++)
-                    buf16[j] = simple[b >> 4];
-                for (int k = 0; k < rept; k++, j++)
-                    buf16[j] = simple[b & 0xF];
+                byte first = (byte)((b >> 4) * Config.PSGVolume); // Convert from u4 to u8
+                byte second = (byte)((b & 0xF) * Config.PSGVolume);
+                buf[i * 2] = first;
+                buf[i * 2 + 1] = second;
             }
+            if (wave.Address == 0x9E8654C)
+                ;
             var ex = new FMOD.CREATESOUNDEXINFO()
             {
-                defaultfrequency = (int)(22050 * Math.Pow(2, (-14 / 12f))), // Still trying to figure it out
-                format = FMOD.SOUND_FORMAT.PCM16,
-                length = byteLen,
+                defaultfrequency = 7040,
+                format = FMOD.SOUND_FORMAT.PCM8,
+                length = 32,
                 numchannels = 1
             };
-            var buf8 = new byte[16 + byteLen + 16]; // FMOD API requires 16 bytes of padding on each side
-            Buffer.BlockCopy(buf16, 0, buf8, 16, (int)byteLen);
-            MusicPlayer.System.createSound(buf8, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd);
+            MusicPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd);
             MusicPlayer.Sounds.Add(wave.Address, snd);
         }
 
-        internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 range
+        internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
         internal void Load(uint table)
         {
             for (uint i = 0; i < 256; i++)

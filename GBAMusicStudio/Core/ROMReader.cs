@@ -32,6 +32,8 @@ namespace GBAMusicStudio.Core
         }
 
         public byte[] ReadBytes(uint amt, uint offset = 0xFFFFFFFF) => (byte[])Parse(offset, amt, false, true);
+
+        public sbyte ReadSByte(uint offset = 0xFFFFFFFF) => (sbyte)Parse(offset, 1, true);
         public byte ReadByte(uint offset = 0xFFFFFFFF) => (byte)Parse(offset, 1);
         public ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
         public int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);

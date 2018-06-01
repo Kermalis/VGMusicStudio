@@ -52,14 +52,16 @@ namespace GBAMusicStudio.Core
     public static class Config
     {
         public static byte DirectCount { get; private set; }
+        public static byte PSGVolume { get; private set; }
         public static bool MIDIKeyboardFixedVelocity { get; private set; }
         public static byte RefreshRate { get; private set; }
+        public static bool PanpotIndicators { get; private set; }
         public static byte Volume { get; private set; }
 
         public static Dictionary<string, Game> Games { get; private set; }
 
         static readonly string fileName = "Games.yaml";
-
+        
         static Config() => Load();
         public static void Load()
         {
@@ -68,8 +70,10 @@ namespace GBAMusicStudio.Core
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
+            PSGVolume = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("PSGVolume")].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children[new YamlScalarNode("MIDIKeyboardFixedVelocity")].ToString());
             RefreshRate = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
+            PanpotIndicators = bool.Parse(mapping.Children[new YamlScalarNode("PanpotIndicators")].ToString());
             Volume = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("Volume")].ToString());
 
             Games = new Dictionary<string, Game>();

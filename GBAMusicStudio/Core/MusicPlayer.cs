@@ -5,6 +5,7 @@ using System.Linq;
 using GBAMusicStudio.Core.M4A;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 using GBAMusicStudio.MIDI;
+using GBAMusicStudio.Util;
 
 namespace GBAMusicStudio.Core
 {
@@ -81,15 +82,15 @@ namespace GBAMusicStudio.Core
         {
             byte[] simple = { 1, 2, 4, 6 };
             uint len = 0x100;
-            var buf = new byte[16 + len + 16]; // FMOD API requires 16 bytes of padding on each side
+            var buf = new byte[len];
 
             for (uint i = 0; i < 4; i++) // Squares
             {
                 for (int j = 0; j < len; j++)
-                    buf[16 + j] = (byte)(j < simple[i] * 0x20 ? 0xBF : 0x0);
+                    buf[j] = (byte)(j < simple[i] * 0x20 ? 0xF * Config.PSGVolume : 0x0);
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
-                    defaultfrequency = 44100,
+                    defaultfrequency = 112640,
                     format = FMOD.SOUND_FORMAT.PCM8,
                     length = len,
                     numchannels = 1
@@ -106,14 +107,14 @@ namespace GBAMusicStudio.Core
             for (uint i = 0; i < 2; i++)
             {
                 uint len = simple[i];
-                var buf = new byte[16 + len + 16]; // FMOD API requires 16 bytes of padding on each side
+                var buf = new byte[len];
 
                 for (int j = 0; j < len; j++)
-                    buf[j + 16] = (byte)rand.Next();
+                    buf[j] = (byte)rand.Next(0xF * Config.PSGVolume);
 
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
-                    defaultfrequency = 22050,
+                    defaultfrequency = 4096,
                     format = FMOD.SOUND_FORMAT.PCM8,
                     length = len,
                     numchannels = 1
@@ -251,8 +252,11 @@ namespace GBAMusicStudio.Core
         }
         static void PlayNote(Track track, byte note, byte velocity, byte addedDelay = 0)
         {
+            note = (byte)(note + track.KeyShift).Clamp(0, 127);
             track.PrevNote = note;
             track.PrevVelocity = velocity;
+
+            if (!track.Ready) return;
 
             Voice voice = VoiceTable.GetVoiceFromNote(track.Voice, note, out byte forcedNote);
 
@@ -359,14 +363,22 @@ namespace GBAMusicStudio.Core
             {
                 switch (track.RunCmd)
                 {
-                    case 0xBD: track.Voice = cmd; break; // VOICE
+                    case 0xBD: track.SetVoice(cmd); break; // VOICE
                     case 0xBE: track.SetVolume(cmd); break; // VOL
                     case 0xBF: track.SetPan(cmd); break; // PAN
                     case 0xC0: track.SetBend(cmd); break; // BEND
                     case 0xC1: track.SetBendRange(cmd); break; // BENDR
+                    case 0xC2: track.SetLFOSpeed(cmd); break; // LFOS
+                    case 0xC3: track.SetLFODelay(cmd); break; // LFODL
                     case 0xC4: track.SetMODDepth(cmd); break; // MOD
                     case 0xC5: track.SetMODType(cmd); break; // MODT
+                    case 0xC8: track.SetTune(cmd); break; // TUNE
                     case 0xCD: track.ReadByte(); break; // XCMD
+                    case 0xCE:
+                        byte note = (byte)(cmd + track.KeyShift).Clamp(0, 127);
+                        track.Instruments.First(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note).State = ADSRState.Releasing;
+                        track.PrevNote = note;
+                        break; // EOT
                 }
             }
             else if (cmd > 0xB0 && cmd < 0xCF)
@@ -391,33 +403,30 @@ namespace GBAMusicStudio.Core
                     case 0xB9: track.ReadByte(); track.ReadByte(); track.ReadByte(); break; // MEMACC
                     case 0xBA: track.SetPriority(track.ReadByte()); break; // PRIO
                     case 0xBB: SetTempo((ushort)(track.ReadByte() * 2)); break; // TEMPO
-                    case 0xBC: track.ReadByte(); break; // KEYSH
+                    case 0xBC: track.KeyShift = track.ReadSByte(); break; // KEYSH
                                                         // Commands that work within running status:
-                    case 0xBD: track.Voice = cmd; break; // VOICE
+                    case 0xBD: track.SetVoice(track.ReadByte()); break; // VOICE
                     case 0xBE: track.SetVolume(track.ReadByte()); break; // VOL
                     case 0xBF: track.SetPan(track.ReadByte()); break; // PAN
                     case 0xC0: track.SetBend(track.ReadByte()); break; // BEND
                     case 0xC1: track.SetBendRange(track.ReadByte()); break; // BENDR
-                    case 0xC2: track.ReadByte(); break; // LFOS
-                    case 0xC3: track.ReadByte(); break; // LFODL
+                    case 0xC2: track.SetLFOSpeed(track.ReadByte()); break; // LFOS
+                    case 0xC3: track.SetLFODelay(track.ReadByte()); break; // LFODL
                     case 0xC4: track.SetMODDepth(track.ReadByte()); break; // MOD
                     case 0xC5: track.SetMODType(track.ReadByte()); break; // MODT
-                    case 0xC8: track.ReadByte(); break; // TUNE
+                    case 0xC8: track.SetTune(track.ReadByte()); break; // TUNE
                     case 0xCD: track.ReadByte(); track.ReadByte(); break; // XCMD
                     case 0xCE: // EOT
-                        Instrument i = null;
                         if (track.PeekByte() < 128)
                         {
-                            byte note = track.ReadByte();
-                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note);
+                            byte note = (byte)(track.ReadByte() + track.KeyShift).Clamp(0, 127);
+                            track.Instruments.First(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note).State = ADSRState.Releasing;
                             track.PrevNote = note;
                         }
                         else
                         {
-                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF);
+                            track.Instruments.First(ins => ins.NoteDuration == 0xFF).State = ADSRState.Releasing;
                         }
-                        if (i != null)
-                            i.State = ADSRState.Releasing;
                         break;
                     default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", track.Position, cmd); break;
                 }

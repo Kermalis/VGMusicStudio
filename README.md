@@ -13,18 +13,17 @@ A tool that is designed to be an updated Sappy.
 
 ## To Do (No particular order)
 
-* Figure out GB instrument frequency scale
+* Add reverb DSP effect
 * Add reverse playback
-* Add pitch & volume modulation
-* Add lfo
 * Add SquareWave sweeping
-* Add KEYSH
 * Add "note off with noise" for SquareWaves
+* Fix ADSR on PSG instruments
+* Find out why some instruments sound strange \[example: Mario Kart Snow Land drum\]
+* Make the program run at 60 updates like the GBA, which might decrease CPU usage and will correct ADSR
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
-* Fix seemingly-random audible velocity abruption (noticeable with a MIDI keyboard)
 * Maybe a nice waveform
+* Scale the top panel of the UI
 * Finish integrating SF2 writing
-* MIDI saving of songs
 * Songtable finder
 * Give instruments a defined color and have the bars show those colors, along with the keys on the piano
 * Exception handling for invalid config
@@ -32,3 +31,8 @@ A tool that is designed to be an updated Sappy.
 * Add shortcuts for the UI
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Fix application hanging when you close it
+* A song class that contains the commands in order, that can be read from ROM/MIDI/SSEQ and then played/written
+* Convert Config to a yaml deserialize call, if possible
+
+## Special Thanks To:
+* Ipatix

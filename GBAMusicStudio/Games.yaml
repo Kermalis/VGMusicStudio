@@ -5,8 +5,10 @@ Volume: 50 # Value between 0 and 100.
 
 # These can be reloaded in the program:
 
-MIDIKeyboardFixedVelocity: True # True or False
-RefreshRate: 60 # Value over 0.
+PSGVolume: 17 # Value between 0 and 17. Applies to sounds loaded after updating.
+MIDIKeyboardFixedVelocity: True # True or False.
+RefreshRate: 60 # Value over 0. # Requires a song state change to update.
+PanpotIndicators: False # True or False.
 Games:
   AXVE:
     SongTable: 0x45548C

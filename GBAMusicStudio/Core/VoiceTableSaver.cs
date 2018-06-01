@@ -50,10 +50,7 @@ namespace GBAMusicStudio.Core
             sound.getDefaults(out float frequency, out int priority);
 
             // Get sample data
-            // FMOD requires 16 bytes at the start
-            if (loop_start != 0)
-                loop_start -= 16;
-            sound.@lock(16, length, out IntPtr snd, out IntPtr idc, out uint len, out uint idc2);
+            sound.@lock(0, length, out IntPtr snd, out IntPtr idc, out uint len, out uint idc2);
             var pcm8 = new byte[len];
             Marshal.Copy(snd, pcm8, 0, (int)len);
             sound.unlock(snd, idc, len, idc2);
