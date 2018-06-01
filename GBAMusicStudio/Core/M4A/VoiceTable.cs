@@ -28,7 +28,8 @@ namespace GBAMusicStudio.Core.M4A
                 length = s.Length,
                 numchannels = 1
             };
-            MusicPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
+            if (MusicPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) != FMOD.RESULT.OK)
+                return;
             if (s.DoesLoop != 0)
             {
                 snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length, FMOD.TIMEUNIT.PCM);
@@ -53,8 +54,6 @@ namespace GBAMusicStudio.Core.M4A
                 buf[i * 2] = first;
                 buf[i * 2 + 1] = second;
             }
-            if (wave.Address == 0x9E8654C)
-                ;
             var ex = new FMOD.CREATESOUNDEXINFO()
             {
                 defaultfrequency = 7040,
