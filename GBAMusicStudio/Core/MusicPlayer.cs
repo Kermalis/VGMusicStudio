@@ -139,6 +139,7 @@ namespace GBAMusicStudio.Core
             tempo = t;
             timer.Interval = (long)(2.5 * 1000 * 1000) / t;
         }
+        internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
 
         internal static void LoadSong(ushort song)
         {

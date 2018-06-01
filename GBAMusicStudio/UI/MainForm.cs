@@ -10,7 +10,8 @@ namespace GBAMusicStudio.UI
     public partial class MainForm : Form
     {
         bool stopUI = false;
-        byte[] uiNotes = new byte[0];
+        List<byte> pianoNotes = new List<byte>();
+        public readonly bool[] PianoTracks = new bool[16];
 
         public MainForm()
         {
@@ -57,12 +58,15 @@ namespace GBAMusicStudio.UI
                 Stop(null, null);
                 return;
             }
-            foreach (byte n in uiNotes)
+            foreach (byte n in pianoNotes)
                 if (n >= pianoControl.LowNoteID && n <= pianoControl.HighNoteID)
                     pianoControl.ReleasePianoKey(n);
+            pianoNotes.Clear();
             var tup = MusicPlayer.GetSongState();
-            uiNotes = tup.Item5[0];
-            foreach (byte n in uiNotes)
+            for (int i = 0; i < 16; i++)
+                if (PianoTracks[i])
+                    pianoNotes.AddRange(tup.Item5[i]);
+            foreach (byte n in pianoNotes)
                 if (n >= pianoControl.LowNoteID && n <= pianoControl.HighNoteID)
                     pianoControl.PressPianoKey(n);
             trackInfoControl.ReceiveData(tup);
@@ -132,7 +136,7 @@ namespace GBAMusicStudio.UI
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
             timer.Stop();
-            foreach (byte n in uiNotes)
+            foreach (byte n in pianoNotes)
                 pianoControl.ReleasePianoKey(n);
             trackInfoControl.DeleteData();
             MusicPlayer.Stop();
