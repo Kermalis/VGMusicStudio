@@ -89,23 +89,18 @@
     <Compile Include="Soundfont\SF2.cs" />
     <Compile Include="Soundfont\SF2Chunks.cs" />
     <Compile Include="Soundfont\SF2Types.cs" />
-    <Compile Include="UI\MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\TrackInfoControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Util\MicroLibrary.cs" />
-    <Compile Include="Util\ThreadSafeList.cs" />
-    <Compile Include="Util\Utils.cs" />
+    <Compile Include="UI\MainForm.cs" />
     <EmbeddedResource Include="UI\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\PianoControl.cs" />
+    <Compile Include="UI\TrackInfoControl.cs" />
+    <Compile Include="Util\HSLColor.cs" />
+    <Compile Include="Util\MicroLibrary.cs" />
+    <Compile Include="Util\ThreadSafeList.cs" />
+    <Compile Include="Util\Utils.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -116,6 +111,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="Config.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Games.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -36,6 +36,6 @@ namespace GBAMusicStudio.Core
             return theT;
         }
 
-        public static bool IsValidRomOffset(uint offset) => (offset < Capacity) || (offset >= Pak && offset < Pak + Capacity);
+        public static bool IsValidRomOffset(uint offset) => (offset < Capacity && offset < Instance.ROMFile.Length) || (offset >= Pak && offset < Pak + Capacity && offset < Instance.ROMFile.Length + Pak);
     }
 }

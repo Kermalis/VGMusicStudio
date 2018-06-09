@@ -259,7 +259,7 @@ namespace GBAMusicStudio.Core
 
             if (!track.Ready) return;
 
-            Voice voice = VoiceTable.GetVoiceFromNote(track.Voice, note, out byte forcedNote);
+            Voice voice = VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
 
             Instrument instrument = null;
             switch (voice.Type)

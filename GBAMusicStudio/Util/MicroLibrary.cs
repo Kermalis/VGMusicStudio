@@ -1,18 +1,20 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading;
 
+// https://www.codeproject.com/Articles/98346/Microsecond-and-Millisecond-NET-Timer
 namespace MicroLibrary
 {
     /// <summary>
     /// MicroStopwatch class
     /// </summary>
-    public class MicroStopwatch : System.Diagnostics.Stopwatch
+    public class MicroStopwatch : Stopwatch
     {
-        readonly double _microSecPerTick =
-            1000000D / System.Diagnostics.Stopwatch.Frequency;
+        readonly double _microSecPerTick = 1000000D / Frequency;
 
         public MicroStopwatch()
         {
-            if (!System.Diagnostics.Stopwatch.IsHighResolution)
+            if (!IsHighResolution)
             {
                 throw new Exception("On this system the high-resolution " +
                                     "performance counter is not available");
@@ -38,7 +40,7 @@ namespace MicroLibrary
                              MicroTimerEventArgs timerEventArgs);
         public event MicroTimerElapsedEventHandler MicroTimerElapsed;
 
-        System.Threading.Thread _threadTimer = null;
+        Thread _threadTimer = null;
         long _ignoreEventIfLateBy = long.MaxValue;
         long _timerIntervalInMicroSec = 0;
         bool _stopTimer = true;
@@ -56,12 +58,12 @@ namespace MicroLibrary
         {
             get
             {
-                return System.Threading.Interlocked.Read(
+                return Interlocked.Read(
                     ref _timerIntervalInMicroSec);
             }
             set
             {
-                System.Threading.Interlocked.Exchange(
+                Interlocked.Exchange(
                     ref _timerIntervalInMicroSec, value);
             }
         }
@@ -70,12 +72,12 @@ namespace MicroLibrary
         {
             get
             {
-                return System.Threading.Interlocked.Read(
+                return Interlocked.Read(
                     ref _ignoreEventIfLateBy);
             }
             set
             {
-                System.Threading.Interlocked.Exchange(
+                Interlocked.Exchange(
                     ref _ignoreEventIfLateBy, value <= 0 ? long.MaxValue : value);
             }
         }
@@ -108,16 +110,16 @@ namespace MicroLibrary
 
             _stopTimer = false;
 
-            System.Threading.ThreadStart threadStart = delegate ()
+            ThreadStart threadStart = delegate ()
             {
                 NotificationTimer(ref _timerIntervalInMicroSec,
                                   ref _ignoreEventIfLateBy,
                                   ref _stopTimer);
             };
 
-            _threadTimer = new System.Threading.Thread(threadStart)
+            _threadTimer = new Thread(threadStart)
             {
-                Priority = System.Threading.ThreadPriority.Highest
+                Priority = ThreadPriority.Highest
             };
             _threadTimer.Start();
         }
@@ -129,7 +131,7 @@ namespace MicroLibrary
 
         public void StopAndWait()
         {
-            StopAndWait(System.Threading.Timeout.Infinite);
+            StopAndWait(Timeout.Infinite);
         }
 
         public bool StopAndWait(int timeoutInMilliSec)
@@ -137,7 +139,7 @@ namespace MicroLibrary
             _stopTimer = true;
 
             if (!Enabled || _threadTimer.ManagedThreadId ==
-                System.Threading.Thread.CurrentThread.ManagedThreadId)
+                Thread.CurrentThread.ManagedThreadId)
             {
                 return true;
             }
@@ -171,9 +173,9 @@ namespace MicroLibrary
                     microStopwatch.ElapsedMicroseconds - nextNotification;
 
                 long timerIntervalInMicroSecCurrent =
-                    System.Threading.Interlocked.Read(ref timerIntervalInMicroSec);
+                    Interlocked.Read(ref timerIntervalInMicroSec);
                 long ignoreEventIfLateByCurrent =
-                    System.Threading.Interlocked.Read(ref ignoreEventIfLateBy);
+                    Interlocked.Read(ref ignoreEventIfLateBy);
 
                 nextNotification += timerIntervalInMicroSecCurrent;
                 timerCount++;
@@ -182,7 +184,7 @@ namespace MicroLibrary
                 while ((elapsedMicroseconds = microStopwatch.ElapsedMicroseconds)
                         < nextNotification)
                 {
-                    System.Threading.Thread.SpinWait(10);
+                    Thread.SpinWait(10);
                 }
 
                 long timerLateBy = elapsedMicroseconds - nextNotification;

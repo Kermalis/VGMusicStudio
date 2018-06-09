@@ -21,6 +21,7 @@ namespace GBAMusicStudio.Core.M4A
 
         internal Track Track { get; private set; }
         Voice Voice;
+        bool fromDrum;
         FMOD.Channel Channel;
         internal byte DisplayNote { get; private set; }
         byte Note;
@@ -50,16 +51,19 @@ namespace GBAMusicStudio.Core.M4A
             Channel.getCurrentSound(out FMOD.Sound sound);
             sound.getDefaults(out float soundFrequency, out int soundPriority);
             float frequency;
+            byte root = fromDrum ? Voice.RootNote : (byte)60;
             if (Voice is Direct_Sound)
             {
-                frequency = soundFrequency * (float)Math.Pow(2, (Note - (120 - Voice.RootNote)) / 12f + Track.APitch / 768f);
+                frequency = soundFrequency * (float)Math.Pow(2, (Note - (120 - root)) / 12f + Track.APitch / 768f);
+            }
+            else if (Voice is PSG_Noise)
+            {
+                frequency = (0x1000 * (float)Math.Pow(8, (Note - (120 - root)) / 12f + Track.APitch / 768f)).Clamp(8, 0x80000); // Thanks ipatix
             }
             else
             {
                 float fundamental = 440 * (float)Math.Pow(2, (Note - 69) / 12f + Track.APitch / 768f);
-                if (Voice is PSG_Noise)
-                    frequency = (0x1000 * (float)Math.Pow(8, (Note - (120 - Voice.RootNote)) / 12f + Track.APitch / 768f)).Clamp(8, 0x80000);
-                else if (Voice is PSG_Wave)
+                if (Voice is PSG_Wave)
                     frequency = fundamental * 0x10;
                 else // Squares
                     frequency = fundamental * 0x100;
@@ -74,11 +78,12 @@ namespace GBAMusicStudio.Core.M4A
         internal void Play(Track track, byte note, byte duration)
         {
             Stop();
-            Voice = MusicPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out Note);
+            Voice = MusicPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
             FMOD.Sound sound = MusicPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
 
             Track = track;
             DisplayNote = note;
+            Note = fromDrum ? (byte)60 : note;
             NoteDuration = duration;
             NoteVelocity = track.PrevVelocity;
             Age = 0;

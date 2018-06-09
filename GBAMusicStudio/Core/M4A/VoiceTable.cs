@@ -5,6 +5,7 @@ namespace GBAMusicStudio.Core.M4A
 {
     internal class VoiceTable
     {
+        uint tableOffset;
         readonly SVoice[] voices;
         internal SVoice this[int i]
         {
@@ -29,7 +30,10 @@ namespace GBAMusicStudio.Core.M4A
                 numchannels = 1
             };
             if (MusicPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) != FMOD.RESULT.OK)
+            {
+                Console.WriteLine("Error loading instrument: 0x{0:X}", direct.Address);
                 return;
+            }
             if (s.DoesLoop != 0)
             {
                 snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length, FMOD.TIMEUNIT.PCM);
@@ -68,6 +72,7 @@ namespace GBAMusicStudio.Core.M4A
         internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
         internal void Load(uint table)
         {
+            tableOffset = table;
             for (uint i = 0; i < 256; i++)
             {
                 uint offset = table + (i * 0xC);
@@ -148,9 +153,9 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         // The following should only be called after Load()
-        internal Voice GetVoiceFromNote(byte voice, byte note, out byte forcedNote)
+        internal Voice GetVoiceFromNote(byte voice, byte note, out bool fromDrum)
         {
-            forcedNote = note;
+            fromDrum = false;
 
             SVoice sv = voices[voice];
             Voice v = voices[voice].Voice;
@@ -162,12 +167,12 @@ namespace GBAMusicStudio.Core.M4A
                     var multi = (SMulti)sv;
                     byte inst = ROM.Instance.ReadByte(split.Keys + note);
                     v = multi.Table[inst].Voice;
-                    forcedNote = note; // In case there is a multi within a drum
+                    fromDrum = false; // In case there is a multi within a drum
                     goto Read;
                 case 0x80:
                     var drum = (SDrum)sv;
                     v = drum.Table[note].Voice;
-                    forcedNote = 60;
+                    fromDrum = true;
                     goto Read;
                 default:
                     return v;
@@ -175,7 +180,7 @@ namespace GBAMusicStudio.Core.M4A
         }
         internal FMOD.Sound GetSoundFromNote(byte voice, byte note)
         {
-            Voice v = GetVoiceFromNote(voice, note, out byte idc);
+            Voice v = GetVoiceFromNote(voice, note, out bool idc);
             switch (v.Type)
             {
                 case 0x0:
