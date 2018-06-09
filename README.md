@@ -2,7 +2,7 @@
 
 A tool that is designed to be an updated Sappy.
 
-![Preview](https://i.imgur.com/3JPhfIm.gif)
+![Preview](https://i.imgur.com/joFBQMv.gif)
 
 ## Some Advantages Over Sappy
 * Pause button
