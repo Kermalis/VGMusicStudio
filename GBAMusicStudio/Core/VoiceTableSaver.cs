@@ -11,7 +11,7 @@ namespace GBAMusicStudio.Core
     {
         static readonly string[] instrumentNames = {
             "Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano", "Honky-tonk Piano", "Rhodes Piano", "Chorused Piano",
-            "Harpsichord",  "Clavinet", "Celesta", "Glockenspiel", "Music Box", "Vibraphone", "Marimba", "Xylophone", "Tubular Bells", "Dulcimer",
+            "Harpsichord", "Clavinet", "Celesta", "Glockenspiel", "Music Box", "Vibraphone", "Marimba", "Xylophone", "Tubular Bells", "Dulcimer",
             "Hammond Organ", "Percussive Organ", "Rock Organ", "Church Organ", "Reed Organ", "Accordion", "Harmonica", "Tango Accordion",
             "Acoustic Guitar (Nylon)", "Acoustic Guitar (Steel)", "Electric Guitar (Jazz)", "Electric Guitar (Clean)", "Electric Guitar (Muted)",
             "Overdriven Guitar", "Distortion Guitar", "Guitar Harmonics", "Acoustic Bass", "Electric Bass (Finger)", "Electric Bass (Pick)",
@@ -29,7 +29,7 @@ namespace GBAMusicStudio.Core
             "Applause", "Gunshot" };
         SF2 sf2;
 
-        internal VoiceTableSaver()
+        internal VoiceTableSaver(string filename)
         {
             sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Game.Creator, "", "GBA Music Studio by Kermalis");
 
@@ -37,10 +37,9 @@ namespace GBAMusicStudio.Core
                 if (instrument.Key < MusicPlayer.NOISE1_ID)
                     AddSample(instrument.Value, string.Format("Sample 0x{0:X}", instrument.Key));
 
-            sf2.Save(string.Format("{0}.sf2", ROM.Instance.Game.Name).ToSafeFileName());
+            sf2.Save(filename);
         }
-
-        // Add a new sample and create corresponding header
+        
         void AddSample(FMOD.Sound sound, string name)
         {
             // Get properties

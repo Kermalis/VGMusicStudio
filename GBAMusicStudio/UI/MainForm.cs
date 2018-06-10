@@ -23,7 +23,8 @@ namespace GBAMusicStudio.UI
 
         IContainer components;
         MenuStrip mainMenu;
-        ToolStripMenuItem fileToolStripMenuItem, openToolStripMenuItem, configToolStripMenuItem;
+        ToolStripMenuItem fileToolStripMenuItem, openToolStripMenuItem, configToolStripMenuItem,
+            dataToolStripMenuItem, eSf2ToolStripMenuItem;
         Timer timer;
         NumericUpDown songNumerical, tableNumerical;
         Button playButton, stopButton, pauseButton;
@@ -47,7 +48,7 @@ namespace GBAMusicStudio.UI
             components = new Container();
             ComponentResourceManager resources = new ComponentResourceManager(typeof(MainForm));
 
-            // Main menu
+            // Main Menu
             openToolStripMenuItem = new ToolStripMenuItem() { Text = "Open", ShortcutKeys = Keys.Control | Keys.O };
             openToolStripMenuItem.Click += OpenROM;
 
@@ -57,8 +58,15 @@ namespace GBAMusicStudio.UI
             fileToolStripMenuItem = new ToolStripMenuItem() { Text = "File" };
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openToolStripMenuItem, configToolStripMenuItem });
 
+
+            eSf2ToolStripMenuItem = new ToolStripMenuItem() { Text = "Export to SF2", Enabled = false };
+            eSf2ToolStripMenuItem.Click += ExportSF2;
+
+            dataToolStripMenuItem = new ToolStripMenuItem() { Text = "Data" };
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { eSf2ToolStripMenuItem });
+
             mainMenu = new MenuStrip() { Size = new Size(iWidth, 24) };
-            mainMenu.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            mainMenu.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, dataToolStripMenuItem });
 
             // Buttons
             playButton = new Button() { ForeColor = Color.DarkGreen, Location = new Point(3, 3), Text = "Play" };
@@ -75,7 +83,7 @@ namespace GBAMusicStudio.UI
             // Numericals
             songNumerical = new NumericUpDown() { Enabled = false, Location = new Point(246, 4), Maximum = 1000 };
             tableNumerical = new NumericUpDown() { Location = new Point(246, 35), Maximum = 0, Visible = false };
-            
+
             songNumerical.Size = tableNumerical.Size = new Size(45, 23);
             songNumerical.TextAlign = tableNumerical.TextAlign = HorizontalAlignment.Center;
             songNumerical.ValueChanged += LoadSong;
@@ -107,10 +115,10 @@ namespace GBAMusicStudio.UI
                 Maximum = 100,
                 Size = new Size(sWidth, 27),
                 SmallChange = 5,
-                TickFrequency = 10,
-                Value = Config.Volume
+                TickFrequency = 10
             };
-            volumeBar.ValueChanged += ChangeVolume;
+            volumeBar.ValueChanged += (o, e) => MusicPlayer.SetVolume(volumeBar.Value / (float)volumeBar.Maximum);
+            volumeBar.Value = Config.Volume; // Update MusicPlayer volume
 
             // Playlist box
             ImageList il = new ImageList(components)
@@ -166,11 +174,7 @@ namespace GBAMusicStudio.UI
             Resize += OnResize;
             Text = "GBA Music Studio";
         }
-
-        void ChangeVolume(object sender, EventArgs e)
-        {
-            MusicPlayer.SetVolume(volumeBar.Value / 100f);
-        }
+        
         void LoadSong(object sender, EventArgs e)
         {
             Playlist mainPlaylist = ROM.Instance.Game.Playlists[0];
@@ -203,20 +207,14 @@ namespace GBAMusicStudio.UI
 
         void OpenROM(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog
-            {
-                Title = "Open GBA ROM",
-                Filter = "GBA files|*.gba",
-            };
+            var d = new OpenFileDialog { Title = "Open GBA ROM", Filter = "GBA files|*.gba" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             Stop(null, null);
 
             new ROM(d.FileName);
-            RefreshConfig();
+            UpdateInfo();
             LoadSong(null, null);
-
-            songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
         void ReloadConfig(object sender, EventArgs e)
         {
@@ -224,10 +222,19 @@ namespace GBAMusicStudio.UI
             if (ROM.Instance != null)
             {
                 ROM.Instance.ReloadGameConfig();
-                RefreshConfig();
+                UpdateInfo();
             }
         }
-        void RefreshConfig()
+        void ExportSF2(object sender, EventArgs e)
+        {
+            var d = new SaveFileDialog { Title = "Export SF2 File", Filter = "SF2 file|*.sf2" };
+            if (d.ShowDialog() != DialogResult.OK) return;
+
+            MusicPlayer.ExportSF2(d.FileName);
+            MessageBox.Show("SF2 saved.", Text);
+        }
+
+        void UpdateInfo()
         {
             Game game = ROM.Instance.Game;
             PopulatePlaylists(game.Playlists);
@@ -238,8 +245,9 @@ namespace GBAMusicStudio.UI
             tableNumerical.Maximum = game.SongTables.Length - 1;
             tableNumerical.Value = 0;
             tableNumerical.Visible = game.SongTables.Length > 1;
-        }
 
+            eSf2ToolStripMenuItem.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
+        }
         void PopulatePlaylists(List<Playlist> playlists)
         {
             songsComboBox.ComboBoxClear();

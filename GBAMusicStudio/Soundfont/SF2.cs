@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using static SoundFont.SF2Types;
 
 namespace SoundFont
 {
@@ -50,6 +49,12 @@ namespace SoundFont
 
             // Create sample header and add it to the list
             AddSampleHeader(name, dir_offset, dir_end, dir_loop_start, dir_loop_end, sample_rate, original_pitch, pitch_correction);
+        }
+
+        // Add a new customized generator to the list
+        public void AddINSTGenerator(SF2Generator operation, GenAmountType genAmountType)
+        {
+            pdtalist_chunk.igen_subchunk.AddGenerator(new SF2GenList(this, operation, genAmountType));
         }
 
         public void Save(string path)
@@ -154,12 +159,6 @@ namespace SoundFont
         void AddINSTGenerator()
         {
             pdtalist_chunk.igen_subchunk.AddGenerator(new SF2GenList(this));
-        }
-
-        // Add a new customized generator to the list
-        void AddINSTGenerator(SF2Generator operation, GenAmountType genAmountType)
-        {
-            pdtalist_chunk.igen_subchunk.AddGenerator(new SF2GenList(this, operation, genAmountType));
         }
     }
 }

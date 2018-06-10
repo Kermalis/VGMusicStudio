@@ -149,7 +149,6 @@ namespace GBAMusicStudio.Core
 
             VoiceTable = new VoiceTable();
             VoiceTable.Load(header.VoiceTable);
-            new VoiceTableSaver(); // Testing
 
             MIDIKeyboard.Start();
         }
@@ -190,26 +189,8 @@ namespace GBAMusicStudio.Core
                 i.Stop();
             State = State.Stopped;
         }
-        static void PlayLoop(object sender, MicroTimerEventArgs e)
-        {
-            bool allStopped = true;
-            for (int i = header.NumTracks - 1; i >= 0; i--)
-            {
-                Track track = tracks[i];
-                if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
-                    allStopped = false;
-                while (track.Delay == 0 && !track.Stopped)
-                    ExecuteNext(track);
-                track.Tick();
-            }
-            System.update();
-            if (allStopped)
-            {
-                Stop();
-                SongEnded?.Invoke();
-            }
-        }
 
+        internal static void ExportSF2(string filename) => new VoiceTableSaver(filename);
         internal static (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
             var positions = new uint[header.NumTracks];
@@ -407,7 +388,7 @@ namespace GBAMusicStudio.Core
                     case 0xBA: track.SetPriority(track.ReadByte()); break; // PRIO
                     case 0xBB: SetTempo((ushort)(track.ReadByte() * 2)); break; // TEMPO
                     case 0xBC: track.KeyShift = track.ReadSByte(); break; // KEYSH
-                                                        // Commands that work within running status:
+                                                                          // Commands that work within running status:
                     case 0xBD: track.SetVoice(track.ReadByte()); break; // VOICE
                     case 0xBE: track.SetVolume(track.ReadByte()); break; // VOL
                     case 0xBF: track.SetPan(track.ReadByte()); break; // PAN
@@ -439,6 +420,25 @@ namespace GBAMusicStudio.Core
             }
 
             #endregion
+        }
+        static void PlayLoop(object sender, MicroTimerEventArgs e)
+        {
+            bool allStopped = true;
+            for (int i = header.NumTracks - 1; i >= 0; i--)
+            {
+                Track track = tracks[i];
+                if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
+                    allStopped = false;
+                while (track.Delay == 0 && !track.Stopped)
+                    ExecuteNext(track);
+                track.Tick();
+            }
+            System.update();
+            if (allStopped)
+            {
+                Stop();
+                SongEnded?.Invoke();
+            }
         }
     }
 }
