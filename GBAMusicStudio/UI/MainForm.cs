@@ -236,6 +236,7 @@ namespace GBAMusicStudio.UI
             creatorLabel.Text = game.Creator;
 
             tableNumerical.Maximum = game.SongTables.Length - 1;
+            tableNumerical.Value = 0;
             tableNumerical.Visible = game.SongTables.Length > 1;
         }
 
