@@ -11,6 +11,7 @@ A tool that is designed to be an updated Sappy.
 * The UI scales to the desired window size
 * It is not intimidating to use
 * You can see representation of notes being played
+* Support for multiple song tables
 
 ## To Do (No particular order)
 
