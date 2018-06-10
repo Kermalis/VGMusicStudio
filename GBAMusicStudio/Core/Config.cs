@@ -36,14 +36,14 @@ namespace GBAMusicStudio.Core
     public class Game
     {
         public readonly string Code, Name, Creator;
-        public readonly uint SongTable;
+        public readonly uint[] SongTables;
         public readonly List<Playlist> Playlists;
 
-        public Game(string code, string name, uint table, string creator, List<Playlist> playlists)
+        public Game(string code, string name, uint[] tables, string creator, List<Playlist> playlists)
         {
             Code = code;
             Name = name;
-            SongTable = table;
+            SongTables = tables;
             Creator = creator;
             Playlists = playlists;
         }
@@ -61,7 +61,7 @@ namespace GBAMusicStudio.Core
         public static HSLColor[] Colors { get; private set; }
 
         public static Dictionary<string, Game> Games { get; private set; }
-        
+
         static Config() => Load();
         public static void Load() { LoadConfig(); LoadGames(); }
         static void LoadConfig()
@@ -109,7 +109,7 @@ namespace GBAMusicStudio.Core
             foreach (var g in mapping)
             {
                 string code, name, creator;
-                uint table;
+                uint[] tables;
                 List<Playlist> playlists;
 
                 code = g.Key.ToString();
@@ -117,7 +117,10 @@ namespace GBAMusicStudio.Core
 
                 // Basic info
                 name = game.Children[new YamlScalarNode("Name")].ToString();
-                table = Utils.ParseUInt(game.Children[new YamlScalarNode("SongTable")].ToString());
+                var songTables = game.Children[new YamlScalarNode("SongTable")].ToString().Split(' ');
+                tables = new uint[songTables.Length];
+                for (int i = 0; i < songTables.Length; i++)
+                    tables[i] = Utils.ParseUInt(songTables[i]);
 
                 // If we are to copy another game's config
                 if (game.Children.ContainsKey(new YamlScalarNode("Copy")))
@@ -149,7 +152,7 @@ namespace GBAMusicStudio.Core
                     if (playlists[i].Songs.Length == 0)
                         playlists[i] = new Playlist(playlists[i].Name, new Song[] { new Song(0, "Playlist is empty.") });
 
-                Games.Add(code, new Game(code, name, table, creator, playlists));
+                Games.Add(code, new Game(code, name, tables, creator, playlists));
             }
         }
     }

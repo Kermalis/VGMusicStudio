@@ -597,7 +597,15 @@ BPRE:
       334: "Unused - Viridian Forest (2)"
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
-KERM:
-  SongTable: 0x1000038
+KERB:
+  SongTable: 0x100004C 0x1000B6C 0x100168C 0x10021AC
+  Name: "Kermalis's Test ROM"
+  Creator: "Kermalis"
+KERH:
+  SongTable: 0x1000038 0x1000B38
+  Name: "Kermalis's Test ROM"
+  Creator: "Kermalis"
+KERP:
+  SongTable: 0x1000000 0x1001310 0x1001620 0x1003930
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"

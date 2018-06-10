@@ -141,10 +141,10 @@ namespace GBAMusicStudio.Core
         }
         internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
 
-        internal static void LoadSong(ushort song)
+        internal static void LoadSong(ushort song, byte table)
         {
             Stop();
-            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTable + ((uint)8 * song)));
+            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTables[table] + ((uint)8 * song)));
             Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
 
             VoiceTable = new VoiceTable();

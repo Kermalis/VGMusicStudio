@@ -23,17 +23,11 @@ namespace GBAMusicStudio.UI
 
         IContainer components;
         MenuStrip mainMenu;
-        ToolStripMenuItem fileToolStripMenuItem;
-        ToolStripMenuItem openToolStripMenuItem;
-        ToolStripMenuItem configToolStripMenuItem;
-        Button playButton;
+        ToolStripMenuItem fileToolStripMenuItem, openToolStripMenuItem, configToolStripMenuItem;
         Timer timer;
-        NumericUpDown songNumerical;
-        Button stopButton;
-        Button pauseButton;
-        Label creatorLabel;
-        Label gameLabel;
-        Label codeLabel;
+        NumericUpDown songNumerical, tableNumerical;
+        Button playButton, stopButton, pauseButton;
+        Label creatorLabel, gameLabel, codeLabel;
         SplitContainer splitContainer;
         PianoControl piano;
         TrackBar volumeBar;
@@ -78,16 +72,14 @@ namespace GBAMusicStudio.UI
             playButton.Size = pauseButton.Size = stopButton.Size = new Size(75, 23);
             playButton.UseVisualStyleBackColor = pauseButton.UseVisualStyleBackColor = stopButton.UseVisualStyleBackColor = true;
 
-            // Song numerical
-            songNumerical = new NumericUpDown()
-            {
-                Enabled = false,
-                Location = new Point(246, 4),
-                Maximum = new decimal(new int[] { 1000, 0, 0, 0 }),
-                Size = new Size(45, 23),
-                TextAlign = HorizontalAlignment.Center
-            };
-            songNumerical.ValueChanged += SongNumerical_ValueChanged;
+            // Numericals
+            songNumerical = new NumericUpDown() { Enabled = false, Location = new Point(246, 4), Maximum = 1000 };
+            tableNumerical = new NumericUpDown() { Location = new Point(246, 35), Maximum = 0, Visible = false };
+            
+            songNumerical.Size = tableNumerical.Size = new Size(45, 23);
+            songNumerical.TextAlign = tableNumerical.TextAlign = HorizontalAlignment.Center;
+            songNumerical.ValueChanged += LoadSong;
+            tableNumerical.ValueChanged += LoadSong;
 
             // Labels
             creatorLabel = new Label() { Location = new Point(3, 42), Size = new Size(72, 13) };
@@ -159,7 +151,7 @@ namespace GBAMusicStudio.UI
                 SplitterDistance = 125,
                 SplitterWidth = 1
             };
-            splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, creatorLabel, gameLabel, codeLabel, pauseButton, stopButton, songNumerical, songsComboBox, piano, volumeBar });
+            splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, creatorLabel, gameLabel, codeLabel, pauseButton, stopButton, songNumerical, tableNumerical, songsComboBox, piano, volumeBar });
             splitContainer.Panel2.Controls.Add(trackInfo);
 
             // MainForm
@@ -179,7 +171,7 @@ namespace GBAMusicStudio.UI
         {
             MusicPlayer.SetVolume(volumeBar.Value / 100f);
         }
-        void SongNumerical_ValueChanged(object sender, EventArgs e)
+        void LoadSong(object sender, EventArgs e)
         {
             Playlist mainPlaylist = ROM.Instance.Game.Playlists[0];
             List<Song> songs = mainPlaylist.Songs.ToList();
@@ -195,7 +187,7 @@ namespace GBAMusicStudio.UI
                 songsComboBox.SelectedIndex = 0;
             }
             bool playing = MusicPlayer.State == State.Playing;
-            MusicPlayer.LoadSong((ushort)songNumerical.Value);
+            MusicPlayer.LoadSong((ushort)songNumerical.Value, (byte)tableNumerical.Value);
             trackInfo.DeleteData();
             trackInfo.Invalidate();
             if (playing) // Play new song if one is already playing
@@ -222,7 +214,7 @@ namespace GBAMusicStudio.UI
 
             new ROM(d.FileName);
             RefreshConfig();
-            SongNumerical_ValueChanged(null, null);
+            LoadSong(null, null);
 
             songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
@@ -237,10 +229,14 @@ namespace GBAMusicStudio.UI
         }
         void RefreshConfig()
         {
-            PopulatePlaylists(ROM.Instance.Game.Playlists);
-            codeLabel.Text = ROM.Instance.Game.Code;
-            gameLabel.Text = ROM.Instance.Game.Name;
-            creatorLabel.Text = ROM.Instance.Game.Creator;
+            Game game = ROM.Instance.Game;
+            PopulatePlaylists(game.Playlists);
+            codeLabel.Text = game.Code;
+            gameLabel.Text = game.Name;
+            creatorLabel.Text = game.Creator;
+
+            tableNumerical.Maximum = game.SongTables.Length - 1;
+            tableNumerical.Visible = game.SongTables.Length > 1;
         }
 
         void PopulatePlaylists(List<Playlist> playlists)
