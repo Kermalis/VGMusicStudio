@@ -26,6 +26,7 @@ namespace GBAMusicStudio.UI
         ToolStripMenuItem fileToolStripMenuItem, openToolStripMenuItem, configToolStripMenuItem,
             dataToolStripMenuItem, eSf2ToolStripMenuItem;
         Timer timer;
+        readonly object timerLock = new object();
         NumericUpDown songNumerical, tableNumerical;
         Button playButton, stopButton, pauseButton;
         Label creatorLabel, gameLabel, codeLabel;
@@ -117,7 +118,7 @@ namespace GBAMusicStudio.UI
                 SmallChange = 5,
                 TickFrequency = 10
             };
-            volumeBar.ValueChanged += (o, e) => MusicPlayer.SetVolume(volumeBar.Value / (float)volumeBar.Maximum);
+            volumeBar.ValueChanged += (o, e) => SongPlayer.SetVolume(volumeBar.Value / (float)volumeBar.Maximum);
             volumeBar.Value = Config.Volume; // Update MusicPlayer volume
 
             // Playlist box
@@ -170,16 +171,16 @@ namespace GBAMusicStudio.UI
             Icon = (Icon)(resources.GetObject("Icon"));
             MainMenuStrip = mainMenu;
             MinimumSize = new Size(8 + iWidth + 8, 30 + iHeight + 8); // Borders
-            MusicPlayer.SongEnded += () => stopUI = true;
+            SongPlayer.SongEnded += () => stopUI = true;
             Resize += OnResize;
             Text = "GBA Music Studio";
         }
-        
+
         void LoadSong(object sender, EventArgs e)
         {
-            Playlist mainPlaylist = ROM.Instance.Game.Playlists[0];
-            List<Song> songs = mainPlaylist.Songs.ToList();
-            Song song = songs.SingleOrDefault(s => s.Index == songNumerical.Value);
+            APlaylist mainPlaylist = ROM.Instance.Game.Playlists[0];
+            List<ASong> songs = mainPlaylist.Songs.ToList();
+            ASong song = songs.SingleOrDefault(s => s.Index == songNumerical.Value);
             if (song != null)
             {
                 Text = "GBA Music Studio - " + song.Name;
@@ -190,16 +191,16 @@ namespace GBAMusicStudio.UI
                 Text = "GBA Music Studio";
                 songsComboBox.SelectedIndex = 0;
             }
-            bool playing = MusicPlayer.State == State.Playing;
-            MusicPlayer.LoadSong((ushort)songNumerical.Value, (byte)tableNumerical.Value);
-            trackInfo.DeleteData();
-            trackInfo.Invalidate();
+            bool playing = SongPlayer.State == State.Playing;
+            Stop(null, null);
+            SongPlayer.LoadROMSong((ushort)songNumerical.Value, (byte)tableNumerical.Value);
+            trackInfo.DeleteData(); // Refresh track count
             if (playing) // Play new song if one is already playing
                 Play(null, null);
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!((songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item is Song song)) return; // A playlist was selected
+            if (!((songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item is ASong song)) return; // A playlist was selected
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             songNumerical.Value = song.Index;
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -230,13 +231,13 @@ namespace GBAMusicStudio.UI
             var d = new SaveFileDialog { Title = "Export SF2 File", Filter = "SF2 file|*.sf2" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
-            MusicPlayer.ExportSF2(d.FileName);
+            SongPlayer.ExportSF2(d.FileName);
             MessageBox.Show("SF2 saved.", Text);
         }
 
         void UpdateInfo()
         {
-            Game game = ROM.Instance.Game;
+            AGame game = ROM.Instance.Game;
             PopulatePlaylists(game.Playlists);
             codeLabel.Text = game.Code;
             gameLabel.Text = game.Name;
@@ -248,7 +249,7 @@ namespace GBAMusicStudio.UI
 
             eSf2ToolStripMenuItem.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
-        void PopulatePlaylists(List<Playlist> playlists)
+        void PopulatePlaylists(List<APlaylist> playlists)
         {
             songsComboBox.ComboBoxClear();
             foreach (var playlist in playlists)
@@ -264,55 +265,64 @@ namespace GBAMusicStudio.UI
         {
             pauseButton.Enabled = stopButton.Enabled = true;
             pauseButton.Text = "Pause";
-            MusicPlayer.Play();
+            SongPlayer.Play();
             timer.Interval = (int)(1000f / Config.RefreshRate);
             timer.Start();
         }
         void Pause(object sender, EventArgs e)
         {
-            stopButton.Enabled = MusicPlayer.State != State.Playing;
-            pauseButton.Text = MusicPlayer.State != State.Playing ? "Pause" : "Unpause";
-            MusicPlayer.Pause();
+            stopButton.Enabled = SongPlayer.State != State.Playing;
+            pauseButton.Text = SongPlayer.State != State.Playing ? "Pause" : "Unpause";
+            SongPlayer.Pause();
         }
         void Stop(object sender, EventArgs e)
         {
             stopUI = pauseButton.Enabled = stopButton.Enabled = false;
             timer.Stop();
+            System.Threading.Monitor.Enter(timerLock);
             foreach (byte n in pianoNotes)
                 piano.ReleasePianoKey(n);
             trackInfo.DeleteData();
-            MusicPlayer.Stop();
+            SongPlayer.Stop();
         }
 
         void UpdateUI(object sender, EventArgs e)
         {
-            if (stopUI)
+            if (!System.Threading.Monitor.TryEnter(timerLock)) return;
+            try
             {
-                Stop(null, null);
-                return;
-            }
-            foreach (byte n in pianoNotes)
-                if (n >= piano.LowNoteID && n <= piano.HighNoteID)
+                if (stopUI)
                 {
-                    piano[n - piano.LowNoteID].NoteOnColor = Color.DeepSkyBlue;
-                    piano.ReleasePianoKey(n);
+                    Stop(null, null);
+                    return;
                 }
-            pianoNotes.Clear();
-            var tup = MusicPlayer.GetSongState();
-            for (int i = MusicPlayer.NumTracks - 1; i >= 0; i--)
-            {
-                if (!PianoTracks[i]) continue;
-
-                var notes = tup.Item5[i];
-                pianoNotes.AddRange(notes);
-                foreach (var n in notes)
+                foreach (byte n in pianoNotes)
                     if (n >= piano.LowNoteID && n <= piano.HighNoteID)
                     {
-                        piano[n - piano.LowNoteID].NoteOnColor = Config.Colors[tup.Item7[i]];
-                        piano.PressPianoKey(n);
+                        piano[n - piano.LowNoteID].NoteOnColor = Color.DeepSkyBlue;
+                        piano.ReleasePianoKey(n);
                     }
+                pianoNotes.Clear();
+                var tup = SongPlayer.GetSongState();
+                for (int i = SongPlayer.NumTracks - 1; i >= 0; i--)
+                {
+                    if (!PianoTracks[i]) continue;
+
+                    var notes = tup.Item5[i];
+                    pianoNotes.AddRange(notes);
+                    foreach (var n in notes)
+                        if (n >= piano.LowNoteID && n <= piano.HighNoteID)
+                        {
+                            piano[n - piano.LowNoteID].NoteOnColor = Config.Colors[tup.Item7[i]];
+                            piano.PressPianoKey(n);
+                        }
+                }
+                trackInfo.ReceiveData(tup);
             }
-            trackInfo.ReceiveData(tup);
+            finally
+            {
+                System.Threading.Monitor.Exit(timerLock);
+            }
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

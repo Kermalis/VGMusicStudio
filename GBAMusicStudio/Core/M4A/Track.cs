@@ -10,7 +10,7 @@ namespace GBAMusicStudio.Core.M4A
         Panpot
     }
 
-    internal class Track : ROMReader
+    internal class Track
     {
         internal readonly byte Index;
         internal readonly FMOD.ChannelGroup Group;
@@ -18,12 +18,11 @@ namespace GBAMusicStudio.Core.M4A
 
         internal byte Voice, Volume, Priority,
             Delay, LFOPhase, LFODelayCount,
-            RunCmd, PrevNote, PrevVelocity,
             BendRange, LFOSpeed, LFODelay, MODDepth;
         MODT MODType;
         internal sbyte Bend, Tune, Pan, KeyShift;
+        internal int CommandIndex, EndOfPattern;
         internal bool Ready, Stopped;
-        internal uint EndOfPattern;
 
         int Tri(int index)
         {
@@ -60,22 +59,16 @@ namespace GBAMusicStudio.Core.M4A
         {
             Index = i;
             Instruments = new ThreadSafeList<Instrument>();
-            MusicPlayer.System.createChannelGroup(null, out Group);
+            SongPlayer.System.createChannelGroup(null, out Group);
         }
 
-        internal void Init(uint offset)
+        internal void Init()
         {
-            InitReader();
-            SetOffset(offset);
-            Voice = Priority
-                = Delay = RunCmd
-                = LFODelay = LFODelayCount = LFOPhase = MODDepth = 0;
+            Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = 0;
             Bend = Tune = Pan = KeyShift = 0;
-            EndOfPattern = 0;
+            CommandIndex = EndOfPattern = 0;
             MODType = MODT.Vibrate;
             Ready = Stopped = false;
-            PrevNote = 60;
-            PrevVelocity = 127;
             BendRange = 2;
             LFOSpeed = 22;
             Volume = 100;
@@ -147,14 +140,14 @@ namespace GBAMusicStudio.Core.M4A
             Volume = b;
             UpdateVolumes();
         }
-        internal void SetPan(byte b)
+        internal void SetPan(sbyte b)
         {
-            Pan = (sbyte)(b - 64);
+            Pan = b;
             UpdatePanpots();
         }
-        internal void SetBend(byte b)
+        internal void SetBend(sbyte b)
         {
-            Bend = (sbyte)(b - 64);
+            Bend = b;
             UpdateFrequencies();
         }
         internal void SetBendRange(byte b)
@@ -184,9 +177,9 @@ namespace GBAMusicStudio.Core.M4A
             MODType = (MODT)b;
             UpdateModulation();
         }
-        internal void SetTune(byte b)
+        internal void SetTune(sbyte b)
         {
-            Tune = (sbyte)(b - 64);
+            Tune = b;
             UpdateFrequencies();
         }
     }

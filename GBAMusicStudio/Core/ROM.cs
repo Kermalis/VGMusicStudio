@@ -11,13 +11,13 @@ namespace GBAMusicStudio.Core
         public static ROM Instance { get; private set; } // If you want to read with the reader
 
         public readonly byte[] ROMFile;
-        public Game Game { get; private set; }
+        public AGame Game { get; private set; }
 
         public ROM(string filePath)
         {
             Instance = this;
-            MusicPlayer.Stop();
-            MusicPlayer.ClearSamples();
+            SongPlayer.Stop();
+            SongPlayer.ClearSamples();
             ROMFile = File.ReadAllBytes(filePath);
             InitReader();
             ReloadGameConfig();

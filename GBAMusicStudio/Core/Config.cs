@@ -7,12 +7,12 @@ using YamlDotNet.RepresentationModel;
 
 namespace GBAMusicStudio.Core
 {
-    public class Song
+    public class ASong
     {
         public readonly ushort Index;
         public readonly string Name;
 
-        public Song(ushort index, string name)
+        public ASong(ushort index, string name)
         {
             Index = index;
             Name = name;
@@ -20,12 +20,12 @@ namespace GBAMusicStudio.Core
 
         public override string ToString() => Name;
     }
-    public class Playlist
+    public class APlaylist
     {
         public readonly string Name;
-        public readonly Song[] Songs;
+        public readonly ASong[] Songs;
 
-        public Playlist(string name, Song[] songs)
+        public APlaylist(string name, ASong[] songs)
         {
             Name = name.Humanize();
             Songs = songs;
@@ -33,13 +33,13 @@ namespace GBAMusicStudio.Core
 
         public override string ToString() => string.Format("{0} - ({1})", Name, "Song".ToQuantity(Songs.Where(s => s.Name != "Playlist is empty.").Count()));
     }
-    public class Game
+    public class AGame
     {
         public readonly string Code, Name, Creator;
         public readonly uint[] SongTables;
-        public readonly List<Playlist> Playlists;
+        public readonly List<APlaylist> Playlists;
 
-        public Game(string code, string name, uint[] tables, string creator, List<Playlist> playlists)
+        public AGame(string code, string name, uint[] tables, string creator, List<APlaylist> playlists)
         {
             Code = code;
             Name = name;
@@ -60,7 +60,7 @@ namespace GBAMusicStudio.Core
         public static byte Volume { get; private set; }
         public static HSLColor[] Colors { get; private set; }
 
-        public static Dictionary<string, Game> Games { get; private set; }
+        public static Dictionary<string, AGame> Games { get; private set; }
 
         static Config() => Load();
         public static void Load() { LoadConfig(); LoadGames(); }
@@ -105,12 +105,12 @@ namespace GBAMusicStudio.Core
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
 
-            Games = new Dictionary<string, Game>();
+            Games = new Dictionary<string, AGame>();
             foreach (var g in mapping)
             {
                 string code, name, creator;
                 uint[] tables;
-                List<Playlist> playlists;
+                List<APlaylist> playlists;
 
                 code = g.Key.ToString();
                 var game = (YamlMappingNode)g.Value;
@@ -130,29 +130,29 @@ namespace GBAMusicStudio.Core
                 creator = game.Children[new YamlScalarNode("Creator")].ToString();
 
                 // Load playlists
-                playlists = new List<Playlist>();
+                playlists = new List<APlaylist>();
                 if (game.Children.ContainsKey(new YamlScalarNode("Music")))
                 {
                     var music = (YamlMappingNode)game.Children[new YamlScalarNode("Music")];
                     foreach (var kvp in music)
                     {
-                        var songs = new List<Song>();
+                        var songs = new List<ASong>();
                         foreach (var song in (YamlMappingNode)kvp.Value)
-                            songs.Add(new Song(ushort.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
-                        playlists.Add(new Playlist(kvp.Key.ToString(), songs.ToArray()));
+                            songs.Add(new ASong(ushort.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
+                        playlists.Add(new APlaylist(kvp.Key.ToString(), songs.ToArray()));
                     }
                 }
 
                 // Full playlist
                 if (!playlists.Any(p => p.Name == "Music"))
-                    playlists.Insert(0, new Playlist("Music", playlists.Select(p => p.Songs).UniteAll().OrderBy(s => s.Index).ToArray()));
+                    playlists.Insert(0, new APlaylist("Music", playlists.Select(p => p.Songs).UniteAll().OrderBy(s => s.Index).ToArray()));
 
                 // If playlist is empty, add an empty entry
                 for (int i = 0; i < playlists.Count; i++)
                     if (playlists[i].Songs.Length == 0)
-                        playlists[i] = new Playlist(playlists[i].Name, new Song[] { new Song(0, "Playlist is empty.") });
+                        playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "Playlist is empty.") });
 
-                Games.Add(code, new Game(code, name, tables, creator, playlists));
+                Games.Add(code, new AGame(code, name, tables, creator, playlists));
             }
         }
     }

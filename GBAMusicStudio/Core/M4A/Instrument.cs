@@ -33,7 +33,7 @@ namespace GBAMusicStudio.Core.M4A
         bool FixedFrequency;
         sbyte ForcedPan; // 0x7F counts as disabled
 
-        internal void SetPriority(byte priority)
+        internal void SetPriority(int priority)
         {
             Channel.setPriority(priority);
         }
@@ -75,17 +75,17 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         // Pass 0xFF to "duration" to trigger a TIE
-        internal void Play(Track track, byte note, byte duration)
+        internal void Play(Track track, byte note, byte velocity, byte duration)
         {
             Stop();
-            Voice = MusicPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
-            FMOD.Sound sound = MusicPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
+            Voice = SongPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
+            FMOD.Sound sound = SongPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
 
             Track = track;
             DisplayNote = note;
             Note = fromDrum ? (byte)60 : note;
             NoteDuration = duration;
-            NoteVelocity = track.PrevVelocity;
+            NoteVelocity = velocity;
             Age = 0;
             CurrentVelocity = 0;
             State = ADSRState.Rising;
@@ -114,7 +114,7 @@ namespace GBAMusicStudio.Core.M4A
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
 
-            MusicPlayer.System.playSound(sound, Track.Group, true, out Channel);
+            SongPlayer.System.playSound(sound, Track.Group, true, out Channel);
             if (A == 0) A = 255;
             UpdateFrequency();
             track.Instruments.Add(this);

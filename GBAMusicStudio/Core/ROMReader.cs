@@ -6,7 +6,7 @@ namespace GBAMusicStudio.Core
     public class ROMReader
     {
         BinaryReader Reader;
-        protected void InitReader() => Reader = new BinaryReader(new MemoryStream(ROM.Instance.ROMFile));
+        internal void InitReader() => Reader = new BinaryReader(new MemoryStream(ROM.Instance.ROMFile));
 
         object Parse(uint offset, uint amt, bool signed = false, bool array = false)
         {

@@ -16,7 +16,7 @@ namespace GBAMusicStudio.Core
         Stopped
     }
 
-    internal static class MusicPlayer
+    internal static class SongPlayer
     {
         internal static readonly FMOD.System System;
         static readonly MicroTimer timer;
@@ -36,11 +36,11 @@ namespace GBAMusicStudio.Core
         static ushort tempo;
         static readonly Track[] tracks;
 
-        static SongHeader header;
-        internal static byte NumTracks { get => header.NumTracks; }
-        internal static VoiceTable VoiceTable { get; private set; }
+        static Song Song;
+        internal static VoiceTable VoiceTable;
+        internal static int NumTracks => Song == null ? 0 : Song.NumTracks;
 
-        static MusicPlayer()
+        static SongPlayer()
         {
             FMOD.Factory.System_Create(out System);
             System.init(32, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
@@ -141,14 +141,10 @@ namespace GBAMusicStudio.Core
         }
         internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
 
-        internal static void LoadSong(ushort song, byte table)
+        internal static void LoadROMSong(ushort num, byte table)
         {
-            Stop();
-            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTables[table] + ((uint)8 * song)));
-            Array.Resize(ref header.Tracks, header.NumTracks); // Not really necessary
-
-            VoiceTable = new VoiceTable();
-            VoiceTable.Load(header.VoiceTable);
+            Song = new ROMSong(num, table);
+            Song.Load();
 
             MIDIKeyboard.Start();
         }
@@ -156,14 +152,14 @@ namespace GBAMusicStudio.Core
         {
             Stop();
 
-            if (header.NumTracks == 0 || header.NumTracks > 16) // Maybe header.isvalid or something
+            if (Song.NumTracks == 0 || Song.NumTracks > 16) // Maybe header.isvalid or something
             {
                 SongEnded?.Invoke();
                 return;
             }
 
-            for (int i = 0; i < header.NumTracks; i++)
-                tracks[i].Init(header.Tracks[i]);
+            for (int i = 0; i < NumTracks; i++)
+                tracks[i].Init();
 
             SetTempo(120);
             timer.Start();
@@ -193,19 +189,19 @@ namespace GBAMusicStudio.Core
         internal static void ExportSF2(string filename) => new VoiceTableSaver(filename);
         internal static (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
-            var positions = new uint[header.NumTracks];
-            var volumes = new byte[header.NumTracks];
-            var delays = new byte[header.NumTracks];
-            var notes = new byte[header.NumTracks][];
-            var velocities = new float[header.NumTracks];
-            var voices = new byte[header.NumTracks];
-            var modulations = new byte[header.NumTracks];
-            var bends = new int[header.NumTracks];
-            var pans = new float[header.NumTracks];
-            var types = new string[header.NumTracks];
-            for (int i = 0; i < header.NumTracks; i++)
+            var positions = new uint[Song.NumTracks];
+            var volumes = new byte[Song.NumTracks];
+            var delays = new byte[Song.NumTracks];
+            var notes = new byte[Song.NumTracks][];
+            var velocities = new float[Song.NumTracks];
+            var voices = new byte[Song.NumTracks];
+            var modulations = new byte[Song.NumTracks];
+            var bends = new int[Song.NumTracks];
+            var pans = new float[Song.NumTracks];
+            var types = new string[Song.NumTracks];
+            for (int i = 0; i < Song.NumTracks; i++)
             {
-                positions[i] = tracks[i].Position;
+                positions[i] = Song.Commands[i][tracks[i].CommandIndex].Offset;
                 volumes[i] = tracks[i].Volume;
                 delays[i] = tracks[i].Delay;
                 voices[i] = tracks[i].Voice;
@@ -223,20 +219,9 @@ namespace GBAMusicStudio.Core
             return (tempo, positions, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
         }
 
-        static byte WaitFromCMD(byte startCMD, byte cmd)
-        {
-            byte[] added = { 4, 4, 2, 2 };
-            byte wait = (byte)(cmd - startCMD);
-            byte add = wait > 24 ? (byte)24 : wait;
-            for (int i = 24 + 1; i <= wait; i++)
-                add += added[i % 4];
-            return add;
-        }
-        static void PlayNote(Track track, byte note, byte velocity, byte addedDelay = 0)
+        static void PlayInstrument(Track track, byte note, byte velocity, byte duration)
         {
             note = (byte)(note + track.KeyShift).Clamp(0, 127);
-            track.PrevNote = note;
-            track.PrevVelocity = velocity;
 
             if (!track.Ready) return;
 
@@ -294,147 +279,81 @@ namespace GBAMusicStudio.Core
             }
 
             if (instrument != null)
-                instrument.Play(track, note, track.RunCmd == 0xCF ? (byte)0xFF : WaitFromCMD(0xD0, track.RunCmd));
+                instrument.Play(track, note, velocity, duration);
         }
 
-        static void ExecuteNext(Track track)
+        static void ExecuteNext(int i)
         {
-            byte cmd = track.ReadByte();
-            if (cmd >= 0xBD) // Commands that work within running status
-                track.RunCmd = cmd;
+            var track = tracks[i];
+            var cmd = Song.Commands[i][track.CommandIndex];
 
-            #region TIE & Notes
+            // Control index incrementing
+            bool increment = true;
 
-            if (track.RunCmd >= 0xCF && cmd < 0x80) // Within running status
+            switch (cmd.Command)
             {
-                var o = track.Position;
-                byte peek1 = track.ReadByte(),
-                    peek2 = track.ReadByte();
-                track.SetOffset(o);
-                if (peek1 >= 128) PlayNote(track, cmd, track.PrevVelocity);
-                else if (peek2 >= 128) PlayNote(track, cmd, track.ReadByte());
-                else PlayNote(track, cmd, track.ReadByte(), track.ReadByte());
-            }
-            else if (cmd >= 0xCF)
-            {
-                var o = track.Position;
-                byte peek1 = track.ReadByte(),
-                    peek2 = track.ReadByte(),
-                    peek3 = track.ReadByte();
-                track.SetOffset(o);
-                if (peek1 >= 128) PlayNote(track, track.PrevNote, track.PrevVelocity);
-                else if (peek2 >= 128) PlayNote(track, track.ReadByte(), track.PrevVelocity);
-                else if (peek3 >= 128) PlayNote(track, track.ReadByte(), track.ReadByte());
-                else PlayNote(track, track.ReadByte(), track.ReadByte(), track.ReadByte());
-            }
-
-            #endregion
-
-            #region Waits
-
-            else if (cmd >= 0x80 && cmd <= 0xB0)
-            {
-                track.Delay = WaitFromCMD(0x80, cmd);
-            }
-
-            #endregion
-
-            #region Commands
-
-            else if (track.RunCmd < 0xCF && cmd < 0x80) // Commands within running status
-            {
-                switch (track.RunCmd)
-                {
-                    case 0xBD: track.SetVoice(cmd); break; // VOICE
-                    case 0xBE: track.SetVolume(cmd); break; // VOL
-                    case 0xBF: track.SetPan(cmd); break; // PAN
-                    case 0xC0: track.SetBend(cmd); break; // BEND
-                    case 0xC1: track.SetBendRange(cmd); break; // BENDR
-                    case 0xC2: track.SetLFOSpeed(cmd); break; // LFOS
-                    case 0xC3: track.SetLFODelay(cmd); break; // LFODL
-                    case 0xC4: track.SetMODDepth(cmd); break; // MOD
-                    case 0xC5: track.SetMODType(cmd); break; // MODT
-                    case 0xC8: track.SetTune(cmd); break; // TUNE
-                    case 0xCD: track.ReadByte(); break; // XCMD
-                    case 0xCE:
-                        byte note = (byte)(cmd + track.KeyShift).Clamp(0, 127);
-                        var i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note);
-                        if (i != null)
-                            i.State = ADSRState.Releasing;
-                        track.PrevNote = note;
-                        break; // EOT
-                }
-            }
-            else if (cmd > 0xB0 && cmd < 0xCF)
-            {
-                switch (cmd)
-                {
-                    case 0xB1: track.Stopped = true; break; // FINE
-                    case 0xB2: track.SetOffset(track.ReadPointer()); break; // GOTO
-                    case 0xB3: // PATT
-                        uint jump = track.ReadPointer();
-                        track.EndOfPattern = track.Position;
-                        track.SetOffset(jump);
-                        break;
-                    case 0xB4: // PEND
-                        if (track.EndOfPattern != 0)
-                        {
-                            track.SetOffset(track.EndOfPattern);
-                            track.EndOfPattern = 0;
-                        }
-                        break;
-                    case 0xB5: track.ReadByte(); break; // REPT
-                    case 0xB9: track.ReadByte(); track.ReadByte(); track.ReadByte(); break; // MEMACC
-                    case 0xBA: track.SetPriority(track.ReadByte()); break; // PRIO
-                    case 0xBB: SetTempo((ushort)(track.ReadByte() * 2)); break; // TEMPO
-                    case 0xBC: track.KeyShift = track.ReadSByte(); break; // KEYSH
-                                                                          // Commands that work within running status:
-                    case 0xBD: track.SetVoice(track.ReadByte()); break; // VOICE
-                    case 0xBE: track.SetVolume(track.ReadByte()); break; // VOL
-                    case 0xBF: track.SetPan(track.ReadByte()); break; // PAN
-                    case 0xC0: track.SetBend(track.ReadByte()); break; // BEND
-                    case 0xC1: track.SetBendRange(track.ReadByte()); break; // BENDR
-                    case 0xC2: track.SetLFOSpeed(track.ReadByte()); break; // LFOS
-                    case 0xC3: track.SetLFODelay(track.ReadByte()); break; // LFODL
-                    case 0xC4: track.SetMODDepth(track.ReadByte()); break; // MOD
-                    case 0xC5: track.SetMODType(track.ReadByte()); break; // MODT
-                    case 0xC8: track.SetTune(track.ReadByte()); break; // TUNE
-                    case 0xCD: track.ReadByte(); track.ReadByte(); break; // XCMD
-                    case 0xCE: // EOT
-                        Instrument i = null;
-                        if (track.PeekByte() < 128)
-                        {
-                            byte note = (byte)(track.ReadByte() + track.KeyShift).Clamp(0, 127);
-                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF && ins.DisplayNote == note);
-                            track.PrevNote = note;
-                        }
-                        else
-                        {
-                            i = track.Instruments.FirstOrDefault(ins => ins.NoteDuration == 0xFF);
-                        }
-                        if (i != null)
-                            i.State = ADSRState.Releasing;
-                        break;
-                    default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", track.Position, cmd); break;
-                }
+                case Command.Finish: track.Stopped = true; increment = false; break;
+                case Command.GoTo: track.CommandIndex = Song.Commands[i].FindIndex(c => c.Offset == cmd.Arguments[0]); increment = false; break;
+                case Command.PATT:
+                    int jumpCmd = Song.Commands[i].FindIndex(c => c.Offset == cmd.Arguments[0]);
+                    track.EndOfPattern = track.CommandIndex;
+                    track.CommandIndex = jumpCmd;
+                    increment = false;
+                    break;
+                case Command.PEND:
+                    if (track.EndOfPattern != 0)
+                    {
+                        track.CommandIndex = track.EndOfPattern;
+                        track.EndOfPattern = 0;
+                    }
+                    break;
+                case Command.Priority: track.SetPriority((byte)cmd.Arguments[0]); break;
+                case Command.Tempo: SetTempo((ushort)cmd.Arguments[0]); break;
+                case Command.KeyShift: track.KeyShift = (sbyte)cmd.Arguments[0]; break;
+                case Command.NoteOn: PlayInstrument(track, (byte)cmd.Arguments[0], (byte)cmd.Arguments[1], (byte)cmd.Arguments[2]); break;
+                case Command.Rest: track.Delay = (byte)cmd.Arguments[0]; break;
+                case Command.Voice: track.SetVoice((byte)cmd.Arguments[0]); break;
+                case Command.Volume: track.SetVolume((byte)cmd.Arguments[0]); break;
+                case Command.Panpot: track.SetPan((sbyte)cmd.Arguments[0]); break;
+                case Command.Bend: track.SetBend((sbyte)cmd.Arguments[0]); break;
+                case Command.BendRange: track.SetBendRange((byte)cmd.Arguments[0]); break;
+                case Command.LFOSpeed: track.SetLFOSpeed((byte)cmd.Arguments[0]); break;
+                case Command.LFODelay: track.SetLFODelay((byte)cmd.Arguments[0]); break;
+                case Command.MODDepth: track.SetMODDepth((byte)cmd.Arguments[0]); break;
+                case Command.MODType: track.SetMODType((byte)cmd.Arguments[0]); break;
+                case Command.Tune: track.SetTune((sbyte)cmd.Arguments[0]); break;
+                case Command.NoteOff:
+                    int which = cmd.Arguments[0];
+                    Instrument ins = null;
+                    if (which == -1)
+                        ins = track.Instruments.FirstOrDefault(inst => inst.NoteDuration == 0xFF);
+                    else
+                    {
+                        byte note = (byte)(which + track.KeyShift).Clamp(0, 127);
+                        ins = track.Instruments.FirstOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note);
+                    }
+                    if (ins != null)
+                        ins.State = ADSRState.Releasing;
+                    break;
             }
 
-            #endregion
+            if (increment)
+                track.CommandIndex++;
         }
         static void PlayLoop(object sender, MicroTimerEventArgs e)
         {
-            bool allStopped = true;
-            for (int i = header.NumTracks - 1; i >= 0; i--)
+            bool allDone = true;
+            for (int i = Song.NumTracks - 1; i >= 0; i--)
             {
                 Track track = tracks[i];
                 if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
-                    allStopped = false;
+                    allDone = false;
                 while (track.Delay == 0 && !track.Stopped)
-                    ExecuteNext(track);
+                    ExecuteNext(i);
                 track.Tick();
             }
             System.update();
-            if (allStopped)
+            if (allDone)
             {
                 Stop();
                 SongEnded?.Invoke();

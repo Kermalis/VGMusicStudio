@@ -15,7 +15,7 @@ namespace GBAMusicStudio.Core.M4A
 
         void LoadDirect(Direct_Sound direct)
         {
-            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address) || MusicPlayer.Sounds.ContainsKey(direct.Address)) return;
+            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address) || SongPlayer.Sounds.ContainsKey(direct.Address)) return;
             Sample s = ROM.Instance.ReadStruct<Sample>(direct.Address);
             if (s.Length == 0 || s.Length >= 0x1000000) return; // Invalid lengths
             var buf = new byte[s.Length];
@@ -29,7 +29,7 @@ namespace GBAMusicStudio.Core.M4A
                 length = s.Length,
                 numchannels = 1
             };
-            if (MusicPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) != FMOD.RESULT.OK)
+            if (SongPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) != FMOD.RESULT.OK)
             {
                 Console.WriteLine("Error loading instrument: 0x{0:X}", direct.Address);
                 return;
@@ -43,12 +43,12 @@ namespace GBAMusicStudio.Core.M4A
             {
                 snd.setLoopCount(0);
             }
-            MusicPlayer.Sounds.Add(direct.Address, snd);
+            SongPlayer.Sounds.Add(direct.Address, snd);
         }
         void LoadWave(PSG_Wave wave)
         {
-            if (wave.Address == 0 || MusicPlayer.Sounds.ContainsKey(wave.Address)) return;
-            
+            if (wave.Address == 0 || SongPlayer.Sounds.ContainsKey(wave.Address)) return;
+
             var buf = new byte[32];
             for (uint i = 0; i < 16; i++)
             {
@@ -65,8 +65,8 @@ namespace GBAMusicStudio.Core.M4A
                 length = 32,
                 numchannels = 1
             };
-            MusicPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd);
-            MusicPlayer.Sounds.Add(wave.Address, snd);
+            SongPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL, ref ex, out FMOD.Sound snd);
+            SongPlayer.Sounds.Add(wave.Address, snd);
         }
 
         internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
@@ -186,21 +186,21 @@ namespace GBAMusicStudio.Core.M4A
                 case 0x0:
                 case 0x8:
                     var direct = v as Direct_Sound;
-                    return MusicPlayer.Sounds[direct.Address];
+                    return SongPlayer.Sounds[direct.Address];
                 case 0x1:
                 case 0x2:
                 case 0x9:
                 case 0xA:
                     dynamic dyn = v;
-                    return MusicPlayer.Sounds[MusicPlayer.SQUARE12_ID - dyn.Pattern];
+                    return SongPlayer.Sounds[SongPlayer.SQUARE12_ID - dyn.Pattern];
                 case 0x3:
                 case 0xB:
                     var wave = v as PSG_Wave;
-                    return MusicPlayer.Sounds[wave.Address];
+                    return SongPlayer.Sounds[wave.Address];
                 case 0x4:
                 case 0xC:
                     var noise = v as PSG_Noise;
-                    return MusicPlayer.Sounds[MusicPlayer.NOISE0_ID - noise.Pattern];
+                    return SongPlayer.Sounds[SongPlayer.NOISE0_ID - noise.Pattern];
                 default:
                     return null; // Will not occur
             }

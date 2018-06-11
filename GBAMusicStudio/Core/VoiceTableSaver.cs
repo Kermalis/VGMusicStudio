@@ -33,13 +33,13 @@ namespace GBAMusicStudio.Core
         {
             sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Game.Creator, "", "GBA Music Studio by Kermalis");
 
-            foreach (var instrument in MusicPlayer.Sounds)
-                if (instrument.Key < MusicPlayer.NOISE1_ID)
+            foreach (var instrument in SongPlayer.Sounds)
+                if (instrument.Key < SongPlayer.NOISE1_ID)
                     AddSample(instrument.Value, string.Format("Sample 0x{0:X}", instrument.Key));
 
             sf2.Save(filename);
         }
-        
+
         void AddSample(FMOD.Sound sound, string name)
         {
             // Get properties
