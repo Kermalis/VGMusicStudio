@@ -36,7 +36,7 @@ namespace GBAMusicStudio.Core
         static ushort tempo;
         static readonly Track[] tracks;
 
-        static Song Song;
+        internal static Song Song { get; private set; }
         internal static VoiceTable VoiceTable;
         internal static int NumTracks => Song == null ? 0 : Song.NumTracks;
 
@@ -326,11 +326,11 @@ namespace GBAMusicStudio.Core
                     int which = cmd.Arguments[0];
                     Instrument ins = null;
                     if (which == -1)
-                        ins = track.Instruments.FirstOrDefault(inst => inst.NoteDuration == 0xFF);
+                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF);
                     else
                     {
                         byte note = (byte)(which + track.KeyShift).Clamp(0, 127);
-                        ins = track.Instruments.FirstOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note);
+                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note);
                     }
                     if (ins != null)
                         ins.State = ADSRState.Releasing;
