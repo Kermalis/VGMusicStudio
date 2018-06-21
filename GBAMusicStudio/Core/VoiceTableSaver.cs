@@ -1,15 +1,14 @@
-﻿using GBAMusicStudio.Util;
-using SoundFont;
+﻿using SoundFont;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using static GBAMusicStudio.Core.M4A.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {
     class VoiceTableSaver
     {
-        static readonly string[] instrumentNames = {
+        // MidiSharp.GeneralMidiInstrument
+        /*static readonly string[] instrumentNames = {
             "Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano", "Honky-tonk Piano", "Rhodes Piano", "Chorused Piano",
             "Harpsichord", "Clavinet", "Celesta", "Glockenspiel", "Music Box", "Vibraphone", "Marimba", "Xylophone", "Tubular Bells", "Dulcimer",
             "Hammond Organ", "Percussive Organ", "Rock Organ", "Church Organ", "Reed Organ", "Accordion", "Harmonica", "Tango Accordion",
@@ -26,7 +25,7 @@ namespace GBAMusicStudio.Core
             "FX 4 (Atmosphere)", "FX 5 (Brightness)", "FX 6 (Goblins)", "FX 7 (Echoes)", "FX 8 (Sci-Fi)", "Sitar", "Banjo", "Shamisen", "Koto",
             "Kalimba", "Bagpipe", "Fiddle", "Shanai", "Tinkle Bell", "Agogo", "Steel Drums", "Woodblock", "Taiko Drum", "Melodic Tom",
             "Synth Drum", "Reverse Cymbal", "Guitar Fret Noise", "Breath Noise", "Seashore", "Bird Tweet", "Telephone Ring", "Helicopter",
-            "Applause", "Gunshot" };
+            "Applause", "Gunshot" };*/
         SF2 sf2;
 
         internal VoiceTableSaver(string filename)

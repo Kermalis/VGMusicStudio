@@ -144,10 +144,14 @@ namespace GBAMusicStudio.Core
         internal static void LoadROMSong(ushort num, byte table)
         {
             Song = new ROMSong(num, table);
-            Song.Load();
 
             MIDIKeyboard.Start();
         }
+        internal static void LoadASMSong(Assembler assembler, string headerLabel)
+        {
+            Song = new ASMSong(assembler, headerLabel);
+        }
+
         internal static void Play()
         {
             Stop();
@@ -161,7 +165,7 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < NumTracks; i++)
                 tracks[i].Init();
 
-            SetTempo(120);
+            SetTempo(150);
             timer.Start();
             State = State.Playing;
         }
@@ -322,15 +326,15 @@ namespace GBAMusicStudio.Core
                 case Command.MODDepth: track.SetMODDepth((byte)cmd.Arguments[0]); break;
                 case Command.MODType: track.SetMODType((byte)cmd.Arguments[0]); break;
                 case Command.Tune: track.SetTune((sbyte)cmd.Arguments[0]); break;
-                case Command.NoteOff:
+                case Command.EndOfTie:
                     int which = cmd.Arguments[0];
                     Instrument ins = null;
                     if (which == -1)
-                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF);
+                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.State != ADSRState.Releasing);
                     else
                     {
                         byte note = (byte)(which + track.KeyShift).Clamp(0, 127);
-                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note);
+                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note && inst.State != ADSRState.Releasing);
                     }
                     if (ins != null)
                         ins.State = ADSRState.Releasing;

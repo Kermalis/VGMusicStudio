@@ -1,5 +1,5 @@
-﻿using System.IO;
-using System.Runtime.InteropServices;
+﻿using GBAMusicStudio.Util;
+using System.IO;
 
 namespace GBAMusicStudio.Core
 {
@@ -29,11 +29,9 @@ namespace GBAMusicStudio.Core
 
         public T ReadStruct<T>(uint offset = 0xFFFFFFFF)
         {
-            byte[] bytes = ReadBytes((uint)Marshal.SizeOf(typeof(T)), offset);
-            GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-            T theT = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-            handle.Free();
-            return theT;
+            if (IsValidRomOffset(offset))
+                SetOffset(offset);
+            return Utils.ReadStruct<T>(ROMFile, Position);
         }
 
         public static bool IsValidRomOffset(uint offset) => (offset < Capacity && offset < Instance.ROMFile.Length) || (offset >= Pak && offset < Pak + Capacity && offset < Instance.ROMFile.Length + Pak);

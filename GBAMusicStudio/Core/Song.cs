@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Core.M4A;
+using GBAMusicStudio.Util;
 using System;
 using System.Collections.Generic;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
@@ -8,47 +9,40 @@ namespace GBAMusicStudio.Core
     internal abstract class Song
     {
         internal List<SongEvent>[] Commands;
-
-        internal abstract byte NumTracks { get; }
-        internal abstract void Load();
+        internal int NumTracks => Commands == null ? 0 : Commands.Length;
     }
 
-    internal class ROMSong : Song
+    internal abstract class M4ASong : Song
     {
-        SongHeader header;
-        readonly ushort num, table;
+        byte[] _binary;
+        SongHeader _header;
 
-        internal ROMSong(ushort songNum, ushort tableNum)
+        protected void Load(byte[] binary, SongHeader head)
         {
-            num = songNum;
-            table = tableNum;
-        }
-        internal override byte NumTracks => header.NumTracks;
-        internal override void Load()
-        {
-            header = ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTables[table] + ((uint)8 * num)));
-            Array.Resize(ref header.Tracks, NumTracks); // Not really necessary
-            Commands = new List<SongEvent>[NumTracks];
-            for (int i = 0; i < NumTracks; i++)
+            _binary = binary;
+            _header = head;
+            Array.Resize(ref _header.Tracks, _header.NumTracks); // Not really necessary
+            Commands = new List<SongEvent>[_header.NumTracks];
+            for (int i = 0; i < _header.NumTracks; i++)
                 Commands[i] = new List<SongEvent>();
 
             SongPlayer.VoiceTable = new VoiceTable();
-            SongPlayer.VoiceTable.Load(header.VoiceTable);
+            SongPlayer.VoiceTable.Load(_header.VoiceTable);
 
             if (NumTracks == 0 || NumTracks > 16) return;
 
             var reader = new ROMReader();
-            reader.InitReader();
+            reader.InitReader(_binary);
 
             for (int i = 0; i < NumTracks; i++)
             {
-                reader.SetOffset(header.Tracks[i]);
+                reader.SetOffset(_header.Tracks[i]);
 
                 byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 127;
 
                 while (cmd != 0xB1 && cmd != 0xB2)
                 {
-                    uint offset = reader.Position;
+                    uint off = reader.Position;
                     Command command = 0;
                     var args = new int[0];
 
@@ -110,7 +104,7 @@ namespace GBAMusicStudio.Core
                             case 0xC5: command = Command.MODType; args = new int[] { cmd }; break; // MODT
                             case 0xC8: command = Command.Tune; args = new int[] { cmd - 0x40 }; break; // TUNE
                             case 0xCD: command = Command.XCMD; args = new int[] { cmd, reader.ReadByte() }; break; // XCMD
-                            case 0xCE: command = Command.NoteOff; args = new int[] { cmd }; prevNote = cmd; break; // EOT
+                            case 0xCE: command = Command.EndOfTie; args = new int[] { cmd }; prevNote = cmd; break; // EOT
                         }
                     }
                     else if (cmd > 0xB0 && cmd < 0xCF)
@@ -144,7 +138,7 @@ namespace GBAMusicStudio.Core
                                 if (reader.PeekByte() < 128) { note = reader.ReadByte(); prevNote = (byte)note; }
                                 else { note = -1; }
 
-                                command = Command.NoteOff; args = new int[] { note };
+                                command = Command.EndOfTie; args = new int[] { note };
                                 break;
                             default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", reader.Position, cmd); break;
                         }
@@ -152,10 +146,9 @@ namespace GBAMusicStudio.Core
 
                     #endregion
 
-                    Commands[i].Add(new SongEvent(offset, command, args));
+                    Commands[i].Add(new SongEvent(off, command, args));
                 }
             }
-            ;
 
             byte RestFromCMD(byte startCMD, byte cmd)
             {
@@ -177,4 +170,137 @@ namespace GBAMusicStudio.Core
             }
         }
     }
+
+    internal class ROMSong : M4ASong
+    {
+        readonly ushort num, table;
+
+        internal ROMSong(ushort songNum, ushort tableNum)
+        {
+            num = songNum;
+            table = tableNum;
+            
+            Load(ROM.Instance.ROMFile,
+                ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTables[table] + ((uint)8 * num))));
+        }
+    }
+
+    internal class ASMSong : M4ASong
+    {
+        internal ASMSong(Assembler assembler, string headerLabel)
+        {
+            var binary = assembler.Binary;
+            Load(binary, Utils.ReadStruct<SongHeader>(binary, (uint)assembler[headerLabel]));
+        }
+    }
+
+    /* This didn't work well. Also, there's no point in re-inventing the wheel (mid2agb by Nintendo exists)
+    I used https://github.com/Kermalis/MidiSharp if you are interested
+
+    internal class MIDISong : Song
+    {
+        readonly MidiSequence midi;
+        readonly MidiTrackCollection tracks;
+
+        internal MIDISong(string fileName)
+        {
+            using (Stream inputStream = File.OpenRead(fileName))
+            {
+                midi = MidiSequence.Open(inputStream);
+            }
+
+            tracks = midi.Tracks;
+            if (midi.Tracks.Count > 16) // Merge channels
+            {
+                var channels = midi.Tracks.Select(t => t.Channel).Distinct().ToArray();
+                foreach (var chan in channels)
+                {
+                    var thisChan = midi.Tracks.Where(t => t.Channel == chan).ToArray();
+                    for (int i = 1; i < thisChan.Length; i++)
+                    {
+                        thisChan[0].Merge(thisChan[i]); // Merge ignores its own track
+                        tracks.Remove(thisChan[i]);
+                    }
+                }
+            }
+
+            MidiTrack firstRegular = midi.Tracks.First(t => t.Channel != -1);
+            foreach (var track in tracks.ToArray())
+            {
+                if (track.Channel == -1)
+                {
+                    firstRegular.Merge(track);
+                    tracks.Remove(track);
+                }
+            }
+
+            Commands = new List<SongEvent>[tracks.Count];
+            for (int i = 0; i < tracks.Count; i++)
+                Commands[i] = new List<SongEvent>();
+
+            //float tsHelper = midi.TicksPerBeatOrFrame / 48f;
+            //float bpmMultiplier = tsHelper * (4 / 2); // (Default TimeSignature) 
+
+            for (int i = 0; i < NumTracks; i++)
+            {
+                var track = midi.Tracks[i];
+                long previous = 0;
+
+                foreach (var e in track.Events)
+                {
+                    Command command = 0;
+                    var args = new int[0];
+
+                    if (e is MetaMidiEvent me)
+                    {
+                        if (me is EndOfTrackMetaMidiEvent endme) command = Command.Finish;
+                        else if (me is TempoMetaMidiEvent tme)
+                        {
+                            command = Command.Tempo; args = new int[] { ((60 * 1000 * 1000 / tme.Value) - 1) / 2 * 2 * 2 }; // Get rid of odd values
+                        }
+                        else if (me is TimeSignatureMetaMidiEvent tsme)
+                        {
+                            int ticksPerQuarterNote = 96 / tsme.MidiClocksPerClick; // 96 / 24 = 4 (Metronome clicks once per 4 notes)
+                            int quarters = 32 / tsme.NumberOfNotated32nds; // 32 / 8 = 4 (4 quarter notes in quarter of a beat)
+                            //bpmMultiplier = tsHelper * tsme.Numerator / tsme.Denominator; // For now, ignoring the above
+                            continue;
+                        }
+                        else continue;
+                    }
+                    else if (e is VoiceMidiEvent ve)
+                    {
+                        if (ve is ProgramChangeVoiceMidiEvent pcve) { command = Command.Voice; args = new int[] { pcve.Number }; }
+                        else if (ve is PitchWheelVoiceMidiEvent pwve) { command = Command.Bend; args = new int[] { pwve.Position - 0x40 }; }
+                        else if (ve is OnNoteVoiceMidiEvent nve)
+                        {
+                            if (nve.Velocity != 0)
+                            {
+                                command = Command.NoteOn; args = new int[] { nve.Note, nve.Velocity, (int)nve.Duration };
+                            }
+                            else continue;
+                        }
+                        else if (ve is ControllerVoiceMidiEvent cve)
+                        {
+                            switch ((Controller)cve.Number)
+                            {
+                                case Controller.DataEntryCourse: command = Command.BendRange; args = new int[] { cve.Value }; break;
+                                case Controller.PanPositionCourse: command = Command.Panpot; args = new int[] { cve.Value - 0x40 }; break;
+                                case Controller.VolumeCourse: command = Command.Volume; args = new int[] { cve.Value }; break;
+                                default: continue;
+                            }
+                        }
+                        else continue;
+                    }
+                    else continue;
+
+                    if (e.DeltaTime != 0)
+                    {
+                        Commands[i].Add(new SongEvent((uint)e.AbsoluteTime, Command.Rest, new int[] { (int)(e.AbsoluteTime - previous) }));
+                        previous = e.AbsoluteTime;
+                    }
+                    Commands[i].Add(new SongEvent((uint)e.AbsoluteTime, command, args));
+                }
+            }
+        }
+    }*/
 }

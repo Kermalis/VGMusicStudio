@@ -6,7 +6,8 @@ namespace GBAMusicStudio.Core
     public class ROMReader
     {
         BinaryReader Reader;
-        internal void InitReader() => Reader = new BinaryReader(new MemoryStream(ROM.Instance.ROMFile));
+        public void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
+        public uint Position => (uint)Reader.BaseStream.Position;
 
         object Parse(uint offset, uint amt, bool signed = false, bool array = false)
         {
@@ -48,6 +49,5 @@ namespace GBAMusicStudio.Core
                 throw new ArgumentOutOfRangeException("\"offset\" was invalid.");
             Reader.BaseStream.Position = offset;
         }
-        public uint Position { get { return (uint)Reader.BaseStream.Position; } }
     }
 }

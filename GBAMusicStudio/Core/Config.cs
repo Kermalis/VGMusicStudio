@@ -70,29 +70,29 @@ namespace GBAMusicStudio.Core
             yaml.Load(new StringReader(File.ReadAllText("Config.yaml")));
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            DirectCount = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
-            PSGVolume = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("PSGVolume")].ToString());
+            DirectCount = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
+            PSGVolume = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("PSGVolume")].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children[new YamlScalarNode("MIDIKeyboardFixedVelocity")].ToString());
-            RefreshRate = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
+            RefreshRate = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
             CenterIndicators = bool.Parse(mapping.Children[new YamlScalarNode("CenterIndicators")].ToString());
             PanpotIndicators = bool.Parse(mapping.Children[new YamlScalarNode("PanpotIndicators")].ToString());
-            Volume = (byte)Utils.ParseUInt(mapping.Children[new YamlScalarNode("Volume")].ToString());
+            Volume = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("Volume")].ToString());
 
             var cmap = (YamlMappingNode)mapping.Children[new YamlScalarNode("Colors")];
             Colors = new HSLColor[256];
             foreach (var c in cmap)
             {
-                uint i = Utils.ParseUInt(c.Key.ToString());
+                uint i = (uint)Utils.ParseValue(c.Key.ToString());
                 var children = ((YamlMappingNode)c.Value).Children;
                 double h = 0, s = 0, l = 0;
                 foreach (var v in children)
                 {
                     if (v.Key.ToString() == "H")
-                        h = Utils.ParseUInt(v.Value.ToString());
+                        h = Utils.ParseValue(v.Value.ToString());
                     else if (v.Key.ToString() == "S")
-                        s = Utils.ParseUInt(v.Value.ToString());
+                        s = Utils.ParseValue(v.Value.ToString());
                     else if (v.Key.ToString() == "L")
-                        l = Utils.ParseUInt(v.Value.ToString());
+                        l = Utils.ParseValue(v.Value.ToString());
                 }
                 HSLColor color = new HSLColor(h, s, l);
                 Colors[i] = Colors[i + 0x80] = color;
@@ -120,7 +120,7 @@ namespace GBAMusicStudio.Core
                 var songTables = game.Children[new YamlScalarNode("SongTable")].ToString().Split(' ');
                 tables = new uint[songTables.Length];
                 for (int i = 0; i < songTables.Length; i++)
-                    tables[i] = Utils.ParseUInt(songTables[i]);
+                    tables[i] = (uint)Utils.ParseValue(songTables[i]);
 
                 // If we are to copy another game's config
                 if (game.Children.ContainsKey(new YamlScalarNode("Copy")))

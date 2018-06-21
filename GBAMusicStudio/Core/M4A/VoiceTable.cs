@@ -5,7 +5,7 @@ namespace GBAMusicStudio.Core.M4A
 {
     internal class VoiceTable
     {
-        uint tableOffset;
+        internal uint Offset { get; private set; }
         readonly SVoice[] voices;
         internal SVoice this[int i]
         {
@@ -15,9 +15,13 @@ namespace GBAMusicStudio.Core.M4A
 
         void LoadDirect(Direct_Sound direct)
         {
-            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address) || SongPlayer.Sounds.ContainsKey(direct.Address)) return;
+            if (SongPlayer.Sounds.ContainsKey(direct.Address))
+                return;
+            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address))
+                goto fail;
             Sample s = ROM.Instance.ReadStruct<Sample>(direct.Address);
-            if (s.Length == 0 || s.Length >= 0x1000000) return; // Invalid lengths
+            if (s.Length == 0 || s.Length >= 0x1000000) // Invalid lengths
+                goto fail;
             var buf = new byte[s.Length];
             Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 0, (int)s.Length);
             for (int i = 0; i < s.Length; i++)
@@ -30,10 +34,7 @@ namespace GBAMusicStudio.Core.M4A
                 numchannels = 1
             };
             if (SongPlayer.System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd) != FMOD.RESULT.OK)
-            {
-                Console.WriteLine("Error loading instrument: 0x{0:X}", direct.Address);
-                return;
-            }
+                goto fail;
             if (s.DoesLoop != 0)
             {
                 snd.setLoopPoints(s.LoopPoint, FMOD.TIMEUNIT.PCM, s.Length, FMOD.TIMEUNIT.PCM);
@@ -44,6 +45,11 @@ namespace GBAMusicStudio.Core.M4A
                 snd.setLoopCount(0);
             }
             SongPlayer.Sounds.Add(direct.Address, snd);
+            return;
+
+            fail:
+            Console.WriteLine("Error loading instrument: 0x{0:X}", direct.Address);
+            return;
         }
         void LoadWave(PSG_Wave wave)
         {
@@ -72,40 +78,40 @@ namespace GBAMusicStudio.Core.M4A
         internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
         internal void Load(uint table)
         {
-            tableOffset = table;
+            Offset = table;
             for (uint i = 0; i < 256; i++)
             {
-                uint offset = table + (i * 0xC);
-                if (!ROM.IsValidRomOffset(offset))
+                uint off = table + (i * 0xC);
+                if (!ROM.IsValidRomOffset(off))
                     break;
-                switch (ROM.Instance.ReadByte(offset)) // Check type
+                switch (ROM.Instance.ReadByte(off)) // Check type
                 {
                     case 0x0:
                     case 0x8:
-                        var direct = ROM.Instance.ReadStruct<Direct_Sound>(offset);
+                        var direct = ROM.Instance.ReadStruct<Direct_Sound>(off);
                         voices[i] = new SVoice(direct);
                         LoadDirect(direct);
                         break;
                     case 0x1:
                     case 0x9:
-                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_1>(offset));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_1>(off));
                         break;
                     case 0x2:
                     case 0xA:
-                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_2>(offset));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_2>(off));
                         break;
                     case 0x3:
                     case 0xB:
-                        var wave = ROM.Instance.ReadStruct<PSG_Wave>(offset);
+                        var wave = ROM.Instance.ReadStruct<PSG_Wave>(off);
                         voices[i] = new SVoice(wave);
                         LoadWave(wave);
                         break;
                     case 0x4:
                     case 0xC:
-                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Noise>(offset));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Noise>(off));
                         break;
                     case 0x40:
-                        var keySplit = ROM.Instance.ReadStruct<Split>(offset);
+                        var keySplit = ROM.Instance.ReadStruct<Split>(off);
                         var multi = new SMulti(keySplit);
                         voices[i] = multi;
                         if (!ROM.IsValidRomOffset(keySplit.Table) || !ROM.IsValidRomOffset(keySplit.Keys))
@@ -146,7 +152,7 @@ namespace GBAMusicStudio.Core.M4A
                         }
                         break;
                     case 0x80:
-                        voices[i] = new SDrum(ROM.Instance.ReadStruct<Drum>(offset));
+                        voices[i] = new SDrum(ROM.Instance.ReadStruct<Drum>(off));
                         break;
                 }
             }

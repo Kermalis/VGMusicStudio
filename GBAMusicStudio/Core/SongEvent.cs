@@ -1,4 +1,6 @@
-﻿namespace GBAMusicStudio.Core
+﻿using GBAMusicStudio.Util;
+
+namespace GBAMusicStudio.Core
 {
     enum Command
     {
@@ -6,8 +8,8 @@
         Tempo, // 1 - tempo
 
         // Track events
-        NoteOn, // 3 - note, velocity, duration (-1 is a TIE)
-        NoteOff, // 1 - note (-1 means to get the first TIEing)
+        NoteOn, // 3 - note, velocity, duration (-1 is a tie)
+        EndOfTie, // 1 - note (-1 means to get the first tieing)
         Rest, // 1 - duration
         Voice, // 1 - voice
         Volume, // 1 - volume (0 to 127)
@@ -46,6 +48,6 @@
             Arguments = args;
         }
 
-        public override string ToString() => Command.ToString();
+        public override string ToString() => $"{Command}\t-\t{Arguments.Print()}\t-\t0x{Offset.ToString("X")}";
     }
 }

@@ -11,7 +11,7 @@ namespace GBAMusicStudio.UI
     [DesignerCategory("")]
     internal class TrackInfoControl : UserControl
     {
-        readonly string noNotes = "…";
+        readonly string noNotes = ""; //"…";
         readonly int checkboxSize = 15;
 
         //readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
@@ -198,7 +198,7 @@ namespace GBAMusicStudio.UI
                 Color color = Config.Colors[voices[i]];
                 Pen pen = new Pen(color);
                 var brush = new SolidBrush(color);
-                var lBrush = new LinearGradientBrush(new Point(bx, by), new Point(bx + bw, bh), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 4, 0xFF), color));
+                var lBrush = new LinearGradientBrush(new Point(bx, by), new Point(bx + bw, by + bh), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 4, 0xFF), color));
 
                 mutes[i].Location = new Point(co, (int)r1y + co); // Checkboxes
                 pianos[i].Visible = mutes[i].Visible = true;
