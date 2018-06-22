@@ -38,8 +38,7 @@ namespace GBAMusicStudio.UI
             sizeLabel = new Label
             {
                 Location = new Point(0, 100),
-                Size = new Size(150, 23),
-                Visible = false
+                Size = new Size(150, 23)
             };
             offsetValueBox = new ValueTextBox
             {
@@ -108,9 +107,8 @@ namespace GBAMusicStudio.UI
                     s.Add(r.Cells[0].Value.ToString(), (int)Utils.ParseValue(r.Cells[1].Value.ToString()));
                 }
                 assembler = new Assembler(d.FileName, (uint)(ROM.Pak + offsetValueBox.Value), s);
-                headerLabelTextBox.Text = Path.GetFileNameWithoutExtension(d.FileName);
+                headerLabelTextBox.Text = Assembler.FixLabel(Path.GetFileNameWithoutExtension(d.FileName));
                 sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
-                sizeLabel.Visible = true;
                 previewButton.Enabled = true;
             }
             catch (Exception ex)

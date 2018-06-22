@@ -37,7 +37,7 @@ namespace GBAMusicStudio.Core
         internal readonly string FileName;
         internal int this[string Label]
         {
-            get => labels[Label].Offset;
+            get => labels[FixLabel(Label)].Offset;
         }
         internal byte[] Binary => bytes.ToArray();
         internal int BinaryLength => bytes.Count;
@@ -64,6 +64,21 @@ namespace GBAMusicStudio.Core
                     bytes[p.Offset + i] = b[i]; // Copy the new pointer to binary offset 0x1DF4
             }
             curBase = baseOffset;
+        }
+
+        internal static string FixLabel(string label)
+        {
+            string ret = "";
+            for (int i = 0; i < label.Length; i++)
+            {
+                if ((label[i] >= 'a' && label[i] <= 'z') ||
+                    (label[i] >= 'A' && label[i] <= 'Z') ||
+                    (label[i] >= '0' && label[i] <= '9' && i > 0))
+                    ret += label[i];
+                else
+                    ret += '_';
+            }
+            return ret;
         }
 
         // Returns a status
