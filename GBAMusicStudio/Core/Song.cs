@@ -71,7 +71,7 @@ namespace GBAMusicStudio.Core
                         reader.SetOffset(o);
                         if (peek1 >= 128) AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity, out command, out args);
                         else if (peek2 >= 128) AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity, out command, out args);
-                        else if (peek3 >= 128) AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity, out command, out args);
+                        else if (cmd == 0xCF || peek3 >= 128) AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity, out command, out args);
                         else AddNoteEvent(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity, out command, out args);
                     }
 
