@@ -34,7 +34,6 @@ A tool that is designed to be an updated Sappy.
 * Remove "private set" in config and add saving of config
 * Fix UI crashing when some invalid songs are switched to
 * Support pret dissassembly projects if they need that
-* .align in the assembler
 
 ## Special Thanks To:
 * Ipatix

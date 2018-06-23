@@ -161,6 +161,11 @@ namespace GBAMusicStudio.Core
                             labels.Add(args[0], new Pair());
                         labels[args[0]].Global = true;
                         break;
+                    case "align":
+                        int align = ParseInt(args[0]);
+                        for (int a = BinaryLength % align; a < align; a++)
+                            bytes.Add(0);
+                        break;
                     case "byte":
                         try
                         {
@@ -197,8 +202,7 @@ namespace GBAMusicStudio.Core
                         break;
                     case "end":
                         goto end;
-                    case "section": // Ignoring these
-                    case "align":
+                    case "section": // Ignore
                         break;
                     default: throw new NotSupportedException(string.Format(cmdErrorFormat, fileName, i, cmd, Environment.NewLine));
                 }
