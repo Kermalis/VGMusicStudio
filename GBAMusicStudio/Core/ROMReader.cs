@@ -3,11 +3,11 @@ using System.IO;
 
 namespace GBAMusicStudio.Core
 {
-    public class ROMReader
+    internal class ROMReader
     {
         BinaryReader Reader;
-        public void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
-        public uint Position => (uint)Reader.BaseStream.Position;
+        internal void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
+        internal uint Position => (uint)Reader.BaseStream.Position;
 
         object Parse(uint offset, uint amt, bool signed = false, bool array = false)
         {
@@ -24,7 +24,7 @@ namespace GBAMusicStudio.Core
             return null;
         }
 
-        public byte PeekByte(uint offset = 0xFFFFFFFF)
+        internal byte PeekByte(uint offset = 0xFFFFFFFF)
         {
             var org = Reader.BaseStream.Position;
             byte ret = (byte)Parse(offset, 1);
@@ -32,16 +32,16 @@ namespace GBAMusicStudio.Core
             return ret;
         }
 
-        public byte[] ReadBytes(uint amt, uint offset = 0xFFFFFFFF) => (byte[])Parse(offset, amt, false, true);
+        internal byte[] ReadBytes(uint amt, uint offset = 0xFFFFFFFF) => (byte[])Parse(offset, amt, false, true);
 
-        public sbyte ReadSByte(uint offset = 0xFFFFFFFF) => (sbyte)Parse(offset, 1, true);
-        public byte ReadByte(uint offset = 0xFFFFFFFF) => (byte)Parse(offset, 1);
-        public ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
-        public int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
-        public uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);
-        public uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Pak;
+        internal sbyte ReadSByte(uint offset = 0xFFFFFFFF) => (sbyte)Parse(offset, 1, true);
+        internal byte ReadByte(uint offset = 0xFFFFFFFF) => (byte)Parse(offset, 1);
+        internal ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
+        internal int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
+        internal uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);
+        internal uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Pak;
 
-        public void SetOffset(uint offset)
+        internal void SetOffset(uint offset)
         {
             if (offset > ROM.Capacity)
                 offset -= ROM.Pak;

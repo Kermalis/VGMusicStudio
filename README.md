@@ -32,7 +32,6 @@ A tool that is designed to be an updated Sappy.
 * Add keyboard shortcuts to the UI
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
-* Add remapping of instruments in their game config \[Example: instrument 95 in a game maps to instrument 48 in MIDI, so have colors represent that and have MIDI rips use 48\]
 * Fix UI crashing when some invalid songs are switched to
 * Support pret dissassembly projects if they need that
 * .align in the assembler

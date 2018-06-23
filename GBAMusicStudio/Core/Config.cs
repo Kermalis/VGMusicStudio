@@ -1,5 +1,6 @@
 ﻿using GBAMusicStudio.Util;
 using Humanizer;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,12 +8,12 @@ using YamlDotNet.RepresentationModel;
 
 namespace GBAMusicStudio.Core
 {
-    public class ASong
+    internal class ASong
     {
-        public readonly ushort Index;
-        public readonly string Name;
+        internal readonly ushort Index;
+        internal readonly string Name;
 
-        public ASong(ushort index, string name)
+        internal ASong(ushort index, string name)
         {
             Index = index;
             Name = name;
@@ -20,12 +21,12 @@ namespace GBAMusicStudio.Core
 
         public override string ToString() => Name;
     }
-    public class APlaylist
+    internal class APlaylist
     {
-        public readonly string Name;
-        public readonly ASong[] Songs;
+        internal readonly string Name;
+        internal readonly ASong[] Songs;
 
-        public APlaylist(string name, ASong[] songs)
+        internal APlaylist(string name, ASong[] songs)
         {
             Name = name.Humanize();
             Songs = songs;
@@ -33,13 +34,13 @@ namespace GBAMusicStudio.Core
 
         public override string ToString() => string.Format("{0} - ({1})", Name, "Song".ToQuantity(Songs.Where(s => s.Name != "Playlist is empty.").Count()));
     }
-    public class AGame
+    internal class AGame
     {
-        public readonly string Code, Name, Creator;
-        public readonly uint[] SongTables;
-        public readonly List<APlaylist> Playlists;
+        internal readonly string Code, Name, Creator;
+        internal readonly uint[] SongTables;
+        internal readonly List<APlaylist> Playlists;
 
-        public AGame(string code, string name, uint[] tables, string creator, List<APlaylist> playlists)
+        internal AGame(string code, string name, uint[] tables, string creator, List<APlaylist> playlists)
         {
             Code = code;
             Name = name;
@@ -47,23 +48,35 @@ namespace GBAMusicStudio.Core
             Creator = creator;
             Playlists = playlists;
         }
+
+        public override string ToString() => Name;
+    }
+    internal class ARemap
+    {
+        internal readonly List<Tuple<byte, byte>> Remaps;
+
+        internal ARemap(List<Tuple<byte, byte>> remaps)
+        {
+            Remaps = remaps;
+        }
     }
 
-    public static class Config
+    internal static class Config
     {
-        public static byte DirectCount { get; private set; }
-        public static byte PSGVolume { get; private set; }
-        public static bool MIDIKeyboardFixedVelocity { get; private set; }
-        public static byte RefreshRate { get; private set; }
-        public static bool CenterIndicators { get; private set; }
-        public static bool PanpotIndicators { get; private set; }
-        public static byte Volume { get; private set; }
-        public static HSLColor[] Colors { get; private set; }
+        internal static byte DirectCount { get; private set; }
+        internal static byte PSGVolume { get; private set; }
+        internal static bool MIDIKeyboardFixedVelocity { get; private set; }
+        internal static byte RefreshRate { get; private set; }
+        internal static bool CenterIndicators { get; private set; }
+        internal static bool PanpotIndicators { get; private set; }
+        internal static byte Volume { get; private set; }
+        internal static HSLColor[] Colors { get; private set; }
+        internal static Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
 
-        public static Dictionary<string, AGame> Games { get; private set; }
+        internal static Dictionary<string, AGame> Games { get; private set; }
 
         static Config() => Load();
-        public static void Load() { LoadConfig(); LoadGames(); }
+        internal static void Load() { LoadConfig(); LoadGames(); }
         static void LoadConfig()
         {
             var yaml = new YamlStream();
@@ -88,14 +101,27 @@ namespace GBAMusicStudio.Core
                 foreach (var v in children)
                 {
                     if (v.Key.ToString() == "H")
-                        h = Utils.ParseValue(v.Value.ToString());
+                        h = byte.Parse(v.Value.ToString());
                     else if (v.Key.ToString() == "S")
-                        s = Utils.ParseValue(v.Value.ToString());
+                        s = byte.Parse(v.Value.ToString());
                     else if (v.Key.ToString() == "L")
-                        l = Utils.ParseValue(v.Value.ToString());
+                        l = byte.Parse(v.Value.ToString());
                 }
                 HSLColor color = new HSLColor(h, s, l);
                 Colors[i] = Colors[i + 0x80] = color;
+            }
+
+            var rmap = (YamlMappingNode)mapping.Children[new YamlScalarNode("InstrumentRemaps")];
+            InstrumentRemaps = new Dictionary<string, ARemap>();
+            foreach (var r in rmap)
+            {
+                var remaps = new List<Tuple<byte, byte>>();
+
+                var children = ((YamlMappingNode)r.Value).Children;
+                foreach (var v in children)
+                    remaps.Add(new Tuple<byte, byte>(byte.Parse(v.Key.ToString()), byte.Parse(v.Value.ToString())));
+
+                InstrumentRemaps.Add(r.Key.ToString(), new ARemap(remaps));
             }
         }
         static void LoadGames()
@@ -154,6 +180,20 @@ namespace GBAMusicStudio.Core
 
                 Games.Add(code, new AGame(code, name, tables, creator, playlists));
             }
+        }
+
+        internal static byte GetRemap(byte voice, string key = null)
+        {
+            if (key == null)
+                key = "HGSS";
+            if (InstrumentRemaps.TryGetValue(key, out ARemap remap))
+            {
+                var r = remap.Remaps.FirstOrDefault(t => t.Item1 == voice);
+                if (r == null)
+                    return voice;
+                return r.Item2;
+            }
+            return voice;
         }
     }
 }
