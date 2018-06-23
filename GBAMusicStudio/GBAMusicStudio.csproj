@@ -93,6 +93,7 @@
     <Compile Include="Soundfont\SF2Chunks.cs" />
     <Compile Include="Soundfont\SF2Types.cs" />
     <Compile Include="UI\AssemblerDialog.cs" />
+    <Compile Include="UI\MIDIConverterDialog.cs" />
     <Compile Include="UI\FlexibleMessageBox.cs" />
     <Compile Include="UI\ValueTextBox.cs">
       <SubType>Component</SubType>
@@ -126,6 +127,12 @@
     <Content Include="MPlayDef.s">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="mid2agb.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="midi2agb.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

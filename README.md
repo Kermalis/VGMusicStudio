@@ -7,6 +7,8 @@ A tool that is designed to be an updated Sappy.
 ## Some Advantages Over Sappy
 * Pause button
 * You can play the in-game instruments with a MIDI-in keyboard
+* You can view and edit track events
+* You can import midi files without having to convert them yourself
 * You can save the voice tables to a SF2 soundfont file
 * The UI scales to the desired window size
 * It is not intimidating to use

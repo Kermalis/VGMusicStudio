@@ -16,7 +16,7 @@ namespace GBAMusicStudio.UI
     internal class MainForm : Form
     {
         bool stopUI = false;
-        TrackEditor trackViewer;
+        TrackEditor trackEditor;
         List<byte> pianoNotes = new List<byte>();
         internal readonly bool[] PianoTracks = new bool[16];
 
@@ -26,8 +26,8 @@ namespace GBAMusicStudio.UI
 
         IContainer components;
         MenuStrip mainMenu;
-        ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
-            dataToolStripMenuItem, tvToolStripMenuItem, eSf2ToolStripMenuItem;
+        ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
+            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem;
         Timer timer;
         readonly object timerLock = new object();
         NumericUpDown songNumerical, tableNumerical;
@@ -55,24 +55,27 @@ namespace GBAMusicStudio.UI
             openROMToolStripMenuItem = new ToolStripMenuItem() { Text = "Open ROM", ShortcutKeys = Keys.Control | Keys.O };
             openROMToolStripMenuItem.Click += OpenROM;
 
-            openASMToolStripMenuItem = new ToolStripMenuItem() { Text = "Open ASM", Enabled = false, ShortcutKeys = Keys.Control | Keys.M };
+            openMIDIToolStripMenuItem = new ToolStripMenuItem() { Text = "Open MIDI", Enabled = false, ShortcutKeys = Keys.Control | Keys.M };
+            openMIDIToolStripMenuItem.Click += OpenMIDIConverter;
+
+            openASMToolStripMenuItem = new ToolStripMenuItem() { Text = "Open ASM", Enabled = false, ShortcutKeys = Keys.Control | Keys.Shift | Keys.M };
             openASMToolStripMenuItem.Click += OpenAssembler;
 
             configToolStripMenuItem = new ToolStripMenuItem() { Text = "Refresh Config", ShortcutKeys = Keys.Control | Keys.R };
             configToolStripMenuItem.Click += ReloadConfig;
 
             fileToolStripMenuItem = new ToolStripMenuItem() { Text = "File" };
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openROMToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem });
 
 
-            tvToolStripMenuItem = new ToolStripMenuItem() { Text = "Track Viewer", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
-            tvToolStripMenuItem.Click += OpenTrackViewer;
+            teToolStripMenuItem = new ToolStripMenuItem() { Text = "Track Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
+            teToolStripMenuItem.Click += OpenTrackEditor;
 
             eSf2ToolStripMenuItem = new ToolStripMenuItem() { Text = "Export to SF2", Enabled = false };
             eSf2ToolStripMenuItem.Click += ExportSF2;
 
             dataToolStripMenuItem = new ToolStripMenuItem() { Text = "Data" };
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { tvToolStripMenuItem, eSf2ToolStripMenuItem });
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem });
 
 
             mainMenu = new MenuStrip() { Size = new Size(iWidth, 24) };
@@ -185,9 +188,9 @@ namespace GBAMusicStudio.UI
             Text = "GBA Music Studio";
         }
 
-        internal void PreviewASM(Assembler asm, string headerLabel)
+        internal void PreviewASM(Assembler asm, string headerLabel, string caption)
         {
-            Text = "GBA Music Studio - " + Path.GetFileName(asm.FileName);
+            Text = "GBA Music Studio - " + caption;
             bool playing = SongPlayer.State == State.Playing; // Play new song if one is already playing
             Stop(null, null);
             SongPlayer.LoadASMSong(asm, headerLabel);
@@ -232,20 +235,24 @@ namespace GBAMusicStudio.UI
             UpdateMenuInfo();
             LoadSong(null, null);
         }
+        void OpenMIDIConverter(object sender, EventArgs e)
+        {
+            new MIDIConverterDialog { Owner = this }.Show();
+        }
         void OpenAssembler(object sender, EventArgs e)
         {
             new AssemblerDialog { Owner = this }.Show();
         }
-        void OpenTrackViewer(object sender, EventArgs e)
+        void OpenTrackEditor(object sender, EventArgs e)
         {
-            if (trackViewer != null)
+            if (trackEditor != null)
             {
-                trackViewer.Focus();
+                trackEditor.Focus();
                 return;
             }
-            trackViewer = new TrackEditor { Owner = this };
-            trackViewer.FormClosed += (o, s) => trackViewer = null;
-            trackViewer.Show();
+            trackEditor = new TrackEditor { Owner = this };
+            trackEditor.FormClosed += (o, s) => trackEditor = null;
+            trackEditor.Show();
         }
         void ReloadConfig(object sender, EventArgs e)
         {
@@ -277,17 +284,18 @@ namespace GBAMusicStudio.UI
             tableNumerical.Value = 0;
             tableNumerical.Visible = game.SongTables.Length > 1;
 
-            tvToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
+            openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
+                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled =
                 songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
         void UpdateTrackInfo(bool play)
         {
             trackInfo.DeleteData(); // Refresh track count
-            if (trackViewer != null)
-                trackViewer.UpdateTracks();
+            if (trackEditor != null)
+                trackEditor.UpdateTracks();
             if (play)
                 Play(null, null);
-            tvToolStripMenuItem.Enabled = true;
+            teToolStripMenuItem.Enabled = true;
         }
         void PopulatePlaylists(List<APlaylist> playlists)
         {

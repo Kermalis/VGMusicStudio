@@ -90,7 +90,7 @@ namespace GBAMusicStudio.UI
         }
         void PreviewASM(object sender, EventArgs e)
         {
-            ((MainForm)Owner).PreviewASM(assembler, headerLabelTextBox.Text);
+            ((MainForm)Owner).PreviewASM(assembler, headerLabelTextBox.Text, Path.GetFileName(assembler.FileName));
         }
         void OpenASM(object sender, EventArgs e)
         {
