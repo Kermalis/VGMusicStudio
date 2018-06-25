@@ -181,17 +181,15 @@ namespace GBAMusicStudio.Core
                 Games.Add(code, new AGame(code, name, tables, creator, playlists));
             }
         }
-
-        internal static byte GetRemap(byte voice, string key = null)
+        
+        internal static byte GetRemap(byte voice, string key, bool from)
         {
-            if (key == null)
-                key = "HGSS";
             if (InstrumentRemaps.TryGetValue(key, out ARemap remap))
             {
-                var r = remap.Remaps.FirstOrDefault(t => t.Item1 == voice);
+                var r = remap.Remaps.FirstOrDefault(t => (from ? t.Item1 : t.Item2) == voice);
                 if (r == null)
                     return voice;
-                return r.Item2;
+                return from ? r.Item2 : r.Item1;
             }
             return voice;
         }

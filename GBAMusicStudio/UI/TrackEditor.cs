@@ -12,15 +12,21 @@ namespace GBAMusicStudio.UI
     [System.ComponentModel.DesignerCategory("")]
     internal class TrackEditor : Form
     {
+        readonly Color changedColor = Color.LightPink;
+
         List<SongEvent> events;
 
         readonly ListView listView;
-        readonly ComboBox tracksBox;
         readonly Label[] labels = new Label[3];
         readonly NumericUpDown[] args = new NumericUpDown[3];
 
+        readonly ComboBox tracksBox;
         readonly Button tvButton;
         readonly NumericUpDown[] tvArgs = new NumericUpDown[2];
+
+        readonly ComboBox remapsBox;
+        readonly Button rfButton, rtButton, gvButton;
+        readonly NumericUpDown[] gvArgs = new NumericUpDown[2];
 
         internal TrackEditor()
         {
@@ -40,26 +46,10 @@ namespace GBAMusicStudio.UI
             listView.Columns[0].TextAlign = listView.Columns[1].TextAlign = listView.Columns[2].TextAlign = HorizontalAlignment.Center;
             listView.SelectedIndexChanged += SelectedIndexChanged;
 
-            tracksBox = new ComboBox { Enabled = false };
-            tracksBox.SelectedIndexChanged += TracksBox_SelectedIndexChanged;
-
             int h2 = h / 3 - 4;
-            var panel1 = new Panel
-            {
-                Location = new Point(306, 12),
-                Size = new Size(w, h2)
-            };
-            var panel2 = new Panel
-            {
-                Location = new Point(306, 140),
-                Size = new Size(w, h2 - 1)
-            };
-            panel2.Controls.Add(tracksBox);
-            var panel3 = new Panel
-            {
-                Location = new Point(306, 267),
-                Size = new Size(w, h2)
-            };
+            var panel1 = new Panel { Location = new Point(306, 12), Size = new Size(w, h2) };
+            var panel2 = new Panel { Location = new Point(306, 140), Size = new Size(w, h2 - 1) };
+            var panel3 = new Panel { Location = new Point(306, 267), Size = new Size(w, h2) };
             panel1.BorderStyle = panel2.BorderStyle = panel3.BorderStyle = BorderStyle.FixedSingle;
 
             // Arguments numericals
@@ -87,8 +77,11 @@ namespace GBAMusicStudio.UI
             }
 
             // Track controls
+            tracksBox = new ComboBox { Enabled = false, Size = new Size(100, 21) };
+            tracksBox.SelectedIndexChanged += TracksBox_SelectedIndexChanged;
             tvButton = new Button
             {
+                Enabled = false,
                 Location = new Point(14, 48),
                 Size = new Size(75, 23),
                 Text = "Change Voices"
@@ -102,7 +95,41 @@ namespace GBAMusicStudio.UI
             tvArgs[0].Size = tvArgs[1].Size = new Size(45, 23);
             tvArgs[0].TextAlign = tvArgs[1].TextAlign = HorizontalAlignment.Center;
             tvButton.AutoSize = tvFrom.AutoSize = tvTo.AutoSize = true;
-            panel2.Controls.AddRange(new Control[] { tvButton, tvFrom, tvTo, tvArgs[0], tvArgs[1] });
+            panel2.Controls.AddRange(new Control[] { tracksBox, tvButton, tvFrom, tvTo, tvArgs[0], tvArgs[1] });
+
+            // Global controls
+            remapsBox = new ComboBox { DataSource = Config.InstrumentRemaps.Keys.ToArray(), Size = new Size(100, 21) };
+            rfButton = new Button
+            {
+                Enabled = false,
+                Location = new Point(115, 0),
+                Text = "From"
+            };
+            rfButton.Click += (s, e) => ApplyRemap(true);
+            rtButton = new Button
+            {
+                Enabled = false,
+                Location = new Point(200, 0),
+                Text = "To"
+            };
+            rtButton.Click += (s, e) => ApplyRemap(false);
+            gvButton = new Button
+            {
+                Enabled = false,
+                Location = new Point(14, 48),
+                Size = new Size(75, 23),
+                Text = "Change Voices"
+            };
+            gvButton.Click += ChangeAllEvents;
+            var gvFrom = new Label { Location = new Point(115, 50 + 3), Text = "From" };
+            gvArgs[0] = new NumericUpDown { Location = new Point(145, 50) };
+            var gvTo = new Label { Location = new Point(200, 50 + 3), Text = "To" };
+            gvArgs[1] = new NumericUpDown { Location = new Point(220, 50) };
+            gvArgs[0].Maximum = gvArgs[1].Maximum = 0xFF;
+            gvArgs[0].Size = gvArgs[1].Size = new Size(45, 23);
+            gvArgs[0].TextAlign = gvArgs[1].TextAlign = HorizontalAlignment.Center;
+            gvButton.AutoSize = gvFrom.AutoSize = gvTo.AutoSize = true;
+            panel3.Controls.AddRange(new Control[] { remapsBox, rfButton, rtButton, gvButton, gvFrom, gvTo, gvArgs[0], gvArgs[1] });
 
             ClientSize = new Size(600, 400);
             Controls.AddRange(new Control[] { listView, panel1, panel2, panel3 });
@@ -114,6 +141,21 @@ namespace GBAMusicStudio.UI
             UpdateTracks();
         }
 
+        void ApplyRemap(bool from)
+        {
+            string remap = (string)remapsBox.SelectedItem;
+            foreach (var track in SongPlayer.Song.Commands)
+            {
+                foreach (var ev in track)
+                {
+                    if (ev.Command == Command.Voice)
+                    {
+                        ev.Arguments[0] = Config.GetRemap((byte)ev.Arguments[0], remap, from);
+                        ChangeEventColor(ev, changedColor);
+                    }
+                }
+            }
+        }
         void ChangeEvents(object sender, EventArgs e)
         {
             foreach (var ev in events)
@@ -121,14 +163,28 @@ namespace GBAMusicStudio.UI
                 if (sender == tvButton && ev.Command == Command.Voice && ev.Arguments[0] == tvArgs[0].Value)
                 {
                     ev.Arguments[0] = (int)tvArgs[1].Value;
-                    ChangeEventColor(ev, Color.LightPink);
+                    ChangeEventColor(ev, changedColor);
+                }
+            }
+        }
+        void ChangeAllEvents(object sender, EventArgs e)
+        {
+            foreach (var track in SongPlayer.Song.Commands)
+            {
+                foreach (var ev in track)
+                {
+                    if (sender == gvButton && ev.Command == Command.Voice && ev.Arguments[0] == gvArgs[0].Value)
+                    {
+                        ev.Arguments[0] = (int)gvArgs[1].Value;
+                        ChangeEventColor(ev, changedColor);
+                    }
                 }
             }
         }
         void ChangeEventColor(SongEvent e, Color c)
         {
-            var item = listView.Items.Cast<ListViewItem>().Single(i => i.Tag == e);
-            item.BackColor = c;
+            var item = listView.Items.Cast<ListViewItem>().SingleOrDefault(i => i.Tag == e);
+            if (item != null) item.BackColor = c;
         }
 
         void LoadTrack(int index)
@@ -154,9 +210,11 @@ namespace GBAMusicStudio.UI
         }
         internal void UpdateTracks()
         {
-            tracksBox.Enabled = SongPlayer.NumTracks > 0;
+            bool tracks = SongPlayer.NumTracks > 0;
+            tracksBox.Enabled = tvButton.Enabled = gvButton.Enabled = tracks;
             tracksBox.DataSource = Enumerable.Range(1, SongPlayer.NumTracks).Select(i => $"Track {i}").ToList();
-            if (SongPlayer.NumTracks == 0)
+            rfButton.Enabled = rtButton.Enabled = tracks && remapsBox.Items.Count > 0;
+            if (!tracks)
                 listView.Items.Clear();
         }
 
@@ -167,7 +225,7 @@ namespace GBAMusicStudio.UI
                 if (sender == args[i])
                 {
                     events[listView.SelectedIndices[0]].Arguments[i] = (int)args[i].Value;
-                    listView.SelectedItems[0].BackColor = Color.LightPink;
+                    listView.SelectedItems[0].BackColor = changedColor;
                 }
             }
         }
