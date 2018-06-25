@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 
 namespace GBAMusicStudio.Core.M4A
@@ -7,23 +9,21 @@ namespace GBAMusicStudio.Core.M4A
     {
         internal uint Offset { get; private set; }
         readonly SVoice[] voices;
-        internal SVoice this[int i]
-        {
-            get => voices[i];
-            private set => voices[i] = value;
-        }
 
-        void LoadDirect(Direct_Sound direct)
+        void LoadDirect(SDirect direct)
         {
-            if (SongPlayer.Sounds.ContainsKey(direct.Address))
+            var d = direct.Voice as Direct_Sound;
+            var s = direct.Sample;
+
+            if (SongPlayer.Sounds.ContainsKey(d.Address))
                 return;
-            if (direct.Address == 0 || !ROM.IsValidRomOffset(direct.Address))
+            if (d.Address == 0 || !ROM.IsValidRomOffset(d.Address - ROM.Pak))
                 goto fail;
-            Sample s = ROM.Instance.ReadStruct<Sample>(direct.Address);
-            if (s.Length == 0 || s.Length >= 0x1000000) // Invalid lengths
+            if (s.Length == 0 || s.Length >= 0x1000000 || !ROM.IsValidRomOffset(s.Length + (d.Address + 0x10) - ROM.Pak)) // Invalid lengths
                 goto fail;
             var buf = new byte[s.Length];
-            Buffer.BlockCopy(ROM.Instance.ReadBytes(s.Length, direct.Address + 0x10), 0, buf, 0, (int)s.Length);
+            var a = ROM.Instance.ReadBytes(s.Length, d.Address + 0x10);
+            Buffer.BlockCopy(a, 0, buf, 0, (int)s.Length);
             for (int i = 0; i < s.Length; i++)
                 buf[i] ^= 0x80; // Convert from s8 to u8
             var ex = new FMOD.CREATESOUNDEXINFO()
@@ -44,11 +44,11 @@ namespace GBAMusicStudio.Core.M4A
             {
                 snd.setLoopCount(0);
             }
-            SongPlayer.Sounds.Add(direct.Address, snd);
+            SongPlayer.Sounds.Add(d.Address, snd);
             return;
 
             fail:
-            Console.WriteLine("Error loading instrument: 0x{0:X}", direct.Address);
+            Console.WriteLine("Error loading instrument: 0x{0:X}", d.Address);
             return;
         }
         void LoadWave(PSG_Wave wave)
@@ -88,8 +88,9 @@ namespace GBAMusicStudio.Core.M4A
                 {
                     case 0x0:
                     case 0x8:
-                        var direct = ROM.Instance.ReadStruct<Direct_Sound>(off);
-                        voices[i] = new SVoice(direct);
+                        var d = ROM.Instance.ReadStruct<Direct_Sound>(off);
+                        var direct = new SDirect(d);
+                        voices[i] = direct;
                         LoadDirect(direct);
                         break;
                     case 0x1:
@@ -117,9 +118,10 @@ namespace GBAMusicStudio.Core.M4A
                         if (!ROM.IsValidRomOffset(keySplit.Table) || !ROM.IsValidRomOffset(keySplit.Keys))
                             break;
 
+                        var keys = ROM.Instance.ReadBytes(256, keySplit.Keys);
                         for (uint j = 0; j < 256; j++)
                         {
-                            byte key = ROM.Instance.ReadByte(keySplit.Keys + j);
+                            byte key = keys[j];
                             if (key > 0x7F) continue;
                             uint mOffset = keySplit.Table + (uint)(key * 0xC);
                             switch (ROM.Instance.ReadByte(mOffset)) // Check type
@@ -127,8 +129,9 @@ namespace GBAMusicStudio.Core.M4A
                                 case 0x0:
                                 case 0x8:
                                     var ds = ROM.Instance.ReadStruct<Direct_Sound>(mOffset);
-                                    multi.Table[key] = new SVoice(ds);
-                                    LoadDirect(ds);
+                                    var directsound = new SDirect(ds);
+                                    multi.Table[key] = directsound;
+                                    LoadDirect(directsound);
                                     break;
                                 case 0x1:
                                 case 0x9:
@@ -156,6 +159,12 @@ namespace GBAMusicStudio.Core.M4A
                         break;
                 }
             }
+        }
+
+        internal SVoice this[int i]
+        {
+            get => voices[i];
+            private set => voices[i] = value;
         }
 
         // The following should only be called after Load()

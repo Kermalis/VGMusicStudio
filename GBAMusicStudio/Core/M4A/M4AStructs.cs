@@ -1,4 +1,6 @@
-﻿using Humanizer;
+﻿using GBAMusicStudio.Util;
+using Humanizer;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -40,28 +42,65 @@ namespace GBAMusicStudio.Core.M4A
 
             public override string ToString() => name;
         }
+        internal class SDirect : SVoice
+        {
+            internal readonly Sample Sample;
+
+            internal SDirect(Direct_Sound direct) : base(direct) => Sample = ROM.Instance.ReadStruct<Sample>(direct.Address);
+        }
         internal class SMulti : SVoice
         {
             internal readonly VoiceTable Table;
+            internal readonly Triple<byte, byte, byte>[] Keys;
 
-            internal SMulti(Split ks) : base(ks) => Table = new VoiceTable();
+            internal static readonly Dictionary<uint, VoiceTable> LoadedMultis = new Dictionary<uint, VoiceTable>(); // Prevent stack overflow
+            internal SMulti(Split ks) : base(ks)
+            {
+                if (LoadedMultis.ContainsKey(ks.Table))
+                {
+                    Table = LoadedMultis[ks.Table];
+                }
+                else
+                {
+                    Table = new VoiceTable();
+                    LoadedMultis.Add(ks.Table, Table);
+                    Table.Load(ks.Table);
+                }
+
+                var keys = ROM.Instance.ReadBytes(256, ks.Keys);
+                var loading = new List<Triple<byte, byte, byte>>();
+                int prev = -1;
+                for (int i = 0; i < 256; i++)
+                {
+                    byte a = keys[i];
+                    byte bi = (byte)i;
+                    if (prev == a)
+                        loading[loading.Count - 1].Item3 = bi;
+                    else
+                    {
+                        prev = a;
+                        loading.Add(new Triple<byte, byte, byte>(a, bi, bi));
+                    }
+                }
+                Keys = loading.ToArray();
+            }
         }
         internal class SDrum : SVoice
         {
             internal readonly VoiceTable Table;
 
-            static Dictionary<uint, VoiceTable> LoadedDrums = new Dictionary<uint, VoiceTable>(); // Prevent stack overflow
+            internal static readonly Dictionary<uint, VoiceTable> LoadedDrums = new Dictionary<uint, VoiceTable>(); // Prevent stack overflow
             internal SDrum(Drum d) : base(d)
             {
-                if (LoadedDrums.ContainsKey(d.Address))
+                if (LoadedDrums.ContainsKey(d.Table))
                 {
-                    Table = LoadedDrums[d.Address];
+                    Table = LoadedDrums[d.Table];
                 }
                 else
                 {
                     Table = new VoiceTable();
-                    LoadedDrums.Add(d.Address, Table);
-                    Table.Load(d.Address);
+                    LoadedDrums.Add(d.Table, Table);
+                    Table.Load(d.Table);
                 }
             }
         }
@@ -122,7 +161,7 @@ namespace GBAMusicStudio.Core.M4A
         internal class Drum : Voice // 0x80
         {
             internal byte Padding2;
-            internal uint Address;
+            internal uint Table;
             internal uint Padding3;
         }
     }

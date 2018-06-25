@@ -107,6 +107,7 @@
     <Compile Include="Util\HSLColor.cs" />
     <Compile Include="Util\MicroLibrary.cs" />
     <Compile Include="Util\ThreadSafeList.cs" />
+    <Compile Include="Util\Tuple.cs" />
     <Compile Include="Util\Utils.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
