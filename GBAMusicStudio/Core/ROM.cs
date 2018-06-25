@@ -17,7 +17,7 @@ namespace GBAMusicStudio.Core
         {
             Instance = this;
             SongPlayer.Stop();
-            SongPlayer.ClearSamples();
+            SongPlayer.ClearVoices();
             ROMFile = File.ReadAllBytes(filePath);
             InitReader();
             ReloadGameConfig();

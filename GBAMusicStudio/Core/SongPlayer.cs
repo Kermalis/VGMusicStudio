@@ -57,19 +57,22 @@ namespace GBAMusicStudio.Core
             for (byte i = 0; i < 16; i++)
                 tracks[i] = new Track(i);
 
-            ClearSamples();
+            ClearVoices();
 
             timer = new MicroTimer();
             timer.MicroTimerElapsed += PlayLoop;
         }
 
-        internal static void ClearSamples()
+        internal static void ClearVoices()
         {
             if (Sounds != null)
             {
                 foreach (var s in Sounds.Values)
                     s.release();
                 Sounds.Clear();
+                VoiceTable = null;
+                SMulti.LoadedMultis.Clear();
+                SDrum.LoadedDrums.Clear();
             }
             else
             {
