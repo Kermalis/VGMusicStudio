@@ -23,9 +23,9 @@ namespace GBAMusicStudio.UI
             var openButton = new Button
             {
                 Location = new Point(150, 0),
-                Text = "Open File"
+                Text = "Open MIDI"
             };
-            openButton.Click += OpenMidi;
+            openButton.Click += OpenMIDI;
             previewButton = new Button
             {
                 Enabled = false,
@@ -56,7 +56,7 @@ namespace GBAMusicStudio.UI
         {
             ((MainForm)Owner).PreviewASM(assembler, "temp", Path.GetFileName(midiFileName));
         }
-        void OpenMidi(object sender, EventArgs e)
+        void OpenMIDI(object sender, EventArgs e)
         {
             var d = new OpenFileDialog { Title = "Open MIDI", Filter = "MIDI files|*.mid" };
             if (d.ShowDialog() != DialogResult.OK) return;
