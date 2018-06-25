@@ -193,7 +193,6 @@ namespace GBAMusicStudio.Core
             State = State.Stopped;
         }
 
-        internal static void ExportSF2(string filename) => new VoiceTableSaver(filename);
         internal static (ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
             var positions = new uint[Song.NumTracks];

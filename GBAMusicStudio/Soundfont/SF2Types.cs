@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace SoundFont
+namespace Kermalis.SoundFont2
 {
     // SF2 v2.1 spec page 16
     internal class SFVersionTag

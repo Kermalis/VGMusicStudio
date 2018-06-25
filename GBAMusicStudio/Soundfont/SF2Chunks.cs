@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SoundFont
+namespace Kermalis.SoundFont2
 {
     internal class SF2Chunk
     {
@@ -261,7 +261,7 @@ namespace SoundFont
         internal HeaderSubChunk(SF2 inSf2, string subchunk_type, string s, int max_size = 0x100) : base(inSf2, subchunk_type) // Maybe maxsize must go here
         {
             var test = s.ToCharArray().ToList();
-            if (test.Count >= max_size) // Input too long, cut it down
+            if (test.Count >= max_size) // Input too long; cut it down
             {
                 test = test.Take(max_size).ToList();
                 test[max_size - 1] = '\0';
@@ -345,7 +345,7 @@ namespace SoundFont
     internal class PHDRSubChunk : SF2Chunk
     {
         List<SF2PresetHeader> preset_list;
-        internal int Count { get => preset_list.Count; }
+        internal int Count => preset_list.Count;
 
         internal PHDRSubChunk(SF2 inSf2) : base(inSf2, "phdr")
         {
@@ -370,7 +370,7 @@ namespace SoundFont
     internal class INSTSubChunk : SF2Chunk
     {
         List<SF2Inst> instrument_list;
-        internal int Count { get => instrument_list.Count; }
+        internal int Count => instrument_list.Count;
 
         internal INSTSubChunk(SF2 inSf2) : base(inSf2, "inst")
         {
@@ -395,7 +395,7 @@ namespace SoundFont
     internal class BAGSubChunk : SF2Chunk
     {
         List<SF2Bag> bag_list;
-        internal int Count { get => bag_list.Count; }
+        internal int Count => bag_list.Count;
 
         internal BAGSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pbag" : "ibag")
         {
@@ -420,7 +420,7 @@ namespace SoundFont
     internal class MODSubChunk : SF2Chunk
     {
         List<SF2ModList> modulator_list;
-        internal int Count { get => modulator_list.Count; }
+        internal int Count => modulator_list.Count;
 
         internal MODSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pmod" : "imod")
         {
@@ -445,7 +445,7 @@ namespace SoundFont
     internal class GENSubChunk : SF2Chunk
     {
         List<SF2GenList> generator_list;
-        internal int Count { get => generator_list.Count; }
+        internal int Count => generator_list.Count;
 
         internal GENSubChunk(SF2 inSf2, bool preset) : base(inSf2, preset ? "pgen" : "igen")
         {
@@ -470,7 +470,7 @@ namespace SoundFont
     internal class SHDRSubChunk : SF2Chunk
     {
         List<SF2Sample> sample_list;
-        internal int Count { get => sample_list.Count; }
+        internal int Count => sample_list.Count;
 
         internal SHDRSubChunk(SF2 inSf2) : base(inSf2, "shdr")
         {
@@ -496,11 +496,11 @@ namespace SoundFont
 
     #region Main Chunks
 
-    internal class InfoChunk : ListChunk
+    internal class InfoListChunk : ListChunk
     {
         List<SF2Chunk> sub_chunks;
 
-        internal InfoChunk(SF2 inSf2, string engine, string bank, string rom, SFVersionTag rom_revision, string date, string designer, string products, string copyright, string comment, string tools)
+        internal InfoListChunk(SF2 inSf2, string engine, string bank, string rom, SFVersionTag rom_revision, string date, string designer, string products, string copyright, string comment, string tools)
             : base(inSf2, "INFO")
         {
             sub_chunks = new List<SF2Chunk>() // Mandatory sub-chunks
@@ -541,11 +541,11 @@ namespace SoundFont
         }
     }
 
-    internal class SdtaChunk : ListChunk
+    internal class SdtaListChunk : ListChunk
     {
         internal readonly SMPLSubChunk smpl_subchunk;
 
-        internal SdtaChunk(SF2 inSf2) : base(inSf2, "sdta")
+        internal SdtaListChunk(SF2 inSf2) : base(inSf2, "sdta")
         {
             smpl_subchunk = new SMPLSubChunk(inSf2);
         }
@@ -564,7 +564,7 @@ namespace SoundFont
         }
     }
 
-    internal class HydraChunk : ListChunk
+    internal class PdtaListChunk : ListChunk
     {
         internal readonly PHDRSubChunk phdr_subchunk;
         internal readonly BAGSubChunk pbag_subchunk;
@@ -576,7 +576,7 @@ namespace SoundFont
         internal readonly GENSubChunk igen_subchunk;
         internal readonly SHDRSubChunk shdr_subchunk;
 
-        internal HydraChunk(SF2 inSf2) : base(inSf2, "pdta")
+        internal PdtaListChunk(SF2 inSf2) : base(inSf2, "pdta")
         {
             phdr_subchunk = new PHDRSubChunk(inSf2);
             pbag_subchunk = new BAGSubChunk(inSf2, true);

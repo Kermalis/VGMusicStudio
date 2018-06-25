@@ -268,8 +268,15 @@ namespace GBAMusicStudio.UI
             var d = new SaveFileDialog { Title = "Export SF2 File", Filter = "SF2 file|*.sf2" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
-            SongPlayer.ExportSF2(d.FileName);
-            MessageBox.Show("SF2 saved.", Text);
+            try
+            {
+                new VoiceTableSaver(SongPlayer.VoiceTable, d.FileName);
+                FlexibleMessageBox.Show($"Voice table saved to {d.FileName}.", Text);
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(ex.Message, "Error Exporting SF2 File");
+            }
         }
 
         void UpdateMenuInfo()
