@@ -2,6 +2,7 @@
 using GBAMusicStudio.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 
 namespace GBAMusicStudio.Core
@@ -10,6 +11,52 @@ namespace GBAMusicStudio.Core
     {
         internal List<SongEvent>[] Commands;
         internal int NumTracks => Commands == null ? 0 : Commands.Length;
+        int ticks = -1; // Cache the amount. Setting to -1 again will cause a refresh
+        internal int NumTicks
+        {
+            get
+            {
+                if (ticks == -1)
+                {
+                    CalculateTicks();
+                    foreach (var track in Commands)
+                    {
+                        uint length = track.Last().AbsoluteTicks;
+                        if (length > ticks)
+                            ticks = (int)length;
+                    }
+                }
+                return ticks;
+            }
+        }
+
+        internal void CalculateTicks()
+        {
+            foreach (var track in Commands)
+            {
+                int length = 0, endOfPattern = 0;
+                for (int i = 0; i < track.Count; i++)
+                {
+                    var e = track[i];
+                    if (endOfPattern == 0)
+                        e.AbsoluteTicks = (uint)length;
+
+                    if (e.Command == Command.Rest)
+                        length += e.Arguments[0];
+                    else if (e.Command == Command.PATT)
+                    {
+                        int jumpCmd = track.FindIndex(c => c.Offset == e.Arguments[0]);
+                        endOfPattern = i;
+                        i = jumpCmd - 1;
+                    }
+                    else if (e.Command == Command.PEND && endOfPattern != 0)
+                    {
+                        i = endOfPattern;
+                        endOfPattern = 0;
+                    }
+                }
+            }
+        }
     }
 
     internal abstract class M4ASong : Song
@@ -179,7 +226,7 @@ namespace GBAMusicStudio.Core
         {
             num = songNum;
             table = tableNum;
-            
+
             Load(ROM.Instance.ROMFile,
                 ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTables[table] + ((uint)8 * num))));
         }

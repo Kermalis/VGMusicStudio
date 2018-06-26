@@ -40,10 +40,11 @@ namespace GBAMusicStudio.UI
                 Size = new Size(w, h),
                 View = View.Details
             };
-            listView.Columns.Add("Event", 86);
-            listView.Columns.Add("Arguments", 87);
-            listView.Columns.Add("Offset", 86);
-            listView.Columns[0].TextAlign = listView.Columns[1].TextAlign = listView.Columns[2].TextAlign = HorizontalAlignment.Center;
+            listView.Columns.Add("Event", 70);
+            listView.Columns.Add("Arguments", 70);
+            listView.Columns.Add("Offset", 70);
+            listView.Columns.Add("Ticks", 50);
+            listView.Columns[0].TextAlign = listView.Columns[1].TextAlign = listView.Columns[2].TextAlign = listView.Columns[3].TextAlign = HorizontalAlignment.Center;
             listView.SelectedIndexChanged += SelectedIndexChanged;
 
             int h2 = h / 3 - 4;
@@ -194,10 +195,11 @@ namespace GBAMusicStudio.UI
             SelectedIndexChanged(null, null);
             foreach (var e in events)
             {
-                var arr = new string[3];
+                var arr = new string[4];
                 arr[0] = e.Command.ToString();
                 arr[1] = e.Arguments.Print(false);
                 arr[2] = $"0x{e.Offset.ToString("X")}";
+                arr[3] = e.AbsoluteTicks.ToString();
                 var item = new ListViewItem(arr) { Tag = e };
                 if (e.Command == Command.Voice)
                     item.BackColor = Color.LightSteelBlue;

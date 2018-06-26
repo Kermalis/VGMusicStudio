@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -15,7 +14,7 @@ namespace GBAMusicStudio.UI
     [DesignerCategory("")]
     internal class MainForm : Form
     {
-        bool stopUI = false;
+        bool stopUI = false, drag = false;
         TrackEditor trackEditor;
         List<byte> pianoNotes = new List<byte>();
         internal readonly bool[] PianoTracks = new bool[16];
@@ -35,7 +34,7 @@ namespace GBAMusicStudio.UI
         Label creatorLabel, gameLabel, codeLabel;
         SplitContainer splitContainer;
         PianoControl piano;
-        TrackBar volumeBar;
+        TrackBar positionBar, volumeBar;
         TrackInfoControl trackInfo;
         ImageComboBox.ImageComboBox songsComboBox;
 
@@ -120,13 +119,22 @@ namespace GBAMusicStudio.UI
             // Volume bar
             int sWidth = (int)(iWidth / sfWidth);
             int sX = iWidth - sWidth - 4;
+            positionBar = new TrackBar()
+            {
+                Location = new Point(sX, 44),
+                Maximum = 0,
+                Size = new Size(sWidth, 27),
+                TickFrequency = 96
+            };
+            positionBar.MouseUp += SetPosition;
+            positionBar.MouseDown += (o, e) => drag = true;
             volumeBar = new TrackBar()
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 LargeChange = 20,
-                Location = new Point(sX, 35),
+                Location = new Point(84, 44),
                 Maximum = 100,
-                Size = new Size(sWidth, 27),
+                Size = new Size(155, 27),
                 SmallChange = 5,
                 TickFrequency = 10
             };
@@ -172,7 +180,7 @@ namespace GBAMusicStudio.UI
                 SplitterDistance = 125,
                 SplitterWidth = 1
             };
-            splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, creatorLabel, gameLabel, codeLabel, pauseButton, stopButton, songNumerical, tableNumerical, songsComboBox, piano, volumeBar });
+            splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, creatorLabel, gameLabel, codeLabel, pauseButton, stopButton, songNumerical, tableNumerical, songsComboBox, piano, positionBar, volumeBar });
             splitContainer.Panel2.Controls.Add(trackInfo);
 
             // MainForm
@@ -186,6 +194,12 @@ namespace GBAMusicStudio.UI
             SongPlayer.SongEnded += () => stopUI = true;
             Resize += OnResize;
             Text = "GBA Music Studio";
+        }
+
+        void SetPosition(object sender, EventArgs e)
+        {
+            SongPlayer.SetPosition((uint)positionBar.Value);
+            drag = false;
         }
 
         internal void PreviewASM(Assembler asm, string headerLabel, string caption)
@@ -298,6 +312,7 @@ namespace GBAMusicStudio.UI
         void UpdateTrackInfo(bool play)
         {
             trackInfo.DeleteData(); // Refresh track count
+            positionBar.Maximum = SongPlayer.Song.NumTicks;
             if (trackEditor != null)
                 trackEditor.UpdateTracks();
             if (play)
@@ -379,15 +394,17 @@ namespace GBAMusicStudio.UI
                 {
                     if (!PianoTracks[i]) continue;
 
-                    var notes = tup.Item5[i];
+                    var notes = tup.Item6[i];
                     pianoNotes.AddRange(notes);
                     foreach (var n in notes)
                         if (n >= piano.LowNoteID && n <= piano.HighNoteID)
                         {
-                            piano[n - piano.LowNoteID].NoteOnColor = Config.Colors[tup.Item7[i]];
+                            piano[n - piano.LowNoteID].NoteOnColor = Config.Colors[tup.Item8[i]];
                             piano.PressPianoKey(n);
                         }
                 }
+                if (!drag)
+                    positionBar.Value = (int)tup.Item2;
                 trackInfo.ReceiveData(tup);
             }
             finally
@@ -404,13 +421,13 @@ namespace GBAMusicStudio.UI
         }
         void OnResize(object sender, EventArgs e)
         {
-            // Volume bar & song combobox
+            // Position bar & song combobox
             int sWidth = (int)(splitContainer.Width / sfWidth);
             int sX = splitContainer.Width - sWidth - 4;
             songsComboBox.Location = new Point(sX, 4);
             songsComboBox.Size = new Size(sWidth, 23);
-            volumeBar.Location = new Point(sX, 35);
-            volumeBar.Size = new Size(sWidth, 27);
+            positionBar.Location = new Point(sX, 44);
+            positionBar.Size = new Size(sWidth, 27);
 
             splitContainer.SplitterDistance = (int)((Height - 38) / spfHeight) - 24 - 1;
 

@@ -113,12 +113,12 @@ namespace GBAMusicStudio.UI
             }
         }
 
-        internal void ReceiveData((ushort, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) tup)
+        internal void ReceiveData((ushort, uint, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) tup)
         {
-            tempo = tup.Item1; positions = tup.Item2; volumes = tup.Item3;
-            delays = tup.Item4; notes = tup.Item5; velocities = tup.Item6;
-            voices = tup.Item7; mods = tup.Item8; bends = tup.Item9;
-            pans = tup.Item10; types = tup.Item11;
+            tempo = tup.Item1; positions = tup.Item3; volumes = tup.Item4;
+            delays = tup.Item5; notes = tup.Item6; velocities = tup.Item7;
+            voices = tup.Item8; mods = tup.Item9; bends = tup.Item10;
+            pans = tup.Item11; types = tup.Item12;
             Invalidate();
         }
         internal void DeleteData()

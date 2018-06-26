@@ -36,10 +36,10 @@ namespace GBAMusicStudio.Core
 
     internal class SongEvent
     {
-        internal readonly uint Offset;
+        internal uint Offset, AbsoluteTicks;
 
-        internal readonly Command Command;
-        internal readonly int[] Arguments;
+        internal Command Command;
+        internal int[] Arguments;
 
         internal SongEvent(uint offset, Command command, int[] args)
         {
@@ -48,6 +48,6 @@ namespace GBAMusicStudio.Core
             Arguments = args;
         }
 
-        public override string ToString() => $"{Command}\t-\t{Arguments.Print()}\t-\t0x{Offset.ToString("X")}";
+        public override string ToString() => $"{Command}\t-\t{Arguments.Print()}\t-\t0x{Offset.ToString("X")}\t-\t{AbsoluteTicks}";
     }
 }
