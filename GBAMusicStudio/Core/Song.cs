@@ -26,7 +26,7 @@ namespace GBAMusicStudio.Core
                             ticks = (int)length;
                     }
                 }
-                return ticks;
+                return ticks + 1;
             }
         }
 

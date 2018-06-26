@@ -313,6 +313,8 @@ namespace GBAMusicStudio.UI
         {
             trackInfo.DeleteData(); // Refresh track count
             positionBar.Maximum = SongPlayer.Song.NumTicks;
+            positionBar.LargeChange = positionBar.Maximum / 10;
+            positionBar.SmallChange = positionBar.LargeChange / 4;
             if (trackEditor != null)
                 trackEditor.UpdateTracks();
             if (play)
@@ -404,7 +406,7 @@ namespace GBAMusicStudio.UI
                         }
                 }
                 if (!drag)
-                    positionBar.Value = (int)tup.Item2;
+                    positionBar.Value = Math.Min(positionBar.Maximum, (int)tup.Item2);
                 trackInfo.ReceiveData(tup);
             }
             finally
