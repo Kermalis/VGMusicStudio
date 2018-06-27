@@ -154,7 +154,7 @@ namespace GBAMusicStudio.Core
                 var track = tracks[i];
                 track.Init();
                 uint elapsed = 0;
-                while (true)
+                while (!track.Stopped)
                 {
                     ExecuteNext(i);
                     // elapsed == 400, delay == 4, p == 402
