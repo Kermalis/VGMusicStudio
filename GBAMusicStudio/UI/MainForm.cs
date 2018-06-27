@@ -406,7 +406,7 @@ namespace GBAMusicStudio.UI
                         }
                 }
                 if (!drag)
-                    positionBar.Value = Math.Min(positionBar.Maximum, (int)tup.Item2);
+                    positionBar.Value = ((int)tup.Item2).Clamp(0, positionBar.Maximum);
                 trackInfo.ReceiveData(tup);
             }
             finally
