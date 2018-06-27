@@ -26,7 +26,6 @@ A tool that is designed to be an updated Sappy.
 * Make the program run at 60 updates like the GBA, which might decrease CPU usage and will correct ADSR
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
-* Finish integrating SF2 writing
 * Songtable finder
 * Exception handling for invalid config
 * Add keyboard shortcuts to the UI
@@ -37,5 +36,5 @@ A tool that is designed to be an updated Sappy.
 
 ## Special Thanks To:
 * Ipatix
-* Tukku473
+* Tuku473
 * Bregalad
