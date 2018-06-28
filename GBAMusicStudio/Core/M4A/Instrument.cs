@@ -17,12 +17,13 @@ namespace GBAMusicStudio.Core.M4A
         internal ADSRState State;
         internal float Velocity { get { return ((NoteVelocity / 127f) * CurrentVelocity) / 255f; } }
         internal float Panpot { get { return ForcedPan != 0x7F ? ForcedPan / 64f : Track.APan; } }
-        internal ulong Age { get; private set; }
+        internal int Age { get; private set; }
 
         internal Track Track { get; private set; }
         Voice Voice;
         bool fromDrum;
         FMOD.Channel Channel;
+        FMOD.Sound Sound;
         internal byte DisplayNote { get; private set; }
         byte Note;
         internal byte NoteDuration { get; private set; }
@@ -79,14 +80,14 @@ namespace GBAMusicStudio.Core.M4A
         {
             Stop();
             Voice = SongPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
-            FMOD.Sound sound = SongPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
+            Sound = SongPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
 
             Track = track;
             DisplayNote = note;
             Note = fromDrum ? (byte)60 : note;
             NoteDuration = duration;
             NoteVelocity = velocity;
-            Age = 0;
+            Age = -1;
             CurrentVelocity = 0;
             State = ADSRState.Rising;
 
@@ -114,9 +115,8 @@ namespace GBAMusicStudio.Core.M4A
                 A *= 17; D *= 17; S *= 17; R *= 17;
             }
 
-            SongPlayer.System.playSound(sound, Track.Group, true, out Channel);
-            if (A == 0) A = 255;
-            UpdateFrequency();
+            if (A == 0)
+                A = 255;
             track.Instruments.Add(this);
         }
 
@@ -129,31 +129,33 @@ namespace GBAMusicStudio.Core.M4A
             Track.Instruments.Remove(this);
         }
 
-        internal void Tick()
+        int processStep = 0;
+        internal void ADSRTick()
         {
             if (State == ADSRState.Dead) return;
+            
+            if (++processStep < Constants.INTERFRAMES) return;
+            processStep = 0;
 
             switch (State)
             {
                 case ADSRState.Rising:
+                    if (CurrentVelocity == 0)
+                        SongPlayer.System.playSound(Sound, Track.Group, true, out Channel);
                     CurrentVelocity += A;
-                    if (CurrentVelocity >= 255)
+                    if (CurrentVelocity >= 0xFF)
                     {
-                        CurrentVelocity = 255;
+                        CurrentVelocity = 0xFF;
                         State = ADSRState.Playing;
                     }
-                    else if (NoteDuration != 0xFF && Age > NoteDuration)
-                        State = ADSRState.Playing;
                     break;
                 case ADSRState.Playing:
-                    CurrentVelocity = (CurrentVelocity * D) / 256;
+                    CurrentVelocity = (CurrentVelocity * D) >> 8;
                     if (CurrentVelocity < S)
                         CurrentVelocity = S;
-                    if (NoteDuration != 0xFF && Age >= NoteDuration)
-                        State = ADSRState.Releasing;
                     break;
                 case ADSRState.Releasing:
-                    CurrentVelocity = (CurrentVelocity * R) / 256;
+                    CurrentVelocity = (CurrentVelocity * R) >> 8;
                     if (CurrentVelocity <= 0)
                     {
                         Stop();
@@ -161,8 +163,16 @@ namespace GBAMusicStudio.Core.M4A
                     }
                     break;
             }
+
             UpdateFrequency();
-            Age++;
         }
+        internal void NoteTick()
+        {
+            Age++;
+            if (State < ADSRState.Releasing && NoteDuration != 0xFF && Age >= NoteDuration)
+                State = ADSRState.Releasing;
+        }
+
+        public override string ToString() => $"Note {Note}; Age {Age}; State {State}; Track {Track}";
     }
 }

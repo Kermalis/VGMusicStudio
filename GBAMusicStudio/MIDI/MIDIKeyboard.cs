@@ -83,7 +83,7 @@ namespace GBAMusicStudio.MIDI
         {
             foreach (Instrument i in instruments)
             {
-                i.Tick();
+                i.ADSRTick();
                 if (i.State == ADSRState.Dead)
                     instruments.Remove(i);
             }

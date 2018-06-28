@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\M4A\Constants.cs" />
     <Compile Include="Core\M4A\Instrument.cs" />
     <Compile Include="Core\M4A\M4AStructs.cs" />
     <Compile Include="Core\SongEvent.cs" />
@@ -105,7 +106,6 @@
     <Compile Include="UI\TrackInfoControl.cs" />
     <Compile Include="UI\TrackEditor.cs" />
     <Compile Include="Util\HSLColor.cs" />
-    <Compile Include="Util\MicroLibrary.cs" />
     <Compile Include="Util\ThreadSafeList.cs" />
     <Compile Include="Util\Tuple.cs" />
     <Compile Include="Util\Utils.cs" />

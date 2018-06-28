@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Util;
+using System.Linq;
 using ThreadSafeList;
 
 namespace GBAMusicStudio.Core.M4A
@@ -79,8 +80,8 @@ namespace GBAMusicStudio.Core.M4A
             if (Delay != 0)
                 Delay--;
             foreach (Instrument i in Instruments)
-                i.Tick();
-            if (Instruments.Count > 0)
+                i.NoteTick();
+            if (Instruments.Count(i => i.State < ADSRState.Releasing) > 0)
             {
                 if (LFODelayCount > 0)
                 {
@@ -182,5 +183,7 @@ namespace GBAMusicStudio.Core.M4A
             Tune = b;
             UpdateFrequencies();
         }
+
+        public override string ToString() => $"Track {Index}; Voice {Voice}";
     }
 }

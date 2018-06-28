@@ -1,11 +1,11 @@
-﻿using MicroLibrary;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GBAMusicStudio.Core.M4A;
 using static GBAMusicStudio.Core.M4A.M4AStructs;
 using GBAMusicStudio.MIDI;
 using GBAMusicStudio.Util;
+using System.Threading;
 
 namespace GBAMusicStudio.Core
 {
@@ -19,7 +19,7 @@ namespace GBAMusicStudio.Core
     internal static class SongPlayer
     {
         internal static readonly FMOD.System System;
-        static readonly MicroTimer timer;
+        static Thread thread;
 
         static readonly Instrument[] dsInstruments;
         static readonly Instrument[] gbInstruments;
@@ -33,7 +33,7 @@ namespace GBAMusicStudio.Core
             NOISE0_ID = SQUARE75_ID - 1,
             NOISE1_ID = NOISE0_ID - 1;
 
-        static ushort tempo;
+        static ushort tempo, tempoStack;
         static uint position;
         static readonly Track[] tracks;
 
@@ -59,9 +59,6 @@ namespace GBAMusicStudio.Core
                 tracks[i] = new Track(i);
 
             ClearVoices();
-
-            timer = new MicroTimer();
-            timer.MicroTimerElapsed += PlayLoop;
         }
 
         internal static void ClearVoices()
@@ -134,14 +131,13 @@ namespace GBAMusicStudio.Core
 
         internal static void SetVolume(float v)
         {
-            System.getMasterSoundGroup(out FMOD.SoundGroup parentGroup);
+            System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
             parentGroup.setVolume(v);
         }
         internal static void SetTempo(ushort t)
         {
             if (t > 510) return;
             tempo = t;
-            timer.Interval = (long)(2.5 * 1000 * 1000) / t;
         }
         internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
         internal static void SetPosition(uint p)
@@ -196,30 +192,45 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < NumTracks; i++)
                 tracks[i].Init();
 
-            position = 0;
+            position = tempoStack = 0;
             SetTempo(150);
-            timer.Start();
-            State = State.Playing;
+
+            StartThread();
         }
         internal static void Pause()
         {
             if (State == State.Paused)
             {
-                timer.Start();
-                State = State.Playing;
+                StartThread();
             }
             else
             {
-                Stop();
+                StopThread();
+                System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
+                parentGroup.setMute(true);
                 State = State.Paused;
             }
         }
         internal static void Stop()
         {
-            timer.StopAndWait();
+            StopThread();
             foreach (Instrument i in allInstruments)
                 i.Stop();
+        }
+        static void StartThread()
+        {
+            thread = new Thread(DoFrame);
+            thread.Start();
+            System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
+            parentGroup.setMute(false);
+            State = State.Playing;
+        }
+        static void StopThread()
+        {
+            bool stopping = State == State.Stopped;
             State = State.Stopped;
+            if (thread != null && !stopping && (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin))
+                thread.Join();
         }
 
         internal static (ushort, uint, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
@@ -248,7 +259,7 @@ namespace GBAMusicStudio.Core
                 bool none = instruments.Length == 0;
                 Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins.Velocity).ElementAt(0);
                 pans[i] = none ? tracks[i].Pan / 64f : loudest.Panpot;
-                notes[i] = none ? new byte[0] : instruments.Where(ins => ins.State != ADSRState.Releasing && ins.State != ADSRState.Dead).Select(ins => ins.DisplayNote).Distinct().ToArray();
+                notes[i] = none ? new byte[0] : instruments.Where(ins => ins.State < ADSRState.Releasing).Select(ins => ins.DisplayNote).Distinct().ToArray();
                 velocities[i] = none ? 0 : loudest.Velocity * (volumes[i] / 127f);
             }
             return (tempo, position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
@@ -361,11 +372,11 @@ namespace GBAMusicStudio.Core
                     int which = cmd.Arguments[0];
                     Instrument ins = null;
                     if (which == -1)
-                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.State != ADSRState.Releasing);
+                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.State < ADSRState.Releasing);
                     else
                     {
                         byte note = (byte)(which + track.KeyShift).Clamp(0, 127);
-                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note && inst.State != ADSRState.Releasing);
+                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note && inst.State < ADSRState.Releasing);
                     }
                     if (ins != null)
                         ins.State = ADSRState.Releasing;
@@ -375,24 +386,38 @@ namespace GBAMusicStudio.Core
             if (!track.Stopped)
                 track.CommandIndex++;
         }
-        static void PlayLoop(object sender, MicroTimerEventArgs e)
+        static void DoFrame()
         {
-            bool allDone = true;
-            for (int i = Song.NumTracks - 1; i >= 0; i--)
+            while (State != State.Stopped)
             {
-                Track track = tracks[i];
-                if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
-                    allDone = false;
-                while (track.Delay == 0 && !track.Stopped)
-                    ExecuteNext(i);
-                track.Tick();
-            }
-            position++;
-            System.update();
-            if (allDone)
-            {
-                Stop();
-                SongEnded?.Invoke();
+                // Do Song Tick
+                tempoStack += tempo;
+                while (tempoStack >= Constants.BPM_PER_FRAME * Constants.INTERFRAMES)
+                {
+                    tempoStack -= Constants.BPM_PER_FRAME * Constants.INTERFRAMES;
+                    bool allDone = true;
+                    for (int i = Song.NumTracks - 1; i >= 0; i--)
+                    {
+                        Track track = tracks[i];
+                        if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
+                            allDone = false;
+                        while (track.Delay == 0 && !track.Stopped)
+                            ExecuteNext(i);
+                        track.Tick();
+                    }
+                    position++;
+                    if (allDone)
+                    {
+                        SongEnded?.Invoke();
+                        Stop();
+                    }
+                }
+                // Do Instrument Tick
+                foreach (var i in allInstruments)
+                    i.ADSRTick();
+                System.update();
+                // Wait for next frame
+                Thread.Sleep(Constants.INTERFRAMES);
             }
         }
     }
