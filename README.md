@@ -23,7 +23,6 @@ A tool that is designed to be an updated Sappy.
 * Add "note off with noise" for SquareWaves
 * Fix ADSR on PSG instruments
 * Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\]
-* Make the program run at 60 updates like the GBA, which might decrease CPU usage and will correct ADSR
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Songtable finder
@@ -31,10 +30,11 @@ A tool that is designed to be an updated Sappy.
 * Add keyboard shortcuts to the UI
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
+* Support pret dissassembly projects
 * Fix UI crashing when some invalid songs are switched to
-* Support pret dissassembly projects if they need that
 
 ## Special Thanks To:
 * Ipatix
-* Tuku473
+* tuku473
 * Bregalad
+* mimi
