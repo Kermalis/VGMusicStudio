@@ -210,7 +210,7 @@ namespace GBAMusicStudio.Core
             {
                 prevNote = note;
                 prevVelocity = velocity;
-                int duration = runCmd == 0xCF ? 0xFF : (RestFromCMD(0xD0, runCmd) + addedDuration);
+                int duration = runCmd == 0xCF ? 0xFF : (RestFromCMD(0xCF, runCmd) + addedDuration);
 
                 cmd = Command.NoteOn;
                 args = new int[] { note, velocity, duration };
