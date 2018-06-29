@@ -227,9 +227,8 @@ namespace GBAMusicStudio.Core
         }
         static void StopThread()
         {
-            bool stopping = State == State.Stopped;
             State = State.Stopped;
-            if (thread != null && !stopping && (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin))
+            if (thread != null && thread.IsAlive)
                 thread.Join();
         }
 
