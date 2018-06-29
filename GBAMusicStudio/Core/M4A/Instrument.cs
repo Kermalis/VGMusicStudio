@@ -40,14 +40,17 @@ namespace GBAMusicStudio.Core.M4A
         }
         internal void UpdatePanpot()
         {
+            if (Channel == null) return;
             Channel.setPan(Panpot);
         }
         internal void UpdateVolume()
         {
+            if (Channel == null) return;
             Channel.setVolume(Velocity * Track.AVolume);
         }
         internal void UpdateFrequency()
         {
+            if (Channel == null) return;
             Channel.setPaused(true);
             Channel.getCurrentSound(out FMOD.Sound sound);
             sound.getDefaults(out float soundFrequency, out int soundPriority);
@@ -119,13 +122,13 @@ namespace GBAMusicStudio.Core.M4A
                 A = 255;
             track.Instruments.Add(this);
         }
-
         internal void Stop()
         {
             if (State == ADSRState.Dead) return;
             CurrentVelocity = 0;
             State = ADSRState.Dead;
-            Channel.stop();
+            if (Channel != null)
+                Channel.stop();
             Track.Instruments.Remove(this);
         }
 
@@ -133,37 +136,38 @@ namespace GBAMusicStudio.Core.M4A
         internal void ADSRTick()
         {
             if (State == ADSRState.Dead) return;
-            
-            if (++processStep < Constants.INTERFRAMES) return;
-            processStep = 0;
 
-            switch (State)
+            if (++processStep >= Constants.INTERFRAMES)
             {
-                case ADSRState.Rising:
-                    if (CurrentVelocity == 0)
-                        SongPlayer.System.playSound(Sound, Track.Group, true, out Channel);
-                    CurrentVelocity += A;
-                    if (CurrentVelocity >= 0xFF)
-                    {
-                        CurrentVelocity = 0xFF;
-                        State = ADSRState.Playing;
-                    }
-                    break;
-                case ADSRState.Playing:
-                    CurrentVelocity = (CurrentVelocity * D) >> 8;
-                    if (CurrentVelocity < S)
-                        CurrentVelocity = S;
-                    break;
-                case ADSRState.Releasing:
-                    CurrentVelocity = (CurrentVelocity * R) >> 8;
-                    if (CurrentVelocity <= 0)
-                    {
-                        Stop();
-                        return;
-                    }
-                    break;
-            }
+                processStep = 0;
 
+                switch (State)
+                {
+                    case ADSRState.Rising:
+                        if (CurrentVelocity == 0)
+                            SongPlayer.System.playSound(Sound, Track.Group, true, out Channel);
+                        CurrentVelocity += A;
+                        if (CurrentVelocity >= 0xFF)
+                        {
+                            CurrentVelocity = 0xFF;
+                            State = ADSRState.Playing;
+                        }
+                        break;
+                    case ADSRState.Playing:
+                        CurrentVelocity = (CurrentVelocity * D) >> 8;
+                        if (CurrentVelocity < S)
+                            CurrentVelocity = S;
+                        break;
+                    case ADSRState.Releasing:
+                        CurrentVelocity = (CurrentVelocity * R) >> 8;
+                        if (CurrentVelocity <= 0)
+                        {
+                            Stop();
+                            return;
+                        }
+                        break;
+                }
+            }
             UpdateFrequency();
         }
         internal void NoteTick()
