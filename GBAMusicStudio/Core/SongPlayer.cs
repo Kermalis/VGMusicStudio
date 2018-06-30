@@ -19,6 +19,7 @@ namespace GBAMusicStudio.Core
     internal static class SongPlayer
     {
         internal static readonly FMOD.System System;
+        static readonly TimeBarrier time;
         static Thread thread;
 
         static readonly Instrument[] dsInstruments;
@@ -39,7 +40,7 @@ namespace GBAMusicStudio.Core
 
         internal static Song Song { get; private set; }
         internal static VoiceTable VoiceTable;
-        internal static int NumTracks => Song == null ? 0 : (Song.NumTracks < 1 || Song.NumTracks > 16 ? 0 : Song.NumTracks);
+        internal static int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
 
         static SongPlayer()
         {
@@ -59,6 +60,8 @@ namespace GBAMusicStudio.Core
                 tracks[i] = new Track(i);
 
             ClearVoices();
+
+            time = new TimeBarrier();
         }
 
         internal static void ClearVoices()
@@ -387,6 +390,7 @@ namespace GBAMusicStudio.Core
         }
         static void DoFrame()
         {
+            time.Start();
             while (State != State.Stopped)
             {
                 // Do Song Tick
@@ -416,8 +420,9 @@ namespace GBAMusicStudio.Core
                     i.ADSRTick();
                 System.update();
                 // Wait for next frame
-                Thread.Sleep(Constants.INTERFRAMES);
+                time.Wait();
             }
+            time.Stop();
         }
     }
 }
