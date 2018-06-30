@@ -21,6 +21,7 @@ namespace GBAMusicStudio.Core.M4A
                     CalculateTicks();
                     foreach (var track in Commands)
                     {
+                        if (track.Count == 0) continue; // Prevent crashes with invalid ones
                         uint length = track.Last().AbsoluteTicks;
                         if (length > ticks)
                             ticks = (int)length;
