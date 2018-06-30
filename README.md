@@ -31,6 +31,9 @@ A tool that is designed to be an updated Sappy.
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
 * Support pret dissassembly projects
+* Fix UI checkboxes breaking randomly
+* Fix program hanging in SongPlayer.StopThread()
+* Songtable length in config and expander
 
 ## Special Thanks To:
 * Ipatix
