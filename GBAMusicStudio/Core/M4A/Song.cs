@@ -59,6 +59,8 @@ namespace GBAMusicStudio.Core.M4A
             }
         }
 
+    }
+
     internal abstract class M4ASong : Song
     {
         byte[] _binary;
