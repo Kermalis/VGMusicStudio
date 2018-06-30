@@ -24,10 +24,10 @@ namespace GBAMusicStudio.Core.M4A
         bool fromDrum;
         FMOD.Channel Channel;
         FMOD.Sound Sound;
-        internal byte DisplayNote { get; private set; }
-        byte Note;
-        internal byte NoteDuration { get; private set; }
-        byte NoteVelocity;
+        internal sbyte DisplayNote { get; private set; }
+        sbyte Note;
+        internal sbyte NoteDuration { get; private set; }
+        sbyte NoteVelocity;
         int CurrentVelocity;
 
         byte A, D, S, R;
@@ -78,8 +78,8 @@ namespace GBAMusicStudio.Core.M4A
             Channel.setPaused(false);
         }
 
-        // Pass 0xFF to "duration" to trigger a TIE
-        internal void Play(Track track, byte note, byte velocity, byte duration)
+        // Pass -1 to "duration" to trigger a TIE
+        internal void Play(Track track, sbyte note, sbyte velocity, sbyte duration)
         {
             Stop();
             Voice = SongPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
@@ -87,7 +87,7 @@ namespace GBAMusicStudio.Core.M4A
 
             Track = track;
             DisplayNote = note;
-            Note = fromDrum ? (byte)60 : note;
+            Note = fromDrum ? (sbyte)60 : note;
             NoteDuration = duration;
             NoteVelocity = velocity;
             Age = -1;
@@ -173,7 +173,7 @@ namespace GBAMusicStudio.Core.M4A
         internal void NoteTick()
         {
             Age++;
-            if (State < ADSRState.Releasing && NoteDuration != 0xFF && Age >= NoteDuration)
+            if (State < ADSRState.Releasing && NoteDuration != -1 && Age >= NoteDuration)
                 State = ADSRState.Releasing;
         }
 

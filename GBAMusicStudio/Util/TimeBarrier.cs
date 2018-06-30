@@ -1,4 +1,4 @@
-﻿using GBAMusicStudio.Core.M4A;
+﻿using GBAMusicStudio.Core;
 using System.Diagnostics;
 using System.Threading;
 

@@ -1,4 +1,4 @@
-﻿namespace GBAMusicStudio.Core.M4A
+﻿namespace GBAMusicStudio.Core
 {
     internal static class Constants
     {

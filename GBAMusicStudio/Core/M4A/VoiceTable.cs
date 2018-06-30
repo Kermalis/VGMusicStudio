@@ -166,7 +166,7 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         // The following should only be called after Load()
-        internal Voice GetVoiceFromNote(byte voice, byte note, out bool fromDrum)
+        internal Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
         {
             fromDrum = false;
 
@@ -178,7 +178,7 @@ namespace GBAMusicStudio.Core.M4A
                 case 0x40:
                     var split = (Split)v;
                     var multi = (SMulti)sv;
-                    byte inst = ROM.Instance.ReadByte(split.Keys + note);
+                    byte inst = ROM.Instance.ReadByte((uint)(split.Keys + note));
                     v = multi.Table[inst].Voice;
                     fromDrum = false; // In case there is a multi within a drum
                     goto Read;
@@ -191,7 +191,7 @@ namespace GBAMusicStudio.Core.M4A
                     return v;
             }
         }
-        internal FMOD.Sound GetSoundFromNote(byte voice, byte note)
+        internal FMOD.Sound GetSoundFromNote(byte voice, sbyte note)
         {
             Voice v = GetVoiceFromNote(voice, note, out bool idc);
             switch (v.Type)

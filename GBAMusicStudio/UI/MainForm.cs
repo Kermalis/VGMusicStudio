@@ -16,7 +16,7 @@ namespace GBAMusicStudio.UI
     {
         bool stopUI = false, drag = false;
         TrackEditor trackEditor;
-        List<byte> pianoNotes = new List<byte>();
+        List<sbyte> pianoNotes = new List<sbyte>();
         internal readonly bool[] PianoTracks = new bool[16];
 
         readonly int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)

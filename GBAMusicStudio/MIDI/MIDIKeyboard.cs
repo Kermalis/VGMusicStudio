@@ -14,7 +14,7 @@ namespace GBAMusicStudio.MIDI
         static readonly bool bGood = false;
         static InputDevice inDevice;
 
-        static byte volume = 127;
+        static sbyte volume = 127;
         static readonly Timer timer;
         static readonly ThreadSafeList<Instrument> instruments;
 
@@ -96,11 +96,11 @@ namespace GBAMusicStudio.MIDI
 
             byte vNum = 48; // Voice number from the voice table
 
-            var note = (byte)e.Message.Data1;
+            var note = (sbyte)e.Message.Data1;
 
             if (e.Message.Command == ChannelCommand.Controller && e.Message.Data1 == 7) // Volume
             {
-                volume = (byte)e.Message.Data2;
+                volume = (sbyte)e.Message.Data2;
             }
             else if ((e.Message.Command == ChannelCommand.NoteOn && e.Message.Data2 == 0) || e.Message.Command == ChannelCommand.NoteOff) // Note off
             {
@@ -110,7 +110,7 @@ namespace GBAMusicStudio.MIDI
             else if (e.Message.Command == ChannelCommand.NoteOn) // Note on
             {
                 var i = new Instrument();
-                i.Play(new Core.M4A.Track(16) { Voice = vNum, Volume = volume }, note, (byte)(Config.MIDIKeyboardFixedVelocity ? 127 : e.Message.Data2), 0xFF);
+                i.Play(new Core.M4A.Track(16) { Voice = vNum, Volume = volume }, note, (sbyte)(Config.MIDIKeyboardFixedVelocity ? 127 : e.Message.Data2), -1);
                 instruments.Add(i);
                 Tick(null, null); // Prevent input delay
             }

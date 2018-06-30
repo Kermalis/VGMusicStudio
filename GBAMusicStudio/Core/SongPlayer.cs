@@ -34,7 +34,8 @@ namespace GBAMusicStudio.Core
             NOISE0_ID = SQUARE75_ID - 1,
             NOISE1_ID = NOISE0_ID - 1;
 
-        static ushort tempo, tempoStack;
+        internal static byte Tempo;
+        static int tempoStack;
         static uint position;
         static readonly Track[] tracks;
 
@@ -137,11 +138,6 @@ namespace GBAMusicStudio.Core
             System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
             parentGroup.setVolume(v);
         }
-        internal static void SetTempo(ushort t)
-        {
-            if (t > 510) return;
-            tempo = t;
-        }
         internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
         internal static void SetPosition(uint p)
         {
@@ -152,14 +148,14 @@ namespace GBAMusicStudio.Core
             {
                 var track = tracks[i];
                 track.Init();
-                uint elapsed = 0;
+                int elapsed = 0;
                 while (!track.Stopped)
                 {
                     ExecuteNext(i);
                     // elapsed == 400, delay == 4, p == 402
                     if (elapsed <= p && elapsed + track.Delay > p)
                     {
-                        track.Delay -= (byte)(p - elapsed);
+                        track.Delay -= (sbyte)(p - elapsed);
                         foreach (var ins in track.Instruments)
                             ins.Stop();
                         break;
@@ -195,8 +191,8 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < NumTracks; i++)
                 tracks[i].Init();
 
-            position = tempoStack = 0;
-            SetTempo(150);
+            position = 0; tempoStack = 0;
+            Tempo = 150 / 2;
 
             StartThread();
         }
@@ -235,12 +231,12 @@ namespace GBAMusicStudio.Core
                 thread.Join();
         }
 
-        internal static (ushort, uint, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
+        internal static (ushort, uint, uint[], sbyte[], sbyte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
             var offsets = new uint[NumTracks];
-            var volumes = new byte[NumTracks];
-            var delays = new byte[NumTracks];
-            var notes = new byte[NumTracks][];
+            var volumes = new sbyte[NumTracks];
+            var delays = new sbyte[NumTracks];
+            var notes = new sbyte[NumTracks][];
             var velocities = new float[NumTracks];
             var voices = new byte[NumTracks];
             var modulations = new byte[NumTracks];
@@ -261,15 +257,15 @@ namespace GBAMusicStudio.Core
                 bool none = instruments.Length == 0;
                 Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins.Velocity).ElementAt(0);
                 pans[i] = none ? tracks[i].Pan / 64f : loudest.Panpot;
-                notes[i] = none ? new byte[0] : instruments.Where(ins => ins.State < ADSRState.Releasing).Select(ins => ins.DisplayNote).Distinct().ToArray();
+                notes[i] = none ? new sbyte[0] : instruments.Where(ins => ins.State < ADSRState.Releasing).Select(ins => ins.DisplayNote).Distinct().ToArray();
                 velocities[i] = none ? 0 : loudest.Velocity * (volumes[i] / 127f);
             }
-            return (tempo, position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
+            return ((ushort)(Tempo * 2), position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
         }
 
-        static void PlayInstrument(Track track, byte note, byte velocity, byte duration)
+        static void PlayInstrument(Track track, sbyte note, sbyte velocity, sbyte duration)
         {
-            note = (byte)(note + track.KeyShift).Clamp(0, 127);
+            note = (sbyte)(note + track.KeyShift).Clamp(0, 127);
 
             if (!track.Ready) return;
 
@@ -333,56 +329,56 @@ namespace GBAMusicStudio.Core
         static void ExecuteNext(int i)
         {
             var track = tracks[i];
-            var cmd = Song.Commands[i][track.CommandIndex];
+            var e = Song.Commands[i][track.CommandIndex];
 
-            switch (cmd.Command)
+            if (e.Command is GoToCommand goTo)
             {
-                case Command.GoTo:
-                    int gotoCmd = Song.Commands[i].FindIndex(c => c.Offset == cmd.Arguments[0]);
-                    position = Song.Commands[i][gotoCmd].AbsoluteTicks - 1;
-                    track.CommandIndex = gotoCmd - 1; // -1 for incoming ++
-                    break;
-                case Command.PATT:
-                    int jumpCmd = Song.Commands[i].FindIndex(c => c.Offset == cmd.Arguments[0]);
-                    track.EndOfPattern = track.CommandIndex;
-                    track.CommandIndex = jumpCmd - 1; // -1 for incoming ++
-                    break;
-                case Command.PEND:
-                    if (track.EndOfPattern != 0)
-                    {
-                        track.CommandIndex = track.EndOfPattern;
-                        track.EndOfPattern = 0;
-                    }
-                    break;
-                case Command.Finish: track.Stopped = true; break;
-                case Command.Priority: track.SetPriority((byte)cmd.Arguments[0]); break;
-                case Command.Tempo: SetTempo((ushort)cmd.Arguments[0]); break;
-                case Command.KeyShift: track.KeyShift = (sbyte)cmd.Arguments[0]; break;
-                case Command.NoteOn: PlayInstrument(track, (byte)cmd.Arguments[0], (byte)cmd.Arguments[1], (byte)cmd.Arguments[2]); break;
-                case Command.Rest: track.Delay = (byte)cmd.Arguments[0]; break;
-                case Command.Voice: track.SetVoice((byte)cmd.Arguments[0]); break;
-                case Command.Volume: track.SetVolume((byte)cmd.Arguments[0]); break;
-                case Command.Panpot: track.SetPan((sbyte)cmd.Arguments[0]); break;
-                case Command.Bend: track.SetBend((sbyte)cmd.Arguments[0]); break;
-                case Command.BendRange: track.SetBendRange((byte)cmd.Arguments[0]); break;
-                case Command.LFOSpeed: track.SetLFOSpeed((byte)cmd.Arguments[0]); break;
-                case Command.LFODelay: track.SetLFODelay((byte)cmd.Arguments[0]); break;
-                case Command.MODDepth: track.SetMODDepth((byte)cmd.Arguments[0]); break;
-                case Command.MODType: track.SetMODType((byte)cmd.Arguments[0]); break;
-                case Command.Tune: track.SetTune((sbyte)cmd.Arguments[0]); break;
-                case Command.EndOfTie:
-                    int which = cmd.Arguments[0];
-                    Instrument ins = null;
-                    if (which == -1)
-                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.State < ADSRState.Releasing);
-                    else
-                    {
-                        byte note = (byte)(which + track.KeyShift).Clamp(0, 127);
-                        ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == 0xFF && inst.DisplayNote == note && inst.State < ADSRState.Releasing);
-                    }
-                    if (ins != null)
-                        ins.State = ADSRState.Releasing;
-                    break;
+                int gotoCmd = Song.Commands[i].FindIndex(c => c.Offset == goTo.Offset);
+                position = Song.Commands[i][gotoCmd].AbsoluteTicks - 1;
+                track.CommandIndex = gotoCmd - 1; // -1 for incoming ++
+            }
+            else if (e.Command is CallCommand patt)
+            {
+                int callCmd = Song.Commands[i].FindIndex(c => c.Offset == patt.Offset);
+                track.EndOfPattern = track.CommandIndex;
+                track.CommandIndex = callCmd - 1; // -1 for incoming ++
+            }
+            else if (e.Command is ReturnCommand)
+            {
+                if (track.EndOfPattern != 0)
+                {
+                    track.CommandIndex = track.EndOfPattern;
+                    track.EndOfPattern = 0;
+                }
+            }
+            else if (e.Command is FinishCommand) track.Stopped = true;
+            else if (e.Command is PriorityCommand prio) track.SetPriority(prio.Priority);
+            else if (e.Command is TempoCommand tempo) Tempo = tempo.Tempo;
+            else if (e.Command is KeyShiftCommand keysh) track.KeyShift = keysh.Shift;
+            else if (e.Command is NoteCommand n) PlayInstrument(track, n.Note, n.Velocity, n.Duration);
+            else if (e.Command is RestCommand w) track.Delay = w.Rest;
+            else if (e.Command is VoiceCommand voice) track.SetVoice(voice.Voice);
+            else if (e.Command is VolumeCommand vol) track.SetVolume(vol.Volume);
+            else if (e.Command is PanpotCommand pan) track.SetPan(pan.Panpot);
+            else if (e.Command is BendCommand bend) track.SetBend(bend.Bend);
+            else if (e.Command is BendRangeCommand bendr) track.SetBendRange(bendr.Range);
+            else if (e.Command is LFOSpeedCommand lfos) track.SetLFOSpeed(lfos.Speed);
+            else if (e.Command is LFODelayCommand lfodl) track.SetLFODelay(lfodl.Delay);
+            else if (e.Command is ModDepthCommand mod) track.SetMODDepth(mod.Depth);
+            else if (e.Command is ModTypeCommand modt) track.SetMODType((MODT)modt.Type);
+            else if (e.Command is TuneCommand tune) track.SetTune(tune.Tune);
+            else if (e.Command is EndOfTieCommand eot)
+            {
+                Instrument ins = null;
+                if (eot.Note == -1)
+                    ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == -1 && inst.State < ADSRState.Releasing);
+                else
+                {
+                    byte note = (byte)(eot.Note + track.KeyShift).Clamp(0, 127);
+                    ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == -1 && inst.DisplayNote == note && inst.State < ADSRState.Releasing);
+                }
+                if (ins != null)
+                    ins.State = ADSRState.Releasing;
             }
 
             if (!track.Stopped)
@@ -394,7 +390,7 @@ namespace GBAMusicStudio.Core
             while (State != State.Stopped)
             {
                 // Do Song Tick
-                tempoStack += tempo;
+                tempoStack += Tempo * 2;
                 while (tempoStack >= Constants.BPM_PER_FRAME * Constants.INTERFRAMES)
                 {
                     tempoStack -= Constants.BPM_PER_FRAME * Constants.INTERFRAMES;

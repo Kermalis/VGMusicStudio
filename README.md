@@ -34,6 +34,7 @@ A tool that is designed to be an updated Sappy.
 * Fix UI checkboxes breaking randomly
 * Fix program hanging in SongPlayer.StopThread()
 * Songtable length in config and expander
+* Default remap voice
 
 ## Special Thanks To:
 * Ipatix

@@ -1,10 +1,11 @@
 ﻿using GBAMusicStudio.Core;
 using GBAMusicStudio.Properties;
-using GBAMusicStudio.Util;
+using GBAMusicStudio.Core.M4A;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
@@ -12,8 +13,7 @@ namespace GBAMusicStudio.UI
     [System.ComponentModel.DesignerCategory("")]
     internal class TrackEditor : Form
     {
-        readonly Color changedColor = Color.LightPink;
-
+        int currentTrack = 0;
         List<SongEvent> events;
 
         readonly ListView listView;
@@ -59,8 +59,8 @@ namespace GBAMusicStudio.UI
                 int y = 16 + (33 * i);
                 labels[i] = new Label
                 {
+                    AutoSize = true,
                     Location = new Point(52, y + 3),
-                    Size = new Size(40, 25),
                     Text = "Arg. " + (i + 1).ToString(),
                     Visible = false,
                 };
@@ -146,70 +146,71 @@ namespace GBAMusicStudio.UI
         {
             string remap = (string)remapsBox.SelectedItem;
             foreach (var track in SongPlayer.Song.Commands)
-            {
                 foreach (var ev in track)
-                {
-                    if (ev.Command == Command.Voice)
-                    {
-                        ev.Arguments[0] = Config.GetRemap((byte)ev.Arguments[0], remap, from);
-                        ChangeEventColor(ev, changedColor);
-                    }
-                }
-            }
+                    if (ev.Command is VoiceCommand voice)
+                        voice.Voice = Config.GetRemap(voice.Voice, remap, from);
+            UpdateEvent();
         }
         void ChangeEvents(object sender, EventArgs e)
         {
             foreach (var ev in events)
-            {
-                if (sender == tvButton && ev.Command == Command.Voice && ev.Arguments[0] == tvArgs[0].Value)
-                {
-                    ev.Arguments[0] = (int)tvArgs[1].Value;
-                    ChangeEventColor(ev, changedColor);
-                }
-            }
+                if (sender == tvButton && ev.Command is VoiceCommand voice && voice.Voice == tvArgs[0].Value)
+                    voice.Voice = (byte)tvArgs[1].Value;
+            UpdateEvent();
         }
         void ChangeAllEvents(object sender, EventArgs e)
         {
             foreach (var track in SongPlayer.Song.Commands)
-            {
                 foreach (var ev in track)
-                {
-                    if (sender == gvButton && ev.Command == Command.Voice && ev.Arguments[0] == gvArgs[0].Value)
-                    {
-                        ev.Arguments[0] = (int)gvArgs[1].Value;
-                        ChangeEventColor(ev, changedColor);
-                    }
-                }
-            }
+                    if (sender == gvButton && ev.Command is VoiceCommand voice && voice.Voice == gvArgs[0].Value)
+                        voice.Voice = (byte)gvArgs[1].Value;
+            UpdateEvent();
         }
-        void ChangeEventColor(SongEvent e, Color c)
+        
+        void UpdateEvent()
         {
-            var item = listView.Items.Cast<ListViewItem>().SingleOrDefault(i => i.Tag == e);
-            if (item != null) item.BackColor = c;
+            var control = ActiveControl;
+            int selected = listView.SelectedIndices[0];
+            LoadTrack(currentTrack);
+            listView.Items[selected].Selected = true;
+            control.Select();
         }
-
-        void LoadTrack(int index)
+        void LoadTrack(int track)
         {
-            events = SongPlayer.Song.Commands[index];
+            currentTrack = track;
+            events = SongPlayer.Song.Commands[track];
             listView.Items.Clear();
             SelectedIndexChanged(null, null);
             foreach (var e in events)
             {
                 var arr = new string[4];
-                arr[0] = e.Command.ToString();
-                arr[1] = e.Arguments.Print(false);
+                arr[0] = e.Command.Name;
+                arr[1] = e.Command.Arguments;
                 arr[2] = $"0x{e.Offset.ToString("X")}";
                 arr[3] = e.AbsoluteTicks.ToString();
                 var item = new ListViewItem(arr) { Tag = e };
-                if (e.Command == Command.Voice)
+                if (e.Command is GoToCommand || e.Command is CallCommand || e.Command is ReturnCommand || e.Command is FinishCommand)
+                    item.BackColor = Color.MediumSpringGreen;
+                else if (e.Command is VoiceCommand)
+                    item.BackColor = Color.DarkSalmon;
+                else if (e.Command is RestCommand)
+                    item.BackColor = Color.PaleVioletRed;
+                else if (e.Command is KeyShiftCommand || e.Command is NoteCommand || e.Command is EndOfTieCommand)
+                    item.BackColor = Color.SkyBlue;
+                else if (e.Command is ModDepthCommand || e.Command is ModTypeCommand)
                     item.BackColor = Color.LightSteelBlue;
+                else if (e.Command is TuneCommand || e.Command is BendCommand || e.Command is BendRangeCommand)
+                    item.BackColor = Color.MediumPurple;
+                else if (e.Command is PanpotCommand || e.Command is LFODelayCommand || e.Command is LFOSpeedCommand)
+                    item.BackColor = Color.GreenYellow;
+                else if (e.Command is TempoCommand)
+                    item.BackColor = Color.DeepSkyBlue;
+                else
+                    item.BackColor = Color.SteelBlue;
                 listView.Items.Add(item);
             }
         }
-        void TracksBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            LoadTrack(tracksBox.SelectedIndex);
-        }
+        void TracksBox_SelectedIndexChanged(object sender, EventArgs e) => LoadTrack(tracksBox.SelectedIndex);
         internal void UpdateTracks()
         {
             bool tracks = SongPlayer.NumTracks > 0;
@@ -226,8 +227,15 @@ namespace GBAMusicStudio.UI
             {
                 if (sender == args[i])
                 {
-                    events[listView.SelectedIndices[0]].Arguments[i] = (int)args[i].Value;
-                    listView.SelectedItems[0].BackColor = changedColor;
+                    var se = events[listView.SelectedIndices[0]];
+                    object value = args[i].Value;
+                    var m = se.Command.GetType().GetMember(labels[i].Text)[0];
+                    if (m is FieldInfo f)
+                        f.SetValue(se.Command, Convert.ChangeType(value, f.FieldType));
+                    else if (m is PropertyInfo p)
+                        p.SetValue(se.Command, Convert.ChangeType(value, p.PropertyType));
+                    UpdateEvent();
+                    return;
                 }
             }
         }
@@ -241,18 +249,37 @@ namespace GBAMusicStudio.UI
             else
             {
                 var se = events[listView.SelectedIndices[0]];
-
+                var ignore = typeof(ICommand).GetMembers();
+                var mi = se.Command.GetType().GetMembers().Where(m => !ignore.Any(a => m.Name == a.Name) && (m is FieldInfo || m is PropertyInfo)).ToArray();
                 for (int i = 0; i < 3; i++)
                 {
-                    labels[i].Visible = args[i].Visible = i < se.Arguments.Length;
+                    labels[i].Visible = args[i].Visible = i < mi.Length;
                     if (args[i].Visible)
                     {
+                        labels[i].Text = mi[i].Name;
+
                         args[i].ValueChanged -= ArgumentChanged;
-                        args[i].Value = se.Arguments[i];
+
+                        dynamic m = mi[i];
+
+                        args[i].Hexadecimal = se.Command is CallCommand || se.Command is GoToCommand;
+
+                        TypeInfo valueType;
+                        if (mi[i].MemberType == MemberTypes.Field)
+                            valueType = m.FieldType;
+                        else
+                            valueType = m.PropertyType;
+                        args[i].Maximum = valueType.DeclaredFields.Single(f => f.Name == "MaxValue").GetValue(m);
+                        args[i].Minimum = valueType.DeclaredFields.Single(f => f.Name == "MinValue").GetValue(m);
+
+                        object value = m.GetValue(se.Command);
+                        args[i].Value = (decimal)Convert.ChangeType(value, TypeCode.Decimal);
+
                         args[i].ValueChanged += ArgumentChanged;
                     }
                 }
             }
+            labels[0].Parent.Refresh();
         }
     }
 }

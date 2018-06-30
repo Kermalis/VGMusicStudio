@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -75,14 +76,14 @@
   <ItemGroup>
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
-    <Compile Include="Core\M4A\Constants.cs" />
+    <Compile Include="Core\Constants.cs" />
     <Compile Include="Core\M4A\Instrument.cs" />
     <Compile Include="Core\M4A\M4AStructs.cs" />
-    <Compile Include="Core\SongEvent.cs" />
+    <Compile Include="Core\M4A\SongEvent.cs" />
     <Compile Include="Core\SongPlayer.cs" />
     <Compile Include="Core\ROM.cs" />
     <Compile Include="Core\ROMReader.cs" />
-    <Compile Include="Core\Song.cs" />
+    <Compile Include="Core\M4A\Song.cs" />
     <Compile Include="Core\VoiceTableSaver.cs" />
     <Compile Include="Core\M4A\Track.cs" />
     <Compile Include="Core\M4A\VoiceTable.cs" />

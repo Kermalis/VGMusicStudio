@@ -4,24 +4,17 @@ using ThreadSafeList;
 
 namespace GBAMusicStudio.Core.M4A
 {
-    enum MODT
-    {
-        Vibrate,
-        Volume,
-        Panpot
-    }
-
     internal class Track
     {
         internal readonly byte Index;
         internal readonly FMOD.ChannelGroup Group;
         internal readonly ThreadSafeList<Instrument> Instruments; // Instruments being played by this track
 
-        internal byte Voice, Volume, Priority,
-            Delay, LFOPhase, LFODelayCount,
-            BendRange, LFOSpeed, LFODelay, MODDepth;
+        internal byte Voice, Priority,
+            LFOPhase, LFODelayCount, BendRange,
+            LFOSpeed, LFODelay, MODDepth;
         MODT MODType;
-        internal sbyte Bend, Tune, Pan, KeyShift;
+        internal sbyte Volume, Delay, Bend, Tune, Pan, KeyShift;
         internal int CommandIndex, EndOfPattern;
         internal bool Ready, Stopped;
 
@@ -65,8 +58,8 @@ namespace GBAMusicStudio.Core.M4A
 
         internal void Init()
         {
-            Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = 0;
-            Bend = Tune = Pan = KeyShift = 0;
+            Voice = Priority = LFODelay = LFODelayCount = LFOPhase = MODDepth = 0;
+            Delay = Bend = Tune = Pan = KeyShift = 0;
             CommandIndex = EndOfPattern = 0;
             MODType = MODT.Vibrate;
             Ready = Stopped = false;
@@ -136,7 +129,7 @@ namespace GBAMusicStudio.Core.M4A
             Voice = b;
             Ready = true;
         }
-        internal void SetVolume(byte b)
+        internal void SetVolume(sbyte b)
         {
             Volume = b;
             UpdateVolumes();
@@ -173,9 +166,9 @@ namespace GBAMusicStudio.Core.M4A
             MODDepth = b;
             UpdateModulation();
         }
-        internal void SetMODType(byte b)
+        internal void SetMODType(MODT b)
         {
-            MODType = (MODT)b;
+            MODType = b;
             UpdateModulation();
         }
         internal void SetTune(sbyte b)
