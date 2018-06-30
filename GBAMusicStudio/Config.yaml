@@ -1,6 +1,6 @@
 # These cannot be reloaded in the program:
 
-DirectCount: 28 # Value between 5 and 28.
+DirectCount: 28 # Value between 5 and 4089.
 Volume: 50 # Value between 0 and 100.
 
 # These can be reloaded in the program:

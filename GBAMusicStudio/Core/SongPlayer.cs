@@ -45,7 +45,7 @@ namespace GBAMusicStudio.Core
         static SongPlayer()
         {
             FMOD.Factory.System_Create(out System);
-            System.init(32, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
+            System.init(Config.DirectCount + 4, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
 
             dsInstruments = new Instrument[Config.DirectCount];
             gbInstruments = new Instrument[4];
