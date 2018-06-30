@@ -164,7 +164,7 @@ namespace GBAMusicStudio.UI
                 foreach (var ev in track)
                     if (sender == gvButton && ev.Command is VoiceCommand voice && voice.Voice == gvArgs[0].Value)
                         voice.Voice = (byte)gvArgs[1].Value;
-            UpdateEvent();
+            LoadTrack(currentTrack);
         }
         
         void UpdateEvent()
