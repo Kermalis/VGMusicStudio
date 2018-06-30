@@ -76,7 +76,7 @@ namespace GBAMusicStudio.Core.M4A
 
         public string Name => dur == -1 ? "TIE" : "Note On";
         public string M4AName => dur == -1 ? "TIE" : "N" + SongEvent.RestToCMD[dur];
-        public string Arguments => $"{note}, {vel}, {dur}";
+        public string Arguments => $"{Utils.NoteName(note)} {vel} {dur}";
     }
     internal class EndOfTieCommand : ICommand
     {
@@ -85,7 +85,7 @@ namespace GBAMusicStudio.Core.M4A
 
         public string Name => "End Of Tie";
         public string M4AName => "EOT";
-        public string Arguments => note.ToString();
+        public string Arguments => Utils.NoteName(note);
     }
     internal class VoiceCommand : ICommand
     {

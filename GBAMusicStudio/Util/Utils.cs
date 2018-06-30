@@ -60,5 +60,9 @@ namespace GBAMusicStudio.Util
             str += parenthesis ? " )" : "";
             return str;
         }
+
+        //static readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
+        static readonly string[] simpleNotes = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+        public static string NoteName(sbyte note) => (note < 0) ? note.ToString() : string.Format("{0}{1}", simpleNotes[note % 12], (note / 12) - 2);
     }
 }
