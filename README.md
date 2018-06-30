@@ -31,7 +31,6 @@ A tool that is designed to be an updated Sappy.
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
 * Support pret dissassembly projects
-* Fix UI crashing when some invalid songs are switched to
 
 ## Special Thanks To:
 * Ipatix

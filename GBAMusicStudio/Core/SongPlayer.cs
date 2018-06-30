@@ -39,7 +39,7 @@ namespace GBAMusicStudio.Core
 
         internal static Song Song { get; private set; }
         internal static VoiceTable VoiceTable;
-        internal static int NumTracks => Song == null ? 0 : Song.NumTracks;
+        internal static int NumTracks => Song == null ? 0 : (Song.NumTracks < 1 || Song.NumTracks > 16 ? 0 : Song.NumTracks);
 
         static SongPlayer()
         {
@@ -145,7 +145,7 @@ namespace GBAMusicStudio.Core
             bool pause = State == State.Playing;
             if (pause) Pause();
             position = p;
-            for (int i = Song.NumTracks - 1; i >= 0; i--)
+            for (int i = NumTracks - 1; i >= 0; i--)
             {
                 var track = tracks[i];
                 track.Init();
@@ -183,7 +183,7 @@ namespace GBAMusicStudio.Core
         {
             Stop();
 
-            if (Song.NumTracks == 0 || Song.NumTracks > 16) // Maybe header.isvalid or something
+            if (NumTracks == 0)
             {
                 SongEnded?.Invoke();
                 return;
@@ -234,17 +234,17 @@ namespace GBAMusicStudio.Core
 
         internal static (ushort, uint, uint[], byte[], byte[], byte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
-            var offsets = new uint[Song.NumTracks];
-            var volumes = new byte[Song.NumTracks];
-            var delays = new byte[Song.NumTracks];
-            var notes = new byte[Song.NumTracks][];
-            var velocities = new float[Song.NumTracks];
-            var voices = new byte[Song.NumTracks];
-            var modulations = new byte[Song.NumTracks];
-            var bends = new int[Song.NumTracks];
-            var pans = new float[Song.NumTracks];
-            var types = new string[Song.NumTracks];
-            for (int i = 0; i < Song.NumTracks; i++)
+            var offsets = new uint[NumTracks];
+            var volumes = new byte[NumTracks];
+            var delays = new byte[NumTracks];
+            var notes = new byte[NumTracks][];
+            var velocities = new float[NumTracks];
+            var voices = new byte[NumTracks];
+            var modulations = new byte[NumTracks];
+            var bends = new int[NumTracks];
+            var pans = new float[NumTracks];
+            var types = new string[NumTracks];
+            for (int i = 0; i < NumTracks; i++)
             {
                 offsets[i] = Song.Commands[i][tracks[i].CommandIndex].Offset;
                 volumes[i] = tracks[i].Volume;
@@ -395,7 +395,7 @@ namespace GBAMusicStudio.Core
                 {
                     tempoStack -= Constants.BPM_PER_FRAME * Constants.INTERFRAMES;
                     bool allDone = true;
-                    for (int i = Song.NumTracks - 1; i >= 0; i--)
+                    for (int i = NumTracks - 1; i >= 0; i--)
                     {
                         Track track = tracks[i];
                         if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
