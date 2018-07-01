@@ -226,6 +226,7 @@ namespace GBAMusicStudio.Core
         }
         static void StopThread()
         {
+            if (State == State.Stopped) return;
             State = State.Stopped;
             if (thread != null && thread.IsAlive)
                 thread.Join();
@@ -406,10 +407,7 @@ namespace GBAMusicStudio.Core
                     }
                     position++;
                     if (allDone)
-                    {
                         SongEnded?.Invoke();
-                        Stop();
-                    }
                 }
                 // Do Instrument Tick
                 foreach (var i in allInstruments)

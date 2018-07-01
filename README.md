@@ -32,7 +32,6 @@ A tool that is designed to be an updated Sappy.
 * Remove "private set" in config and add saving of config
 * Support pret dissassembly projects
 * Fix UI checkboxes breaking randomly
-* Fix program hanging in SongPlayer.StopThread()
 * Songtable length in config and expander
 * Default remap voice
 
