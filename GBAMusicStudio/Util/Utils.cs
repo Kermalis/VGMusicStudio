@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace GBAMusicStudio.Util
 {
@@ -64,5 +66,11 @@ namespace GBAMusicStudio.Util
         //static readonly string[] simpleNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
         static readonly string[] simpleNotes = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         public static string NoteName(sbyte note) => (note < 0) ? note.ToString() : string.Format("{0}{1}", simpleNotes[note % 12], (note / 12) - 2);
+
+        public static void DoubleBuffered(this Control control, bool enable)
+        {
+            var doubleBufferPropertyInfo = control.GetType().GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
+            doubleBufferPropertyInfo.SetValue(control, enable, null);
+        }
     }
 }

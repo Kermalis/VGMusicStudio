@@ -45,6 +45,7 @@ namespace GBAMusicStudio.UI
             listView.Columns.Add("Offset", 70);
             listView.Columns.Add("Ticks", 50);
             listView.Columns[0].TextAlign = listView.Columns[1].TextAlign = listView.Columns[2].TextAlign = listView.Columns[3].TextAlign = HorizontalAlignment.Center;
+            listView.DoubleBuffered(true);
             listView.SelectedIndexChanged += SelectedIndexChanged;
 
             int h2 = h / 3 - 4;
