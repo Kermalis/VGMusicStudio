@@ -166,15 +166,7 @@ namespace GBAMusicStudio.UI
                         voice.Voice = (byte)gvArgs[1].Value;
             LoadTrack(currentTrack);
         }
-        
-        void UpdateEvent()
-        {
-            var control = ActiveControl;
-            int selected = listView.SelectedIndices[0];
-            LoadTrack(currentTrack);
-            listView.Items[selected].Selected = true;
-            control.Select();
-        }
+
         void LoadTrack(int track)
         {
             currentTrack = track;
@@ -234,7 +226,15 @@ namespace GBAMusicStudio.UI
                         f.SetValue(se.Command, Convert.ChangeType(value, f.FieldType));
                     else if (m is PropertyInfo p)
                         p.SetValue(se.Command, Convert.ChangeType(value, p.PropertyType));
-                    UpdateEvent();
+
+                    var control = ActiveControl;
+                    int selected = listView.SelectedIndices[0];
+                    LoadTrack(currentTrack);
+                    listView.Items[selected].Selected = true;
+                    listView.Select();
+                    listView.EnsureVisible(selected);
+                    control.Select();
+
                     return;
                 }
             }
