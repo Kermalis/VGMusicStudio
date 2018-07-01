@@ -149,14 +149,14 @@ namespace GBAMusicStudio.UI
                 foreach (var ev in track)
                     if (ev.Command is VoiceCommand voice)
                         voice.Voice = Config.GetRemap(voice.Voice, remap, from);
-            UpdateEvent();
+            LoadTrack(currentTrack);
         }
         void ChangeEvents(object sender, EventArgs e)
         {
             foreach (var ev in events)
                 if (sender == tvButton && ev.Command is VoiceCommand voice && voice.Voice == tvArgs[0].Value)
                     voice.Voice = (byte)tvArgs[1].Value;
-            UpdateEvent();
+            LoadTrack(currentTrack);
         }
         void ChangeAllEvents(object sender, EventArgs e)
         {
