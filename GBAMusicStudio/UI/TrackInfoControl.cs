@@ -31,7 +31,7 @@ namespace GBAMusicStudio.UI
         internal TrackInfoControl()
         {
             DoubleBuffered = true;
-            Font = new Font("Microsoft Tai Le", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
             Size = new Size(525, 675);
 
             pianos = new CheckBox[17]; // Index 16 is master
@@ -146,7 +146,8 @@ namespace GBAMusicStudio.UI
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(Brushes.Black, 0, 0, Width, Height);
+            var bg = new SolidBrush(Theme.PlayerColor);
+            e.Graphics.FillRectangle(bg, e.ClipRectangle);
 
             float ih = Height / 25.125f; // Info height
             float iy = ih - (e.Graphics.MeasureString("A", Font).Height * 1.125f); // Info y
@@ -237,6 +238,7 @@ namespace GBAMusicStudio.UI
                 var strSize = e.Graphics.MeasureString(types[i], Font);
                 e.Graphics.DrawString(types[i], Font, Brushes.DeepPink, ix - strSize.Width, by + (r2o / (Font.Size / 2.5f)));
 
+                bg.Dispose();
                 pen.Dispose();
                 brush.Dispose();
                 lBrush.Dispose();

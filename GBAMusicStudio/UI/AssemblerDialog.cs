@@ -1,5 +1,4 @@
 ﻿using GBAMusicStudio.Core;
-using GBAMusicStudio.Properties;
 using GBAMusicStudio.Util;
 using System;
 using System.Collections.Generic;
@@ -11,31 +10,31 @@ using System.Windows.Forms;
 namespace GBAMusicStudio.UI
 {
     [System.ComponentModel.DesignerCategory("")]
-    internal class AssemblerDialog : Form
+    internal class AssemblerDialog : ThemedForm
     {
         Assembler assembler;
-        readonly Button previewButton;
+        readonly ThemedButton previewButton;
         readonly ValueTextBox offsetValueBox;
-        readonly Label sizeLabel;
-        readonly TextBox headerLabelTextBox;
+        readonly ThemedLabel sizeLabel;
+        readonly ThemedTextBox headerLabelTextBox;
         readonly DataGridView addedDefsGrid;
 
         internal AssemblerDialog()
         {
-            var openButton = new Button
+            var openButton = new ThemedButton
             {
                 Location = new Point(150, 0),
                 Text = "Open File"
             };
             openButton.Click += OpenASM;
-            previewButton = new Button
+            previewButton = new ThemedButton
             {
                 Enabled = false,
                 Location = new Point(150, 50),
                 Text = "Preview Song"
             };
             previewButton.Click += PreviewASM;
-            sizeLabel = new Label
+            sizeLabel = new ThemedLabel
             {
                 Location = new Point(0, 100),
                 Size = new Size(150, 23)
@@ -45,7 +44,7 @@ namespace GBAMusicStudio.UI
                 Hexadecimal = true,
                 Maximum = ROM.Capacity - 1
             };
-            headerLabelTextBox = new TextBox { Location = new Point(0, 50), Size = new Size(150, 22) };
+            headerLabelTextBox = new ThemedTextBox { Location = new Point(0, 50), Size = new Size(150, 22) };
             addedDefsGrid = new DataGridView
             {
                 ColumnCount = 2,
@@ -60,7 +59,6 @@ namespace GBAMusicStudio.UI
 
             Controls.AddRange(new Control[] { openButton, previewButton, sizeLabel, offsetValueBox, headerLabelTextBox, addedDefsGrid });
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Icon = Resources.Icon;
             MaximizeBox = false;
             Size = new Size(600, 400);
             Text = "GBA Music Studio ― Assembler";

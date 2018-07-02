@@ -4,10 +4,10 @@ using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    public class ValueTextBox : TextBox
+    internal class ValueTextBox : ThemedTextBox
     {
         bool hex = false;
-        public bool Hexadecimal
+        internal bool Hexadecimal
         {
             get => hex;
             set
@@ -18,7 +18,7 @@ namespace GBAMusicStudio.UI
             }
         }
         long max = long.MaxValue;
-        public long Maximum
+        internal long Maximum
         {
             get => max;
             set
@@ -28,7 +28,7 @@ namespace GBAMusicStudio.UI
             }
         }
         long min = 0;
-        public long Minimum
+        internal long Minimum
         {
             get => min;
             set
@@ -37,7 +37,7 @@ namespace GBAMusicStudio.UI
                 OnTextChanged(EventArgs.Empty);
             }
         }
-        public long Value
+        internal long Value
         {
             get
             {

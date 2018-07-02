@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -108,134 +109,50 @@ namespace GBAMusicStudio.UI
         /// <summary>
         /// Defines the font for all FlexibleMessageBox instances.
         /// 
-        /// Default is: SystemFonts.MessageBoxFont
+        /// Default is: Theme.Font
         /// </summary>
-        public static Font FONT = SystemFonts.MessageBoxFont;
+        public static Font FONT = Theme.Font;
 
         #endregion
 
         #region Public show functions
 
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(string text)
         {
             return FlexibleMessageBoxForm.Show(null, text, string.Empty, MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="owner">The owner.</param>
-        /// <param name="text">The text.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(IWin32Window owner, string text)
         {
             return FlexibleMessageBoxForm.Show(owner, text, string.Empty, MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(string text, string caption)
         {
             return FlexibleMessageBoxForm.Show(null, text, caption, MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="owner">The owner.</param>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(IWin32Window owner, string text, string caption)
         {
             return FlexibleMessageBoxForm.Show(owner, text, caption, MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <param name="buttons">The buttons.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(string text, string caption, MessageBoxButtons buttons)
         {
             return FlexibleMessageBoxForm.Show(null, text, caption, buttons, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="owner">The owner.</param>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <param name="buttons">The buttons.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(IWin32Window owner, string text, string caption, MessageBoxButtons buttons)
         {
             return FlexibleMessageBoxForm.Show(owner, text, caption, buttons, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <param name="buttons">The buttons.</param>
-        /// <param name="icon">The icon.</param>
-        /// <returns></returns>
         public static DialogResult Show(string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
         {
             return FlexibleMessageBoxForm.Show(null, text, caption, buttons, icon, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="owner">The owner.</param>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <param name="buttons">The buttons.</param>
-        /// <param name="icon">The icon.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(IWin32Window owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
         {
             return FlexibleMessageBoxForm.Show(owner, text, caption, buttons, icon, MessageBoxDefaultButton.Button1);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <param name="buttons">The buttons.</param>
-        /// <param name="icon">The icon.</param>
-        /// <param name="defaultButton">The default button.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton)
         {
             return FlexibleMessageBoxForm.Show(null, text, caption, buttons, icon, defaultButton);
         }
-
-        /// <summary>
-        /// Shows the specified message box.
-        /// </summary>
-        /// <param name="owner">The owner.</param>
-        /// <param name="text">The text.</param>
-        /// <param name="caption">The caption.</param>
-        /// <param name="buttons">The buttons.</param>
-        /// <param name="icon">The icon.</param>
-        /// <param name="defaultButton">The default button.</param>
-        /// <returns>The dialog result.</returns>
         public static DialogResult Show(IWin32Window owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton)
         {
             return FlexibleMessageBoxForm.Show(owner, text, caption, buttons, icon, defaultButton);
@@ -244,24 +161,11 @@ namespace GBAMusicStudio.UI
         #endregion
 
         #region Internal form class
-
-        /// <summary>
-        /// The form to show the customized message box.
-        /// It is defined as an internal class to keep the public interface of the FlexibleMessageBox clean.
-        /// </summary>
-        class FlexibleMessageBoxForm : Form
+        
+        class FlexibleMessageBoxForm : ThemedForm
         {
-            #region Form-Designer generated code
+            IContainer components = null;
 
-            /// <summary>
-            /// Erforderliche Designervariable.
-            /// </summary>
-            private System.ComponentModel.IContainer components = null;
-
-            /// <summary>
-            /// Verwendete Ressourcen bereinigen.
-            /// </summary>
-            /// <param name="disposing">True, wenn verwaltete Ressourcen gelöscht werden sollen; andernfalls False.</param>
             protected override void Dispose(bool disposing)
             {
                 if (disposing && (components != null))
@@ -270,35 +174,30 @@ namespace GBAMusicStudio.UI
                 }
                 base.Dispose(disposing);
             }
-
-            /// <summary>
-            /// Erforderliche Methode für die Designerunterstützung.
-            /// Der Inhalt der Methode darf nicht mit dem Code-Editor geändert werden.
-            /// </summary>
-            private void InitializeComponent()
+            void InitializeComponent()
             {
-                this.components = new System.ComponentModel.Container();
-                this.button1 = new System.Windows.Forms.Button();
-                this.richTextBoxMessage = new System.Windows.Forms.RichTextBox();
-                this.FlexibleMessageBoxFormBindingSource = new System.Windows.Forms.BindingSource(this.components);
-                this.panel1 = new System.Windows.Forms.Panel();
-                this.pictureBoxForIcon = new System.Windows.Forms.PictureBox();
-                this.button2 = new System.Windows.Forms.Button();
-                this.button3 = new System.Windows.Forms.Button();
-                ((System.ComponentModel.ISupportInitialize)(this.FlexibleMessageBoxFormBindingSource)).BeginInit();
+                this.components = new Container();
+                this.button1 = new ThemedButton();
+                this.richTextBoxMessage = new ThemedRichTextBox();
+                this.FlexibleMessageBoxFormBindingSource = new BindingSource(this.components);
+                this.panel1 = new ThemedPanel();
+                this.pictureBoxForIcon = new PictureBox();
+                this.button2 = new ThemedButton();
+                this.button3 = new ThemedButton();
+                ((ISupportInitialize)(this.FlexibleMessageBoxFormBindingSource)).BeginInit();
                 this.panel1.SuspendLayout();
-                ((System.ComponentModel.ISupportInitialize)(this.pictureBoxForIcon)).BeginInit();
+                ((ISupportInitialize)(this.pictureBoxForIcon)).BeginInit();
                 this.SuspendLayout();
                 // 
                 // button1
                 // 
-                this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+                this.button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
                 this.button1.AutoSize = true;
-                this.button1.DialogResult = System.Windows.Forms.DialogResult.OK;
-                this.button1.Location = new System.Drawing.Point(11, 67);
-                this.button1.MinimumSize = new System.Drawing.Size(0, 24);
+                this.button1.DialogResult = DialogResult.OK;
+                this.button1.Location = new Point(11, 67);
+                this.button1.MinimumSize = new Size(0, 24);
                 this.button1.Name = "button1";
-                this.button1.Size = new System.Drawing.Size(75, 24);
+                this.button1.Size = new Size(75, 24);
                 this.button1.TabIndex = 2;
                 this.button1.Text = "OK";
                 this.button1.UseVisualStyleBackColor = true;
@@ -306,54 +205,52 @@ namespace GBAMusicStudio.UI
                 // 
                 // richTextBoxMessage
                 // 
-                this.richTextBoxMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                | System.Windows.Forms.AnchorStyles.Left)
-                | System.Windows.Forms.AnchorStyles.Right)));
-                this.richTextBoxMessage.BackColor = System.Drawing.Color.White;
-                this.richTextBoxMessage.BorderStyle = System.Windows.Forms.BorderStyle.None;
-                this.richTextBoxMessage.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.FlexibleMessageBoxFormBindingSource, "MessageText", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-                this.richTextBoxMessage.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-                this.richTextBoxMessage.Location = new System.Drawing.Point(50, 26);
-                this.richTextBoxMessage.Margin = new System.Windows.Forms.Padding(0);
+                this.richTextBoxMessage.Anchor = ((AnchorStyles)((((AnchorStyles.Top | AnchorStyles.Bottom)
+                | AnchorStyles.Left)
+                | AnchorStyles.Right)));
+                this.richTextBoxMessage.BorderStyle = BorderStyle.None;
+                this.richTextBoxMessage.DataBindings.Add(new Binding("Text", this.FlexibleMessageBoxFormBindingSource, "MessageText", true, DataSourceUpdateMode.OnPropertyChanged));
+                this.richTextBoxMessage.Font = new Font(Theme.Font.FontFamily, 9);
+                this.richTextBoxMessage.Location = new Point(50, 26);
+                this.richTextBoxMessage.Margin = new Padding(0);
                 this.richTextBoxMessage.Name = "richTextBoxMessage";
                 this.richTextBoxMessage.ReadOnly = true;
-                this.richTextBoxMessage.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-                this.richTextBoxMessage.Size = new System.Drawing.Size(200, 20);
+                this.richTextBoxMessage.ScrollBars = RichTextBoxScrollBars.Vertical;
+                this.richTextBoxMessage.Size = new Size(200, 20);
                 this.richTextBoxMessage.TabIndex = 0;
                 this.richTextBoxMessage.TabStop = false;
                 this.richTextBoxMessage.Text = "<Message>";
-                this.richTextBoxMessage.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.LinkClicked);
+                this.richTextBoxMessage.LinkClicked += new LinkClickedEventHandler(this.LinkClicked);
                 // 
                 // panel1
                 // 
-                this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                | System.Windows.Forms.AnchorStyles.Left)
-                | System.Windows.Forms.AnchorStyles.Right)));
-                this.panel1.BackColor = System.Drawing.Color.White;
+                this.panel1.Anchor = ((AnchorStyles)((((AnchorStyles.Top | AnchorStyles.Bottom)
+                | AnchorStyles.Left)
+                | AnchorStyles.Right)));
                 this.panel1.Controls.Add(this.pictureBoxForIcon);
                 this.panel1.Controls.Add(this.richTextBoxMessage);
-                this.panel1.Location = new System.Drawing.Point(-3, -4);
+                this.panel1.Location = new Point(-3, -4);
                 this.panel1.Name = "panel1";
-                this.panel1.Size = new System.Drawing.Size(268, 59);
+                this.panel1.Size = new Size(268, 59);
                 this.panel1.TabIndex = 1;
                 // 
                 // pictureBoxForIcon
                 // 
-                this.pictureBoxForIcon.BackColor = System.Drawing.Color.Transparent;
-                this.pictureBoxForIcon.Location = new System.Drawing.Point(15, 19);
+                this.pictureBoxForIcon.BackColor = Color.Transparent;
+                this.pictureBoxForIcon.Location = new Point(15, 19);
                 this.pictureBoxForIcon.Name = "pictureBoxForIcon";
-                this.pictureBoxForIcon.Size = new System.Drawing.Size(32, 32);
+                this.pictureBoxForIcon.Size = new Size(32, 32);
                 this.pictureBoxForIcon.TabIndex = 8;
                 this.pictureBoxForIcon.TabStop = false;
                 // 
                 // button2
                 // 
-                this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-                this.button2.DialogResult = System.Windows.Forms.DialogResult.OK;
-                this.button2.Location = new System.Drawing.Point(92, 67);
-                this.button2.MinimumSize = new System.Drawing.Size(0, 24);
+                this.button2.Anchor = ((AnchorStyles)((AnchorStyles.Bottom | AnchorStyles.Right)));
+                this.button2.DialogResult = DialogResult.OK;
+                this.button2.Location = new Point(92, 67);
+                this.button2.MinimumSize = new Size(0, 24);
                 this.button2.Name = "button2";
-                this.button2.Size = new System.Drawing.Size(75, 24);
+                this.button2.Size = new Size(75, 24);
                 this.button2.TabIndex = 3;
                 this.button2.Text = "OK";
                 this.button2.UseVisualStyleBackColor = true;
@@ -361,13 +258,13 @@ namespace GBAMusicStudio.UI
                 // 
                 // button3
                 // 
-                this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+                this.button3.Anchor = ((AnchorStyles)((AnchorStyles.Bottom | AnchorStyles.Right)));
                 this.button3.AutoSize = true;
-                this.button3.DialogResult = System.Windows.Forms.DialogResult.OK;
-                this.button3.Location = new System.Drawing.Point(173, 67);
-                this.button3.MinimumSize = new System.Drawing.Size(0, 24);
+                this.button3.DialogResult = DialogResult.OK;
+                this.button3.Location = new Point(173, 67);
+                this.button3.MinimumSize = new Size(0, 24);
                 this.button3.Name = "button3";
-                this.button3.Size = new System.Drawing.Size(75, 24);
+                this.button3.Size = new Size(75, 24);
                 this.button3.TabIndex = 0;
                 this.button3.Text = "OK";
                 this.button3.UseVisualStyleBackColor = true;
@@ -375,45 +272,41 @@ namespace GBAMusicStudio.UI
                 // 
                 // FlexibleMessageBoxForm
                 // 
-                this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-                this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-                this.ClientSize = new System.Drawing.Size(260, 102);
+                this.AutoScaleDimensions = new SizeF(6F, 13F);
+                this.AutoScaleMode = AutoScaleMode.Font;
+                this.ClientSize = new Size(260, 102);
                 this.Controls.Add(this.button3);
                 this.Controls.Add(this.button2);
                 this.Controls.Add(this.panel1);
                 this.Controls.Add(this.button1);
-                this.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.FlexibleMessageBoxFormBindingSource, "CaptionText", true));
+                this.DataBindings.Add(new Binding("Text", this.FlexibleMessageBoxFormBindingSource, "CaptionText", true));
                 this.Icon = GBAMusicStudio.Properties.Resources.Icon;
                 this.MaximizeBox = false;
                 this.MinimizeBox = false;
-                this.MinimumSize = new System.Drawing.Size(276, 140);
+                this.MinimumSize = new Size(276, 140);
                 this.Name = "FlexibleMessageBoxForm";
-                this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
-                this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+                this.SizeGripStyle = SizeGripStyle.Show;
+                this.StartPosition = FormStartPosition.CenterParent;
                 this.Text = "<Caption>";
-                this.Shown += new System.EventHandler(this.FlexibleMessageBoxForm_Shown);
-                ((System.ComponentModel.ISupportInitialize)(this.FlexibleMessageBoxFormBindingSource)).EndInit();
+                this.Shown += new EventHandler(this.FlexibleMessageBoxForm_Shown);
+                ((ISupportInitialize)(this.FlexibleMessageBoxFormBindingSource)).EndInit();
                 this.panel1.ResumeLayout(false);
-                ((System.ComponentModel.ISupportInitialize)(this.pictureBoxForIcon)).EndInit();
+                ((ISupportInitialize)(this.pictureBoxForIcon)).EndInit();
                 this.ResumeLayout(false);
                 this.PerformLayout();
             }
 
-            private System.Windows.Forms.Button button1;
-            private System.Windows.Forms.BindingSource FlexibleMessageBoxFormBindingSource;
-            private System.Windows.Forms.RichTextBox richTextBoxMessage;
-            private System.Windows.Forms.Panel panel1;
-            private System.Windows.Forms.PictureBox pictureBoxForIcon;
-            private System.Windows.Forms.Button button2;
-            private System.Windows.Forms.Button button3;
-
-            #endregion
+            ThemedButton button1, button2, button3;
+            private BindingSource FlexibleMessageBoxFormBindingSource;
+            ThemedRichTextBox richTextBoxMessage;
+            ThemedPanel panel1;
+            private PictureBox pictureBoxForIcon;
 
             #region Private constants
 
             //These separators are used for the "copy to clipboard" standard operation, triggered by Ctrl + C (behavior and clipboard format is like in a standard MessageBox)
-            private static readonly String STANDARD_MESSAGEBOX_SEPARATOR_LINES = "---------------------------\n";
-            private static readonly String STANDARD_MESSAGEBOX_SEPARATOR_SPACES = "   ";
+            static readonly String STANDARD_MESSAGEBOX_SEPARATOR_LINES = "---------------------------\n";
+            static readonly String STANDARD_MESSAGEBOX_SEPARATOR_SPACES = "   ";
 
             //These are the possible buttons (in a standard MessageBox)
             private enum ButtonID { OK = 0, CANCEL, YES, NO, ABORT, RETRY, IGNORE };
@@ -421,26 +314,23 @@ namespace GBAMusicStudio.UI
             //These are the buttons texts for different languages. 
             //If you want to add a new language, add it here and in the GetButtonText-Function
             private enum TwoLetterISOLanguageID { en, de, es, it };
-            private static readonly String[] BUTTON_TEXTS_ENGLISH_EN = { "OK", "Cancel", "&Yes", "&No", "&Abort", "&Retry", "&Ignore" }; //Note: This is also the fallback language
-            private static readonly String[] BUTTON_TEXTS_GERMAN_DE = { "OK", "Abbrechen", "&Ja", "&Nein", "&Abbrechen", "&Wiederholen", "&Ignorieren" };
-            private static readonly String[] BUTTON_TEXTS_SPANISH_ES = { "Aceptar", "Cancelar", "&Sí", "&No", "&Abortar", "&Reintentar", "&Ignorar" };
-            private static readonly String[] BUTTON_TEXTS_ITALIAN_IT = { "OK", "Annulla", "&Sì", "&No", "&Interrompi", "&Riprova", "&Ignora" };
+            static readonly String[] BUTTON_TEXTS_ENGLISH_EN = { "OK", "Cancel", "&Yes", "&No", "&Abort", "&Retry", "&Ignore" }; //Note: This is also the fallback language
+            static readonly String[] BUTTON_TEXTS_GERMAN_DE = { "OK", "Abbrechen", "&Ja", "&Nein", "&Abbrechen", "&Wiederholen", "&Ignorieren" };
+            static readonly String[] BUTTON_TEXTS_SPANISH_ES = { "Aceptar", "Cancelar", "&Sí", "&No", "&Abortar", "&Reintentar", "&Ignorar" };
+            static readonly String[] BUTTON_TEXTS_ITALIAN_IT = { "OK", "Annulla", "&Sì", "&No", "&Interrompi", "&Riprova", "&Ignora" };
 
             #endregion
 
             #region Private members
 
-            private MessageBoxDefaultButton defaultButton;
-            private int visibleButtonsCount;
-            private readonly TwoLetterISOLanguageID languageID = TwoLetterISOLanguageID.en;
+            MessageBoxDefaultButton defaultButton;
+            int visibleButtonsCount;
+            readonly TwoLetterISOLanguageID languageID = TwoLetterISOLanguageID.en;
 
             #endregion
 
             #region Private constructor
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="FlexibleMessageBoxForm"/> class.
-            /// </summary>
+            
             private FlexibleMessageBoxForm()
             {
                 InitializeComponent();
@@ -456,12 +346,7 @@ namespace GBAMusicStudio.UI
 
             #region Private helper functions
 
-            /// <summary>
-            /// Gets the string rows.
-            /// </summary>
-            /// <param name="message">The message.</param>
-            /// <returns>The string rows as 1-dimensional array</returns>
-            private static string[] GetStringRows(string message)
+            static string[] GetStringRows(string message)
             {
                 if (string.IsNullOrEmpty(message)) return null;
 
@@ -469,13 +354,7 @@ namespace GBAMusicStudio.UI
                 return messageRows;
             }
 
-            /// <summary>
-            /// Gets the button text for the CurrentUICulture language.
-            /// Note: The fallback language is English
-            /// </summary>
-            /// <param name="buttonID">The ID of the button.</param>
-            /// <returns>The button text</returns>
-            private string GetButtonText(ButtonID buttonID)
+            string GetButtonText(ButtonID buttonID)
             {
                 var buttonTextArrayIndex = Convert.ToInt32(buttonID);
 
@@ -489,15 +368,7 @@ namespace GBAMusicStudio.UI
                 }
             }
 
-            /// <summary>
-            /// Ensure the given working area factor in the range of  0.2 - 1.0 where: 
-            /// 
-            /// 0.2 means:  20 percent of the working area height or width.
-            /// 1.0 means:  100 percent of the working area height or width.
-            /// </summary>
-            /// <param name="workingAreaFactor">The given working area factor.</param>
-            /// <returns>The corrected given working area factor.</returns>
-            private static double GetCorrectedWorkingAreaFactor(double workingAreaFactor)
+            static double GetCorrectedWorkingAreaFactor(double workingAreaFactor)
             {
                 const double MIN_FACTOR = 0.2;
                 const double MAX_FACTOR = 1.0;
@@ -508,13 +379,7 @@ namespace GBAMusicStudio.UI
                 return workingAreaFactor;
             }
 
-            /// <summary>
-            /// Set the dialogs start position when given. 
-            /// Otherwise center the dialog on the current screen.
-            /// </summary>
-            /// <param name="flexibleMessageBoxForm">The FlexibleMessageBox dialog.</param>
-            /// <param name="owner">The owner.</param>
-            private static void SetDialogStartPosition(FlexibleMessageBoxForm flexibleMessageBoxForm, IWin32Window owner)
+            static void SetDialogStartPosition(FlexibleMessageBoxForm flexibleMessageBoxForm, IWin32Window owner)
             {
                 //If no owner given: Center on current screen
                 if (owner == null)
@@ -525,15 +390,8 @@ namespace GBAMusicStudio.UI
                     flexibleMessageBoxForm.Top = screen.Bounds.Top + screen.Bounds.Height / 2 - flexibleMessageBoxForm.Height / 2;
                 }
             }
-
-            /// <summary>
-            /// Calculate the dialogs start size (Try to auto-size width to show longest text row).
-            /// Also set the maximum dialog size. 
-            /// </summary>
-            /// <param name="flexibleMessageBoxForm">The FlexibleMessageBox dialog.</param>
-            /// <param name="text">The text (the longest text row is used to calculate the dialog width).</param>
-            /// <param name="text">The caption (this can also affect the dialog width).</param>
-            private static void SetDialogSizes(FlexibleMessageBoxForm flexibleMessageBoxForm, string text, string caption)
+            
+            static void SetDialogSizes(FlexibleMessageBoxForm flexibleMessageBoxForm, string text, string caption)
             {
                 //First set the bounds for the maximum dialog size
                 flexibleMessageBoxForm.MaximumSize = new Size(Convert.ToInt32(SystemInformation.WorkingArea.Width * FlexibleMessageBoxForm.GetCorrectedWorkingAreaFactor(MAX_WIDTH_FACTOR)),
@@ -560,14 +418,8 @@ namespace GBAMusicStudio.UI
                 flexibleMessageBoxForm.Size = new Size(textWidth + marginWidth,
                                                        textHeight + marginHeight);
             }
-
-            /// <summary>
-            /// Set the dialogs icon. 
-            /// When no icon is used: Correct placement and width of rich text box.
-            /// </summary>
-            /// <param name="flexibleMessageBoxForm">The FlexibleMessageBox dialog.</param>
-            /// <param name="icon">The MessageBoxIcon.</param>
-            private static void SetDialogIcon(FlexibleMessageBoxForm flexibleMessageBoxForm, MessageBoxIcon icon)
+            
+            static void SetDialogIcon(FlexibleMessageBoxForm flexibleMessageBoxForm, MessageBoxIcon icon)
             {
                 switch (icon)
                 {
@@ -591,15 +443,8 @@ namespace GBAMusicStudio.UI
                         break;
                 }
             }
-
-            /// <summary>
-            /// Set dialog buttons visibilities and texts. 
-            /// Also set a default button.
-            /// </summary>
-            /// <param name="flexibleMessageBoxForm">The FlexibleMessageBox dialog.</param>
-            /// <param name="buttons">The buttons.</param>
-            /// <param name="defaultButton">The default button.</param>
-            private static void SetDialogButtons(FlexibleMessageBoxForm flexibleMessageBoxForm, MessageBoxButtons buttons, MessageBoxDefaultButton defaultButton)
+            
+            static void SetDialogButtons(FlexibleMessageBoxForm flexibleMessageBoxForm, MessageBoxButtons buttons, MessageBoxDefaultButton defaultButton)
             {
                 //Set the buttons visibilities and texts
                 switch (buttons)
@@ -701,12 +546,7 @@ namespace GBAMusicStudio.UI
 
             #region Private event handlers
 
-            /// <summary>
-            /// Handles the Shown event of the FlexibleMessageBoxForm control.
-            /// </summary>
-            /// <param name="sender">The source of the event.</param>
-            /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-            private void FlexibleMessageBoxForm_Shown(object sender, EventArgs e)
+            void FlexibleMessageBoxForm_Shown(object sender, EventArgs e)
             {
                 int buttonIndexToFocus = 1;
                 Button buttonToFocus;
@@ -743,13 +583,8 @@ namespace GBAMusicStudio.UI
 
                 buttonToFocus.Focus();
             }
-
-            /// <summary>
-            /// Handles the LinkClicked event of the richTextBoxMessage control.
-            /// </summary>
-            /// <param name="sender">The source of the event.</param>
-            /// <param name="e">The <see cref="System.Windows.Forms.LinkClickedEventArgs"/> instance containing the event data.</param>
-            private void LinkClicked(object sender, LinkClickedEventArgs e)
+            
+            void LinkClicked(object sender, LinkClickedEventArgs e)
             {
                 try
                 {
@@ -766,12 +601,7 @@ namespace GBAMusicStudio.UI
                     Cursor.Current = Cursors.Default;
                 }
             }
-
-            /// <summary>
-            /// Handles the KeyUp event of the richTextBoxMessage control.
-            /// </summary>
-            /// <param name="sender">The source of the event.</param>
-            /// <param name="e">The <see cref="System.Windows.Forms.KeyEventArgs"/> instance containing the event data.</param>
+            
             void FlexibleMessageBoxForm_KeyUp(object sender, KeyEventArgs e)
             {
                 //Handle standard key strikes for clipboard copy: "Ctrl + C" and "Ctrl + Insert"
@@ -799,30 +629,13 @@ namespace GBAMusicStudio.UI
 
             #region Properties (only used for binding)
 
-            /// <summary>
-            /// The text that is been used for the heading.
-            /// </summary>
-            public string CaptionText { get; set; }
-
-            /// <summary>
-            /// The text that is been used in the FlexibleMessageBoxForm.
-            /// </summary>
-            public string MessageText { get; set; }
+            public string CaptionText;
+            public string MessageText;
 
             #endregion
 
             #region Public show function
-
-            /// <summary>
-            /// Shows the specified message box.
-            /// </summary>
-            /// <param name="owner">The owner.</param>
-            /// <param name="text">The text.</param>
-            /// <param name="caption">The caption.</param>
-            /// <param name="buttons">The buttons.</param>
-            /// <param name="icon">The icon.</param>
-            /// <param name="defaultButton">The default button.</param>
-            /// <returns>The dialog result.</returns>
+            
             public static DialogResult Show(IWin32Window owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton)
             {
                 //Create a new instance of the FlexibleMessageBox form

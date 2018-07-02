@@ -1,5 +1,4 @@
 ﻿using GBAMusicStudio.Core;
-using GBAMusicStudio.Properties;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,30 +9,30 @@ using System.Windows.Forms;
 namespace GBAMusicStudio.UI
 {
     [System.ComponentModel.DesignerCategory("")]
-    internal class MIDIConverterDialog : Form
+    internal class MIDIConverterDialog : ThemedForm
     {
         Assembler assembler;
         string midiFileName;
-        readonly Button previewButton;
+        readonly ThemedButton previewButton;
         readonly ValueTextBox offsetValueBox;
-        readonly Label sizeLabel;
+        readonly ThemedLabel sizeLabel;
 
         internal MIDIConverterDialog()
         {
-            var openButton = new Button
+            var openButton = new ThemedButton
             {
                 Location = new Point(150, 0),
                 Text = "Open MIDI"
             };
             openButton.Click += OpenMIDI;
-            previewButton = new Button
+            previewButton = new ThemedButton
             {
                 Enabled = false,
                 Location = new Point(150, 50),
                 Text = "Preview Song"
             };
             previewButton.Click += PreviewASM;
-            sizeLabel = new Label
+            sizeLabel = new ThemedLabel
             {
                 Location = new Point(0, 100),
                 Size = new Size(150, 23)
@@ -46,7 +45,6 @@ namespace GBAMusicStudio.UI
 
             Controls.AddRange(new Control[] { openButton, previewButton, sizeLabel, offsetValueBox });
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Icon = Resources.Icon;
             MaximizeBox = false;
             Size = new Size(600, 400);
             Text = "GBA Music Studio ― MIDI Converter";

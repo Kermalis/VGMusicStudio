@@ -2,7 +2,7 @@
 
 A tool that is designed to be an updated Sappy.
 
-![Preview](https://i.imgur.com/TuqCjN1.gif)
+![Preview](https://i.imgur.com/MOBHq03.gif)
 
 ## Some Advantages Over Sappy
 * Pause button & song position changing

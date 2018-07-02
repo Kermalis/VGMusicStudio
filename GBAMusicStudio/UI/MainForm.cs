@@ -29,12 +29,12 @@ namespace GBAMusicStudio.UI
             dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem;
         Timer timer;
         readonly object timerLock = new object();
-        NumericUpDown songNumerical, tableNumerical;
-        Button playButton, stopButton, pauseButton;
-        Label creatorLabel, gameLabel, codeLabel;
+        ThemedNumeric songNumerical, tableNumerical;
+        ThemedButton playButton, stopButton, pauseButton;
+        ThemedLabel creatorLabel, gameLabel, codeLabel;
         SplitContainer splitContainer;
         PianoControl piano;
-        TrackBar positionBar, volumeBar;
+        ColorSlider positionBar, volumeBar;
         TrackInfoControl trackInfo;
         ImageComboBox.ImageComboBox songsComboBox;
 
@@ -51,60 +51,60 @@ namespace GBAMusicStudio.UI
             components = new Container();
 
             // Main Menu
-            openROMToolStripMenuItem = new ToolStripMenuItem() { Text = "Open ROM", ShortcutKeys = Keys.Control | Keys.O };
+            openROMToolStripMenuItem = new ToolStripMenuItem { Text = "Open ROM", ShortcutKeys = Keys.Control | Keys.O };
             openROMToolStripMenuItem.Click += OpenROM;
 
-            openMIDIToolStripMenuItem = new ToolStripMenuItem() { Text = "Open MIDI", Enabled = false, ShortcutKeys = Keys.Control | Keys.M };
+            openMIDIToolStripMenuItem = new ToolStripMenuItem { Text = "Open MIDI", Enabled = false, ShortcutKeys = Keys.Control | Keys.M };
             openMIDIToolStripMenuItem.Click += OpenMIDIConverter;
 
-            openASMToolStripMenuItem = new ToolStripMenuItem() { Text = "Open ASM", Enabled = false, ShortcutKeys = Keys.Control | Keys.Shift | Keys.M };
+            openASMToolStripMenuItem = new ToolStripMenuItem { Text = "Open ASM", Enabled = false, ShortcutKeys = Keys.Control | Keys.Shift | Keys.M };
             openASMToolStripMenuItem.Click += OpenAssembler;
 
-            configToolStripMenuItem = new ToolStripMenuItem() { Text = "Refresh Config", ShortcutKeys = Keys.Control | Keys.R };
+            configToolStripMenuItem = new ToolStripMenuItem { Text = "Refresh Config", ShortcutKeys = Keys.Control | Keys.R };
             configToolStripMenuItem.Click += ReloadConfig;
 
-            fileToolStripMenuItem = new ToolStripMenuItem() { Text = "File" };
+            fileToolStripMenuItem = new ToolStripMenuItem { Text = "File" };
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem });
 
 
-            teToolStripMenuItem = new ToolStripMenuItem() { Text = "Track Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
+            teToolStripMenuItem = new ToolStripMenuItem { Text = "Track Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
             teToolStripMenuItem.Click += OpenTrackEditor;
 
-            eSf2ToolStripMenuItem = new ToolStripMenuItem() { Text = "Export to SF2", Enabled = false };
+            eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
             eSf2ToolStripMenuItem.Click += ExportSF2;
 
-            dataToolStripMenuItem = new ToolStripMenuItem() { Text = "Data" };
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem });
+
+            dataToolStripMenuItem = new ToolStripMenuItem { Text = "Data" };
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem, saveASMToolStripMenuItem });
 
 
-            mainMenu = new MenuStrip() { Size = new Size(iWidth, 24) };
+            mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
             mainMenu.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, dataToolStripMenuItem });
 
             // Buttons
-            playButton = new Button() { ForeColor = Color.DarkGreen, Location = new Point(3, 3), Text = "Play" };
+            playButton = new ThemedButton { ForeColor = Color.MediumSpringGreen, Location = new Point(5, 3), Text = "Play" };
             playButton.Click += Play;
-            pauseButton = new Button() { ForeColor = Color.DarkSlateBlue, Location = new Point(84, 3), Text = "Pause" };
+            pauseButton = new ThemedButton { ForeColor = Color.DeepSkyBlue, Location = new Point(85, 3), Text = "Pause" };
             pauseButton.Click += Pause;
-            stopButton = new Button() { ForeColor = Color.MediumVioletRed, Location = new Point(164, 3), Text = "Stop" };
+            stopButton = new ThemedButton { ForeColor = Color.MediumVioletRed, Location = new Point(166, 3), Text = "Stop" };
             stopButton.Click += Stop;
 
             playButton.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
-            playButton.Size = pauseButton.Size = stopButton.Size = new Size(75, 23);
-            playButton.UseVisualStyleBackColor = pauseButton.UseVisualStyleBackColor = stopButton.UseVisualStyleBackColor = true;
+            playButton.Size = stopButton.Size = new Size(75, 23);
+            pauseButton.Size = new Size(76, 23);
 
             // Numericals
-            songNumerical = new NumericUpDown() { Enabled = false, Location = new Point(246, 4), Maximum = 1000 };
-            tableNumerical = new NumericUpDown() { Location = new Point(246, 35), Maximum = 0, Visible = false };
+            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Maximum = 1000 };
+            tableNumerical = new ThemedNumeric { Location = new Point(246, 35), Maximum = 0, Visible = false };
 
             songNumerical.Size = tableNumerical.Size = new Size(45, 23);
-            songNumerical.TextAlign = tableNumerical.TextAlign = HorizontalAlignment.Center;
             songNumerical.ValueChanged += LoadSong;
             tableNumerical.ValueChanged += LoadSong;
 
             // Labels
-            creatorLabel = new Label() { Location = new Point(3, 42), Size = new Size(72, 13) };
-            gameLabel = new Label() { Location = new Point(3, 29), Size = new Size(66, 13) };
-            codeLabel = new Label() { Location = new Point(3, 55), Size = new Size(63, 13) };
+            creatorLabel = new ThemedLabel { Location = new Point(3, 43), Size = new Size(72, 13) };
+            gameLabel = new ThemedLabel { Location = new Point(3, 30), Size = new Size(66, 13) };
+            codeLabel = new ThemedLabel { Location = new Point(3, 56), Size = new Size(63, 13) };
 
             creatorLabel.AutoSize = gameLabel.AutoSize = codeLabel.AutoSize = true;
             creatorLabel.TextAlign = gameLabel.TextAlign = codeLabel.TextAlign = ContentAlignment.MiddleCenter;
@@ -114,29 +114,28 @@ namespace GBAMusicStudio.UI
             timer.Tick += UpdateUI;
 
             // Piano
-            piano = new PianoControl() { Anchor = AnchorStyles.Bottom, Location = new Point(0, 125 - 50 - 1), Size = new Size(iWidth, 50) };
+            piano = new PianoControl { Anchor = AnchorStyles.Bottom, Location = new Point(0, 125 - 50 - 1), Size = new Size(iWidth, 50) };
 
-            // Volume bar
+            // Volume bar & Position bar
             int sWidth = (int)(iWidth / sfWidth);
             int sX = iWidth - sWidth - 4;
-            positionBar = new TrackBar()
+            positionBar = new ColorSlider()
             {
-                Location = new Point(sX, 44),
+                Enabled = false,
+                Location = new Point(sX, 45),
                 Maximum = 0,
-                Size = new Size(sWidth, 27),
-                TickFrequency = 96
+                Size = new Size(sWidth, 27)
             };
             positionBar.MouseUp += SetPosition;
             positionBar.MouseDown += (o, e) => drag = true;
-            volumeBar = new TrackBar()
+            volumeBar = new ColorSlider()
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 LargeChange = 20,
-                Location = new Point(84, 44),
+                Location = new Point(83, 45),
                 Maximum = 100,
                 Size = new Size(155, 27),
-                SmallChange = 5,
-                TickFrequency = 10
+                SmallChange = 5
             };
             volumeBar.ValueChanged += (o, e) => SongPlayer.SetVolume(volumeBar.Value / (float)volumeBar.Maximum);
             volumeBar.Value = Config.Volume; // Update MusicPlayer volume
@@ -164,14 +163,13 @@ namespace GBAMusicStudio.UI
             trackInfo = new TrackInfoControl()
             {
                 Dock = DockStyle.Fill,
-                Font = new Font("Microsoft Tai Le", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0),
                 Size = new Size(iWidth, 690)
             };
 
             // Split container
             splitContainer = new SplitContainer()
             {
-                BackColor = Color.FromArgb(85, 50, 125),
+                BackColor = Theme.TitleBar,
                 Dock = DockStyle.Fill,
                 FixedPanel = FixedPanel.Panel1,
                 IsSplitterFixed = true,
@@ -313,7 +311,7 @@ namespace GBAMusicStudio.UI
         {
             trackInfo.DeleteData(); // Refresh track count
             positionBar.Maximum = SongPlayer.Song.NumTicks;
-            positionBar.LargeChange = positionBar.Maximum / 10;
+            positionBar.LargeChange = (uint)(positionBar.Maximum / 10);
             positionBar.SmallChange = positionBar.LargeChange / 4;
             if (trackEditor != null)
                 trackEditor.UpdateTracks();
@@ -336,7 +334,7 @@ namespace GBAMusicStudio.UI
         void Play(object sender, EventArgs e)
         {
             SongPlayer.Play();
-            pauseButton.Enabled = stopButton.Enabled = true;
+            positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = true;
             pauseButton.Text = "Pause";
             timer.Interval = (int)(1000f / Config.RefreshRate);
             timer.Start();
@@ -362,7 +360,7 @@ namespace GBAMusicStudio.UI
         void Stop(object sender, EventArgs e)
         {
             SongPlayer.Stop();
-            pauseButton.Enabled = stopButton.Enabled = false;
+            positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
             timer.Stop();
             System.Threading.Monitor.Enter(timerLock);
             ClearPianoNotes();
@@ -428,7 +426,7 @@ namespace GBAMusicStudio.UI
             int sX = splitContainer.Width - sWidth - 4;
             songsComboBox.Location = new Point(sX, 4);
             songsComboBox.Size = new Size(sWidth, 23);
-            positionBar.Location = new Point(sX, 44);
+            positionBar.Location = new Point(sX, 45);
             positionBar.Size = new Size(sWidth, 27);
 
             splitContainer.SplitterDistance = (int)((Height - 38) / spfHeight) - 24 - 1;

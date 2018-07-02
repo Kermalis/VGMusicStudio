@@ -17,8 +17,8 @@ namespace GBAMusicStudio.Core.M4A
     }
     internal class SongEvent
     {
-        internal uint Offset, AbsoluteTicks;
-        internal ICommand Command;
+        public uint Offset, AbsoluteTicks;
+        public ICommand Command;
 
         internal SongEvent(uint offset, ICommand command)
         {
