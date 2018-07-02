@@ -34,6 +34,13 @@ A tool that is designed to be an updated Sappy.
 * Fix UI checkboxes breaking randomly
 * Songtable length in config and expander
 * Default remap voice
+* Offset for event you're editing
+* Once an event is edited, call SongPlayer.SetPosition() to update the song
+* Put the event parameter as text in the parameter name label, so there is reference to the original value or in MODT/Note's cases, text representation
+* Double-clicking an event sets the song's position to that tick
+* Buttons in the taskbar like with most music players
+* Edit Pokémon Emerald playlist
+* Tempo numerical (it fits)
 
 ## Special Thanks To:
 * Ipatix
