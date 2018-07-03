@@ -45,6 +45,7 @@ A tool that is designed to be an updated Sappy.
 * Tempo numerical (it fits)
 * Fix events past a goto counting as higher ticks
 * Detachable piano
+* Running status in song disassembler
 
 ## Special Thanks To:
 * Ipatix
