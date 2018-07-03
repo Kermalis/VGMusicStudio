@@ -260,7 +260,7 @@ namespace GBAMusicStudio.UI
             }
             else
             {
-                var se = events[listView.SelectedIndices[0]];
+                var se = (SongEvent)listView.SelectedObject;
                 var ignore = typeof(ICommand).GetMembers();
                 var mi = se.Command.GetType().GetMembers().Where(m => !ignore.Any(a => m.Name == a.Name) && (m is FieldInfo || m is PropertyInfo)).ToArray();
                 for (int i = 0; i < 3; i++)
