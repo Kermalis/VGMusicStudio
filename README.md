@@ -9,10 +9,11 @@ A tool that is designed to be an updated Sappy.
 * You can play the in-game instruments with a MIDI-in keyboard
 * You can view and edit track events
 * You can import MIDI files without having to convert them yourself
-* You can save the voice tables to a SF2 soundfont file
+* You can save the voice tables to SF2 soundfont files
+* You can save songs to ASM S files
 * The UI scales to the desired window size
-* It is not intimidating to use
 * You can see representation of notes being played
+* It is not intimidating to use
 * Support for multiple song tables
 
 ## To Do (No particular order)
