@@ -43,6 +43,8 @@ A tool that is designed to be an updated Sappy.
 * Buttons in the taskbar like with most music players
 * Edit Pokémon Emerald playlist
 * Tempo numerical (it fits)
+* Fix events past a goto counting as higher ticks
+* Detachable piano
 
 ## Special Thanks To:
 * Ipatix

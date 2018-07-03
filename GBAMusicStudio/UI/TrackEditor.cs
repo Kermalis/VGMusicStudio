@@ -262,7 +262,7 @@ namespace GBAMusicStudio.UI
             {
                 var se = (SongEvent)listView.SelectedObject;
                 var ignore = typeof(ICommand).GetMembers();
-                var mi = se.Command.GetType().GetMembers().Where(m => !ignore.Any(a => m.Name == a.Name) && (m is FieldInfo || m is PropertyInfo)).ToArray();
+                var mi = se.Command == null ? new MemberInfo[0] : se.Command.GetType().GetMembers().Where(m => !ignore.Any(a => m.Name == a.Name) && (m is FieldInfo || m is PropertyInfo)).ToArray();
                 for (int i = 0; i < 3; i++)
                 {
                     labels[i].Visible = args[i].Visible = i < mi.Length;
