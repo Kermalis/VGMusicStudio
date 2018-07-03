@@ -629,8 +629,8 @@ namespace GBAMusicStudio.UI
 
             #region Properties (only used for binding)
 
-            public string CaptionText;
-            public string MessageText;
+            public string CaptionText { get; set; }
+            public string MessageText { get; set; }
 
             #endregion
 
