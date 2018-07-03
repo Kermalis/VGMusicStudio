@@ -89,7 +89,7 @@ namespace GBAMusicStudio.Core.M4A
 
                 byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 127;
 
-                while (cmd != 0xB1 && cmd != 0xB2)
+                while (cmd != 0xB1)
                 {
                     uint off = reader.Position;
                     ICommand command = null;
@@ -119,6 +119,7 @@ namespace GBAMusicStudio.Core.M4A
                         reader.SetOffset(o);
                         if (peek1 >= 128) command = AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
                         else if (peek2 >= 128) command = AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        // TIE cannot have an added duration so it needs to stop here
                         else if (cmd == 0xCF || peek3 >= 128) command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
                         else command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
                     }
@@ -165,7 +166,7 @@ namespace GBAMusicStudio.Core.M4A
                             case 0xBA: command = new PriorityCommand { Priority = reader.ReadByte() }; break;
                             case 0xBB: command = new TempoCommand { Tempo = reader.ReadByte() }; break;
                             case 0xBC: command = new KeyShiftCommand { Shift = reader.ReadSByte() }; break;
-                                                                                                                   // Commands that work within running status:
+                            // Commands that work within running status:
                             case 0xBD: command = new VoiceCommand { Voice = reader.ReadByte() }; break;
                             case 0xBE: command = new VolumeCommand { Volume = reader.ReadSByte() }; break;
                             case 0xBF: command = new PanpotCommand { Panpot = (sbyte)(reader.ReadByte() - 0x40) }; break;
