@@ -26,7 +26,7 @@ namespace GBAMusicStudio.UI
         IContainer components;
         MenuStrip mainMenu;
         ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
-            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem;
+            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem;
         Timer timer;
         readonly object timerLock = new object();
         ThemedNumeric songNumerical, tableNumerical;
@@ -73,9 +73,11 @@ namespace GBAMusicStudio.UI
             eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
             eSf2ToolStripMenuItem.Click += ExportSF2;
 
+            eASMToolStripMenuItem = new ToolStripMenuItem { Text = "Export Song To ASM", Enabled = false };
+            eASMToolStripMenuItem.Click += ExportASM;
 
             dataToolStripMenuItem = new ToolStripMenuItem { Text = "Data" };
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem });
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem });
 
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
@@ -290,6 +292,21 @@ namespace GBAMusicStudio.UI
                 FlexibleMessageBox.Show(ex.Message, "Error Exporting SF2 File");
             }
         }
+        void ExportASM(object sender, EventArgs e)
+        {
+            var d = new SaveFileDialog { Title = "Export ASM File", Filter = "ASM file|*.s" };
+            if (d.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                SongPlayer.Song.SaveAsASM(d.FileName);
+                FlexibleMessageBox.Show($"Song saved to {d.FileName}.", Text);
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(ex.Message, "Error Exporting Song");
+            }
+        }
 
         void UpdateMenuInfo()
         {
@@ -304,7 +321,7 @@ namespace GBAMusicStudio.UI
             tableNumerical.Visible = game.SongTables.Length > 1;
 
             openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
-                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled =
+                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled =
                 songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
         void UpdateTrackInfo(bool play)

@@ -21,6 +21,7 @@ A tool that is designed to be an updated Sappy.
 * Add reverse playback
 * Add SquareWave sweeping
 * Add "note off with noise" for SquareWaves
+* Repeat command
 * Fix ADSR on PSG instruments
 * Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\]
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops

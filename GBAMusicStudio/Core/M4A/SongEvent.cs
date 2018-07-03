@@ -11,8 +11,6 @@ namespace GBAMusicStudio.Core.M4A
     interface ICommand
     {
         string Name { get; }
-        string M4AName { get; }
-
         string Arguments { get; }
     }
     internal class SongEvent
@@ -46,161 +44,176 @@ namespace GBAMusicStudio.Core.M4A
             76, 78, 78, 80, 80, 80, 80, 84, 84, 84, 84, 88, 88, 90, 90,
             92, 92, 92, 92, 96, 96, 96, 96
         };
+
+        static readonly string[] m4aNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
+        static readonly string[] notes = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+        public static string NoteName(sbyte note, bool m4aStyle = false)
+        {
+            if (note < 0)
+                return note.ToString();
+            var style = m4aStyle ? m4aNotes : notes;
+            return style[note % 12] + ((note / 12) - 2);
+        }
+
+        internal static string CenterValueString(sbyte value)
+        {
+            return string.Format("c_v{0}{1}", value >= 0 ? "+" : "", value);
+        }
     }
 
     #region Commands
 
     internal class TempoCommand : ICommand
     {
+        public string Name => "Tempo";
+
         public byte Tempo;
 
-        public string Name => "Tempo";
-        public string M4AName => "TEMPO";
         public string Arguments => (Tempo * 2).ToString();
     }
     internal class RestCommand : ICommand
     {
+        public string Name => "Rest";
+
         sbyte rest;
         public sbyte Rest { get => rest; set => rest = value.Clamp((sbyte)0, (sbyte)96); }
 
-        public string Name => "Rest";
-        public string M4AName => "W" + SongEvent.RestToCMD[Rest];
         public string Arguments => Rest.ToString();
     }
     internal class NoteCommand : ICommand
     {
+        public string Name => "Note On";
+
         sbyte note, vel, dur;
         public sbyte Note { get => note; set => note = value.Clamp((sbyte)0, (sbyte)127); }
         public sbyte Velocity { get => vel; set => vel = value.Clamp((sbyte)0, (sbyte)127); }
         public sbyte Duration { get => dur; set => dur = value.Clamp((sbyte)-1, (sbyte)99); }
 
-        public string Name => dur == -1 ? "TIE" : "Note On";
-        public string M4AName => dur == -1 ? "TIE" : "N" + SongEvent.RestToCMD[dur];
-        public string Arguments => $"{Utils.NoteName(note)} {vel} {dur}";
+        public string Arguments => $"{SongEvent.NoteName(note)} {vel} {dur}";
     }
     internal class EndOfTieCommand : ICommand
     {
+        public string Name => "End Of Tie";
+
         sbyte note;
         public sbyte Note { get => note; set => note = value.Clamp((sbyte)-1, (sbyte)127); }
 
-        public string Name => "End Of Tie";
-        public string M4AName => "EOT";
-        public string Arguments => Utils.NoteName(note);
+        public string Arguments => SongEvent.NoteName(note);
     }
     internal class VoiceCommand : ICommand
     {
+        public string Name => "Voice";
+
         public byte Voice;
 
-        public string Name => "Voice";
-        public string M4AName => "VOICE";
         public string Arguments => Voice.ToString();
     }
     internal class VolumeCommand : ICommand
     {
+        public string Name => "Volume";
+
         sbyte vol;
         public sbyte Volume { get => vol; set => vol = value.Clamp((sbyte)0, (sbyte)127); }
 
-        public string Name => "Volume";
-        public string M4AName => "VOL";
         public string Arguments => vol.ToString();
     }
     internal class PanpotCommand : ICommand
     {
+        public string Name => "Panpot";
+
         sbyte pan;
         public sbyte Panpot { get => pan; set => pan = value.Clamp((sbyte)-64, (sbyte)63); }
 
-        public string Name => "Panpot";
-        public string M4AName => "PAN";
         public string Arguments => pan.ToString();
     }
     internal class BendCommand : ICommand
     {
+        public string Name => "Bend";
+
         sbyte bend;
         public sbyte Bend { get => bend; set => bend = value.Clamp((sbyte)-64, (sbyte)63); }
 
-        public string Name => "Bend";
-        public string M4AName => "BEND";
         public string Arguments => bend.ToString();
     }
     internal class TuneCommand : ICommand
     {
+        public string Name => "Fine Tuning";
+
         sbyte tune;
         public sbyte Tune { get => tune; set => tune = value.Clamp((sbyte)-64, (sbyte)63); }
 
-        public string Name => "Fine Tuning";
-        public string M4AName => "TUNE";
         public string Arguments => tune.ToString();
     }
     internal class BendRangeCommand : ICommand
     {
+        public string Name => "Bend Range";
+
         public byte Range;
 
-        public string Name => "Bend Range";
-        public string M4AName => "BENDR";
         public string Arguments => Range.ToString();
     }
     internal class LFOSpeedCommand : ICommand
     {
+        public string Name => "LFO Speed";
+
         public byte Speed;
 
-        public string Name => "LFO Speed";
-        public string M4AName => "LFOS";
         public string Arguments => Speed.ToString();
     }
     internal class LFODelayCommand : ICommand
     {
+        public string Name => "LFO Delay";
+
         public byte Delay;
 
-        public string Name => "LFO Delay";
-        public string M4AName => "LFODL";
         public string Arguments => Delay.ToString();
     }
     internal class ModDepthCommand : ICommand
     {
+        public string Name => "MOD Depth";
+
         public byte Depth;
 
-        public string Name => "MOD Depth";
-        public string M4AName => "MOD";
         public string Arguments => Depth.ToString();
     }
     internal class ModTypeCommand : ICommand
     {
+        public string Name => "MOD Type";
+
         MODT type;
         public byte Type { get => (byte)type; set => type = (MODT)value.Clamp((byte)MODT.Vibrate, (byte)MODT.Panpot); }
 
-        public string Name => "MOD Type";
-        public string M4AName => "MODT";
         public string Arguments => type.ToString();
     }
     internal class PriorityCommand : ICommand
     {
+        public string Name => "Priority";
+
         public byte Priority;
 
-        public string Name => "Priority";
-        public string M4AName => "PRIO";
         public string Arguments => Priority.ToString();
     }
     internal class KeyShiftCommand : ICommand
     {
+        public string Name => "Key Shift";
+
         public sbyte Shift;
 
-        public string Name => "Key Shift";
-        public string M4AName => "KEYSH";
         public string Arguments => Shift.ToString();
     }
     internal class GoToCommand : ICommand
     {
+        public string Name => "Go To";
+
         uint offset;
         public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
 
-        public string Name => "Go To";
-        public string M4AName => "GOTO";
         public string Arguments => $"0x{offset:X}";
     }
     internal class FinishCommand : ICommand
     {
         public string Name => "Finish";
-        public string M4AName => "FINE";
+
         public string Arguments => string.Empty;
     }
 
@@ -210,41 +223,41 @@ namespace GBAMusicStudio.Core.M4A
 
     internal class CallCommand : ICommand
     {
+        public string Name => "Call";
+
         uint offset;
         public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
 
-        public string Name => "Call";
-        public string M4AName => "PATT";
         public string Arguments => $"0x{offset:X}";
     }
     internal class ReturnCommand : ICommand
     {
         public string Name => "Return";
-        public string M4AName => "PEND";
+
         public string Arguments => string.Empty;
     }
     internal class RepeatCommand : ICommand
     {
+        public string Name => "Repeat";
+
         public byte Arg;
 
-        public string Name => "Repeat";
-        public string M4AName => "REPT";
         public string Arguments => Arg.ToString();
     }
     internal class MemoryAccessCommand : ICommand
     {
+        public string Name => "Memory Access";
+
         public byte Arg1, Arg2, Arg3;
 
-        public string Name => "Memory Access";
-        public string M4AName => "MEMACC";
         public string Arguments => $"{Arg1}, {Arg2}, {Arg3}";
     }
     internal class LibraryCommand : ICommand
     {
+        public string Name => "Library Call";
+
         public byte Arg1, Arg2;
 
-        public string Name => "Library Call";
-        public string M4AName => "XCMD";
         public string Arguments => $"{Arg1}, {Arg2}";
     }
 

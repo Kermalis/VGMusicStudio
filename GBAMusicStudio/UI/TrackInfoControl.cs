@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Core;
+using GBAMusicStudio.Core.M4A;
 using GBAMusicStudio.Util;
 using System;
 using System.ComponentModel;
@@ -228,7 +229,7 @@ namespace GBAMusicStudio.UI
                 e.Graphics.FillRectangle(lBrush, rect);
                 e.Graphics.DrawRectangle(pen, rect);
 
-                string theseNotes = string.Join(" ", notes[i].Select(n => Utils.NoteName(n)));
+                string theseNotes = string.Join(" ", notes[i].Select(n => SongEvent.NoteName(n)));
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? noNotes : theseNotes;
                 if (empty && previousNotes.Item1[i]++ < Config.RefreshRate * 10) theseNotes = previousNotes.Item2[i];

@@ -9,8 +9,10 @@ namespace GBAMusicStudio.Core.M4A
 {
     internal abstract class Song
     {
+        protected SongHeader _header;
+        internal int NumTracks => _header.NumTracks;
+
         internal List<SongEvent>[] Commands;
-        internal int NumTracks => Commands == null ? 0 : Commands.Length;
         int ticks = -1; // Cache the amount. Setting to -1 again will cause a refresh
         internal int NumTicks
         {
@@ -59,12 +61,158 @@ namespace GBAMusicStudio.Core.M4A
             }
         }
 
+        internal void SaveAsASM(string fileName)
+        {
+            if (NumTracks == 0)
+                throw new InvalidDataException("This song has no tracks.");
+            using (var file = new StreamWriter(fileName))
+            {
+                string label = Assembler.FixLabel(Path.GetFileNameWithoutExtension(fileName));
+                file.WriteLine("\t.include \"MPlayDef.s\"");
+                file.WriteLine();
+                file.WriteLine($"\t.equ\t{label}_grp, voicegroup000");
+                file.WriteLine($"\t.equ\t{label}_pri, 0");
+                file.WriteLine($"\t.equ\t{label}_rev, 0");
+                file.WriteLine($"\t.equ\t{label}_mvl, 127");
+                file.WriteLine($"\t.equ\t{label}_key, 0");
+                file.WriteLine($"\t.equ\t{label}_tbs, 1");
+                file.WriteLine($"\t.equ\t{label}_exg, 1");
+                file.WriteLine($"\t.equ\t{label}_cmp, 1");
+                file.WriteLine();
+                file.WriteLine("\t.section .rodata");
+                file.WriteLine($"\t.global\t{label}");
+                file.WriteLine("\t.align\t2");
+
+                for (int i = 0; i < Commands.Length; i++)
+                {
+                    int num = i + 1;
+                    file.WriteLine();
+                    file.WriteLine($"@**************** Track {num} ****************@");
+                    file.WriteLine();
+                    file.WriteLine($"{label}_{num}:");
+
+                    var offsets = Commands[i].Where(e => e.Command is CallCommand || e.Command is GoToCommand).Select(e => (uint)(((dynamic)e.Command).Offset)).Distinct();
+                    int jumps = 0;
+                    var labels = new Dictionary<uint, string>();
+                    foreach (uint o in offsets)
+                        labels.Add(o, $"{label}_{num}_{jumps++:D3}");
+                    int ticks = 0;
+                    bool displayed = false;
+                    foreach (var e in Commands[i])
+                    {
+                        var c = e.Command;
+
+                        if (!displayed && ticks % 96 == 0)
+                        {
+                            file.WriteLine($"@ {ticks / 96:D3}\t----------------------------------------");
+                            displayed = true;
+                        }
+                        if (offsets.Contains(e.Offset))
+                            file.WriteLine($"{labels[e.Offset]}:");
+
+                        file.Write("\t.byte\t");
+                        if (c is TempoCommand tempo)
+                            file.WriteLine($"TEMPO , {tempo.Tempo * 2}*{label}_tbs/2");
+                        else if (c is RestCommand rest)
+                        {
+                            sbyte amt = SongEvent.RestToCMD[rest.Rest];
+                            file.WriteLine($"W{amt:D2}");
+                            int rem = rest.Rest - amt;
+                            if (rem != 0)
+                                file.WriteLine($"\t.byte\tW{rem:D2}");
+                            ticks += rest.Rest; // TODO: Separate by 96 ticks
+                            displayed = false;
+                        }
+                        else if (c is NoteCommand note)
+                        {
+                            sbyte baseDur = note.Duration == -1 ? (sbyte)-1 : SongEvent.RestToCMD[note.Duration];
+                            int rem = note.Duration - baseDur;
+                            string name = note.Duration == -1 ? "TIE" : $"N{baseDur:D2}";
+                            string not = SongEvent.NoteName(note.Note, true);
+                            string vel = $"v{note.Velocity:D3}";
+
+                            if (note.Duration != -1 && rem != 0)
+                                file.WriteLine($"\t{name}   , {not} , {vel}, gtp{rem}");
+                            else
+                                file.WriteLine($"\t{name}   , {not} , {vel}");
+                        }
+                        else if (c is EndOfTieCommand eot)
+                        {
+                            if (eot.Note != -1)
+                                file.WriteLine("\tEOT");
+                            else
+                                file.WriteLine($"\tEOT   , {SongEvent.NoteName(eot.Note, true)}");
+                        }
+                        else if (c is VoiceCommand voice)
+                            file.WriteLine($"\tVOICE , {voice.Voice}");
+                        else if (c is VolumeCommand volume)
+                            file.WriteLine($"\tVOL   , {volume.Volume}*{label}_mvl/mxv");
+                        else if (c is PanpotCommand pan)
+                            file.WriteLine($"\tPAN   , {SongEvent.CenterValueString(pan.Panpot)}");
+                        else if (c is BendCommand bend)
+                            file.WriteLine($"\tBEND  , {SongEvent.CenterValueString(bend.Bend)}");
+                        else if (c is TuneCommand tune)
+                            file.WriteLine($"\tTUNE  , {SongEvent.CenterValueString(tune.Tune)}");
+                        else if (c is BendRangeCommand bendr)
+                            file.WriteLine($"\tBENDR , {bendr.Range}");
+                        else if (c is LFOSpeedCommand lfos)
+                            file.WriteLine($"\tLFOS  , {lfos.Speed}");
+                        else if (c is LFODelayCommand lfodl)
+                            file.WriteLine($"\tLFODL , {lfodl.Delay}");
+                        else if (c is ModDepthCommand mod)
+                            file.WriteLine($"\tMOD   , {mod.Depth}");
+                        else if (c is ModTypeCommand modt)
+                            file.WriteLine($"\tMODT  , {modt.Type}");
+                        else if (c is PriorityCommand prio)
+                            file.WriteLine($"PRIO , {prio.Priority}");
+                        else if (c is KeyShiftCommand keysh)
+                            file.WriteLine($"KEYSH , {label}_key+{keysh.Shift}");
+                        else if (c is GoToCommand goTo)
+                        {
+                            file.WriteLine("GOTO");
+                            file.WriteLine($"\t .word\t{labels[goTo.Offset]}");
+                        }
+                        else if (c is FinishCommand fine)
+                            file.WriteLine("FINE");
+                        else if (c is CallCommand patt)
+                        {
+                            file.WriteLine("PATT");
+                            file.WriteLine($"\t .word\t{labels[patt.Offset]}");
+                        }
+                        else if (c is ReturnCommand pend)
+                            file.WriteLine("PEND");
+                        else if (c is RepeatCommand rept)
+                            file.WriteLine($"\tREPT  , {rept.Arg}");
+                        else if (c is MemoryAccessCommand memacc)
+                            file.WriteLine($"\tMEMACC, {memacc.Arg1,4}, {memacc.Arg2,4}, {memacc.Arg3}");
+                        else if (c is LibraryCommand xcmd)
+                            file.WriteLine($"\tXCMD  , {xcmd.Arg1,4}, {xcmd.Arg2}");
+                    }
+                }
+
+                file.WriteLine();
+                file.WriteLine("@******************************************@");
+                file.WriteLine("\t.align\t2");
+                file.WriteLine();
+                file.WriteLine($"{label}:");
+                file.WriteLine($"\t.byte\t{NumTracks}\t@ NumTrks");
+                file.WriteLine($"\t.byte\t{_header.NumBlocks}\t@ NumBlks");
+                file.WriteLine($"\t.byte\t{label}_pri\t@ Priority");
+                file.WriteLine($"\t.byte\t{label}_rev\t@ Reverb.");
+                file.WriteLine();
+                file.WriteLine($"\t.word\t{label}_grp");
+                file.WriteLine();
+                for (int i = 0; i < NumTracks; i++)
+                    file.WriteLine($"\t.word\t{label}_{i + 1}");
+                file.WriteLine();
+                file.WriteLine("\t.end");
+            }
+        }
     }
 
     internal abstract class M4ASong : Song
     {
         byte[] _binary;
-        SongHeader _header;
 
         protected void Load(byte[] binary, SongHeader head)
         {
