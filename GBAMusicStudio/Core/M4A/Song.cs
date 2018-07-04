@@ -110,6 +110,9 @@ namespace GBAMusicStudio.Core.M4A
                         if (offsets.Contains(e.Offset))
                             file.WriteLine($"{labels[e.Offset]}:");
 
+                        if (c == null)
+                            continue;
+
                         file.Write("\t.byte\t");
                         if (c is TempoCommand tempo)
                             file.WriteLine($"TEMPO , {tempo.Tempo * 2}*{label}_tbs/2");
