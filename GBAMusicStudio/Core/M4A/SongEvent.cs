@@ -52,7 +52,9 @@ namespace GBAMusicStudio.Core.M4A
             if (note < 0)
                 return note.ToString();
             var style = m4aStyle ? m4aNotes : notes;
-            return style[note % 12] + ((note / 12) - 2);
+            string str = style[note % 12] + ((note / 12) - 2);
+            if (m4aStyle) str = str.Replace('-', 'M');
+            return str;
         }
 
         internal static string CenterValueString(sbyte value)
