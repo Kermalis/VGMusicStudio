@@ -46,6 +46,7 @@ A tool that is designed to be an updated Sappy.
 * Fix events past a goto counting as higher ticks
 * Detachable piano
 * Running status in song disassembler
+* Help dialog that explains the commands for each format
 
 ## Special Thanks To:
 * Ipatix

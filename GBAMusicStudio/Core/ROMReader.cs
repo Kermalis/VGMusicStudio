@@ -36,6 +36,7 @@ namespace GBAMusicStudio.Core
 
         internal sbyte ReadSByte(uint offset = 0xFFFFFFFF) => (sbyte)Parse(offset, 1, true);
         internal byte ReadByte(uint offset = 0xFFFFFFFF) => (byte)Parse(offset, 1);
+        internal short ReadInt16(uint offset = 0xFFFFFFFF) => (short)Parse(offset, 2, true);
         internal ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
         internal int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
         internal uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);

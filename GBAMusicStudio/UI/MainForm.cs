@@ -96,7 +96,7 @@ namespace GBAMusicStudio.UI
             pauseButton.Size = new Size(76, 23);
 
             // Numericals
-            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Maximum = 1000 };
+            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Maximum = Config.MaxSongs };
             tableNumerical = new ThemedNumeric { Location = new Point(246, 35), Maximum = 0, Visible = false };
 
             songNumerical.Size = tableNumerical.Size = new Size(45, 23);

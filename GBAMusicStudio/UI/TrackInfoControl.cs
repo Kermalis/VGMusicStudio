@@ -124,7 +124,7 @@ namespace GBAMusicStudio.UI
         internal void DeleteData()
         {
             previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
-            tempo = 150;
+            tempo = 0;
             positions = new uint[16];
             volumes = new sbyte[16];
             delays = new sbyte[16];

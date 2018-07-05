@@ -63,6 +63,8 @@ namespace GBAMusicStudio.Core
 
     internal static class Config
     {
+        internal const int MaxSongs = 1000;
+
         internal static byte DirectCount { get; private set; }
         internal static byte PSGVolume { get; private set; }
         internal static bool MIDIKeyboardFixedVelocity { get; private set; }
@@ -181,7 +183,7 @@ namespace GBAMusicStudio.Core
                 Games.Add(code, new AGame(code, name, tables, creator, playlists));
             }
         }
-        
+
         internal static byte GetRemap(byte voice, string key, bool from)
         {
             if (InstrumentRemaps.TryGetValue(key, out ARemap remap))

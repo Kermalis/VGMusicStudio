@@ -100,8 +100,8 @@ namespace Kermalis.SoundFont2
 
             size = 4;
             size += infoChunk.Size + 8;
-            size += soundChunk.CalcSize() + 8;
-            size += hydraChunk.CalcSize() + 8;
+            size += soundChunk.CalculateSize() + 8;
+            size += hydraChunk.CalculateSize() + 8;
 
             Writer.Write("RIFF".ToCharArray());
             Writer.Write(size);

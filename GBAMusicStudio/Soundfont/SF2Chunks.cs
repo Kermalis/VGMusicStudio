@@ -550,7 +550,7 @@ namespace Kermalis.SoundFont2
             smpl_subchunk = new SMPLSubChunk(inSf2);
         }
 
-        internal uint CalcSize()
+        internal uint CalculateSize()
         {
             Size += smpl_subchunk.Size + 8;
             return Size;
@@ -589,7 +589,7 @@ namespace Kermalis.SoundFont2
             shdr_subchunk = new SHDRSubChunk(inSf2);
         }
 
-        internal uint CalcSize()
+        internal uint CalculateSize()
         {
             Size += phdr_subchunk.Size + 8;
             Size += pbag_subchunk.Size + 8;
