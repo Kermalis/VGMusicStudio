@@ -32,9 +32,10 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Songtable finder
 * Support pret dissassembly projects
 * Running status in song disassembler
+* Add the restriction back to tempo
 
 ## Mario & Luigi: Superstar Saga Engine
-* Properly implement extended notes
+* Properly implement "free notes"
 * Volume command
 * Panpot command
 * Voice tables

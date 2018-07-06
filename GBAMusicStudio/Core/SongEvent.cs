@@ -109,7 +109,7 @@ namespace GBAMusicStudio.Core
     }
     internal class NoteCommand : ICommand
     {
-        public string Name => "Note On";
+        public string Name => "Note";
 
         protected sbyte note;
         protected byte vel;
@@ -301,9 +301,9 @@ namespace GBAMusicStudio.Core
 
     #region MLSS Commands
 
-    internal class ExtendedNoteCommand : ICommand
+    internal class FreeNoteCommand : ICommand
     {
-        public string Name => "Note Extension";
+        public string Name => "Free Note";
 
         byte note, ext;
         public byte Note { get => note; set => note = value.Clamp((byte)0x80, (byte)0xFF); }

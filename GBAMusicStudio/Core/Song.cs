@@ -48,7 +48,7 @@ namespace GBAMusicStudio.Core
                         length += rest.Rest;
                     else if (this is MLSSSong)
                     {
-                        if (e.Command is ExtendedNoteCommand ext)
+                        if (e.Command is FreeNoteCommand ext)
                             length += ext.Extension;
                         else if (e.Command is MLSSNoteCommand mlnote)
                             length += mlnote.Duration;
@@ -421,7 +421,7 @@ namespace GBAMusicStudio.Core
                     cmd = ROM.Instance.ReadByte();
                     switch (cmd)
                     {
-                        case 0: command = new ExtendedNoteCommand { Note = ROM.Instance.ReadByte(), Extension = ROM.Instance.ReadByte() }; break;
+                        case 0: command = new FreeNoteCommand { Note = ROM.Instance.ReadByte(), Extension = ROM.Instance.ReadByte() }; break;
                         case 0xF0: command = new VoiceCommand { Voice = ROM.Instance.ReadByte() }; break;
                         case 0xF1: command = new VolumeCommand { Volume = 127 }; ROM.Instance.ReadByte(); break; // TODO
                         case 0xF2: command = new PanpotCommand { Panpot = 0 }; ROM.Instance.ReadSByte(); break; // TODO

@@ -382,29 +382,19 @@ namespace GBAMusicStudio.Core
                 {
                     var mlTrack = (MLSSTrack)track;
                     mlTrack.Delay += (byte)mln.Duration;
-                    //if (mlTrack.ExtendingNote == -1)
-                        PlayNote(track, mln.Note, 0x7F, mln.Duration);
-                    //else
-                    {
-                        //mlTrack.ExtendingNote = -1;
-                        Instrument ins = mlTrack.Instruments.LastOrDefault(inst => inst.NoteDuration == -1);
-                        if (ins != null)
-                            ins.State = ADSRState.Releasing;
-                    }
+                    PlayNote(track, mln.Note, 0x7F, mln.Duration);
                 }
                 else if (e.Command is M4ANoteCommand m4an)
                 {
                     PlayNote(track, m4an.Note, m4an.Velocity, m4an.Duration);
                 }
             }
-            else if (e.Command is ExtendedNoteCommand ext)
+            else if (e.Command is FreeNoteCommand ext)
             {
                 var mlTrack = (MLSSTrack)track;
                 mlTrack.Delay += ext.Extension;
                 sbyte note = (sbyte)(ext.Note - 0x80);
-                //if (mlTrack.ExtendingNote == -1)
-                    PlayNote(mlTrack, note, 0x7F, -1);
-                //mlTrack.ExtendingNote = note;
+                PlayNote(mlTrack, note, 0x7F, ext.Extension);
             }
 
             if (!track.Stopped)

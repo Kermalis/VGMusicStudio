@@ -167,7 +167,7 @@ namespace GBAMusicStudio.UI
                 item.BackColor = Color.DarkSalmon;
             else if (e.Command is RestCommand)
                 item.BackColor = Color.PaleVioletRed;
-            else if (e.Command is KeyShiftCommand || e.Command is NoteCommand || e.Command is EndOfTieCommand || e.Command is ExtendedNoteCommand)
+            else if (e.Command is KeyShiftCommand || e.Command is NoteCommand || e.Command is EndOfTieCommand || e.Command is FreeNoteCommand)
                 item.BackColor = Color.SkyBlue;
             else if (e.Command is ModDepthCommand || e.Command is ModTypeCommand)
                 item.BackColor = Color.LightSteelBlue;
