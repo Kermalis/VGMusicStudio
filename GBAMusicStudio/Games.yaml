@@ -65,6 +65,10 @@ AMKE:
       57: "Award Ceremony Lose"
       59: "Unknown"
       60: "Unknown"
+AMTE:
+  SongTable: 0xA8D3C
+  Name: "Metroid Fusion (USA)"
+  Creator: "Nintendo"
 AXPE:
   SongTable: 0x4554E8
   Name: "Pokémon Sapphire Version (USA)"
