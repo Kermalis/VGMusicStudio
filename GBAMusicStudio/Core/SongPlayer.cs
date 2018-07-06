@@ -212,7 +212,7 @@ namespace GBAMusicStudio.Core
         }
         static void StartThread()
         {
-            thread = new Thread(DoFrame);
+            thread = new Thread(Tick);
             thread.Start();
             System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
             parentGroup.setMute(false);
@@ -400,7 +400,7 @@ namespace GBAMusicStudio.Core
             if (!track.Stopped)
                 track.CommandIndex++;
         }
-        static void DoFrame()
+        static void Tick()
         {
             time.Start();
             while (State != State.Stopped)

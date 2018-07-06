@@ -354,6 +354,7 @@ namespace GBAMusicStudio.UI
         void UpdateTrackInfo(bool play)
         {
             trackInfo.DeleteData(); // Refresh track count
+            positionBar.Value = 0;
             positionBar.Maximum = SongPlayer.Song.NumTicks;
             positionBar.LargeChange = (uint)(positionBar.Maximum / 10);
             positionBar.SmallChange = positionBar.LargeChange / 4;
