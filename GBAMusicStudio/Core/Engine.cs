@@ -21,15 +21,19 @@ namespace GBAMusicStudio.Core
             }
             throw BAD;
         }
+        internal static int GetTicksPerBar()
+        {
+            switch (ROM.Instance.Game.Engine)
+            {
+                case AEngine.M4A: return 96;
+                case AEngine.MLSS: return 48;
+            }
+            throw BAD;
+        }
         internal static int GetTempoWait()
         {
             int baseWait = BPM_PER_FRAME * INTERFRAMES;
-            switch (ROM.Instance.Game.Engine)
-            {
-                case AEngine.M4A: return baseWait;
-                case AEngine.MLSS: return baseWait / 2;
-            }
-            throw BAD;
+            return baseWait / (96 / GetTicksPerBar());
         }
     }
 }
