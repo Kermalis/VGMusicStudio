@@ -1,10 +1,11 @@
 # Kermalis's GBA Music Studio
 
-A tool that is designed to be an updated Sappy.
+A tool that is designed to be a Sappy replacement and also support different game engines.
 
 ![Preview](https://i.imgur.com/MOBHq03.gif)
 
-## Some Advantages Over Sappy
+----
+# Some Advantages Over Sappy:
 * Pause button & song position changing
 * You can play the in-game instruments with a MIDI-in keyboard
 * You can view and edit track events
@@ -15,8 +16,11 @@ A tool that is designed to be an updated Sappy.
 * You can see representation of notes being played
 * It is not intimidating to use
 * Support for multiple song tables
+* Support for "Mario & Luigi: Superstar Saga"
 
-## To Do (No particular order)
+----
+# To Do:
+## M4A / MP2K Engine
 
 * Add reverb DSP effect
 * Add reverse playback
@@ -25,14 +29,23 @@ A tool that is designed to be an updated Sappy.
 * Repeat command
 * Fix ADSR on PSG instruments
 * Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\]
+* Songtable finder
+* Support pret dissassembly projects
+* Running status in song disassembler
+
+## Mario & Luigi: Superstar Saga Engine
+* Properly implement extended notes
+* Volume command
+* Panpot command
+* Voice tables
+
+## General
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
-* Songtable finder
 * Exception handling for invalid config
 * Add keyboard shortcuts to the UI
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
-* Support pret dissassembly projects
 * Fix UI checkboxes breaking randomly
 * Songtable length in config and expander
 * Default remap voice
@@ -45,10 +58,11 @@ A tool that is designed to be an updated Sappy.
 * Tempo numerical (it fits)
 * Fix events past a goto counting as higher ticks
 * Detachable piano
-* Running status in song disassembler
 * Help dialog that explains the commands for each format
+* Think about if keeping all songs in memory (and their voice tables in them) was *actually* a good idea
 
-## Special Thanks To:
+----
+# Special Thanks To:
 * Ipatix
 * tuku473
 * Bregalad

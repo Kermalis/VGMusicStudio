@@ -1,6 +1,5 @@
 ﻿using BrightIdeasSoftware;
 using GBAMusicStudio.Core;
-using GBAMusicStudio.Core.M4A;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -168,7 +167,7 @@ namespace GBAMusicStudio.UI
                 item.BackColor = Color.DarkSalmon;
             else if (e.Command is RestCommand)
                 item.BackColor = Color.PaleVioletRed;
-            else if (e.Command is KeyShiftCommand || e.Command is NoteCommand || e.Command is EndOfTieCommand)
+            else if (e.Command is KeyShiftCommand || e.Command is NoteCommand || e.Command is EndOfTieCommand || e.Command is ExtendedNoteCommand)
                 item.BackColor = Color.SkyBlue;
             else if (e.Command is ModDepthCommand || e.Command is ModTypeCommand)
                 item.BackColor = Color.LightSteelBlue;

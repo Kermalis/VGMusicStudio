@@ -1,20 +1,20 @@
 ﻿using GBAMusicStudio.Util;
 using System;
-using static GBAMusicStudio.Core.M4A.M4AStructs;
+using static GBAMusicStudio.Core.M4AStructs;
 
-namespace GBAMusicStudio.Core.M4A
+namespace GBAMusicStudio.Core
 {
     enum ADSRState
     {
-        Dead,
         Rising,
         Playing,
-        Releasing
+        Releasing,
+        Dead
     }
 
     internal class Instrument
     {
-        internal ADSRState State;
+        internal ADSRState State = ADSRState.Dead;
         internal float Velocity { get { return ((NoteVelocity / 127f) * CurrentVelocity) / 255f; } }
         internal float Panpot { get { return ForcedPan != 0x7F ? ForcedPan / 64f : Track.APan; } }
         internal int Age { get; private set; }
@@ -26,8 +26,8 @@ namespace GBAMusicStudio.Core.M4A
         FMOD.Sound Sound;
         internal sbyte DisplayNote { get; private set; }
         sbyte Note;
-        internal sbyte NoteDuration { get; private set; }
-        sbyte NoteVelocity;
+        internal int NoteDuration { get; private set; }
+        byte NoteVelocity;
         int CurrentVelocity;
 
         byte A, D, S, R;
@@ -79,11 +79,11 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         // Pass -1 to "duration" to trigger a TIE
-        internal void Play(Track track, sbyte note, sbyte velocity, sbyte duration)
+        internal void Play(Track track, sbyte note, byte velocity, int duration)
         {
             Stop();
-            Voice = SongPlayer.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
-            Sound = SongPlayer.VoiceTable.GetSoundFromNote(track.Voice, note);
+            Voice = SongPlayer.Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
+            Sound = SongPlayer.Song.VoiceTable.GetSoundFromNote(track.Voice, note);
 
             Track = track;
             DisplayNote = note;
@@ -137,7 +137,7 @@ namespace GBAMusicStudio.Core.M4A
         {
             if (State == ADSRState.Dead) return;
 
-            if (++processStep >= Constants.INTERFRAMES)
+            if (++processStep >= Engine.INTERFRAMES)
             {
                 processStep = 0;
 

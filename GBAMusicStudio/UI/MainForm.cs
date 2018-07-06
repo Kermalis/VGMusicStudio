@@ -207,7 +207,7 @@ namespace GBAMusicStudio.UI
             Text = "GBA Music Studio - " + caption;
             bool playing = SongPlayer.State == State.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.LoadASMSong(asm, headerLabel);
+            SongPlayer.Song = new ASMSong(asm, headerLabel);
             UpdateTrackInfo(playing);
         }
         void LoadSong(object sender, EventArgs e)
@@ -227,8 +227,10 @@ namespace GBAMusicStudio.UI
             }
             bool playing = SongPlayer.State == State.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.LoadROMSong((ushort)songNumerical.Value, (byte)tableNumerical.Value);
+            SongPlayer.Song = ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value];
             UpdateTrackInfo(playing);
+
+            MIDIKeyboard.Start();
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -284,7 +286,7 @@ namespace GBAMusicStudio.UI
 
             try
             {
-                new VoiceTableSaver(SongPlayer.VoiceTable, d.FileName);
+                new VoiceTableSaver(SongPlayer.Song.VoiceTable, d.FileName);
                 FlexibleMessageBox.Show($"Voice table saved to {d.FileName}.", Text);
             }
             catch (Exception ex)

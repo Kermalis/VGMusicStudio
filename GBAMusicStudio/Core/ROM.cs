@@ -12,19 +12,29 @@ namespace GBAMusicStudio.Core
 
         internal readonly byte[] ROMFile;
         internal AGame Game { get; private set; }
+        internal SongTable[] SongTables { get; private set; }
 
         internal ROM(string filePath)
         {
             Instance = this;
             SongPlayer.Stop();
-            SongPlayer.ClearVoices();
             ROMFile = File.ReadAllBytes(filePath);
             InitReader();
             ReloadGameConfig();
+            SongPlayer.Reset();
         }
         internal void ReloadGameConfig()
         {
             Game = Config.Games[System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC))];
+            SongTables = new SongTable[Game.SongTables.Length];
+            for (int i = 0; i < Game.SongTables.Length; i++)
+            {
+                switch (Game.Engine)
+                {
+                    case AEngine.M4A: SongTables[i] = new M4ASongTable(Game.SongTables[i]); break;
+                    case AEngine.MLSS: SongTables[i] = new MLSSSongTable(Game.SongTables[i]); break;
+                }
+            }
         }
 
         internal T ReadStruct<T>(uint offset = 0xFFFFFFFF)

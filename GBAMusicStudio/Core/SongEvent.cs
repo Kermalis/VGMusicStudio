@@ -1,8 +1,8 @@
 ﻿using GBAMusicStudio.Util;
 
-namespace GBAMusicStudio.Core.M4A
+namespace GBAMusicStudio.Core
 {
-    enum MODT : byte
+    internal enum MODT : byte
     {
         Vibrate,
         Volume,
@@ -26,16 +26,16 @@ namespace GBAMusicStudio.Core.M4A
 
         public override string ToString() => $"{Command}\t-\t0x{Offset.ToString("X")}\t-\t{AbsoluteTicks}";
 
-        internal static sbyte RestFromCMD(byte startCMD, byte cmd)
+        internal static byte RestFromCMD(byte startCMD, byte cmd)
         {
-            sbyte[] added = { 4, 4, 2, 2 };
-            sbyte wait = (sbyte)(cmd - startCMD);
-            sbyte add = wait > 24 ? (sbyte)24 : wait;
+            byte[] added = { 4, 4, 2, 2 };
+            byte wait = (byte)(cmd - startCMD);
+            byte add = wait > 24 ? (byte)24 : wait;
             for (int i = 24 + 1; i <= wait; i++)
                 add += added[i % 4];
             return add;
         }
-        internal static sbyte[] RestToCMD = {
+        internal static byte[] RestToCMD = {
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
             17, 18, 19, 20, 21, 22, 23, 24, 24, 24, 24, 28, 28, 30, 30,
             32, 32, 32, 32, 36, 36, 36, 36, 40, 40, 42, 42, 44, 44, 44,
@@ -69,16 +69,41 @@ namespace GBAMusicStudio.Core.M4A
     {
         public string Name => "Tempo";
 
-        public byte Tempo;
+        ushort tempo;
+        public ushort Tempo
+        {
+            get => tempo;
+            set
+            {
+                ushort max = 510;
+                switch (ROM.Instance.Game.Engine)
+                {
+                    case AEngine.MLSS: max = 0xFF; break;
+                }
+                tempo = value.Clamp((ushort)0, max);
+            }
+        }
 
-        public string Arguments => (Tempo * 2).ToString();
+        public string Arguments => Tempo.ToString();
     }
     internal class RestCommand : ICommand
     {
         public string Name => "Rest";
 
-        sbyte rest;
-        public sbyte Rest { get => rest; set => rest = value.Clamp((sbyte)0, (sbyte)96); }
+        byte rest;
+        public byte Rest
+        {
+            get => rest;
+            set
+            {
+                byte max = 96;
+                switch (ROM.Instance.Game.Engine)
+                {
+                    case AEngine.MLSS: max = 0xC0; break;
+                }
+                rest = value.Clamp((byte)0, max);
+            }
+        }
 
         public string Arguments => Rest.ToString();
     }
@@ -86,19 +111,21 @@ namespace GBAMusicStudio.Core.M4A
     {
         public string Name => "Note On";
 
-        sbyte note, vel, dur;
-        public sbyte Note { get => note; set => note = value.Clamp((sbyte)0, (sbyte)127); }
-        public sbyte Velocity { get => vel; set => vel = value.Clamp((sbyte)0, (sbyte)127); }
-        public sbyte Duration { get => dur; set => dur = value.Clamp((sbyte)-1, (sbyte)99); }
+        protected sbyte note;
+        protected byte vel;
+        protected int dur;
+        public sbyte Note { get => note; set => note = value.Clamp((sbyte)0, (sbyte)0x7F); }
+        internal byte Velocity;
+        internal int Duration;
 
-        public string Arguments => $"{SongEvent.NoteName(note)} {vel} {dur}";
+        public string Arguments => "";
     }
     internal class EndOfTieCommand : ICommand
     {
         public string Name => "End Of Tie";
 
         sbyte note;
-        public sbyte Note { get => note; set => note = value.Clamp((sbyte)-1, (sbyte)127); }
+        public sbyte Note { get => note; set => note = value.Clamp((sbyte)-1, (sbyte)0x7F); }
 
         public string Arguments => SongEvent.NoteName(note);
     }
@@ -115,7 +142,7 @@ namespace GBAMusicStudio.Core.M4A
         public string Name => "Volume";
 
         sbyte vol;
-        public sbyte Volume { get => vol; set => vol = value.Clamp((sbyte)0, (sbyte)127); }
+        public sbyte Volume { get => vol; set => vol = value.Clamp((sbyte)0, (sbyte)0x7F); }
 
         public string Arguments => vol.ToString();
     }
@@ -223,6 +250,13 @@ namespace GBAMusicStudio.Core.M4A
 
     #region M4A Commands
 
+    internal class M4ANoteCommand : NoteCommand
+    {
+        public new byte Velocity { get => vel; set => vel = value.Clamp((byte)0, (byte)0x7F); }
+        public new int Duration { get => dur; set => dur = value.Clamp(-1, 0x7F); }
+
+        public new string Arguments => $"{SongEvent.NoteName(note)} {vel} {dur}";
+    }
     internal class CallCommand : ICommand
     {
         public string Name => "Call";
@@ -261,6 +295,28 @@ namespace GBAMusicStudio.Core.M4A
         public byte Arg1, Arg2;
 
         public string Arguments => $"{Arg1}, {Arg2}";
+    }
+
+    #endregion
+
+    #region MLSS Commands
+
+    internal class ExtendedNoteCommand : ICommand
+    {
+        public string Name => "Note Extension";
+
+        byte note, ext;
+        public byte Note { get => note; set => note = value.Clamp((byte)0x80, (byte)0xFF); }
+        public byte Extension { get => ext; set => ext = value.Clamp((byte)0, (byte)0xC0); }
+
+        public string Arguments => $"{SongEvent.NoteName((sbyte)(note - 0x80))}, {Extension}";
+    }
+    internal class MLSSNoteCommand : NoteCommand
+    {
+        internal new byte Velocity { get => 127; }
+        public new int Duration { get => dur; set => dur = value.Clamp(0, 0xC0); }
+
+        public new string Arguments => $"{SongEvent.NoteName(note)}, {Duration}";
     }
 
     #endregion

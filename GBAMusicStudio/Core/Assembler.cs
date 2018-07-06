@@ -26,7 +26,7 @@ namespace GBAMusicStudio.Core
             mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
             cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
 
-        uint curBase = 0;
+        internal uint BaseOffset { get; private set; } = 0;
         List<string> loaded = new List<string>();
         Dictionary<string, int> defines;
 
@@ -52,18 +52,18 @@ namespace GBAMusicStudio.Core
 
         internal void SetBaseOffset(uint baseOffset)
         {
-            if (curBase == baseOffset) return;
+            if (BaseOffset == baseOffset) return;
             foreach (var p in lPointers)
             {
                 // Our example label is SEQ_STUFF at the binary offset 0x1000, curBase is 0x500, baseOffset is 0x1800
                 // There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DF4
                 uint old = BitConverter.ToUInt32(Binary, p.Offset); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DF4
-                var off = old - curBase; // Then off is 0x1004 (SEQ_STUFF+4)
+                var off = old - BaseOffset; // Then off is 0x1004 (SEQ_STUFF+4)
                 var b = BitConverter.GetBytes(baseOffset + off); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
                 for (int i = 0; i < 4; i++)
                     bytes[p.Offset + i] = b[i]; // Copy the new pointer to binary offset 0x1DF4
             }
-            curBase = baseOffset;
+            BaseOffset = baseOffset;
         }
 
         internal static string FixLabel(string label)

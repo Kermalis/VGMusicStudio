@@ -1,7 +1,12 @@
+A88E:
+  SongTable: 0x21CB70
+  Engine: "MLSS"
+  Name: "Mario & Luigi - Superstar Saga (USA)"
+  Creator: "AlphaDream"
 A88P:
-  SongTable: 0xFB5DA4
+  SongTable: 0x21DC50
   Name: "Mario & Luigi - Superstar Saga (P)"
-  Creator: "Nintendo"
+  Copy: "A88E"
 AMKE:
   SongTable: 0x102498
   Name: "Mario Kart: Super Circuit (USA)"

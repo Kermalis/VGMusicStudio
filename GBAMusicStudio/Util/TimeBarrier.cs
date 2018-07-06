@@ -15,7 +15,7 @@ namespace GBAMusicStudio.Util
 
         public TimeBarrier()
         {
-            waitInterval = 1d / (60 * Constants.INTERFRAMES);
+            waitInterval = 1d / (60 * Engine.INTERFRAMES);
             started = false;
             sw = new Stopwatch();
             timerInterval = 1d / Stopwatch.Frequency;

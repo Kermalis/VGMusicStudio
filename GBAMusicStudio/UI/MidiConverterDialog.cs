@@ -72,7 +72,7 @@ namespace GBAMusicStudio.UI
                 };
                 process.Start();
                 process.WaitForExit();
-                assembler = new Assembler("temp.s", (uint)(ROM.Pak + offsetValueBox.Value), new Dictionary<string, int> { { "voicegroup000", (int)SongPlayer.VoiceTable.Offset } });
+                assembler = new Assembler("temp.s", (uint)(ROM.Pak + offsetValueBox.Value), new Dictionary<string, int> { { "voicegroup000", (int)SongPlayer.Song.VoiceTable.Offset } });
                 File.Delete("temp.s");
                 sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
                 previewButton.Enabled = true;

@@ -37,15 +37,17 @@ namespace GBAMusicStudio.Core
     internal class AGame
     {
         internal readonly string Code, Name, Creator;
+        internal readonly AEngine Engine;
         internal readonly uint[] SongTables;
         internal readonly List<APlaylist> Playlists;
 
-        internal AGame(string code, string name, uint[] tables, string creator, List<APlaylist> playlists)
+        internal AGame(string code, string name, string creator, AEngine engine, uint[] tables, List<APlaylist> playlists)
         {
             Code = code;
             Name = name;
-            SongTables = tables;
             Creator = creator;
+            Engine = engine;
+            SongTables = tables;
             Playlists = playlists;
         }
 
@@ -137,31 +139,43 @@ namespace GBAMusicStudio.Core
             foreach (var g in mapping)
             {
                 string code, name, creator;
+                AEngine engine = AEngine.M4A;
                 uint[] tables;
                 List<APlaylist> playlists;
 
                 code = g.Key.ToString();
                 var game = (YamlMappingNode)g.Value;
 
+                YamlScalarNode yname = new YamlScalarNode("Name"),
+                    ysongtable = new YamlScalarNode("SongTable"),
+                    ycopy = new YamlScalarNode("Copy"),
+                    ycreator = new YamlScalarNode("Creator"),
+                    ymusic = new YamlScalarNode("Music"),
+                    yengine = new YamlScalarNode("Engine");
+
                 // Basic info
-                name = game.Children[new YamlScalarNode("Name")].ToString();
-                var songTables = game.Children[new YamlScalarNode("SongTable")].ToString().Split(' ');
+                name = game.Children[yname].ToString();
+                var songTables = game.Children[ysongtable].ToString().Split(' ');
                 tables = new uint[songTables.Length];
                 for (int i = 0; i < songTables.Length; i++)
                     tables[i] = (uint)Utils.ParseValue(songTables[i]);
 
                 // If we are to copy another game's config
-                if (game.Children.ContainsKey(new YamlScalarNode("Copy")))
-                    game = (YamlMappingNode)mapping.Children[new YamlScalarNode(game.Children[new YamlScalarNode("Copy")].ToString())];
+                if (game.Children.ContainsKey(ycopy))
+                    game = (YamlMappingNode)mapping.Children[new YamlScalarNode(game.Children[ycopy].ToString())];
 
                 // Creator name
-                creator = game.Children[new YamlScalarNode("Creator")].ToString();
+                creator = game.Children[ycreator].ToString();
+
+                // Engine
+                if (game.Children.ContainsKey(yengine))
+                    engine = (AEngine)Enum.Parse(typeof(AEngine), game.Children[yengine].ToString());
 
                 // Load playlists
                 playlists = new List<APlaylist>();
-                if (game.Children.ContainsKey(new YamlScalarNode("Music")))
+                if (game.Children.ContainsKey(ymusic))
                 {
-                    var music = (YamlMappingNode)game.Children[new YamlScalarNode("Music")];
+                    var music = (YamlMappingNode)game.Children[ymusic];
                     foreach (var kvp in music)
                     {
                         var songs = new List<ASong>();
@@ -180,7 +194,7 @@ namespace GBAMusicStudio.Core
                     if (playlists[i].Songs.Length == 0)
                         playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "Playlist is empty.") });
 
-                Games.Add(code, new AGame(code, name, tables, creator, playlists));
+                Games.Add(code, new AGame(code, name, creator, engine, tables, playlists));
             }
         }
 

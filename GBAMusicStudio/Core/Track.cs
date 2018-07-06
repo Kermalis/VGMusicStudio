@@ -2,19 +2,19 @@
 using System.Linq;
 using ThreadSafeList;
 
-namespace GBAMusicStudio.Core.M4A
+namespace GBAMusicStudio.Core
 {
-    internal class Track
+    internal abstract class Track
     {
         internal readonly byte Index;
         internal readonly FMOD.ChannelGroup Group;
         internal readonly ThreadSafeList<Instrument> Instruments; // Instruments being played by this track
 
-        internal byte Voice, Priority,
+        internal byte Voice, Priority, Delay,
             LFOPhase, LFODelayCount, BendRange,
             LFOSpeed, LFODelay, MODDepth;
-        MODT MODType;
-        internal sbyte Volume, Delay, Bend, Tune, Pan, KeyShift;
+        protected MODT MODType;
+        internal sbyte Volume, Bend, Tune, Pan, KeyShift;
         internal int CommandIndex, EndOfPattern;
         internal bool Ready, Stopped;
 
@@ -55,43 +55,19 @@ namespace GBAMusicStudio.Core.M4A
             Instruments = new ThreadSafeList<Instrument>();
             SongPlayer.System.createChannelGroup(null, out Group);
         }
-
-        internal void Init()
+        internal virtual void Init()
         {
-            Voice = Priority = LFODelay = LFODelayCount = LFOPhase = MODDepth = 0;
-            Delay = Bend = Tune = Pan = KeyShift = 0;
+            Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = 0;
+            Bend = Tune = Pan = KeyShift = 0;
             CommandIndex = EndOfPattern = 0;
             MODType = MODT.Vibrate;
-            Ready = Stopped = false;
+            Ready = true;
+            Stopped = false;
             BendRange = 2;
             LFOSpeed = 22;
-            Volume = 100;
+            Volume = 127;
         }
-
-        internal void Tick()
-        {
-            if (Delay != 0)
-                Delay--;
-            foreach (Instrument i in Instruments)
-                i.NoteTick();
-            if (Instruments.Count(i => i.State < ADSRState.Releasing) > 0)
-            {
-                if (LFODelayCount > 0)
-                {
-                    LFODelayCount--;
-                    LFOPhase = 0;
-                }
-                else
-                {
-                    LFOPhase += LFOSpeed;
-                }
-            }
-            else
-            {
-                LFOPhase = 0;
-                LFODelayCount = LFODelay;
-            }
-        }
+        internal abstract void Tick();
 
         void UpdateFrequencies()
         {
@@ -178,5 +154,56 @@ namespace GBAMusicStudio.Core.M4A
         }
 
         public override string ToString() => $"Track {Index}; Voice {Voice}";
+    }
+
+    internal class M4ATrack : Track
+    {
+        internal M4ATrack(byte i) : base(i) { }
+
+        internal override void Init()
+        {
+            base.Init();
+
+            Ready = false;
+            Volume = 100;
+        }
+
+        internal override void Tick()
+        {
+            if (Delay != 0)
+                Delay--;
+            foreach (Instrument i in Instruments)
+                i.NoteTick();
+            if (Instruments.Count(i => i.State < ADSRState.Releasing) > 0)
+            {
+                if (LFODelayCount > 0)
+                {
+                    LFODelayCount--;
+                    LFOPhase = 0;
+                }
+                else
+                {
+                    LFOPhase += LFOSpeed;
+                }
+            }
+            else
+            {
+                LFOPhase = 0;
+                LFODelayCount = LFODelay;
+            }
+        }
+    }
+
+    internal class MLSSTrack : Track
+    {
+        internal MLSSTrack(byte i) : base(i) { }
+
+        internal override void Tick()
+        {
+            if (Delay != 0)
+                Delay--;
+            foreach (Instrument i in Instruments)
+                i.NoteTick();
+        }
     }
 }

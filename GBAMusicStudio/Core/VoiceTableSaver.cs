@@ -1,10 +1,9 @@
-﻿using GBAMusicStudio.Core.M4A;
-using Kermalis.SoundFont2;
+﻿using Kermalis.SoundFont2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using static GBAMusicStudio.Core.M4A.M4AStructs;
+using static GBAMusicStudio.Core.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {

@@ -1,5 +1,4 @@
 ﻿using GBAMusicStudio.Core;
-using GBAMusicStudio.Core.M4A;
 using Sanford.Multimedia;
 using Sanford.Multimedia.Midi;
 using System;
@@ -110,7 +109,7 @@ namespace GBAMusicStudio.MIDI
             else if (e.Message.Command == ChannelCommand.NoteOn) // Note on
             {
                 var i = new Instrument();
-                i.Play(new Core.M4A.Track(16) { Voice = vNum, Volume = volume }, note, (sbyte)(Config.MIDIKeyboardFixedVelocity ? 127 : e.Message.Data2), -1);
+                i.Play(new M4ATrack(16) { Voice = vNum, Volume = volume }, note, (byte)(Config.MIDIKeyboardFixedVelocity ? 127 : e.Message.Data2), -1);
                 instruments.Add(i);
                 Tick(null, null); // Prevent input delay
             }

@@ -1,13 +1,29 @@
 ﻿using System;
-using static GBAMusicStudio.Core.M4A.M4AStructs;
+using static GBAMusicStudio.Core.M4AStructs;
 
-namespace GBAMusicStudio.Core.M4A
+namespace GBAMusicStudio.Core
 {
-    internal class VoiceTable
+    internal abstract class VoiceTable
     {
-        internal uint Offset { get; private set; }
-        readonly SVoice[] voices;
+        public uint Offset { get; protected set; }
+        protected readonly SVoice[] voices;
 
+        internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
+        internal abstract void Load(uint table);
+
+        internal SVoice this[int i]
+        {
+            get => voices[i];
+            set => voices[i] = value;
+        }
+
+        // The following should only be called after Load()
+        internal abstract Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum);
+        internal abstract FMOD.Sound GetSoundFromNote(byte voice, sbyte note);
+    }
+
+    internal class M4AVoiceTable : VoiceTable
+    {
         void LoadDirect(SDirect direct)
         {
             var d = direct.Voice as Direct_Sound;
@@ -73,8 +89,7 @@ namespace GBAMusicStudio.Core.M4A
             SongPlayer.Sounds.Add(wave.Address, snd);
         }
 
-        internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
-        internal void Load(uint table)
+        internal override void Load(uint table)
         {
             Offset = table;
             for (uint i = 0; i < 256; i++)
@@ -159,14 +174,7 @@ namespace GBAMusicStudio.Core.M4A
             }
         }
 
-        internal SVoice this[int i]
-        {
-            get => voices[i];
-            private set => voices[i] = value;
-        }
-
-        // The following should only be called after Load()
-        internal Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
+        internal override Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
         {
             fromDrum = false;
 
@@ -191,7 +199,7 @@ namespace GBAMusicStudio.Core.M4A
                     return v;
             }
         }
-        internal FMOD.Sound GetSoundFromNote(byte voice, sbyte note)
+        internal override FMOD.Sound GetSoundFromNote(byte voice, sbyte note)
         {
             Voice v = GetVoiceFromNote(voice, note, out bool idc);
             switch (v.Type)
@@ -217,6 +225,27 @@ namespace GBAMusicStudio.Core.M4A
                 default:
                     return null; // Will not occur
             }
+        }
+    }
+
+    internal class MLSSVoiceTable : VoiceTable
+    {
+        PSG_Square_1 temp = new PSG_Square_1 { S = 15, RootNote = 60 };
+
+        internal override void Load(uint table)
+        {
+            for (int i = 0; i < 256; i++)
+                voices[i] = new SVoice(temp);
+        }
+
+        internal override FMOD.Sound GetSoundFromNote(byte voice, sbyte note)
+        {
+            return SongPlayer.Sounds[SongPlayer.SQUARE12_ID];
+        }
+        internal override Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
+        {
+            fromDrum = false;
+            return temp;
         }
     }
 }

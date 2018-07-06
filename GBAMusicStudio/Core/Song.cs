@@ -3,16 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static GBAMusicStudio.Core.M4A.M4AStructs;
+using static GBAMusicStudio.Core.M4AStructs;
 
-namespace GBAMusicStudio.Core.M4A
+namespace GBAMusicStudio.Core
 {
     internal abstract class Song
     {
-        protected SongHeader _header;
-        internal int NumTracks => _header.NumTracks;
-
+        public uint Offset { get; protected set; }
+        internal VoiceTable VoiceTable;
         internal List<SongEvent>[] Commands;
+        internal int NumTracks => Commands == null ? 0 : Commands.Length;
         int ticks = -1; // Cache the amount. Setting to -1 again will cause a refresh
         internal int NumTicks
         {
@@ -46,6 +46,13 @@ namespace GBAMusicStudio.Core.M4A
 
                     if (e.Command is RestCommand rest)
                         length += rest.Rest;
+                    else if (this is MLSSSong)
+                    {
+                        if (e.Command is ExtendedNoteCommand ext)
+                            length += ext.Extension;
+                        else if (e.Command is MLSSNoteCommand mlnote)
+                            length += mlnote.Duration;
+                    }
                     else if (e.Command is CallCommand call)
                     {
                         int jumpCmd = track.FindIndex(c => c.Offset == call.Offset);
@@ -65,6 +72,8 @@ namespace GBAMusicStudio.Core.M4A
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
+            if (ROM.Instance.Game.Engine != AEngine.M4A)
+                throw new PlatformNotSupportedException("Exporting to ASM from this game engine is not supported at this time.");
             using (var file = new StreamWriter(fileName))
             {
                 string label = Assembler.FixLabel(Path.GetFileNameWithoutExtension(fileName));
@@ -100,6 +109,17 @@ namespace GBAMusicStudio.Core.M4A
                     bool displayed = false;
                     foreach (var e in Commands[i])
                     {
+                        void DisplayRest(int rest)
+                        {
+                            byte amt = SongEvent.RestToCMD[rest];
+                            file.WriteLine($"\t.byte\tW{amt:D2}");
+                            int rem = rest - amt;
+                            if (rem != 0)
+                                file.WriteLine($"\t.byte\tW{rem:D2}");
+                            ticks += rest; // TODO: Separate by 96 ticks
+                            displayed = false;
+                        }
+
                         var c = e.Command;
 
                         if (!displayed && ticks % 96 == 0)
@@ -113,83 +133,78 @@ namespace GBAMusicStudio.Core.M4A
                         if (c == null)
                             continue;
 
-                        file.Write("\t.byte\t");
                         if (c is TempoCommand tempo)
-                            file.WriteLine($"TEMPO , {tempo.Tempo * 2}*{label}_tbs/2");
+                            file.WriteLine($"\t.byte\tTEMPO , {tempo.Tempo}*{label}_tbs/2");
                         else if (c is RestCommand rest)
                         {
-                            sbyte amt = SongEvent.RestToCMD[rest.Rest];
-                            file.WriteLine($"W{amt:D2}");
-                            int rem = rest.Rest - amt;
-                            if (rem != 0)
-                                file.WriteLine($"\t.byte\tW{rem:D2}");
-                            ticks += rest.Rest; // TODO: Separate by 96 ticks
-                            displayed = false;
+                            DisplayRest(rest.Rest);
                         }
                         else if (c is NoteCommand note)
                         {
-                            sbyte baseDur = note.Duration == -1 ? (sbyte)-1 : SongEvent.RestToCMD[note.Duration];
-                            int rem = note.Duration - baseDur;
-                            string name = note.Duration == -1 ? "TIE" : $"N{baseDur:D2}";
-                            string not = SongEvent.NoteName(note.Note, true);
-                            string vel = $"v{note.Velocity:D3}";
+                            // Hide base note, velocity and duration
+                            dynamic dynote = note;
+                            byte baseDur = dynote.Duration == -1 ? (byte)0 : SongEvent.RestToCMD[dynote.Duration];
+                            int rem = dynote.Duration - baseDur;
+                            string name = dynote.Duration == -1 ? "TIE" : $"N{baseDur:D2}";
+                            string not = SongEvent.NoteName(dynote.Note, true);
+                            string vel = $"v{dynote.Velocity:D3}";
 
-                            if (note.Duration != -1 && rem != 0)
-                                file.WriteLine($"\t{name}   , {not} , {vel}, gtp{rem}");
+                            if (dynote.Duration != -1 && rem != 0)
+                                file.WriteLine($"\t.byte\t\t{name}   , {not} , {vel}, gtp{rem}");
                             else
-                                file.WriteLine($"\t{name}   , {not} , {vel}");
+                                file.WriteLine($"\t.byte\t\t{name}   , {not} , {vel}");
                         }
                         else if (c is EndOfTieCommand eot)
                         {
                             if (eot.Note != -1)
-                                file.WriteLine("\tEOT");
+                                file.WriteLine("\t.byte\t\tEOT");
                             else
-                                file.WriteLine($"\tEOT   , {SongEvent.NoteName(eot.Note, true)}");
+                                file.WriteLine($"\t.byte\t\tEOT   , {SongEvent.NoteName(eot.Note, true)}");
                         }
                         else if (c is VoiceCommand voice)
-                            file.WriteLine($"\tVOICE , {voice.Voice}");
+                            file.WriteLine($"\t.byte\t\tVOICE , {voice.Voice}");
                         else if (c is VolumeCommand volume)
-                            file.WriteLine($"\tVOL   , {volume.Volume}*{label}_mvl/mxv");
+                            file.WriteLine($"\t.byte\t\tVOL   , {volume.Volume}*{label}_mvl/mxv");
                         else if (c is PanpotCommand pan)
-                            file.WriteLine($"\tPAN   , {SongEvent.CenterValueString(pan.Panpot)}");
+                            file.WriteLine($"\t.byte\t\tPAN   , {SongEvent.CenterValueString(pan.Panpot)}");
                         else if (c is BendCommand bend)
-                            file.WriteLine($"\tBEND  , {SongEvent.CenterValueString(bend.Bend)}");
+                            file.WriteLine($"\t.byte\t\tBEND  , {SongEvent.CenterValueString(bend.Bend)}");
                         else if (c is TuneCommand tune)
-                            file.WriteLine($"\tTUNE  , {SongEvent.CenterValueString(tune.Tune)}");
+                            file.WriteLine($"\t.byte\t\tTUNE  , {SongEvent.CenterValueString(tune.Tune)}");
                         else if (c is BendRangeCommand bendr)
-                            file.WriteLine($"\tBENDR , {bendr.Range}");
+                            file.WriteLine($"\t.byte\t\tBENDR , {bendr.Range}");
                         else if (c is LFOSpeedCommand lfos)
-                            file.WriteLine($"\tLFOS  , {lfos.Speed}");
+                            file.WriteLine($"\t.byte\t\tLFOS  , {lfos.Speed}");
                         else if (c is LFODelayCommand lfodl)
-                            file.WriteLine($"\tLFODL , {lfodl.Delay}");
+                            file.WriteLine($"\t.byte\t\tLFODL , {lfodl.Delay}");
                         else if (c is ModDepthCommand mod)
-                            file.WriteLine($"\tMOD   , {mod.Depth}");
+                            file.WriteLine($"\t.byte\t\tMOD   , {mod.Depth}");
                         else if (c is ModTypeCommand modt)
-                            file.WriteLine($"\tMODT  , {modt.Type}");
+                            file.WriteLine($"\t.byte\t\tMODT  , {modt.Type}");
                         else if (c is PriorityCommand prio)
-                            file.WriteLine($"PRIO , {prio.Priority}");
+                            file.WriteLine($"\t.byte\tPRIO , {prio.Priority}");
                         else if (c is KeyShiftCommand keysh)
-                            file.WriteLine($"KEYSH , {label}_key+{keysh.Shift}");
+                            file.WriteLine($"\t.byte\tKEYSH , {label}_key+{keysh.Shift}");
                         else if (c is GoToCommand goTo)
                         {
-                            file.WriteLine("GOTO");
+                            file.WriteLine("\t.byte\tGOTO");
                             file.WriteLine($"\t .word\t{labels[goTo.Offset]}");
                         }
                         else if (c is FinishCommand fine)
-                            file.WriteLine("FINE");
+                            file.WriteLine("\t.byte\tFINE");
                         else if (c is CallCommand patt)
                         {
-                            file.WriteLine("PATT");
+                            file.WriteLine("\t.byte\tPATT");
                             file.WriteLine($"\t .word\t{labels[patt.Offset]}");
                         }
                         else if (c is ReturnCommand pend)
-                            file.WriteLine("PEND");
+                            file.WriteLine("\t.byte\tPEND");
                         else if (c is RepeatCommand rept)
-                            file.WriteLine($"\tREPT  , {rept.Arg}");
+                            file.WriteLine($"\t.byte\t\tREPT  , {rept.Arg}");
                         else if (c is MemoryAccessCommand memacc)
-                            file.WriteLine($"\tMEMACC, {memacc.Arg1,4}, {memacc.Arg2,4}, {memacc.Arg3}");
+                            file.WriteLine($"\t.byte\t\tMEMACC, {memacc.Arg1,4}, {memacc.Arg2,4}, {memacc.Arg3}");
                         else if (c is LibraryCommand xcmd)
-                            file.WriteLine($"\tXCMD  , {xcmd.Arg1,4}, {xcmd.Arg2}");
+                            file.WriteLine($"\t.byte\t\tXCMD  , {xcmd.Arg1,4}, {xcmd.Arg2}");
                     }
                 }
 
@@ -199,7 +214,7 @@ namespace GBAMusicStudio.Core.M4A
                 file.WriteLine();
                 file.WriteLine($"{label}:");
                 file.WriteLine($"\t.byte\t{NumTracks}\t@ NumTrks");
-                file.WriteLine($"\t.byte\t{_header.NumBlocks}\t@ NumBlks");
+                file.WriteLine($"\t.byte\t{(this is M4ASong m4asong ? m4asong.Header.NumBlocks : 0)}\t@ NumBlks");
                 file.WriteLine($"\t.byte\t{label}_pri\t@ Priority");
                 file.WriteLine($"\t.byte\t{label}_rev\t@ Reverb.");
                 file.WriteLine();
@@ -216,18 +231,19 @@ namespace GBAMusicStudio.Core.M4A
     internal abstract class M4ASong : Song
     {
         byte[] _binary;
+        internal SongHeader Header;
 
         protected void Load(byte[] binary, SongHeader head)
         {
             _binary = binary;
-            _header = head;
-            Array.Resize(ref _header.Tracks, _header.NumTracks); // Not really necessary
-            Commands = new List<SongEvent>[_header.NumTracks];
-            for (int i = 0; i < _header.NumTracks; i++)
+            Header = head;
+            Array.Resize(ref Header.Tracks, Header.NumTracks); // Not really necessary yet
+            Commands = new List<SongEvent>[Header.NumTracks];
+            for (int i = 0; i < Header.NumTracks; i++)
                 Commands[i] = new List<SongEvent>();
 
-            SongPlayer.VoiceTable = new VoiceTable();
-            SongPlayer.VoiceTable.Load(_header.VoiceTable);
+            VoiceTable = new M4AVoiceTable();
+            VoiceTable.Load(Header.VoiceTable);
 
             if (NumTracks == 0 || NumTracks > 16) return;
 
@@ -236,7 +252,7 @@ namespace GBAMusicStudio.Core.M4A
 
             for (int i = 0; i < NumTracks; i++)
             {
-                reader.SetOffset(_header.Tracks[i]);
+                reader.SetOffset(Header.Tracks[i]);
 
                 byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 127;
 
@@ -315,7 +331,7 @@ namespace GBAMusicStudio.Core.M4A
                             case 0xB5: command = new RepeatCommand { Arg = reader.ReadByte() }; break;
                             case 0xB9: command = new MemoryAccessCommand { Arg1 = reader.ReadByte(), Arg2 = reader.ReadByte(), Arg3 = reader.ReadByte() }; break;
                             case 0xBA: command = new PriorityCommand { Priority = reader.ReadByte() }; break;
-                            case 0xBB: command = new TempoCommand { Tempo = reader.ReadByte() }; break;
+                            case 0xBB: command = new TempoCommand { Tempo = (ushort)(reader.ReadByte() * 2) }; break;
                             case 0xBC: command = new KeyShiftCommand { Shift = reader.ReadSByte() }; break;
                             // Commands that work within running status:
                             case 0xBD: command = new VoiceCommand { Voice = reader.ReadByte() }; break;
@@ -349,27 +365,23 @@ namespace GBAMusicStudio.Core.M4A
 
             ICommand AddNoteEvent(byte note, byte velocity, byte addedDuration, byte runCmd, out byte prevNote, out byte prevVelocity)
             {
-                return new NoteCommand
+                return new M4ANoteCommand
                 {
                     Note = (sbyte)(prevNote = note),
-                    Velocity = (sbyte)(prevVelocity = velocity),
-                    Duration = (sbyte)(runCmd == 0xCF ? -1 : (SongEvent.RestFromCMD(0xCF, runCmd) + addedDuration))
+                    Velocity = prevVelocity = velocity,
+                    Duration = (short)(runCmd == 0xCF ? -1 : (SongEvent.RestFromCMD(0xCF, runCmd) + addedDuration))
                 };
             }
         }
     }
 
-    internal class ROMSong : M4ASong
+    internal class M4AROMSong : M4ASong
     {
-        readonly ushort num, table;
-
-        internal ROMSong(ushort songNum, ushort tableNum)
+        internal M4AROMSong(uint offset)
         {
-            num = songNum;
-            table = tableNum;
-
-            Load(ROM.Instance.ROMFile,
-                ROM.Instance.ReadStruct<SongHeader>(ROM.Instance.ReadPointer(ROM.Instance.Game.SongTables[table] + ((uint)8 * num))));
+            Offset = offset;
+            var header = ROM.Instance.ReadStruct<SongHeader>(offset);
+            Load(ROM.Instance.ROMFile, header);
         }
     }
 
@@ -377,8 +389,71 @@ namespace GBAMusicStudio.Core.M4A
     {
         internal ASMSong(Assembler assembler, string headerLabel)
         {
+            Offset = assembler.BaseOffset;
             var binary = assembler.Binary;
             Load(binary, Utils.ReadStruct<SongHeader>(binary, (uint)assembler[headerLabel]));
+        }
+    }
+
+    internal class MLSSSong : Song
+    {
+        internal MLSSSong(uint offset)
+        {
+            Offset = offset;
+            VoiceTable = new MLSSVoiceTable();
+            VoiceTable.Load(0);
+
+            int amt = GetTrackAmount(ROM.Instance.ReadUInt16(Offset));
+
+            Commands = new List<SongEvent>[amt];
+            for (int i = 0; i < amt; i++)
+            {
+                Commands[i] = new List<SongEvent>();
+                uint track = Offset + ROM.Instance.ReadUInt16((uint)(Offset + 2 + (i * 2)));
+                ROM.Instance.SetOffset(track);
+
+                byte cmd = 0;
+                while (cmd <= 0xFA)
+                {
+                    uint off = ROM.Instance.Position;
+                    ICommand command = null;
+
+                    cmd = ROM.Instance.ReadByte();
+                    switch (cmd)
+                    {
+                        case 0: command = new ExtendedNoteCommand { Note = ROM.Instance.ReadByte(), Extension = ROM.Instance.ReadByte() }; break;
+                        case 0xF0: command = new VoiceCommand { Voice = ROM.Instance.ReadByte() }; break;
+                        case 0xF1: command = new VolumeCommand { Volume = 127 }; ROM.Instance.ReadByte(); break; // TODO
+                        case 0xF2: command = new PanpotCommand { Panpot = 0 }; ROM.Instance.ReadSByte(); break; // TODO
+                        case 0xF6: command = new RestCommand { Rest = ROM.Instance.ReadByte() }; break;
+                        case 0xF8:
+                            short offsetFromEnd = ROM.Instance.ReadInt16();
+                            command = new GoToCommand { Offset = (uint)(ROM.Instance.Position + offsetFromEnd) };
+                            break;
+                        case 0xF9: command = new TempoCommand { Tempo = ROM.Instance.ReadByte() }; break;
+                        default:
+                            if (cmd > 0xFA)
+                                command = new FinishCommand();
+                            else // Notes
+                                command = new MLSSNoteCommand { Duration = cmd, Note = ROM.Instance.ReadSByte() };
+                            break;
+                    }
+                    Commands[i].Add(new SongEvent(off, command));
+                }
+            }
+        }
+
+        int GetTrackAmount(ushort bits)
+        {
+            int num = 0;
+            for (int i = 0; i < 16; i++)
+            {
+                if ((bits & 1 << i) != 0)
+                {
+                    num++;
+                }
+            }
+            return num;
         }
     }
 

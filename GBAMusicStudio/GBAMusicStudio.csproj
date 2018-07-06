@@ -82,17 +82,18 @@
   <ItemGroup>
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
-    <Compile Include="Core\Constants.cs" />
-    <Compile Include="Core\M4A\Instrument.cs" />
-    <Compile Include="Core\M4A\M4AStructs.cs" />
-    <Compile Include="Core\M4A\SongEvent.cs" />
+    <Compile Include="Core\Engine.cs" />
+    <Compile Include="Core\Instrument.cs" />
+    <Compile Include="Core\M4AStructs.cs" />
+    <Compile Include="Core\SongEvent.cs" />
+    <Compile Include="Core\SongTable.cs" />
     <Compile Include="Core\SongPlayer.cs" />
     <Compile Include="Core\ROM.cs" />
     <Compile Include="Core\ROMReader.cs" />
-    <Compile Include="Core\M4A\Song.cs" />
+    <Compile Include="Core\Song.cs" />
     <Compile Include="Core\VoiceTableSaver.cs" />
-    <Compile Include="Core\M4A\Track.cs" />
-    <Compile Include="Core\M4A\VoiceTable.cs" />
+    <Compile Include="Core\Track.cs" />
+    <Compile Include="Core\VoiceTable.cs" />
     <Compile Include="FMOD\fmod.cs" />
     <Compile Include="FMOD\fmod_dsp.cs" />
     <Compile Include="FMOD\fmod_errors.cs" />

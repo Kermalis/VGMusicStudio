@@ -1,13 +1,19 @@
 ﻿using GBAMusicStudio.Util;
 using Humanizer;
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace GBAMusicStudio.Core.M4A
+namespace GBAMusicStudio.Core
 {
     internal class M4AStructs
     {
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct SongEntry
+        {
+            internal uint Header;
+            internal ushort Player;
+            internal ushort Unknown;
+        }
         [StructLayout(LayoutKind.Sequential)]
         internal struct SongHeader
         {
@@ -50,10 +56,10 @@ namespace GBAMusicStudio.Core.M4A
         }
         internal class SMulti : SVoice
         {
-            internal readonly VoiceTable Table;
+            internal readonly M4AVoiceTable Table;
             internal readonly Triple<byte, byte, byte>[] Keys;
 
-            internal static readonly Dictionary<uint, VoiceTable> LoadedMultis = new Dictionary<uint, VoiceTable>(); // Prevent stack overflow
+            internal static readonly Dictionary<uint, M4AVoiceTable> LoadedMultis = new Dictionary<uint, M4AVoiceTable>(); // Prevent stack overflow
             internal SMulti(Split ks) : base(ks)
             {
                 if (LoadedMultis.ContainsKey(ks.Table))
@@ -62,7 +68,7 @@ namespace GBAMusicStudio.Core.M4A
                 }
                 else
                 {
-                    Table = new VoiceTable();
+                    Table = new M4AVoiceTable();
                     LoadedMultis.Add(ks.Table, Table);
                     Table.Load(ks.Table);
                 }
@@ -87,9 +93,9 @@ namespace GBAMusicStudio.Core.M4A
         }
         internal class SDrum : SVoice
         {
-            internal readonly VoiceTable Table;
+            internal readonly M4AVoiceTable Table;
 
-            internal static readonly Dictionary<uint, VoiceTable> LoadedDrums = new Dictionary<uint, VoiceTable>(); // Prevent stack overflow
+            internal static readonly Dictionary<uint, M4AVoiceTable> LoadedDrums = new Dictionary<uint, M4AVoiceTable>(); // Prevent stack overflow
             internal SDrum(Drum d) : base(d)
             {
                 if (LoadedDrums.ContainsKey(d.Table))
@@ -98,7 +104,7 @@ namespace GBAMusicStudio.Core.M4A
                 }
                 else
                 {
-                    Table = new VoiceTable();
+                    Table = new M4AVoiceTable();
                     LoadedDrums.Add(d.Table, Table);
                     Table.Load(d.Table);
                 }

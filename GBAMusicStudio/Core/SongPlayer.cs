@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GBAMusicStudio.Core.M4A;
-using static GBAMusicStudio.Core.M4A.M4AStructs;
-using GBAMusicStudio.MIDI;
+using static GBAMusicStudio.Core.M4AStructs;
 using GBAMusicStudio.Util;
 using System.Threading;
 
@@ -34,13 +32,12 @@ namespace GBAMusicStudio.Core
             NOISE0_ID = SQUARE75_ID - 1,
             NOISE1_ID = NOISE0_ID - 1;
 
-        internal static byte Tempo;
+        internal static ushort Tempo;
         static int tempoStack;
         static uint position;
-        static readonly Track[] tracks;
+        static Track[] tracks;
 
-        internal static Song Song { get; private set; }
-        internal static VoiceTable VoiceTable;
+        internal static Song Song;
         internal static int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
 
         static SongPlayer()
@@ -56,23 +53,31 @@ namespace GBAMusicStudio.Core
                 gbInstruments[i] = new Instrument();
             allInstruments = dsInstruments.Union(gbInstruments).ToArray();
 
-            tracks = new Track[16];
-            for (byte i = 0; i < 16; i++)
-                tracks[i] = new Track(i);
-
-            ClearVoices();
-
             time = new TimeBarrier();
+
+            Reset();
         }
 
-        internal static void ClearVoices()
+        internal static void Reset()
         {
+            if (ROM.Instance == null) return;
+
+            tracks = new Track[16];
+            for (byte i = 0; i < 16; i++)
+            {
+                switch (ROM.Instance.Game.Engine)
+                {
+                    case AEngine.M4A: tracks[i] = new M4ATrack(i); break;
+                    case AEngine.MLSS: tracks[i] = new MLSSTrack(i); break;
+                }
+            }
+
             if (Sounds != null)
             {
                 foreach (var s in Sounds.Values)
                     s.release();
                 Sounds.Clear();
-                VoiceTable = null;
+                Song = null;
                 SMulti.LoadedMultis.Clear();
                 SDrum.LoadedDrums.Clear();
             }
@@ -148,14 +153,14 @@ namespace GBAMusicStudio.Core
             {
                 var track = tracks[i];
                 track.Init();
-                int elapsed = 0;
+                uint elapsed = 0;
                 while (!track.Stopped)
                 {
                     ExecuteNext(i);
                     // elapsed == 400, delay == 4, p == 402
                     if (elapsed <= p && elapsed + track.Delay > p)
                     {
-                        track.Delay -= (sbyte)(p - elapsed);
+                        track.Delay -= (byte)(p - elapsed);
                         foreach (var ins in track.Instruments)
                             ins.Stop();
                         break;
@@ -165,17 +170,6 @@ namespace GBAMusicStudio.Core
                 }
             }
             if (pause) Pause();
-        }
-
-        internal static void LoadROMSong(ushort num, byte table)
-        {
-            Song = new ROMSong(num, table);
-
-            MIDIKeyboard.Start();
-        }
-        internal static void LoadASMSong(Assembler assembler, string headerLabel)
-        {
-            Song = new ASMSong(assembler, headerLabel);
         }
 
         internal static void Play()
@@ -192,7 +186,7 @@ namespace GBAMusicStudio.Core
                 tracks[i].Init();
 
             position = 0; tempoStack = 0;
-            Tempo = 150 / 2;
+            Tempo = Engine.GetDefaultTempo();
 
             StartThread();
         }
@@ -232,11 +226,11 @@ namespace GBAMusicStudio.Core
                 thread.Join();
         }
 
-        internal static (ushort, uint, uint[], sbyte[], sbyte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
+        internal static (ushort, uint, uint[], sbyte[], byte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
             var offsets = new uint[NumTracks];
             var volumes = new sbyte[NumTracks];
-            var delays = new sbyte[NumTracks];
+            var delays = new byte[NumTracks];
             var notes = new sbyte[NumTracks][];
             var velocities = new float[NumTracks];
             var voices = new byte[NumTracks];
@@ -252,7 +246,7 @@ namespace GBAMusicStudio.Core
                 voices[i] = tracks[i].Voice;
                 modulations[i] = tracks[i].MODDepth;
                 bends[i] = tracks[i].Bend * tracks[i].BendRange;
-                types[i] = VoiceTable[tracks[i].Voice].ToString();
+                types[i] = Song.VoiceTable[tracks[i].Voice].ToString();
 
                 Instrument[] instruments = tracks[i].Instruments.Clone().ToArray();
                 bool none = instruments.Length == 0;
@@ -261,16 +255,18 @@ namespace GBAMusicStudio.Core
                 notes[i] = none ? new sbyte[0] : instruments.Where(ins => ins.State < ADSRState.Releasing).Select(ins => ins.DisplayNote).Distinct().ToArray();
                 velocities[i] = none ? 0 : loudest.Velocity * (volumes[i] / 127f);
             }
-            return ((ushort)(Tempo * 2), position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
+            return (Tempo, position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
         }
 
-        static void PlayInstrument(Track track, sbyte note, sbyte velocity, sbyte duration)
+        static void PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
-            note = (sbyte)(note + track.KeyShift).Clamp(0, 127);
+            // Hides base note, vel and dur
+            int shift = note + track.KeyShift;
+            note = (sbyte)(shift.Clamp(0, 127));
 
             if (!track.Ready) return;
 
-            Voice voice = VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
+            Voice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
 
             Instrument instrument = null;
             switch (voice.Type)
@@ -356,7 +352,6 @@ namespace GBAMusicStudio.Core
             else if (e.Command is PriorityCommand prio) track.SetPriority(prio.Priority);
             else if (e.Command is TempoCommand tempo) Tempo = tempo.Tempo;
             else if (e.Command is KeyShiftCommand keysh) track.KeyShift = keysh.Shift;
-            else if (e.Command is NoteCommand n) PlayInstrument(track, n.Note, n.Velocity, n.Duration);
             else if (e.Command is RestCommand w) track.Delay = w.Rest;
             else if (e.Command is VoiceCommand voice) track.SetVoice(voice.Voice);
             else if (e.Command is VolumeCommand vol) track.SetVolume(vol.Volume);
@@ -381,6 +376,36 @@ namespace GBAMusicStudio.Core
                 if (ins != null)
                     ins.State = ADSRState.Releasing;
             }
+            else if (e.Command is NoteCommand n)
+            {
+                if (e.Command is MLSSNoteCommand mln)
+                {
+                    var mlTrack = (MLSSTrack)track;
+                    mlTrack.Delay += (byte)mln.Duration;
+                    //if (mlTrack.ExtendingNote == -1)
+                        PlayNote(track, mln.Note, 0x7F, mln.Duration);
+                    //else
+                    {
+                        //mlTrack.ExtendingNote = -1;
+                        Instrument ins = mlTrack.Instruments.LastOrDefault(inst => inst.NoteDuration == -1);
+                        if (ins != null)
+                            ins.State = ADSRState.Releasing;
+                    }
+                }
+                else if (e.Command is M4ANoteCommand m4an)
+                {
+                    PlayNote(track, m4an.Note, m4an.Velocity, m4an.Duration);
+                }
+            }
+            else if (e.Command is ExtendedNoteCommand ext)
+            {
+                var mlTrack = (MLSSTrack)track;
+                mlTrack.Delay += ext.Extension;
+                sbyte note = (sbyte)(ext.Note - 0x80);
+                //if (mlTrack.ExtendingNote == -1)
+                    PlayNote(mlTrack, note, 0x7F, -1);
+                //mlTrack.ExtendingNote = note;
+            }
 
             if (!track.Stopped)
                 track.CommandIndex++;
@@ -391,10 +416,11 @@ namespace GBAMusicStudio.Core
             while (State != State.Stopped)
             {
                 // Do Song Tick
-                tempoStack += Tempo * 2;
-                while (tempoStack >= Constants.BPM_PER_FRAME * Constants.INTERFRAMES)
+                tempoStack += Tempo;
+                int wait = Engine.GetTempoWait();
+                while (tempoStack >= wait)
                 {
-                    tempoStack -= Constants.BPM_PER_FRAME * Constants.INTERFRAMES;
+                    tempoStack -= wait;
                     bool allDone = true;
                     for (int i = NumTracks - 1; i >= 0; i--)
                     {
