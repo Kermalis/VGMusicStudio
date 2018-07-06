@@ -99,7 +99,7 @@ namespace GBAMusicStudio.UI
             pauseButton.Size = new Size(76, 23);
 
             // Numericals
-            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Maximum = Config.MaxSongs };
+            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Maximum = Config.MaxSongs, Value = 1 };
             tableNumerical = new ThemedNumeric { Location = new Point(246, 35), Maximum = 0, Visible = false };
 
             songNumerical.Size = tableNumerical.Size = new Size(45, 23);
@@ -250,9 +250,16 @@ namespace GBAMusicStudio.UI
 
             Stop(null, null);
 
-            new ROM(d.FileName);
-            UpdateMenuInfo();
-            LoadSong(null, null);
+            try
+            {
+                new ROM(d.FileName);
+                UpdateMenuInfo();
+                LoadSong(null, null);
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(ex.Message, "Error Loading ROM");
+            }
         }
         void OpenMIDIConverter(object sender, EventArgs e)
         {
