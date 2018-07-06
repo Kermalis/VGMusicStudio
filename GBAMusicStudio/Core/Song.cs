@@ -98,11 +98,12 @@ namespace GBAMusicStudio.Core
                     }
                     else if (e.Command is M4ANoteCommand note)
                     {
-                        playing.Add(note);
                         int n = (note.Note + shift).Clamp(0, 127);
                         track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
                         if (note.Duration != -1)
                             track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                        else
+                            playing.Add(note);
                     }
                     else if (e.Command is EndOfTieCommand eot)
                     {
@@ -115,7 +116,7 @@ namespace GBAMusicStudio.Core
 
                         if (nc != null)
                         {
-                            int no = (eot.Note + shift).Clamp(0, 127);
+                            int no = (nc.Note + shift).Clamp(0, 127);
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, no));
                             playing.Remove(nc);
                         }
