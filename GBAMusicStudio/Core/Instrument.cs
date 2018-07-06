@@ -141,6 +141,7 @@ namespace GBAMusicStudio.Core
             {
                 processStep = 0;
 
+                again:
                 switch (State)
                 {
                     case ADSRState.Rising:
@@ -151,6 +152,7 @@ namespace GBAMusicStudio.Core
                         {
                             CurrentVelocity = 0xFF;
                             State = ADSRState.Playing;
+                            goto again;
                         }
                         break;
                     case ADSRState.Playing:
