@@ -33,6 +33,8 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Support pret dissassembly projects
 * Running status in song disassembler
 * Add the restriction back to tempo
+* MIDI saving - preview the MIDI with the Sequencer class
+* MIDI saving - UI with saving options, such as remapping
 
 ## Mario & Luigi: Superstar Saga Engine
 * Properly implement "free notes"

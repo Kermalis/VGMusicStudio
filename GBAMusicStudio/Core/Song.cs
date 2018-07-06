@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Util;
+using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -68,12 +69,141 @@ namespace GBAMusicStudio.Core
             }
         }
 
+        internal void SaveAsMIDI(string fileName)
+        {
+            if (NumTracks == 0)
+                throw new InvalidDataException("This song has no tracks.");
+            if (ROM.Instance.Game.Engine != AEngine.M4A)
+                throw new PlatformNotSupportedException("Exporting to MIDI from this game engine is not supported at this time.");
+
+            CalculateTicks();
+            var midi = new Sequence(Engine.GetTicksPerBar() / 4);
+
+            for (int i = 0; i < NumTracks; i++)
+            {
+                var track = new Sanford.Multimedia.Midi.Track();
+                midi.Add(track);
+
+                int endOfPattern = 0, startOfPatternTicks = 0, endOfPatternTicks = 0, shift = 0;
+                var playing = new List<M4ANoteCommand>();
+
+                for (int j = 0; j < Commands[i].Count; j++)
+                {
+                    var e = Commands[i][j];
+                    int ticks = (int)(e.AbsoluteTicks + (endOfPatternTicks - startOfPatternTicks));
+
+                    if (e.Command is KeyShiftCommand keysh)
+                    {
+                        shift = keysh.Shift;
+                    }
+                    else if (e.Command is M4ANoteCommand note)
+                    {
+                        playing.Add(note);
+                        int n = (note.Note + shift).Clamp(0, 127);
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
+                        if (note.Duration != -1)
+                            track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                    }
+                    else if (e.Command is EndOfTieCommand eot)
+                    {
+                        M4ANoteCommand nc = null;
+
+                        if (eot.Note == -1)
+                            nc = playing.LastOrDefault();
+                        else
+                            nc = playing.LastOrDefault(n => n.Note == eot.Note);
+
+                        if (nc != null)
+                        {
+                            int no = (eot.Note + shift).Clamp(0, 127);
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, no));
+                            playing.Remove(nc);
+                        }
+                    }
+                    else if (e.Command is VoiceCommand voice)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
+                    }
+                    else if (e.Command is VolumeCommand vol)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume));
+                    }
+                    else if (e.Command is PanpotCommand pan)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
+                    }
+                    else if (e.Command is BendCommand bend)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, bend.Bend + 0x40));
+                    }
+                    else if (e.Command is BendRangeCommand bendr)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range));
+                    }
+                    else if (e.Command is LFOSpeedCommand lfos)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 21, lfos.Speed));
+                    }
+                    else if (e.Command is LFODelayCommand lfodl)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 26, lfodl.Delay));
+                    }
+                    else if (e.Command is ModDepthCommand mod)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.ModulationWheel, mod.Depth));
+                    }
+                    else if (e.Command is ModTypeCommand modt)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 22, modt.Type));
+                    }
+                    else if (e.Command is TuneCommand tune)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
+                    }
+                    else if (e.Command is TempoCommand tempo)
+                    {
+                        var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
+                        change.Build();
+                        track.Insert(ticks, change.Result);
+                    }
+                    else if (e.Command is CallCommand patt)
+                    {
+                        int callCmd = Commands[i].FindIndex(c => c.Offset == patt.Offset);
+                        endOfPattern = j;
+                        endOfPatternTicks = (int)e.AbsoluteTicks;
+                        j = callCmd - 1; // -1 for incoming ++
+                        startOfPatternTicks = (int)Commands[i][j + 1].AbsoluteTicks;
+                    }
+                    else if (e.Command is ReturnCommand)
+                    {
+                        if (endOfPattern != 0)
+                        {
+                            j = endOfPattern;
+                            endOfPattern = startOfPatternTicks = endOfPatternTicks = 0;
+                        }
+                    }
+                    else if (i == 0 && e.Command is GoToCommand goTo)
+                    {
+                        track.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                        int jumpCmd = Commands[i].FindIndex(c => c.Offset == goTo.Offset);
+                        track.Insert((int)Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                    }
+                    else if (e.Command is FinishCommand fine)
+                    {
+                        track.Insert(ticks, new MetaMessage(MetaType.EndOfTrack, new byte[0]));
+                        break;
+                    }
+                }
+            }
+            midi.Save(fileName);
+        }
         internal void SaveAsASM(string fileName)
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
             if (ROM.Instance.Game.Engine != AEngine.M4A)
                 throw new PlatformNotSupportedException("Exporting to ASM from this game engine is not supported at this time.");
+
             using (var file = new StreamWriter(fileName))
             {
                 string label = Assembler.FixLabel(Path.GetFileNameWithoutExtension(fileName));
@@ -348,8 +478,15 @@ namespace GBAMusicStudio.Core
                             case 0xCE: // EOT
                                 sbyte note;
 
-                                if (reader.PeekByte() < 128) { note = reader.ReadSByte(); prevNote = (byte)note; }
-                                else { note = -1; }
+                                if (reader.PeekByte() < 128)
+                                {
+                                    note = reader.ReadSByte();
+                                    prevNote = (byte)note;
+                                }
+                                else
+                                {
+                                    note = -1;
+                                }
 
                                 command = new EndOfTieCommand { Note = note };
                                 break;
@@ -385,9 +522,9 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal class ASMSong : M4ASong
+    internal class M4AASMSong : M4ASong
     {
-        internal ASMSong(Assembler assembler, string headerLabel)
+        internal M4AASMSong(Assembler assembler, string headerLabel)
         {
             Offset = assembler.BaseOffset;
             var binary = assembler.Binary;

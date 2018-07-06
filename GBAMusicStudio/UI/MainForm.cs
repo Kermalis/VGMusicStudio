@@ -26,7 +26,7 @@ namespace GBAMusicStudio.UI
         IContainer components;
         MenuStrip mainMenu;
         ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
-            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem;
+            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem;
         Timer timer;
         readonly object timerLock = new object();
         ThemedNumeric songNumerical, tableNumerical;
@@ -76,8 +76,11 @@ namespace GBAMusicStudio.UI
             eASMToolStripMenuItem = new ToolStripMenuItem { Text = "Export Song To ASM", Enabled = false };
             eASMToolStripMenuItem.Click += ExportASM;
 
+            eMIDIToolStripMenuItem = new ToolStripMenuItem { Text = "Export Song To MIDI", Enabled = false };
+            eMIDIToolStripMenuItem.Click += ExportMIDI;
+
             dataToolStripMenuItem = new ToolStripMenuItem { Text = "Data" };
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem });
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem });
 
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
@@ -207,7 +210,7 @@ namespace GBAMusicStudio.UI
             Text = "GBA Music Studio - " + caption;
             bool playing = SongPlayer.State == State.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.Song = new ASMSong(asm, headerLabel);
+            SongPlayer.Song = new M4AASMSong(asm, headerLabel);
             UpdateTrackInfo(playing);
         }
         void LoadSong(object sender, EventArgs e)
@@ -309,6 +312,21 @@ namespace GBAMusicStudio.UI
                 FlexibleMessageBox.Show(ex.Message, "Error Exporting Song");
             }
         }
+        void ExportMIDI(object sender, EventArgs e)
+        {
+            var d = new SaveFileDialog { Title = "Export MIDI File", Filter = "MIDI file|*.mid" };
+            if (d.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                SongPlayer.Song.SaveAsMIDI(d.FileName);
+                FlexibleMessageBox.Show($"Song saved to {d.FileName}.", Text);
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(ex.Message, "Error Exporting Song");
+            }
+        }
 
         void UpdateMenuInfo()
         {
@@ -323,7 +341,7 @@ namespace GBAMusicStudio.UI
             tableNumerical.Visible = game.SongTables.Length > 1;
 
             openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
-                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled =
+                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
                 songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
         void UpdateTrackInfo(bool play)
