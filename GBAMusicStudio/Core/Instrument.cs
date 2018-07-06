@@ -169,14 +169,17 @@ namespace GBAMusicStudio.Core
                         }
                         break;
                 }
+                if (State < ADSRState.Releasing && NoteDuration != -1 && Age >= NoteDuration)
+                {
+                    State = ADSRState.Releasing;
+                    goto again;
+                }
             }
             UpdateFrequency();
         }
         internal void NoteTick()
         {
             Age++;
-            if (State < ADSRState.Releasing && NoteDuration != -1 && Age >= NoteDuration)
-                State = ADSRState.Releasing;
         }
 
         public override string ToString() => $"Note {Note}; Age {Age}; State {State}; Track {Track}";
