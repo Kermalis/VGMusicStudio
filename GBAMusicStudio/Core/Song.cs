@@ -331,7 +331,7 @@ namespace GBAMusicStudio.Core
                         else if (c is ReturnCommand pend)
                             file.WriteLine("\t.byte\tPEND");
                         else if (c is RepeatCommand rept)
-                            file.WriteLine($"\t.byte\t\tREPT  , {rept.Arg}");
+                            file.WriteLine($"\t.byte\t\tREPT  , {rept.Times}");
                         else if (c is MemoryAccessCommand memacc)
                             file.WriteLine($"\t.byte\t\tMEMACC, {memacc.Arg1,4}, {memacc.Arg2,4}, {memacc.Arg3}");
                         else if (c is LibraryCommand xcmd)
