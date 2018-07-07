@@ -276,9 +276,11 @@ namespace GBAMusicStudio.Core
     {
         public string Name => "Repeat";
 
-        public byte Arg;
+        public byte Times;
+        uint offset;
+        public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
 
-        public string Arguments => Arg.ToString();
+        public string Arguments => $"{Times}, 0x{offset:X}";
     }
     internal class MemoryAccessCommand : ICommand
     {

@@ -459,7 +459,7 @@ namespace GBAMusicStudio.Core
                             case 0xB2: command = new GoToCommand { Offset = reader.ReadPointer() }; break;
                             case 0xB3: command = new CallCommand { Offset = reader.ReadPointer() }; break;
                             case 0xB4: command = new ReturnCommand(); break;
-                            case 0xB5: command = new RepeatCommand { Arg = reader.ReadByte() }; break;
+                            case 0xB5: command = new RepeatCommand { Times = reader.ReadByte(), Offset = reader.ReadPointer() }; break;
                             case 0xB9: command = new MemoryAccessCommand { Arg1 = reader.ReadByte(), Arg2 = reader.ReadByte(), Arg3 = reader.ReadByte() }; break;
                             case 0xBA: command = new PriorityCommand { Priority = reader.ReadByte() }; break;
                             case 0xBB: command = new TempoCommand { Tempo = (ushort)(reader.ReadByte() * 2) }; break;

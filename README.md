@@ -27,6 +27,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Add SquareWave sweeping
 * Add "note off with noise" for SquareWaves
 * Repeat command
+* Nested PATT (3 is the maximum)
 * Fix ADSR on PSG instruments
 * Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\]
 * Songtable finder
@@ -71,3 +72,4 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Bregalad
 * mimi
 * Jesse (jelle)
+* SomeShrug
