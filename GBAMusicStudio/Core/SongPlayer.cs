@@ -365,16 +365,17 @@ namespace GBAMusicStudio.Core
             else if (e.Command is TuneCommand tune) track.SetTune(tune.Tune);
             else if (e.Command is EndOfTieCommand eot)
             {
-                Instrument ins = null;
+                IEnumerable<Instrument> ins = new Instrument[0];
                 if (eot.Note == -1)
-                    ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == -1 && inst.State < ADSRState.Releasing);
+                    ins = track.Instruments.Where(inst => inst.NoteDuration == -1 && inst.State < ADSRState.Releasing);
                 else
                 {
                     byte note = (byte)(eot.Note + track.KeyShift).Clamp(0, 127);
-                    ins = track.Instruments.LastOrDefault(inst => inst.NoteDuration == -1 && inst.DisplayNote == note && inst.State < ADSRState.Releasing);
+                    // Could be problematic to do "DisplayNote" with high notes and a key shift up
+                    ins = track.Instruments.Where(inst => inst.NoteDuration == -1 && inst.DisplayNote == note && inst.State < ADSRState.Releasing);
                 }
-                if (ins != null)
-                    ins.State = ADSRState.Releasing;
+                foreach (var inst in ins)
+                    inst.State = ADSRState.Releasing;
             }
             else if (e.Command is NoteCommand n)
             {
