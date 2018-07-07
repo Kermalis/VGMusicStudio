@@ -284,6 +284,10 @@ B24P:
       41: "Unknown 1"
       51: "Exploration Failed"
       52: "Exploration Complete!"
+BMXE:
+  SongTable: 0x8F2C0
+  Name: "Metroid: Zero Mission"
+  Creator: "Nintendo"
 BPED:
   SongTable: 0x6C5BDC
   Name: "Pokémon Emerald Version (Germany)"

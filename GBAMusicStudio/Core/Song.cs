@@ -387,7 +387,7 @@ namespace GBAMusicStudio.Core
 
                 byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 127;
 
-                while (cmd != 0xB1)
+                while (cmd != 0xB1 && cmd != 0xB6)
                 {
                     uint off = reader.Position;
                     ICommand command = null;
@@ -455,7 +455,8 @@ namespace GBAMusicStudio.Core
                     {
                         switch (cmd)
                         {
-                            case 0xB1: command = new FinishCommand(); break;
+                            case 0xB1: // FINE & PREV
+                            case 0xB6: command = new FinishCommand { Type = cmd }; break;
                             case 0xB2: command = new GoToCommand { Offset = reader.ReadPointer() }; break;
                             case 0xB3: command = new CallCommand { Offset = reader.ReadPointer() }; break;
                             case 0xB4: command = new ReturnCommand(); break;

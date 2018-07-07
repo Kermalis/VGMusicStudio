@@ -28,6 +28,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Add "note off with noise" for SquareWaves
 * Repeat command
 * Nested PATT (3 is the maximum)
+* Confirm that priority kills the next lowest (6 kills 5 even if 4,5,7 are playing) in-game then implement it
 * Fix ADSR on PSG instruments
 * Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\]
 * Songtable finder

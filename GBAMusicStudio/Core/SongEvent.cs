@@ -243,7 +243,10 @@ namespace GBAMusicStudio.Core
     {
         public string Name => "Finish";
 
-        public string Arguments => string.Empty;
+        bool prev; // PREV is 0xB6, FINE is 0xB1
+        public byte Type { get => (byte)(prev ? 0xB6 : 0xB1); set => prev = value == 0xB6; }
+
+        public string Arguments => prev ? "Resume previous track" : "End track";
     }
 
     #endregion
