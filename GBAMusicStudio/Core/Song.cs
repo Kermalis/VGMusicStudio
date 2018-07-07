@@ -442,7 +442,7 @@ namespace GBAMusicStudio.Core
                         switch (runCmd)
                         {
                             case 0xBD: command = new VoiceCommand { Voice = cmd }; break;
-                            case 0xBE: command = new VolumeCommand { Volume = (sbyte)cmd }; break;
+                            case 0xBE: command = new VolumeCommand { Volume = cmd }; break;
                             case 0xBF: command = new PanpotCommand { Panpot = (sbyte)(cmd - 0x40) }; break;
                             case 0xC0: command = new BendCommand { Bend = (sbyte)(cmd - 0x40) }; break;
                             case 0xC1: command = new BendRangeCommand { Range = cmd }; break;
@@ -471,7 +471,7 @@ namespace GBAMusicStudio.Core
                             case 0xBC: command = new KeyShiftCommand { Shift = reader.ReadSByte() }; break;
                             // Commands that work within running status:
                             case 0xBD: command = new VoiceCommand { Voice = reader.ReadByte() }; break;
-                            case 0xBE: command = new VolumeCommand { Volume = reader.ReadSByte() }; break;
+                            case 0xBE: command = new VolumeCommand { Volume = reader.ReadByte() }; break;
                             case 0xBF: command = new PanpotCommand { Panpot = (sbyte)(reader.ReadByte() - 0x40) }; break;
                             case 0xC0: command = new BendCommand { Bend = (sbyte)(reader.ReadByte() - 0x40) }; break;
                             case 0xC1: command = new BendRangeCommand { Range = reader.ReadByte() }; break;
@@ -566,8 +566,8 @@ namespace GBAMusicStudio.Core
                     {
                         case 0: command = new FreeNoteCommand { Note = ROM.Instance.ReadByte(), Extension = ROM.Instance.ReadByte() }; break;
                         case 0xF0: command = new VoiceCommand { Voice = ROM.Instance.ReadByte() }; break;
-                        case 0xF1: command = new VolumeCommand { Volume = 127 }; ROM.Instance.ReadByte(); break; // TODO
-                        case 0xF2: command = new PanpotCommand { Panpot = 0 }; ROM.Instance.ReadSByte(); break; // TODO
+                        case 0xF1: command = new VolumeCommand { Volume = ROM.Instance.ReadByte() }; break;
+                        case 0xF2: command = new PanpotCommand { Panpot = (sbyte)(ROM.Instance.ReadByte() - 0x80) }; break;
                         case 0xF6: command = new RestCommand { Rest = ROM.Instance.ReadByte() }; break;
                         case 0xF8:
                             short offsetFromEnd = ROM.Instance.ReadInt16();

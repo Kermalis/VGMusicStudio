@@ -35,5 +35,24 @@ namespace GBAMusicStudio.Core
             int baseWait = BPM_PER_FRAME * INTERFRAMES;
             return baseWait / (96 / GetTicksPerBar());
         }
+
+        internal static byte GetMaxVolume()
+        {
+            switch (ROM.Instance.Game.Engine)
+            {
+                case AEngine.M4A: return 0x7F;
+                case AEngine.MLSS: return 0xFF;
+            }
+            throw BAD;
+        }
+        internal static byte GetPanpotRange()
+        {
+            switch (ROM.Instance.Game.Engine)
+            {
+                case AEngine.M4A: return 0x40;
+                case AEngine.MLSS: return 0x80;
+            }
+            throw BAD;
+        }
     }
 }

@@ -141,8 +141,8 @@ namespace GBAMusicStudio.Core
     {
         public string Name => "Volume";
 
-        sbyte vol;
-        public sbyte Volume { get => vol; set => vol = value.Clamp((sbyte)0, (sbyte)0x7F); }
+        byte vol;
+        public byte Volume { get => vol; set => vol = value.Clamp((byte)0, Engine.GetMaxVolume()); }
 
         public string Arguments => vol.ToString();
     }
@@ -151,7 +151,15 @@ namespace GBAMusicStudio.Core
         public string Name => "Panpot";
 
         sbyte pan;
-        public sbyte Panpot { get => pan; set => pan = value.Clamp((sbyte)-64, (sbyte)63); }
+        public sbyte Panpot
+        {
+            get => pan;
+            set
+            {
+                byte range = Engine.GetPanpotRange();
+                pan = value.Clamp((sbyte)-range, (sbyte)(range - 1));
+            }
+        }
 
         public string Arguments => pan.ToString();
     }

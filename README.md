@@ -45,6 +45,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Voice tables
 
 ## General
+* Move game-specific values from SongEvents and into Engine
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config

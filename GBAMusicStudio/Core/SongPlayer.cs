@@ -226,10 +226,10 @@ namespace GBAMusicStudio.Core
                 thread.Join();
         }
 
-        internal static (ushort, uint, uint[], sbyte[], byte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
+        internal static (ushort, uint, uint[], byte[], byte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
         {
             var offsets = new uint[NumTracks];
-            var volumes = new sbyte[NumTracks];
+            var volumes = new byte[NumTracks];
             var delays = new byte[NumTracks];
             var notes = new sbyte[NumTracks][];
             var velocities = new float[NumTracks];
@@ -251,9 +251,9 @@ namespace GBAMusicStudio.Core
                 Instrument[] instruments = tracks[i].Instruments.Clone().ToArray();
                 bool none = instruments.Length == 0;
                 Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins.Velocity).ElementAt(0);
-                pans[i] = none ? tracks[i].Pan / 64f : loudest.Panpot;
+                pans[i] = none ? tracks[i].Pan / (float)Engine.GetPanpotRange() : loudest.Panpot;
                 notes[i] = none ? new sbyte[0] : instruments.Where(ins => ins.State < ADSRState.Releasing).Select(ins => ins.DisplayNote).Distinct().ToArray();
-                velocities[i] = none ? 0 : loudest.Velocity * (volumes[i] / 127f);
+                velocities[i] = none ? 0 : loudest.Velocity * (volumes[i] / (float)Engine.GetMaxVolume());
             }
             return (Tempo, position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
         }

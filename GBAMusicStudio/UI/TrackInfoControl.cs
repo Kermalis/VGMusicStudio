@@ -20,8 +20,7 @@ namespace GBAMusicStudio.UI
         Tuple<int[], string[]> previousNotes;
         ushort tempo;
         uint[] positions;
-        sbyte[] volumes;
-        byte[] voices, delays, mods;
+        byte[] voices, volumes, delays, mods;
         float[] velocities, pans;
         int[] bends;
         string[] types;
@@ -111,7 +110,7 @@ namespace GBAMusicStudio.UI
             }
         }
 
-        internal void ReceiveData((ushort, uint, uint[], sbyte[], byte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) tup)
+        internal void ReceiveData((ushort, uint, uint[], byte[], byte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) tup)
         {
             tempo = tup.Item1; positions = tup.Item3; volumes = tup.Item4;
             delays = tup.Item5; notes = tup.Item6; velocities = tup.Item7;
@@ -124,7 +123,7 @@ namespace GBAMusicStudio.UI
             previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
             tempo = 0;
             positions = new uint[16];
-            volumes = new sbyte[16];
+            volumes = new byte[16];
             delays = new byte[16];
             notes = new sbyte[16][];
             velocities = new float[16];

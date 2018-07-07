@@ -10,11 +10,11 @@ namespace GBAMusicStudio.Core
         internal readonly FMOD.ChannelGroup Group;
         internal readonly ThreadSafeList<Instrument> Instruments; // Instruments being played by this track
 
-        internal byte Voice, Priority, Delay,
+        internal byte Voice, Priority, Volume, Delay,
             LFOPhase, LFODelayCount, BendRange,
             LFOSpeed, LFODelay, MODDepth;
         protected MODT MODType;
-        internal sbyte Volume, Bend, Tune, Pan, KeyShift;
+        internal sbyte Bend, Tune, Pan, KeyShift;
         internal int CommandIndex, EndOfPattern;
         internal bool Ready, Stopped;
 
@@ -37,7 +37,8 @@ namespace GBAMusicStudio.Core
             get
             {
                 int mod = MODType == MODT.Volume ? (Tri(LFOPhase) * MODDepth * 3 * Volume) >> 19 : 0;
-                return (Volume + mod).Clamp(0, 127) / 127f;
+                byte max = Engine.GetMaxVolume();
+                return (Volume + mod).Clamp(0, max) / (float)max;
             }
         }
         internal float APan
@@ -45,7 +46,8 @@ namespace GBAMusicStudio.Core
             get
             {
                 int mod = MODType == MODT.Panpot ? (Tri(LFOPhase) * MODDepth * 3) >> 12 : 0;
-                return (Pan + mod).Clamp(-64, 63) / 64f;
+                byte range = Engine.GetMaxVolume();
+                return (Pan + mod).Clamp(-range, range - 1) / (float)range;
             }
         }
 
@@ -105,7 +107,7 @@ namespace GBAMusicStudio.Core
             Voice = b;
             Ready = true;
         }
-        internal void SetVolume(sbyte b)
+        internal void SetVolume(byte b)
         {
             Volume = b;
             UpdateVolumes();
