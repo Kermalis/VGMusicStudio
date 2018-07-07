@@ -115,11 +115,12 @@ namespace GBAMusicStudio.Core
             }
             else // PSG instrument
             {
-                A *= 17; D *= 17; S *= 17; R *= 17;
+                A = (byte)(0xFF - A * 32);
+                D *= 32;
+                S *= 16;
+                R *= 32;
             }
-
-            if (A == 0)
-                A = 255;
+            
             track.Instruments.Add(this);
         }
         internal void Stop()

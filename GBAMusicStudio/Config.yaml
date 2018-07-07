@@ -5,7 +5,7 @@ Volume: 50 # Value between 0 and 100.
 
 # These can be reloaded in the program:
 
-PSGVolume: 10 # Value between 0 and 17. Applies to sounds loaded after updating.
+PSGVolume: 17 # Value between 0 and 17. Applies to sounds loaded after updating.
 MIDIKeyboardFixedVelocity: True # True or False.
 RefreshRate: 30 # Value over 0. # Requires a song state change to update.
 CenterIndicators: False # True or False.
