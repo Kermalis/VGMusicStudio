@@ -231,7 +231,8 @@ namespace GBAMusicStudio.Core
                     file.WriteLine();
                     file.WriteLine($"{label}_{num}:");
 
-                    var offsets = Commands[i].Where(e => e.Command is CallCommand || e.Command is GoToCommand).Select(e => (uint)(((dynamic)e.Command).Offset)).Distinct();
+                    var offsets = Commands[i].Where(e => e.Command is CallCommand || e.Command is GoToCommand || e.Command is RepeatCommand)
+                        .Select(e => (uint)(((dynamic)e.Command).Offset)).Distinct(); // Get all offsets we need labels for
                     int jumps = 0;
                     var labels = new Dictionary<uint, string>();
                     foreach (uint o in offsets)
@@ -321,6 +322,11 @@ namespace GBAMusicStudio.Core
                             file.WriteLine("\t.byte\tGOTO");
                             file.WriteLine($"\t .word\t{labels[goTo.Offset]}");
                         }
+                        else if (c is RepeatCommand rept)
+                        {
+                            file.WriteLine($"\t.byte\t\tREPT  , {rept.Times}");
+                            file.WriteLine($"\t .word\t{labels[rept.Offset]}");
+                        }
                         else if (c is FinishCommand fine)
                             file.WriteLine("\t.byte\tFINE");
                         else if (c is CallCommand patt)
@@ -330,8 +336,6 @@ namespace GBAMusicStudio.Core
                         }
                         else if (c is ReturnCommand pend)
                             file.WriteLine("\t.byte\tPEND");
-                        else if (c is RepeatCommand rept)
-                            file.WriteLine($"\t.byte\t\tREPT  , {rept.Times}");
                         else if (c is MemoryAccessCommand memacc)
                             file.WriteLine($"\t.byte\t\tMEMACC, {memacc.Arg1,4}, {memacc.Arg2,4}, {memacc.Arg3}");
                         else if (c is LibraryCommand xcmd)
