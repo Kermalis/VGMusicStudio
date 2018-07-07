@@ -34,18 +34,14 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Songtable finder
 * Support pret dissassembly projects
 * Running status in song disassembler
-* Add the restriction back to tempo
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 
 ## Mario & Luigi: Superstar Saga Engine
 * Properly implement "free notes"
-* Volume command
-* Panpot command
 * Voice tables
 
 ## General
-* Move game-specific values from SongEvents and into Engine
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config

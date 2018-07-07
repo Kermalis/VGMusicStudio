@@ -75,9 +75,10 @@ namespace GBAMusicStudio.Core
             get => tempo;
             set
             {
-                ushort max = 510;
+                ushort max = 0;
                 switch (ROM.Instance.Game.Engine)
                 {
+                    case AEngine.M4A: max = 510; value /= 2; value *= 2; break; // Get rid of odd values
                     case AEngine.MLSS: max = 0xFF; break;
                 }
                 tempo = value.Clamp((ushort)0, max);
@@ -96,9 +97,10 @@ namespace GBAMusicStudio.Core
             get => rest;
             set
             {
-                byte max = 96;
+                byte max = 0;
                 switch (ROM.Instance.Game.Engine)
                 {
+                    case AEngine.M4A: max = 96; break;
                     case AEngine.MLSS: max = 0xC0; break;
                 }
                 rest = value.Clamp((byte)0, max);
