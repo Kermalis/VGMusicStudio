@@ -466,6 +466,8 @@ namespace GBAMusicStudio.UI
         }
         void OnResize(object sender, EventArgs e)
         {
+            if (WindowState == FormWindowState.Minimized) return;
+
             // Position bar & song combobox
             int sWidth = (int)(splitContainer.Width / sfWidth);
             int sX = splitContainer.Width - sWidth - 4;
