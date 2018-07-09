@@ -120,7 +120,7 @@ namespace GBAMusicStudio.Core
         internal byte Velocity;
         internal int Duration;
 
-        public string Arguments => "";
+        public string Arguments => string.Empty;
     }
     internal class EndOfTieCommand : ICommand
     {
@@ -253,10 +253,7 @@ namespace GBAMusicStudio.Core
     {
         public string Name => "Finish";
 
-        bool prev; // PREV is 0xB6, FINE is 0xB1
-        public byte Type { get => (byte)(prev ? 0xB6 : 0xB1); set => prev = value == 0xB6; }
-
-        public string Arguments => prev ? "Resume previous track" : "End track";
+        public string Arguments => string.Empty;
     }
 
     #endregion
@@ -269,6 +266,13 @@ namespace GBAMusicStudio.Core
         public new int Duration { get => dur; set => dur = value.Clamp(-1, 0x7F); }
 
         public new string Arguments => $"{SongEvent.NoteName(note)} {vel} {dur}";
+    }
+    internal class M4AFinishCommand : FinishCommand
+    {
+        bool prev; // PREV is 0xB6, FINE is 0xB1
+        public byte Type { get => (byte)(prev ? 0xB6 : 0xB1); set => prev = value == 0xB6; }
+
+        public new string Arguments => prev ? "Resume previous track" : "End track";
     }
     internal class CallCommand : ICommand
     {

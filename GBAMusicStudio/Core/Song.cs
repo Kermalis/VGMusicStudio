@@ -327,8 +327,13 @@ namespace GBAMusicStudio.Core
                             file.WriteLine($"\t.byte\t\tREPT  , {rept.Times}");
                             file.WriteLine($"\t .word\t{labels[rept.Offset]}");
                         }
-                        else if (c is FinishCommand fine)
-                            file.WriteLine("\t.byte\tFINE");
+                        else if (c is M4AFinishCommand fine)
+                        {
+                            if (fine.Type == 0xB1)
+                                file.WriteLine("\t.byte\tFINE");
+                            else
+                                file.WriteLine("\t.byte\t0xB6\t@PREV");
+                        }
                         else if (c is CallCommand patt)
                         {
                             file.WriteLine("\t.byte\tPATT");
@@ -460,7 +465,7 @@ namespace GBAMusicStudio.Core
                         switch (cmd)
                         {
                             case 0xB1: // FINE & PREV
-                            case 0xB6: command = new FinishCommand { Type = cmd }; break;
+                            case 0xB6: command = new M4AFinishCommand { Type = cmd }; break;
                             case 0xB2: command = new GoToCommand { Offset = reader.ReadPointer() }; break;
                             case 0xB3: command = new CallCommand { Offset = reader.ReadPointer() }; break;
                             case 0xB4: command = new ReturnCommand(); break;
