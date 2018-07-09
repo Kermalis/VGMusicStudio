@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using static GBAMusicStudio.Core.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {
@@ -29,16 +28,16 @@ namespace GBAMusicStudio.Core
 
     internal class M4ASongTable : SongTable
     {
-        readonly Dictionary<int, SongEntry> entries;
+        readonly Dictionary<int, M4ASongEntry> entries;
 
         internal M4ASongTable(uint offset) : base(offset)
         {
-            entries = new Dictionary<int, SongEntry>(Config.MaxSongs);
+            entries = new Dictionary<int, M4ASongEntry>(Config.MaxSongs);
         }
 
         protected override Song LoadSong(int i)
         {
-            entries[i] = ROM.Instance.ReadStruct<SongEntry>((uint)(Offset + (i * 8)));
+            entries[i] = ROM.Instance.ReadStruct<M4ASongEntry>((uint)(Offset + (i * 8)));
             return new M4AROMSong(entries[i].Header);
         }
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using static GBAMusicStudio.Core.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {
@@ -24,9 +23,9 @@ namespace GBAMusicStudio.Core
 
     internal class M4AVoiceTable : VoiceTable
     {
-        void LoadDirect(SDirect direct)
+        void LoadDirect(M4ASDirect direct)
         {
-            var d = direct.Voice as Direct_Sound;
+            var d = direct.Voice as M4ADirect_Sound;
             var s = direct.Sample;
 
             if (SongPlayer.Sounds.ContainsKey(d.Address))
@@ -65,7 +64,7 @@ namespace GBAMusicStudio.Core
             Console.WriteLine("Error loading instrument: 0x{0:X}", d.Address);
             return;
         }
-        void LoadWave(PSG_Wave wave)
+        void LoadWave(M4APSG_Wave wave)
         {
             if (wave.Address == 0 || SongPlayer.Sounds.ContainsKey(wave.Address)) return;
 
@@ -101,32 +100,32 @@ namespace GBAMusicStudio.Core
                 {
                     case 0x0:
                     case 0x8:
-                        var d = ROM.Instance.ReadStruct<Direct_Sound>(off);
-                        var direct = new SDirect(d);
+                        var d = ROM.Instance.ReadStruct<M4ADirect_Sound>(off);
+                        var direct = new M4ASDirect(d);
                         voices[i] = direct;
                         LoadDirect(direct);
                         break;
                     case 0x1:
                     case 0x9:
-                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_1>(off));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<M4APSG_Square_1>(off));
                         break;
                     case 0x2:
                     case 0xA:
-                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_2>(off));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<M4APSG_Square_2>(off));
                         break;
                     case 0x3:
                     case 0xB:
-                        var wave = ROM.Instance.ReadStruct<PSG_Wave>(off);
+                        var wave = ROM.Instance.ReadStruct<M4APSG_Wave>(off);
                         voices[i] = new SVoice(wave);
                         LoadWave(wave);
                         break;
                     case 0x4:
                     case 0xC:
-                        voices[i] = new SVoice(ROM.Instance.ReadStruct<PSG_Noise>(off));
+                        voices[i] = new SVoice(ROM.Instance.ReadStruct<M4APSG_Noise>(off));
                         break;
                     case 0x40:
-                        var keySplit = ROM.Instance.ReadStruct<Split>(off);
-                        var multi = new SMulti(keySplit);
+                        var keySplit = ROM.Instance.ReadStruct<M4ASplit>(off);
+                        var multi = new M4ASMulti(keySplit);
                         voices[i] = multi;
                         if (!ROM.IsValidRomOffset(keySplit.Table) || !ROM.IsValidRomOffset(keySplit.Keys))
                             break;
@@ -141,34 +140,34 @@ namespace GBAMusicStudio.Core
                             {
                                 case 0x0:
                                 case 0x8:
-                                    var ds = ROM.Instance.ReadStruct<Direct_Sound>(mOffset);
-                                    var directsound = new SDirect(ds);
+                                    var ds = ROM.Instance.ReadStruct<M4ADirect_Sound>(mOffset);
+                                    var directsound = new M4ASDirect(ds);
                                     multi.Table[key] = directsound;
                                     LoadDirect(directsound);
                                     break;
                                 case 0x1:
                                 case 0x9:
-                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_1>(mOffset));
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<M4APSG_Square_1>(mOffset));
                                     break;
                                 case 0x2:
                                 case 0xA:
-                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Square_2>(mOffset));
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<M4APSG_Square_2>(mOffset));
                                     break;
                                 case 0x3:
                                 case 0xB:
-                                    var wv = ROM.Instance.ReadStruct<PSG_Wave>(mOffset);
+                                    var wv = ROM.Instance.ReadStruct<M4APSG_Wave>(mOffset);
                                     multi.Table[key] = new SVoice(wv);
                                     LoadWave(wv);
                                     break;
                                 case 0x4:
                                 case 0xC:
-                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<PSG_Noise>(mOffset));
+                                    multi.Table[key] = new SVoice(ROM.Instance.ReadStruct<M4APSG_Noise>(mOffset));
                                     break;
                             }
                         }
                         break;
                     case 0x80:
-                        voices[i] = new SDrum(ROM.Instance.ReadStruct<Drum>(off));
+                        voices[i] = new M4ASDrum(ROM.Instance.ReadStruct<M4ADrum>(off));
                         break;
                 }
             }
@@ -184,14 +183,14 @@ namespace GBAMusicStudio.Core
             switch (v.Type)
             {
                 case 0x40:
-                    var split = (Split)v;
-                    var multi = (SMulti)sv;
+                    var split = (M4ASplit)v;
+                    var multi = (M4ASMulti)sv;
                     byte inst = ROM.Instance.ReadByte((uint)(split.Keys + note));
                     v = (M4AVoice)multi.Table[inst].Voice;
                     fromDrum = false; // In case there is a multi within a drum
                     goto Read;
                 case 0x80:
-                    var drum = (SDrum)sv;
+                    var drum = (M4ASDrum)sv;
                     v = (M4AVoice)drum.Table[note].Voice;
                     fromDrum = true;
                     goto Read;
@@ -206,7 +205,7 @@ namespace GBAMusicStudio.Core
             {
                 case 0x0:
                 case 0x8:
-                    var direct = v as Direct_Sound;
+                    var direct = v as M4ADirect_Sound;
                     return SongPlayer.Sounds[direct.Address];
                 case 0x1:
                 case 0x2:
@@ -216,11 +215,11 @@ namespace GBAMusicStudio.Core
                     return SongPlayer.Sounds[SongPlayer.SQUARE12_ID - dyn.Pattern];
                 case 0x3:
                 case 0xB:
-                    var wave = v as PSG_Wave;
+                    var wave = v as M4APSG_Wave;
                     return SongPlayer.Sounds[wave.Address];
                 case 0x4:
                 case 0xC:
-                    var noise = v as PSG_Noise;
+                    var noise = v as M4APSG_Noise;
                     return SongPlayer.Sounds[SongPlayer.NOISE0_ID - noise.Pattern];
                 default:
                     return null; // Will not occur
@@ -230,12 +229,18 @@ namespace GBAMusicStudio.Core
 
     internal class MLSSVoiceTable : VoiceTable
     {
-        PSG_Square_1 temp = new PSG_Square_1 { S = 15, RootNote = 60 };
+        M4APSG_Square_1 temp = new M4APSG_Square_1 { S = 15, RootNote = 60 };
 
         internal override void Load(uint table)
         {
+            Offset = 0x21D1CC;
+
             for (int i = 0; i < 256; i++)
-                voices[i] = new SVoice(temp);
+            {
+                var off = ROM.Instance.ReadUInt16((uint)(Offset + (i * 2)));
+                voices[i] = new SVoice(ROM.Instance.ReadStruct<MLSSVoice>(Offset + off));
+            }
+            ;
         }
 
         internal override FMOD.Sound GetSoundFromNote(byte voice, sbyte note)
@@ -246,6 +251,7 @@ namespace GBAMusicStudio.Core
         {
             fromDrum = false;
             return temp;
+            //return voices[voice].Voice;
         }
     }
 }

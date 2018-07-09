@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static GBAMusicStudio.Core.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {
@@ -371,9 +370,9 @@ namespace GBAMusicStudio.Core
     internal abstract class M4ASong : Song
     {
         byte[] _binary;
-        internal SongHeader Header;
+        internal M4ASongHeader Header;
 
-        protected void Load(byte[] binary, SongHeader head)
+        protected void Load(byte[] binary, M4ASongHeader head)
         {
             _binary = binary;
             Header = head;
@@ -528,7 +527,7 @@ namespace GBAMusicStudio.Core
         internal M4AROMSong(uint offset)
         {
             Offset = offset;
-            var header = ROM.Instance.ReadStruct<SongHeader>(offset);
+            var header = ROM.Instance.ReadStruct<M4ASongHeader>(offset);
             Load(ROM.Instance.ROMFile, header);
         }
     }
@@ -539,7 +538,7 @@ namespace GBAMusicStudio.Core
         {
             Offset = assembler.BaseOffset;
             var binary = assembler.Binary;
-            Load(binary, Utils.ReadStruct<SongHeader>(binary, (uint)assembler[headerLabel]));
+            Load(binary, Utils.ReadStruct<M4ASongHeader>(binary, (uint)assembler[headerLabel]));
         }
     }
 

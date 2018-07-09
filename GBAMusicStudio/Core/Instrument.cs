@@ -1,6 +1,5 @@
 ﻿using GBAMusicStudio.Util;
 using System;
-using static GBAMusicStudio.Core.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {
@@ -56,18 +55,18 @@ namespace GBAMusicStudio.Core
             sound.getDefaults(out float soundFrequency, out int soundPriority);
             float frequency;
             byte root = fromDrum ? Voice.GetRootNote() : (byte)60;
-            if (Voice is Direct_Sound)
+            if (Voice is M4ADirect_Sound)
             {
                 frequency = soundFrequency * (float)Math.Pow(2, (Note - (120 - root)) / 12f + Track.APitch / 768f);
             }
-            else if (Voice is PSG_Noise)
+            else if (Voice is M4APSG_Noise)
             {
                 frequency = (0x1000 * (float)Math.Pow(8, (Note - (120 - root)) / 12f + Track.APitch / 768f)).Clamp(8, 0x80000); // Thanks ipatix
             }
             else
             {
                 float fundamental = 440 * (float)Math.Pow(2, (Note - 69) / 12f + Track.APitch / 768f);
-                if (Voice is PSG_Wave)
+                if (Voice is M4APSG_Wave)
                     frequency = fundamental * 0x10;
                 else // Squares
                     frequency = fundamental * 0x100;
@@ -99,17 +98,17 @@ namespace GBAMusicStudio.Core
             ForcedPan = 0x7F;
             A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
 
-            if (Voice is PSG_Square_1 square1) // Square1s have sweeping
+            if (Voice is M4APSG_Square_1 square1) // Square1s have sweeping
             {
                 // TODO: Add sweeping
             }
-            else if (Voice is Direct_Sound || Voice is PSG_Noise) // Direct & Noise have panpot
+            else if (Voice is M4ADirect_Sound || Voice is M4APSG_Noise) // Direct & Noise have panpot
             {
                 if (dyn.Panpot >= 0x80)
                     ForcedPan = (sbyte)((dyn.Panpot - 0x80) - 64);
             }
 
-            if (Voice is Direct_Sound direct)
+            if (Voice is M4ADirect_Sound direct)
             {
                 FixedFrequency = direct.Type == 0x8;
             }

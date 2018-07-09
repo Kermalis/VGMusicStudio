@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using static GBAMusicStudio.Core.M4AStructs;
 
 namespace GBAMusicStudio.Core
 {
@@ -61,7 +60,7 @@ namespace GBAMusicStudio.Core
                     sf2.AddInstrument(name);
                 }
 
-                if (voice is SDirect direct)
+                if (voice is M4ASDirect direct)
                 {
                     if (!isNewInst)
                     {
@@ -71,12 +70,12 @@ namespace GBAMusicStudio.Core
                     else
                         AddDirect(direct);
                 }
-                else if (voice.Voice is PSG_Square_1 || voice.Voice is PSG_Square_2 || voice.Voice is PSG_Wave || voice.Voice is PSG_Noise)
+                else if (voice.Voice is M4APSG_Square_1 || voice.Voice is M4APSG_Square_2 || voice.Voice is M4APSG_Wave || voice.Voice is M4APSG_Noise)
                 {
                     var m4 = (M4AVoice)voice.Voice;
                     if (!isNewInst)
                     {
-                        if (voice.Voice is PSG_Noise)
+                        if (voice.Voice is M4APSG_Noise)
                         {
                             AddPSG(m4, (byte)i, (byte)i);
                             sf2.AddINSTGenerator(SF2Generator.overridingRootKey, new GenAmountType((ushort)(i - (m4.RootNote - 60))));
@@ -85,24 +84,24 @@ namespace GBAMusicStudio.Core
                     else
                     {
                         AddPSG(m4);
-                        if (!(voice.Voice is PSG_Noise))
+                        if (!(voice.Voice is M4APSG_Noise))
                             sf2.AddINSTGenerator(SF2Generator.overridingRootKey, new GenAmountType(69));
                     }
                 }
-                else if (isNewInst && voice is SMulti multi)
+                else if (isNewInst && voice is M4ASMulti multi)
                 {
                     foreach (var key in multi.Keys)
                     {
                         if (key.Item1 > amt || key.Item2 > amt) continue;
                         var subvoice = multi.Table[key.Item1];
 
-                        if (subvoice is SDirect subdirect)
+                        if (subvoice is M4ASDirect subdirect)
                         {
                             AddDirect(subdirect, key.Item2, key.Item3);
                         }
                     }
                 }
-                else if (voice is SDrum drum)
+                else if (voice is M4ASDrum drum)
                 {
                     AddTable(drum.Table, saveAfter7F, false);
                 }
@@ -120,9 +119,9 @@ namespace GBAMusicStudio.Core
             dynamic v = voice;
             int sample;
 
-            if (voice is PSG_Square_1 || voice is PSG_Square_2)
+            if (voice is M4APSG_Square_1 || voice is M4APSG_Square_2)
                 sample = AddSample(SongPlayer.Sounds[SongPlayer.SQUARE12_ID - v.Pattern], "Square Wave " + v.Pattern);
-            else if (voice is PSG_Wave wave)
+            else if (voice is M4APSG_Wave wave)
                 sample = AddSample(SongPlayer.Sounds[wave.Address], string.Format("PSG Wave 0x{0:X}", wave.Address));
             else
                 sample = AddSample(SongPlayer.Sounds[SongPlayer.NOISE0_ID - v.Pattern], "Noise " + v.Pattern);
@@ -162,14 +161,14 @@ namespace GBAMusicStudio.Core
             high = Math.Min((byte)127, high);
             if (!(low == 0 && high == 127))
                 sf2.AddINSTGenerator(SF2Generator.keyRange, new GenAmountType(low, high));
-            if (voice is PSG_Noise noise && noise.Panpot != 0)
+            if (voice is M4APSG_Noise noise && noise.Panpot != 0)
                 sf2.AddINSTGenerator(SF2Generator.pan, new GenAmountType((ushort)((noise.Panpot - 0xC0) * (500d / 0x80))));
             sf2.AddINSTGenerator(SF2Generator.sampleModes, new GenAmountType(1));
             sf2.AddINSTGenerator(SF2Generator.sampleID, new GenAmountType((ushort)(sample)));
         }
-        void AddDirect(SDirect direct, byte low = 0, byte high = 127)
+        void AddDirect(M4ASDirect direct, byte low = 0, byte high = 127)
         {
-            var d = direct.Voice as Direct_Sound;
+            var d = direct.Voice as M4ADirect_Sound;
 
             if (!SongPlayer.Sounds.TryGetValue(d.Address, out FMOD.Sound sound))
                 return;

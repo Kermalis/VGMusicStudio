@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static GBAMusicStudio.Core.M4AStructs;
 using GBAMusicStudio.Util;
 using System.Threading;
 
@@ -78,8 +77,8 @@ namespace GBAMusicStudio.Core
                     s.release();
                 Sounds.Clear();
                 Song = null;
-                SMulti.LoadedMultis.Clear();
-                SDrum.LoadedDrums.Clear();
+                M4ASMulti.Cache.Clear();
+                M4ASDrum.Cache.Clear();
             }
             else
             {
