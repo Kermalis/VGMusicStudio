@@ -135,7 +135,7 @@ namespace GBAMusicStudio.Core
                     }
                     else if (e.Command is BendCommand bend)
                     {
-                        track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, bend.Bend + 0x40));
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend + 0x40));
                     }
                     else if (e.Command is BendRangeCommand bendr)
                     {
