@@ -126,6 +126,7 @@ namespace GBAMusicStudio.UI
             int sX = iWidth - sWidth - 4;
             positionBar = new ColorSlider()
             {
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Enabled = false,
                 Location = new Point(sX, 45),
                 Maximum = 0,
@@ -135,7 +136,6 @@ namespace GBAMusicStudio.UI
             positionBar.MouseDown += (o, e) => drag = true;
             volumeBar = new ColorSlider()
             {
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 LargeChange = 20,
                 Location = new Point(83, 45),
                 Maximum = 100,
