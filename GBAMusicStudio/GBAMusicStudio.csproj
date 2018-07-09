@@ -72,7 +72,7 @@
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\Instrument.cs" />
-    <Compile Include="Core\M4AStructs.cs" />
+    <Compile Include="Core\MusicStructs.cs" />
     <Compile Include="Core\SongEvent.cs" />
     <Compile Include="Core\SongTable.cs" />
     <Compile Include="Core\SongPlayer.cs" />

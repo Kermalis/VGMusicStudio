@@ -18,7 +18,7 @@ namespace GBAMusicStudio.Core
         }
 
         // The following should only be called after Load()
-        internal abstract Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum);
+        internal abstract IVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum);
         internal abstract FMOD.Sound GetSoundFromNote(byte voice, sbyte note);
     }
 
@@ -174,12 +174,12 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
+        internal override IVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
         {
             fromDrum = false;
 
             SVoice sv = voices[voice];
-            Voice v = voices[voice].Voice;
+            M4AVoice v = (M4AVoice)voices[voice].Voice;
             Read:
             switch (v.Type)
             {
@@ -187,12 +187,12 @@ namespace GBAMusicStudio.Core
                     var split = (Split)v;
                     var multi = (SMulti)sv;
                     byte inst = ROM.Instance.ReadByte((uint)(split.Keys + note));
-                    v = multi.Table[inst].Voice;
+                    v = (M4AVoice)multi.Table[inst].Voice;
                     fromDrum = false; // In case there is a multi within a drum
                     goto Read;
                 case 0x80:
                     var drum = (SDrum)sv;
-                    v = drum.Table[note].Voice;
+                    v = (M4AVoice)drum.Table[note].Voice;
                     fromDrum = true;
                     goto Read;
                 default:
@@ -201,7 +201,7 @@ namespace GBAMusicStudio.Core
         }
         internal override FMOD.Sound GetSoundFromNote(byte voice, sbyte note)
         {
-            Voice v = GetVoiceFromNote(voice, note, out bool idc);
+            M4AVoice v = (M4AVoice)GetVoiceFromNote(voice, note, out bool idc);
             switch (v.Type)
             {
                 case 0x0:
@@ -242,7 +242,7 @@ namespace GBAMusicStudio.Core
         {
             return SongPlayer.Sounds[SongPlayer.SQUARE12_ID];
         }
-        internal override Voice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
+        internal override IVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
         {
             fromDrum = false;
             return temp;

@@ -20,7 +20,7 @@ namespace GBAMusicStudio.Core
         internal int Age { get; private set; }
 
         internal Track Track { get; private set; }
-        Voice Voice;
+        IVoice Voice;
         bool fromDrum;
         FMOD.Channel Channel;
         FMOD.Sound Sound;
@@ -55,7 +55,7 @@ namespace GBAMusicStudio.Core
             Channel.getCurrentSound(out FMOD.Sound sound);
             sound.getDefaults(out float soundFrequency, out int soundPriority);
             float frequency;
-            byte root = fromDrum ? Voice.RootNote : (byte)60;
+            byte root = fromDrum ? Voice.GetRootNote() : (byte)60;
             if (Voice is Direct_Sound)
             {
                 frequency = soundFrequency * (float)Math.Pow(2, (Note - (120 - root)) / 12f + Track.APitch / 768f);

@@ -5,6 +5,11 @@ using System.Runtime.InteropServices;
 
 namespace GBAMusicStudio.Core
 {
+    interface IVoice
+    {
+        byte GetRootNote();
+    }
+
     internal class M4AStructs
     {
         [StructLayout(LayoutKind.Sequential)]
@@ -38,9 +43,9 @@ namespace GBAMusicStudio.Core
 
         internal class SVoice
         {
-            internal readonly Voice Voice;
+            internal readonly IVoice Voice;
             readonly string name;
-            internal SVoice(Voice i)
+            internal SVoice(IVoice i)
             {
                 Voice = i;
                 name = Voice.GetType().Name.Humanize();
@@ -112,22 +117,24 @@ namespace GBAMusicStudio.Core
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal class Voice
+        internal class M4AVoice : IVoice
         {
             internal byte Type;
             internal byte RootNote;
             internal byte Padding;
+
+            public byte GetRootNote() => RootNote;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal class Direct_Sound : Voice // 0x0, 0x8
+        internal class Direct_Sound : M4AVoice // 0x0, 0x8
         {
             internal byte Panpot;
             internal uint Address;
             internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class PSG_Square_1 : Voice // 0x1, 0x9
+        internal class PSG_Square_1 : M4AVoice // 0x1, 0x9
         {
             internal byte Sweep;
             internal byte Pattern;
@@ -135,7 +142,7 @@ namespace GBAMusicStudio.Core
             internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class PSG_Square_2 : Voice // 0x2, 0xA
+        internal class PSG_Square_2 : M4AVoice // 0x2, 0xA
         {
             internal byte Padding2;
             internal byte Pattern;
@@ -143,14 +150,14 @@ namespace GBAMusicStudio.Core
             internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class PSG_Wave : Voice // 0x3, 0xB
+        internal class PSG_Wave : M4AVoice // 0x3, 0xB
         {
             internal byte Padding2;
             internal uint Address;
             internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class PSG_Noise : Voice // 0x4, 0xC
+        internal class PSG_Noise : M4AVoice // 0x4, 0xC
         {
             internal byte Panpot;
             internal byte Pattern;
@@ -158,13 +165,13 @@ namespace GBAMusicStudio.Core
             internal byte A, D, S, R;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class Split : Voice // 0x40
+        internal class Split : M4AVoice // 0x40
         {
             internal byte Padding2;
             internal uint Table, Keys;
         }
         [StructLayout(LayoutKind.Sequential)]
-        internal class Drum : Voice // 0x80
+        internal class Drum : M4AVoice // 0x80
         {
             internal byte Padding2;
             internal uint Table;

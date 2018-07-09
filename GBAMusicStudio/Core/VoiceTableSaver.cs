@@ -34,14 +34,17 @@ namespace GBAMusicStudio.Core
 
         internal VoiceTableSaver(VoiceTable table, string filename, bool saveAfter7F = false)
         {
+            if (ROM.Instance.Game.Engine != AEngine.M4A)
+                throw new PlatformNotSupportedException("Exporting to SF2 from this game engine is not supported at this time.");
+
             sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Game.Creator, "", "GBA Music Studio by Kermalis");
 
-            AddTable(table, saveAfter7F, true);
+            AddTable((M4AVoiceTable)table, saveAfter7F, true);
 
             sf2.Save(filename);
         }
 
-        void AddTable(VoiceTable table, bool saveAfter7F, bool isNewInst)
+        void AddTable(M4AVoiceTable table, bool saveAfter7F, bool isNewInst)
         {
             int amt = saveAfter7F ? 0xFF : 0x7F;
 
@@ -63,24 +66,25 @@ namespace GBAMusicStudio.Core
                     if (!isNewInst)
                     {
                         AddDirect(direct, (byte)i, (byte)i);
-                        sf2.AddINSTGenerator(SF2Generator.overridingRootKey, new GenAmountType((ushort)(i - (direct.Voice.RootNote - 60))));
+                        sf2.AddINSTGenerator(SF2Generator.overridingRootKey, new GenAmountType((ushort)(i - (direct.Voice.GetRootNote() - 60))));
                     }
                     else
                         AddDirect(direct);
                 }
                 else if (voice.Voice is PSG_Square_1 || voice.Voice is PSG_Square_2 || voice.Voice is PSG_Wave || voice.Voice is PSG_Noise)
                 {
+                    var m4 = (M4AVoice)voice.Voice;
                     if (!isNewInst)
                     {
                         if (voice.Voice is PSG_Noise)
                         {
-                            AddPSG(voice.Voice, (byte)i, (byte)i);
-                            sf2.AddINSTGenerator(SF2Generator.overridingRootKey, new GenAmountType((ushort)(i - (voice.Voice.RootNote - 60))));
+                            AddPSG(m4, (byte)i, (byte)i);
+                            sf2.AddINSTGenerator(SF2Generator.overridingRootKey, new GenAmountType((ushort)(i - (m4.RootNote - 60))));
                         }
                     }
                     else
                     {
-                        AddPSG(voice.Voice);
+                        AddPSG(m4);
                         if (!(voice.Voice is PSG_Noise))
                             sf2.AddINSTGenerator(SF2Generator.overridingRootKey, new GenAmountType(69));
                     }
@@ -111,7 +115,7 @@ namespace GBAMusicStudio.Core
             sf2.AddPresetBag();
             sf2.AddPresetGenerator(SF2Generator.instrument, new GenAmountType(instrument));
         }
-        void AddPSG(Voice voice, byte low = 0, byte high = 127)
+        void AddPSG(M4AVoice voice, byte low = 0, byte high = 127)
         {
             dynamic v = voice;
             int sample;

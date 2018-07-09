@@ -258,6 +258,67 @@ namespace GBAMusicStudio.Core
             return (Tempo, position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
         }
 
+        static Instrument FindInstrument(Track track, IVoice voice)
+        {
+            Instrument instrument = null;
+            if (voice is M4AVoice m4avoice)
+            {
+                switch (m4avoice.Type)
+                {
+                    case 0x0:
+                    case 0x8:
+                        var byAge = dsInstruments.OrderByDescending(ins => (ins.Track == null ? 16 : ins.Track.Index)).ThenByDescending(ins => ins.Age);
+                        foreach (Instrument i in byAge) // Find free
+                            if (i.State == ADSRState.Dead)
+                            {
+                                instrument = i;
+                                break;
+                            }
+                        if (instrument == null) // Find prioritized
+                            foreach (Instrument i in byAge)
+                                if (track.Priority > i.Track.Priority)
+                                {
+                                    instrument = i;
+                                    break;
+                                }
+                        if (instrument == null) // Find releasing
+                            foreach (Instrument i in byAge)
+                                if (i.State == ADSRState.Releasing)
+                                {
+                                    instrument = i;
+                                    break;
+                                }
+                        if (instrument == null) // None available
+                        {
+                            var lowestOldest = byAge.First(); // Kill lowest track's oldest instrument if the track is lower than this one
+                            if (lowestOldest.Track.Index >= track.Index)
+                                instrument = lowestOldest;
+                        }
+                        break;
+                    case 0x1:
+                    case 0x9:
+                        instrument = gbInstruments[0];
+                        break;
+                    case 0x2:
+                    case 0xA:
+                        instrument = gbInstruments[1];
+                        break;
+                    case 0x3:
+                    case 0xB:
+                        instrument = gbInstruments[2];
+                        break;
+                    case 0x4:
+                    case 0xC:
+                        instrument = gbInstruments[3];
+                        break;
+                }
+            }
+            else
+            {
+                instrument = dsInstruments[0];
+            }
+            return instrument;
+        }
         static void PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
             // Hides base note, vel and dur
@@ -266,58 +327,8 @@ namespace GBAMusicStudio.Core
 
             if (!track.Ready) return;
 
-            Voice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
-
-            Instrument instrument = null;
-            switch (voice.Type)
-            {
-                case 0x0:
-                case 0x8:
-                    var byAge = dsInstruments.OrderByDescending(ins => (ins.Track == null ? 16 : ins.Track.Index)).ThenByDescending(ins => ins.Age);
-                    foreach (Instrument i in byAge) // Find free
-                        if (i.State == ADSRState.Dead)
-                        {
-                            instrument = i;
-                            break;
-                        }
-                    if (instrument == null) // Find prioritized
-                        foreach (Instrument i in byAge)
-                            if (track.Priority > i.Track.Priority)
-                            {
-                                instrument = i;
-                                break;
-                            }
-                    if (instrument == null) // Find releasing
-                        foreach (Instrument i in byAge)
-                            if (i.State == ADSRState.Releasing)
-                            {
-                                instrument = i;
-                                break;
-                            }
-                    if (instrument == null) // None available
-                    {
-                        var lowestOldest = byAge.First(); // Kill lowest track's oldest instrument if the track is lower than this one
-                        if (lowestOldest.Track.Index >= track.Index)
-                            instrument = lowestOldest;
-                    }
-                    break;
-                case 0x1:
-                case 0x9:
-                    instrument = gbInstruments[0];
-                    break;
-                case 0x2:
-                case 0xA:
-                    instrument = gbInstruments[1];
-                    break;
-                case 0x3:
-                case 0xB:
-                    instrument = gbInstruments[2];
-                    break;
-                case 0x4:
-                case 0xC:
-                    instrument = gbInstruments[3];
-                    break;
-            }
+            IVoice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
+            Instrument instrument = FindInstrument(track, voice);
 
             if (instrument != null)
                 instrument.Play(track, note, velocity, duration);
