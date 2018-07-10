@@ -52,7 +52,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Songtable length in config and expander
 * Default remap voice
 * Offset for event you're editing
-* Once an event is edited, call SongPlayer.SetPosition() to update the song
 * Put the event parameter as text in the parameter name label, so there is reference to the original value or in MODT/Note's cases, text representation
 * Double-clicking an event sets the song's position to that tick
 * Buttons in the taskbar like with most music players
@@ -63,6 +62,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Help dialog that explains the commands for each format
 * Think about if keeping all songs in memory (and their voice tables in them) was *actually* a good idea
 * If I go insane I'll support the MOD music format
+* Fix application hanging on exit (AGAIN)
 
 ----
 # Special Thanks To:

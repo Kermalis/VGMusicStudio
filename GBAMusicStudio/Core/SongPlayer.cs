@@ -143,6 +143,7 @@ namespace GBAMusicStudio.Core
             parentGroup.setVolume(v);
         }
         internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
+        internal static void RefreshSong() => SetPosition(position);
         internal static void SetPosition(uint p)
         {
             bool pause = State == State.Playing;

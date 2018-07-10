@@ -183,27 +183,51 @@ namespace GBAMusicStudio.UI
 
         void ApplyRemap(bool from)
         {
+            bool changed = false;
             string remap = (string)remapsBox.SelectedItem;
             foreach (var track in SongPlayer.Song.Commands)
                 foreach (var ev in track)
                     if (ev.Command is VoiceCommand voice)
+                    {
                         voice.Voice = Config.GetRemap(voice.Voice, remap, from);
-            LoadTrack(currentTrack);
+                        changed = true;
+                    }
+            if (changed)
+            {
+                SongPlayer.RefreshSong();
+                LoadTrack(currentTrack);
+            }
         }
         void ChangeEvents(object sender, EventArgs e)
         {
+            bool changed = false;
             foreach (var ev in events)
                 if (sender == tvButton && ev.Command is VoiceCommand voice && voice.Voice == tvArgs[0].Value)
+                {
                     voice.Voice = (byte)tvArgs[1].Value;
-            LoadTrack(currentTrack);
+                    changed = true;
+                }
+            if (changed)
+            {
+                SongPlayer.RefreshSong();
+                LoadTrack(currentTrack);
+            }
         }
         void ChangeAllEvents(object sender, EventArgs e)
         {
+            bool changed = false;
             foreach (var track in SongPlayer.Song.Commands)
                 foreach (var ev in track)
                     if (sender == gvButton && ev.Command is VoiceCommand voice && voice.Voice == gvArgs[0].Value)
+                    {
                         voice.Voice = (byte)gvArgs[1].Value;
-            LoadTrack(currentTrack);
+                        changed = true;
+                    }
+            if (changed)
+            {
+                SongPlayer.RefreshSong();
+                LoadTrack(currentTrack);
+            }
         }
 
         void LoadTrack(int track)
@@ -237,6 +261,7 @@ namespace GBAMusicStudio.UI
                         f.SetValue(se.Command, Convert.ChangeType(value, f.FieldType));
                     else if (m is PropertyInfo p)
                         p.SetValue(se.Command, Convert.ChangeType(value, p.PropertyType));
+                    SongPlayer.RefreshSong();
 
                     var control = ActiveControl;
                     int selected = listView.SelectedIndices[0];
