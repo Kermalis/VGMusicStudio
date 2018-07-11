@@ -35,37 +35,51 @@ namespace GBAMusicStudio.Core
 
         internal void CalculateTicks()
         {
-            foreach (var track in Commands)
-            {
-                int length = 0, endOfPattern = 0;
-                for (int i = 0; i < track.Count; i++)
-                {
-                    var e = track[i];
-                    if (endOfPattern == 0)
-                        e.AbsoluteTicks = (uint)length;
+            for (int i = 0; i < NumTracks; i++)
+                CalculateTicks(i);
+        }
+        internal void CalculateTicks(int trackIndex)
+        {
+            var track = Commands[trackIndex];
 
-                    if (e.Command is RestCommand rest)
-                        length += rest.Rest;
-                    else if (this is MLSSSong)
-                    {
-                        if (e.Command is FreeNoteCommand ext)
-                            length += ext.Extension;
-                        else if (e.Command is MLSSNoteCommand mlnote)
-                            length += mlnote.Duration;
-                    }
-                    else if (e.Command is CallCommand call)
-                    {
-                        int jumpCmd = track.FindIndex(c => c.Offset == call.Offset);
-                        endOfPattern = i;
-                        i = jumpCmd - 1;
-                    }
-                    else if (e.Command is ReturnCommand && endOfPattern != 0)
-                    {
-                        i = endOfPattern;
-                        endOfPattern = 0;
-                    }
+            int length = 0, endOfPattern = 0;
+            for (int i = 0; i < track.Count; i++)
+            {
+                var e = track[i];
+                if (endOfPattern == 0)
+                    e.AbsoluteTicks = (uint)length;
+
+                if (e.Command is RestCommand rest)
+                    length += rest.Rest;
+                else if (this is MLSSSong)
+                {
+                    if (e.Command is FreeNoteCommand ext)
+                        length += ext.Extension;
+                    else if (e.Command is MLSSNoteCommand mlnote)
+                        length += mlnote.Duration;
+                }
+                else if (e.Command is CallCommand call)
+                {
+                    int jumpCmd = track.FindIndex(c => c.Offset == call.Offset);
+                    endOfPattern = i;
+                    i = jumpCmd - 1;
+                }
+                else if (e.Command is ReturnCommand && endOfPattern != 0)
+                {
+                    i = endOfPattern;
+                    endOfPattern = 0;
                 }
             }
+        }
+        internal void InsertEvent(SongEvent e, int trackIndex, int insertIndex)
+        {
+            Commands[trackIndex].Insert(insertIndex, e);
+            CalculateTicks(trackIndex);
+        }
+        internal void RemoveEvent(int trackIndex, int eventIndex)
+        {
+            Commands[trackIndex].RemoveAt(eventIndex);
+            CalculateTicks(trackIndex);
         }
 
         internal void SaveAsMIDI(string fileName)
@@ -76,7 +90,7 @@ namespace GBAMusicStudio.Core
                 throw new PlatformNotSupportedException("Exporting to MIDI from this game engine is not supported at this time.");
 
             CalculateTicks();
-            var midi = new Sequence(Engine.GetTicksPerBar() / 4);
+            var midi = new Sequence(Engine.GetTicksPerBar() / 4) { Format = 2 };
 
             for (int i = 0; i < NumTracks; i++)
             {
