@@ -63,6 +63,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Think about if keeping all songs in memory (and their voice tables in them) was *actually* a good idea
 * If I go insane I'll support the MOD music format
 * Fix application hanging on exit (AGAIN)
+* Exception handling for jumping/calling a bad offset
 
 ----
 # Special Thanks To:

@@ -19,8 +19,8 @@ namespace GBAMusicStudio.UI
         readonly ThemedLabel[] labels = new ThemedLabel[3];
         readonly ThemedNumeric[] args = new ThemedNumeric[3];
 
-        readonly ComboBox tracksBox;
-        readonly ThemedButton tvButton;
+        readonly ComboBox tracksBox, commandsBox;
+        readonly ThemedButton tvButton, taeButton, treButton;
         readonly ThemedNumeric[] tvArgs = new ThemedNumeric[2];
 
         readonly ComboBox remapsBox;
@@ -87,28 +87,44 @@ namespace GBAMusicStudio.UI
             // Track controls
             tracksBox = new ComboBox
             {
-                Enabled = false,
                 Location = new Point(4, 4),
                 Size = new Size(100, 21)
             };
             tracksBox.SelectedIndexChanged += TracksBox_SelectedIndexChanged;
             tvButton = new ThemedButton
             {
-                Enabled = false,
-                Location = new Point(13, 48),
-                Size = new Size(75, 23),
+                Location = new Point(13, 30),
                 Text = "Change Voices"
             };
             tvButton.Click += ChangeEvents;
-            var tvFrom = new ThemedLabel { Location = new Point(115, 50 + 3), Text = "From" };
-            tvArgs[0] = new ThemedNumeric { Location = new Point(149, 50) };
-            var tvTo = new ThemedLabel { Location = new Point(204, 50 + 3), Text = "To" };
-            tvArgs[1] = new ThemedNumeric { Location = new Point(224, 50) };
+            taeButton = new ThemedButton
+            {
+                Location = new Point(13, 30 + 25 + 5),
+                Text = "Add Event"
+            };
+            taeButton.Click += AddEvent;
+            commandsBox = new ComboBox
+            {
+                Location = new Point(115, 30 + 25 + 5 + 2),
+                Size = new Size(100, 21)
+            };
+            treButton = new ThemedButton
+            {
+                Location = new Point(13, 30 + 25 + 5 + 25 + 5),
+                Text = "Remove Event"
+            };
+            treButton.Click += RemoveEvent;
+            tracksBox.Enabled = tvButton.Enabled = taeButton.Enabled = treButton.Enabled = commandsBox.Enabled = false;
+            tvButton.Size = taeButton.Size = treButton.Size = new Size(95, 25);
+            var tvFrom = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
+            tvArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
+            var tvTo = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
+            tvArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
             tvArgs[0].Maximum = tvArgs[1].Maximum = 0xFF;
             tvArgs[0].Size = tvArgs[1].Size = new Size(45, 23);
             tvArgs[0].TextAlign = tvArgs[1].TextAlign = HorizontalAlignment.Center;
-            tvButton.AutoSize = tvFrom.AutoSize = tvTo.AutoSize = true;
-            panel2.Controls.AddRange(new Control[] { tracksBox, tvButton, tvFrom, tvTo, tvArgs[0], tvArgs[1] });
+            tvFrom.AutoSize = tvTo.AutoSize = true;
+            panel2.Controls.AddRange(new Control[] { tracksBox, tvButton, tvFrom, tvTo, tvArgs[0], tvArgs[1], taeButton, commandsBox, treButton });
 
             // Global controls
             remapsBox = new ComboBox
@@ -119,34 +135,32 @@ namespace GBAMusicStudio.UI
             };
             rfButton = new ThemedButton
             {
-                Enabled = false,
                 Location = new Point(116, 3),
                 Text = "From"
             };
             rfButton.Click += (s, e) => ApplyRemap(true);
             rtButton = new ThemedButton
             {
-                Enabled = false,
                 Location = new Point(203, 3),
                 Text = "To"
             };
             rtButton.Click += (s, e) => ApplyRemap(false);
             gvButton = new ThemedButton
             {
-                Enabled = false,
-                Location = new Point(13, 48),
-                Size = new Size(75, 23),
+                Location = new Point(13, 30),
+                Size = new Size(95, 25),
                 Text = "Change Voices"
             };
             gvButton.Click += ChangeAllEvents;
-            var gvFrom = new ThemedLabel { Location = new Point(115, 50 + 3), Text = "From" };
-            gvArgs[0] = new ThemedNumeric { Location = new Point(149, 50) };
-            var gvTo = new ThemedLabel { Location = new Point(204, 50 + 3), Text = "To" };
-            gvArgs[1] = new ThemedNumeric { Location = new Point(224, 50) };
+            var gvFrom = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
+            gvArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
+            var gvTo = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
+            gvArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
             gvArgs[0].Maximum = gvArgs[1].Maximum = 0xFF;
             gvArgs[0].Size = gvArgs[1].Size = new Size(45, 23);
             gvArgs[0].TextAlign = gvArgs[1].TextAlign = HorizontalAlignment.Center;
-            gvButton.AutoSize = gvFrom.AutoSize = gvTo.AutoSize = true;
+            gvFrom.AutoSize = gvTo.AutoSize = true;
+            remapsBox.Enabled = rfButton.Enabled = rtButton.Enabled = gvButton.Enabled = false;
             panel3.Controls.AddRange(new Control[] { remapsBox, rfButton, rtButton, gvButton, gvFrom, gvTo, gvArgs[0], gvArgs[1] });
 
             ClientSize = new Size(600, 400);
@@ -156,6 +170,25 @@ namespace GBAMusicStudio.UI
             Text = "GBA Music Studio ― Track Editor";
 
             UpdateTracks();
+        }
+
+        void AddEvent(object sender, EventArgs e)
+        {
+            var cmd = (ICommand)Activator.CreateInstance(Engine.GetCommands()[commandsBox.SelectedIndex].GetType());
+            var ev = new SongEvent(0xFFFFFFFF, cmd);
+            int index = listView.SelectedIndex + 1;
+            SongPlayer.Song.InsertEvent(ev, currentTrack, index);
+            SongPlayer.RefreshSong();
+            LoadTrack(currentTrack);
+            SelectItem(index);
+        }
+        void RemoveEvent(object sender, EventArgs e)
+        {
+            if (listView.SelectedIndex == -1)
+                return;
+            SongPlayer.Song.RemoveEvent(currentTrack, listView.SelectedIndex);
+            SongPlayer.RefreshSong();
+            LoadTrack(currentTrack);
         }
 
         void RowFormatter(OLVListItem item)
@@ -241,11 +274,21 @@ namespace GBAMusicStudio.UI
         internal void UpdateTracks()
         {
             bool tracks = SongPlayer.NumTracks > 0;
-            tracksBox.Enabled = tvButton.Enabled = gvButton.Enabled = tracks;
+            tracksBox.Enabled = tvButton.Enabled = taeButton.Enabled = treButton.Enabled = commandsBox.Enabled = gvButton.Enabled = tracks;
+
             tracksBox.DataSource = Enumerable.Range(1, SongPlayer.NumTracks).Select(i => $"Track {i}").ToList();
-            rfButton.Enabled = rtButton.Enabled = tracks && remapsBox.Items.Count > 0;
+            remapsBox.Enabled = rfButton.Enabled = rtButton.Enabled = tracks && remapsBox.Items.Count > 0;
+
+            commandsBox.DataSource = Engine.GetCommands().Select(c => c.Name).ToList();
+
             if (!tracks)
                 listView.Items.Clear();
+        }
+        void SelectItem(int index)
+        {
+            listView.Items[index].Selected = true;
+            listView.Select();
+            listView.EnsureVisible(index);
         }
 
         void ArgumentChanged(object sender, EventArgs e)
@@ -264,11 +307,9 @@ namespace GBAMusicStudio.UI
                     SongPlayer.RefreshSong();
 
                     var control = ActiveControl;
-                    int selected = listView.SelectedIndices[0];
+                    int index = listView.SelectedIndex;
                     LoadTrack(currentTrack);
-                    listView.Items[selected].Selected = true;
-                    listView.Select();
-                    listView.EnsureVisible(selected);
+                    SelectItem(index);
                     control.Select();
 
                     return;

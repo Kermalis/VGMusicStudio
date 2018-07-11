@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GBAMusicStudio.Core
 {
@@ -11,6 +13,39 @@ namespace GBAMusicStudio.Core
     {
         internal const int BPM_PER_FRAME = 150, INTERFRAMES = 4;
         static readonly Exception BAD = new PlatformNotSupportedException("Invalid game engine.");
+
+        static readonly Dictionary<AEngine, ICommand[]> allowedCommands;
+        static Engine()
+        {
+            var types = new Dictionary<AEngine, Type[]>()
+            {
+                { AEngine.M4A, new Type[] {
+                    typeof(TempoCommand), typeof(RestCommand), typeof(M4ANoteCommand), typeof(EndOfTieCommand),
+                    typeof(VoiceCommand), typeof(VolumeCommand), typeof(PanpotCommand), typeof(BendCommand),
+                    typeof(TuneCommand), typeof(BendRangeCommand), typeof(LFOSpeedCommand), typeof(LFODelayCommand),
+                    typeof(ModDepthCommand), typeof(ModTypeCommand), typeof(PriorityCommand), typeof(KeyShiftCommand),
+                    typeof(GoToCommand), typeof(CallCommand), typeof(ReturnCommand), typeof(M4AFinishCommand),
+                    typeof(RepeatCommand), typeof(MemoryAccessCommand), typeof(LibraryCommand)
+                } },
+                { AEngine.MLSS, new Type[] {
+                    typeof(TempoCommand), typeof(RestCommand), typeof(MLSSNoteCommand), typeof(VoiceCommand),
+                    typeof(VolumeCommand), typeof(PanpotCommand), typeof(GoToCommand), typeof(FinishCommand),
+                    typeof(FreeNoteCommand)
+                } }
+            };
+
+            allowedCommands = new Dictionary<AEngine, ICommand[]>();
+            foreach (var pair in types)
+            {
+                var commands = pair.Value.Select(type => (ICommand)Activator.CreateInstance(type)).ToArray();
+                allowedCommands.Add(pair.Key, commands);
+            }
+        }
+        
+        internal static ICommand[] GetCommands()
+        {
+            return allowedCommands[ROM.Instance.Game.Engine];
+        }
 
         internal static ushort GetDefaultTempo()
         {
