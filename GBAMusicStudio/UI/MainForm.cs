@@ -498,5 +498,17 @@ namespace GBAMusicStudio.UI
             piano.Location = new Point(dif / 2, splitContainer.Panel1.Height - piano.Height - 1);
             piano.Invalidate(true);
         }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (playButton.Enabled && keyData == (Keys.Space))
+            {
+                if (SongPlayer.State != State.Stopped)
+                    Pause(null, null);
+                else // It is stopped
+                    Play(null, null);
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
     }
 }
