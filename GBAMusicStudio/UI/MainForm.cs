@@ -99,12 +99,12 @@ namespace GBAMusicStudio.UI
             pauseButton.Size = new Size(76, 23);
 
             // Numericals
-            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Maximum = Config.MaxSongs, Value = 1 };
+            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4) };
             tableNumerical = new ThemedNumeric { Location = new Point(246, 35), Maximum = 0, Visible = false };
 
             songNumerical.Size = tableNumerical.Size = new Size(45, 23);
             songNumerical.ValueChanged += LoadSong;
-            tableNumerical.ValueChanged += LoadSong;
+            tableNumerical.ValueChanged += TableChanged;
 
             // Labels
             creatorLabel = new ThemedLabel { Location = new Point(3, 43), Size = new Size(72, 13) };
@@ -203,6 +203,12 @@ namespace GBAMusicStudio.UI
         {
             SongPlayer.SetPosition((uint)positionBar.Value);
             drag = false;
+        }
+        void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(int)tableNumerical.Value] - 1;
+        void TableChanged(object sender, EventArgs e)
+        {
+            SetSongMaximum();
+            LoadSong(sender, e);
         }
 
         internal void PreviewASM(Assembler asm, string headerLabel, string caption)
@@ -346,6 +352,7 @@ namespace GBAMusicStudio.UI
             tableNumerical.Maximum = game.SongTables.Length - 1;
             tableNumerical.Value = 0;
             tableNumerical.Visible = game.SongTables.Length > 1;
+            SetSongMaximum();
 
             openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
                 teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =

@@ -10,6 +10,7 @@ A88P:
   Copy: "A88E"
 AMKE:
   SongTable: 0x102498
+  SongTableSize: 403
   Name: "Mario Kart: Super Circuit (USA)"
   Creator: "Nintendo"
   Music:
@@ -68,6 +69,7 @@ AMKE:
       60: "Unknown"
 AMTE:
   SongTable: 0xA8D3C
+  SongTableSize: 745
   Name: "Metroid Fusion (USA)"
   Creator: "Nintendo"
 AXPE:
@@ -76,6 +78,7 @@ AXPE:
   Copy: "AXVE"
 AXVE:
   SongTable: 0x45548C
+  SongTableSize: 468
   Name: "Pokémon Ruby Version (USA)"
   Creator: "Game Freak"
   Music:
@@ -202,6 +205,7 @@ AXVE:
       467: "Unused - Team Rocket Appears!"
 B24P:
   SongTable: 0x1E866BC
+  SongTableSize: 940
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   Creator: "Game Freak"
   Music:
@@ -287,6 +291,7 @@ B24P:
       52: "Exploration Complete!"
 BMXE:
   SongTable: 0x8F2C0
+  SongTableSize: 708
   Name: "Metroid: Zero Mission"
   Creator: "Nintendo"
 BPED:
@@ -295,6 +300,7 @@ BPED:
   Copy: "BPEE"
 BPEE:
   SongTable: 0x6B49F0
+  SongTableSize: 610
   Name: "Pokémon Emerald Version (USA)"
   Creator: "Game Freak"
   Music:
@@ -514,6 +520,7 @@ BPGE:
   Copy: "BPRE"
 BPRE:
   SongTable: 0x4A32CC
+  SongTableSize: 347
   Name: "Pokémon Fire Red Version (USA)"
   Creator: "Game Freak"
   Music:
@@ -613,18 +620,22 @@ BPRE:
       344: "Trainer Tower"
 BZME:
   SongTable: 0xA11DBC
+  SongTableSize: 546
   Name: "The Legend of Zelda: The Minish Cap"
   Creator: "Capcom, Flagship"
 KERB:
   SongTable: 0x100004C 0x1000B6C 0x100168C 0x10021AC
+  SongTableSize: 356 356 356 356
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
 KERH:
   SongTable: 0x1000038 0x1000B78
+  SongTableSize: 360 360
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
   Remap: "HGSS"
 KERP:
   SongTable: 0x1000000 0x1001310 0x1002620 0x1003930
+  SongTableSize: 610 610 610 610
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"

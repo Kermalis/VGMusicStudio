@@ -21,7 +21,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 ----
 # To Do:
 ## M4A / MP2K Engine
-
 * Add reverb DSP effect
 * Add reverse playback
 * Add SquareWave sweeping
@@ -31,7 +30,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Confirm that priority kills the next lowest (6 kills 5 even if 4,5,7 are playing) in-game then implement it
 * Fix ADSR on PSG instruments
 * Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\]
-* Songtable finder
 * Support pret dissassembly projects
 * Running status in song disassembler
 * MIDI saving - preview the MIDI with the Sequencer class
@@ -50,7 +48,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
 * Fix UI checkboxes breaking randomly
-* Songtable length in config and expander
 * Default remap voice
 * Offset for event you're editing
 * Put the event parameter as text in the parameter name label, so there is reference to the original value or in MODT/Note's cases, text representation

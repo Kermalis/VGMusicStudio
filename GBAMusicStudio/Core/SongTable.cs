@@ -5,12 +5,14 @@ namespace GBAMusicStudio.Core
     internal abstract class SongTable
     {
         internal uint Offset;
+        uint size;
         protected readonly Dictionary<int, Song> Songs;
 
-        internal SongTable(uint offset)
+        internal SongTable(uint offset, uint size)
         {
             Offset = offset;
-            Songs = new Dictionary<int, Song>(Config.MaxSongs);
+            this.size = size;
+            Songs = new Dictionary<int, Song>((int)size);
         }
 
         internal Song this[int i]
@@ -30,9 +32,9 @@ namespace GBAMusicStudio.Core
     {
         readonly Dictionary<int, M4ASongEntry> entries;
 
-        internal M4ASongTable(uint offset) : base(offset)
+        internal M4ASongTable(uint offset, uint size) : base(offset, size)
         {
-            entries = new Dictionary<int, M4ASongEntry>(Config.MaxSongs);
+            entries = new Dictionary<int, M4ASongEntry>((int)size);
         }
 
         protected override Song LoadSong(int i)
@@ -44,7 +46,7 @@ namespace GBAMusicStudio.Core
 
     internal class MLSSSongTable : SongTable
     {
-        internal MLSSSongTable(uint offset) : base(offset) { }
+        internal MLSSSongTable(uint offset, uint size) : base(offset, size) { }
 
         protected override Song LoadSong(int i)
         {

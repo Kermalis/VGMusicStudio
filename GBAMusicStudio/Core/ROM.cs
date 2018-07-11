@@ -29,10 +29,11 @@ namespace GBAMusicStudio.Core
             SongTables = new SongTable[Game.SongTables.Length];
             for (int i = 0; i < Game.SongTables.Length; i++)
             {
+                uint o = Game.SongTables[i], s = Game.SongTableSizes[i];
                 switch (Game.Engine)
                 {
-                    case AEngine.M4A: SongTables[i] = new M4ASongTable(Game.SongTables[i]); break;
-                    case AEngine.MLSS: SongTables[i] = new MLSSSongTable(Game.SongTables[i]); break;
+                    case AEngine.M4A: SongTables[i] = new M4ASongTable(o, s); break;
+                    case AEngine.MLSS: SongTables[i] = new MLSSSongTable(o, s); break;
                 }
             }
         }

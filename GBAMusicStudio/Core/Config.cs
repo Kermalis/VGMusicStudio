@@ -38,16 +38,16 @@ namespace GBAMusicStudio.Core
     {
         internal readonly string Code, Name, Creator;
         internal readonly AEngine Engine;
-        internal readonly uint[] SongTables;
+        internal readonly uint[] SongTables, SongTableSizes;
         internal readonly List<APlaylist> Playlists;
 
-        internal AGame(string code, string name, string creator, AEngine engine, uint[] tables, List<APlaylist> playlists)
+        internal AGame(string code, string name, string creator, AEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists)
         {
             Code = code;
             Name = name;
             Creator = creator;
             Engine = engine;
-            SongTables = tables;
+            SongTables = tables; SongTableSizes = tableSizes;
             Playlists = playlists;
         }
 
@@ -65,8 +65,6 @@ namespace GBAMusicStudio.Core
 
     internal static class Config
     {
-        internal const int MaxSongs = 1000;
-
         internal static byte DirectCount { get; private set; }
         internal static byte PSGVolume { get; private set; }
         internal static bool MIDIKeyboardFixedVelocity { get; private set; }
@@ -141,6 +139,7 @@ namespace GBAMusicStudio.Core
                 string code, name, creator;
                 AEngine engine = AEngine.M4A;
                 uint[] tables;
+                uint[] tableSizes;
                 List<APlaylist> playlists;
 
                 code = g.Key.ToString();
@@ -149,20 +148,27 @@ namespace GBAMusicStudio.Core
                 YamlScalarNode yname = new YamlScalarNode("Name"),
                     ysongtable = new YamlScalarNode("SongTable"),
                     ycopy = new YamlScalarNode("Copy"),
+                    ysongtablesize = new YamlScalarNode("SongTableSize"),
                     ycreator = new YamlScalarNode("Creator"),
                     ymusic = new YamlScalarNode("Music"),
                     yengine = new YamlScalarNode("Engine");
 
                 // Basic info
                 name = game.Children[yname].ToString();
+
                 var songTables = game.Children[ysongtable].ToString().Split(' ');
-                tables = new uint[songTables.Length];
+                tables = new uint[songTables.Length]; tableSizes = new uint[songTables.Length];
                 for (int i = 0; i < songTables.Length; i++)
                     tables[i] = (uint)Utils.ParseValue(songTables[i]);
 
                 // If we are to copy another game's config
                 if (game.Children.ContainsKey(ycopy))
                     game = (YamlMappingNode)mapping.Children[new YamlScalarNode(game.Children[ycopy].ToString())];
+
+                // SongTable Sizes
+                var sizes = game.Children[ysongtablesize].ToString().Split(' ');
+                for (int i = 0; i < sizes.Length; i++)
+                    tableSizes[i] = (uint)Utils.ParseValue(sizes[i]);
 
                 // Creator name
                 creator = game.Children[ycreator].ToString();
@@ -194,7 +200,7 @@ namespace GBAMusicStudio.Core
                     if (playlists[i].Songs.Length == 0)
                         playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "Playlist is empty.") });
 
-                Games.Add(code, new AGame(code, name, creator, engine, tables, playlists));
+                Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists));
             }
         }
 
