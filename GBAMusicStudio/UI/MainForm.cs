@@ -2,6 +2,7 @@
 using GBAMusicStudio.MIDI;
 using GBAMusicStudio.Properties;
 using GBAMusicStudio.Util;
+using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -361,7 +362,7 @@ namespace GBAMusicStudio.UI
         void UpdateTrackInfo(bool play)
         {
             trackInfo.DeleteData(); // Refresh track count
-            positionBar.Value = 0;
+            UpdateSongPosition(0);
             positionBar.Maximum = SongPlayer.Song.NumTicks;
             positionBar.LargeChange = (uint)(positionBar.Maximum / 10);
             positionBar.SmallChange = positionBar.LargeChange / 4;
@@ -390,6 +391,7 @@ namespace GBAMusicStudio.UI
             pauseButton.Text = "Pause";
             timer.Interval = (int)(1000f / Config.RefreshRate);
             timer.Start();
+            UpdateTaskbarState();
         }
         void Pause(object sender, EventArgs e)
         {
@@ -408,6 +410,7 @@ namespace GBAMusicStudio.UI
                 System.Threading.Monitor.Enter(timerLock);
                 ClearPianoNotes();
             }
+            UpdateTaskbarState();
         }
         void Stop(object sender, EventArgs e)
         {
@@ -417,6 +420,8 @@ namespace GBAMusicStudio.UI
             System.Threading.Monitor.Enter(timerLock);
             ClearPianoNotes();
             trackInfo.DeleteData();
+            UpdateSongPosition(0);
+            UpdateTaskbarState();
         }
 
         void ClearPianoNotes()
@@ -456,12 +461,31 @@ namespace GBAMusicStudio.UI
                         }
                 }
                 if (!drag)
-                    positionBar.Value = ((int)tup.Item2).Clamp(0, positionBar.Maximum);
+                {
+                    UpdateSongPosition((int)tup.Item2);
+                }
                 trackInfo.ReceiveData(tup);
             }
             finally
             {
                 System.Threading.Monitor.Exit(timerLock);
+            }
+        }
+        void UpdateSongPosition(int position)
+        {
+            positionBar.Value = position.Clamp(0, positionBar.Maximum);
+            if (Config.TaskbarProgress)
+                TaskbarManager.Instance.SetProgressValue(positionBar.Value, positionBar.Maximum, Handle);
+        }
+        void UpdateTaskbarState()
+        {
+            if (Config.TaskbarProgress)
+            {
+                TaskbarProgressBarState state = TaskbarProgressBarState.NoProgress;
+                if (SongPlayer.State == State.Playing) state = TaskbarProgressBarState.Normal;
+                else if (SongPlayer.State == State.Playing) state = TaskbarProgressBarState.Paused;
+
+                TaskbarManager.Instance.SetProgressState(state, Handle);
             }
         }
 
@@ -502,10 +526,10 @@ namespace GBAMusicStudio.UI
         {
             if (playButton.Enabled && keyData == (Keys.Space))
             {
-                if (SongPlayer.State != State.Stopped)
-                    Pause(null, null);
-                else // It is stopped
+                if (SongPlayer.State == State.Stopped)
                     Play(null, null);
+                else
+                    Pause(null, null);
                 return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);

@@ -68,6 +68,7 @@ namespace GBAMusicStudio.Core
         internal static byte DirectCount { get; private set; }
         internal static byte PSGVolume { get; private set; }
         internal static bool MIDIKeyboardFixedVelocity { get; private set; }
+        internal static bool TaskbarProgress { get; private set; }
         internal static byte RefreshRate { get; private set; }
         internal static bool CenterIndicators { get; private set; }
         internal static bool PanpotIndicators { get; private set; }
@@ -88,6 +89,7 @@ namespace GBAMusicStudio.Core
             DirectCount = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
             PSGVolume = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("PSGVolume")].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children[new YamlScalarNode("MIDIKeyboardFixedVelocity")].ToString());
+            TaskbarProgress = bool.Parse(mapping.Children[new YamlScalarNode("TaskbarProgress")].ToString());
             RefreshRate = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
             CenterIndicators = bool.Parse(mapping.Children[new YamlScalarNode("CenterIndicators")].ToString());
             PanpotIndicators = bool.Parse(mapping.Children[new YamlScalarNode("PanpotIndicators")].ToString());
