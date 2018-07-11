@@ -55,6 +55,7 @@ namespace GBAMusicStudio.UI
             listView.AllColumns.AddRange(new OLVColumn[] { c1, c2, c3, c4 });
             listView.RebuildColumns();
             listView.SelectedIndexChanged += SelectedIndexChanged;
+            listView.ItemActivate += ListView_ItemActivate;
 
             int h2 = h / 3 - 4;
             var panel1 = new ThemedPanel { Location = new Point(306, 12), Size = new Size(w, h2) };
@@ -170,6 +171,11 @@ namespace GBAMusicStudio.UI
             Text = "GBA Music Studio ― Track Editor";
 
             UpdateTracks();
+        }
+
+        void ListView_ItemActivate(object sender, EventArgs e)
+        {
+            SongPlayer.SetPosition(((SongEvent)listView.SelectedItem.RowObject).AbsoluteTicks);
         }
 
         void AddEvent(object sender, EventArgs e)
