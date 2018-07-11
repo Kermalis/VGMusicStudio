@@ -56,6 +56,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Put the event parameter as text in the parameter name label, so there is reference to the original value or in MODT/Note's cases, text representation
 * Buttons in the taskbar like with most music players
 * Edit "Pokémon Emerald" & "Mario & Luigi: Superstar Saga" playlists
+* Minish cap remap
 * Tempo numerical (it fits)
 * Fix events past a goto counting as higher ticks
 * Detachable piano

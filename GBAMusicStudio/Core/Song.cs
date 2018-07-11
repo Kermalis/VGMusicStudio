@@ -70,6 +70,8 @@ namespace GBAMusicStudio.Core
                     endOfPattern = 0;
                 }
             }
+
+            ticks = -1; // Trigger recount of NumTicks
         }
         internal void InsertEvent(SongEvent e, int trackIndex, int insertIndex)
         {
