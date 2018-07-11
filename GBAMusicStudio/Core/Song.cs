@@ -43,22 +43,26 @@ namespace GBAMusicStudio.Core
             var track = Commands[trackIndex];
 
             int length = 0, endOfPattern = 0;
+            bool ended = false;
             for (int i = 0; i < track.Count; i++)
             {
                 var e = track[i];
                 if (endOfPattern == 0)
                     e.AbsoluteTicks = (uint)length;
 
-                if (e.Command is RestCommand rest)
-                    length += rest.Rest;
-                else if (this is MLSSSong)
+                if (!ended)
                 {
-                    if (e.Command is FreeNoteCommand ext)
-                        length += ext.Extension;
-                    else if (e.Command is MLSSNoteCommand mlnote)
-                        length += mlnote.Duration;
+                    if (e.Command is RestCommand rest)
+                        length += rest.Rest;
+                    else if (this is MLSSSong)
+                    {
+                        if (e.Command is FreeNoteCommand ext)
+                            length += ext.Extension;
+                        else if (e.Command is MLSSNoteCommand mlnote)
+                            length += mlnote.Duration;
+                    }
                 }
-                else if (e.Command is CallCommand call)
+                if (e.Command is CallCommand call)
                 {
                     int jumpCmd = track.FindIndex(c => c.Offset == call.Offset);
                     endOfPattern = i;
@@ -69,6 +73,8 @@ namespace GBAMusicStudio.Core
                     i = endOfPattern;
                     endOfPattern = 0;
                 }
+                else if (e.Command is GoToCommand)
+                    ended = true;
             }
 
             ticks = -1; // Trigger recount of NumTicks

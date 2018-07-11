@@ -58,7 +58,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Edit "Pokémon Emerald" & "Mario & Luigi: Superstar Saga" playlists
 * Minish cap remap
 * Tempo numerical (it fits)
-* Fix events past a goto counting as higher ticks
 * Detachable piano
 * Help dialog that explains the commands for each format
 * Think about if keeping all songs in memory (and their voice tables in them) was *actually* a good idea
