@@ -1,5 +1,6 @@
 A88E:
   SongTable: 0x21CB70
+  SongTableSize: 407
   Engine: "MLSS"
   Name: "Mario & Luigi - Superstar Saga (USA)"
   Creator: "AlphaDream"
@@ -610,6 +611,10 @@ BPRE:
       334: "Unused - Viridian Forest (2)"
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
+BZME:
+  SongTable: 0xA11DBC
+  Name: "The Legend of Zelda: The Minish Cap"
+  Creator: "Capcom, Flagship"
 KERB:
   SongTable: 0x100004C 0x1000B6C 0x100168C 0x10021AC
   Name: "Kermalis's Test ROM"
