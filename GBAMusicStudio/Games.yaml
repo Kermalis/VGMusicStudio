@@ -623,6 +623,7 @@ KERH:
   SongTable: 0x1000038 0x1000B78
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
+  Remap: "HGSS"
 KERP:
   SongTable: 0x1000000 0x1001310 0x1002620 0x1003930
   Name: "Kermalis's Test ROM"

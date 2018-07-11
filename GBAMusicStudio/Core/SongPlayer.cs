@@ -35,6 +35,7 @@ namespace GBAMusicStudio.Core
         static int tempoStack;
         static uint position;
         static Track[] tracks;
+        static int longestTrack;
 
         internal static Song Song;
         internal static int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
@@ -143,7 +144,6 @@ namespace GBAMusicStudio.Core
             parentGroup.setVolume(v);
         }
         internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
-        internal static void RefreshSong() => SetPosition(position);
         internal static void SetPosition(uint p)
         {
             bool pause = State == State.Playing;
@@ -172,6 +172,23 @@ namespace GBAMusicStudio.Core
             if (pause) Pause();
         }
 
+        internal static void RefreshSong()
+        {
+            DetermineLongestTrack();
+            SetPosition(position);
+        }
+        static void DetermineLongestTrack()
+        {
+            for (int i = 0; i < NumTracks; i++)
+            {
+                if (Song.Commands[i].Last().AbsoluteTicks == Song.NumTicks - 1)
+                {
+                    longestTrack = i;
+                    break;
+                }
+            }
+        }
+
         internal static void Play()
         {
             Stop();
@@ -184,6 +201,7 @@ namespace GBAMusicStudio.Core
 
             for (int i = 0; i < NumTracks; i++)
                 tracks[i].Init();
+            DetermineLongestTrack();
 
             position = 0; tempoStack = 0;
             Tempo = Engine.GetDefaultTempo();
@@ -342,7 +360,8 @@ namespace GBAMusicStudio.Core
             if (e.Command is GoToCommand goTo)
             {
                 int gotoCmd = Song.Commands[i].FindIndex(c => c.Offset == goTo.Offset);
-                position = Song.Commands[i][gotoCmd].AbsoluteTicks - 1;
+                if (longestTrack == i)
+                    position = Song.Commands[i][gotoCmd].AbsoluteTicks - 1;
                 track.CommandIndex = gotoCmd - 1; // -1 for incoming ++
             }
             else if (e.Command is CallCommand patt)
