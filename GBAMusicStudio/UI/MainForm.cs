@@ -483,7 +483,7 @@ namespace GBAMusicStudio.UI
             {
                 TaskbarProgressBarState state = TaskbarProgressBarState.NoProgress;
                 if (SongPlayer.State == State.Playing) state = TaskbarProgressBarState.Normal;
-                else if (SongPlayer.State == State.Playing) state = TaskbarProgressBarState.Paused;
+                else if (SongPlayer.State == State.Paused) state = TaskbarProgressBarState.Paused;
 
                 TaskbarManager.Instance.SetProgressState(state, Handle);
             }
