@@ -345,7 +345,6 @@ namespace GBAMusicStudio.UI
         void UpdateMenuInfo()
         {
             AGame game = ROM.Instance.Game;
-            PopulatePlaylists(game.Playlists);
             codeLabel.Text = game.Code;
             gameLabel.Text = game.Name;
             creatorLabel.Text = game.Creator;
@@ -354,6 +353,7 @@ namespace GBAMusicStudio.UI
             tableNumerical.Value = 0;
             tableNumerical.Visible = game.SongTables.Length > 1;
             SetSongMaximum();
+            PopulatePlaylists(game.Playlists);
 
             openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
                 teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
