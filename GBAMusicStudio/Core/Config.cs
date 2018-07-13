@@ -65,6 +65,8 @@ namespace GBAMusicStudio.Core
 
     internal static class Config
     {
+        static readonly uint DefaultTableSize = 1000;
+
         internal static byte DirectCount { get; private set; }
         internal static byte PSGVolume { get; private set; }
         internal static bool MIDIKeyboardFixedVelocity { get; private set; }
@@ -169,8 +171,12 @@ namespace GBAMusicStudio.Core
 
                 // SongTable Sizes
                 var sizes = game.Children[ysongtablesize].ToString().Split(' ');
-                for (int i = 0; i < sizes.Length; i++)
-                    tableSizes[i] = (uint)Utils.ParseValue(sizes[i]);
+                for (int i = 0; i < songTables.Length; i++)
+                {
+                    tableSizes[i] = DefaultTableSize;
+                    if (i < sizes.Length)
+                        tableSizes[i] = (uint)Utils.ParseValue(sizes[i]);
+                }
 
                 // Creator name
                 creator = game.Children[ycreator].ToString();
