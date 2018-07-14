@@ -363,6 +363,7 @@ namespace GBAMusicStudio.UI
         {
             trackInfo.DeleteData(); // Refresh track count
             UpdateSongPosition(0);
+            UpdateTaskbarState();
             positionBar.Maximum = SongPlayer.Song.NumTicks;
             positionBar.LargeChange = (uint)(positionBar.Maximum / 10);
             positionBar.SmallChange = positionBar.LargeChange / 4;
@@ -474,12 +475,12 @@ namespace GBAMusicStudio.UI
         void UpdateSongPosition(int position)
         {
             positionBar.Value = position.Clamp(0, positionBar.Maximum);
-            if (Config.TaskbarProgress)
+            if (Config.TaskbarProgress && TaskbarManager.IsPlatformSupported)
                 TaskbarManager.Instance.SetProgressValue(positionBar.Value, positionBar.Maximum, Handle);
         }
         void UpdateTaskbarState()
         {
-            if (Config.TaskbarProgress)
+            if (Config.TaskbarProgress && TaskbarManager.IsPlatformSupported)
             {
                 TaskbarProgressBarState state = TaskbarProgressBarState.NoProgress;
                 if (SongPlayer.State == State.Playing) state = TaskbarProgressBarState.Normal;
