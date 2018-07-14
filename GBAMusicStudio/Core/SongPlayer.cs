@@ -44,6 +44,7 @@ namespace GBAMusicStudio.Core
         {
             FMOD.Factory.System_Create(out System);
             System.init(Config.DirectCount + 4, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
+            System.setSoftwareFormat(13379, FMOD.SPEAKERMODE.DEFAULT, 0);
 
             dsInstruments = new Instrument[Config.DirectCount];
             gbInstruments = new Instrument[4];
