@@ -46,7 +46,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Add keyboard shortcuts to the UI
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
-* Fix UI checkboxes breaking randomly
 * Default remap voice
 * Offset for event you're editing
 * Put the event parameter as text in the parameter name label, so there is reference to the original value or in MODT/Note's cases, text representation
@@ -58,9 +57,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Help dialog that explains the commands for each format
 * Think about if keeping all songs in memory (and their voice tables in them) was *actually* a good idea
 * If I go insane I'll support the MOD music format
-* Fix application hanging on exit (AGAIN)
-* Exception handling for jumping/calling a bad offset
-* Fix songs sometimes freezing when switching to them while the player is playing
 
 ----
 # Special Thanks To:
