@@ -371,6 +371,8 @@ namespace GBAMusicStudio.UI
                 trackEditor.UpdateTracks();
             if (play)
                 Play(null, null);
+            else
+                pauseButton.Text = "Pause";
             teToolStripMenuItem.Enabled = true;
         }
         void PopulatePlaylists(List<APlaylist> playlists)
