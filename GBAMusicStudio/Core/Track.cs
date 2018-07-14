@@ -46,7 +46,7 @@ namespace GBAMusicStudio.Core
             get
             {
                 int mod = MODType == MODT.Panpot ? (Tri(LFOPhase) * MODDepth * 3) >> 12 : 0;
-                byte range = Engine.GetMaxVolume();
+                byte range = Engine.GetPanpotRange();
                 return (Pan + mod).Clamp(-range, range - 1) / (float)range;
             }
         }

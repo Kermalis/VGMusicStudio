@@ -15,7 +15,7 @@ namespace GBAMusicStudio.Core
     {
         internal ADSRState State = ADSRState.Dead;
         internal float Velocity { get { return ((NoteVelocity / 127f) * CurrentVelocity) / 255f; } }
-        internal float Panpot { get { return ForcedPan != 0x7F ? ForcedPan / 64f : Track.APan; } }
+        internal float Panpot { get { return ForcedPan != 0xFFF ? ForcedPan / (float)Engine.GetPanpotRange() : Track.APan; } }
         internal int Age { get; private set; }
 
         internal Track Track { get; private set; }
@@ -31,7 +31,7 @@ namespace GBAMusicStudio.Core
 
         byte A, D, S, R;
         bool FixedFrequency;
-        sbyte ForcedPan; // 0x7F counts as disabled
+        int ForcedPan; // 0xFFF counts as disabled
 
         internal void SetPriority(int priority)
         {
@@ -92,7 +92,7 @@ namespace GBAMusicStudio.Core
 
             dynamic dyn = Voice; // ADSR are in the same spot in each struct
             FixedFrequency = false;
-            ForcedPan = 0x7F;
+            ForcedPan = 0xFFF;
             A = dyn.A; D = dyn.D; S = dyn.S; R = dyn.R;
 
             if (Voice is M4APSG_Square_1 square1) // Square1s have sweeping
