@@ -203,6 +203,11 @@ AXVE:
       395: "Pokémon Contest! (Multiplayer - Player 3)"
       396: "Pokémon Contest! (Multiplayer - Player 4)"
       467: "Unused - Team Rocket Appears!"
+AZLE:
+  SongTable: 0x3C3BBC
+  SongTableSize: 545
+  Name: "The Legend of Zelda: A Link to the Past and Four Swords"
+  Creator: "Nintendo, Capcom"
 B24P:
   SongTable: 0x1E866BC
   SongTableSize: 940
