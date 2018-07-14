@@ -72,8 +72,8 @@ namespace GBAMusicStudio.Core
             for (uint i = 0; i < 16; i++)
             {
                 byte b = ROM.Instance.ReadByte(wave.Address + i);
-                byte first = (byte)((b >> 4) * Config.PSGVolume); // Convert from u4 to u8
-                byte second = (byte)((b & 0xF) * Config.PSGVolume);
+                byte first = (byte)((b >> 4) * 17 * Config.PSGVolume); // Convert from u4 to u8
+                byte second = (byte)((b & 0xF) * 17 * Config.PSGVolume);
                 buf[i * 2] = first;
                 buf[i * 2 + 1] = second;
             }

@@ -94,10 +94,14 @@ namespace GBAMusicStudio.Core
             uint len = 0x100;
             var buf = new byte[len];
 
+            int variance = (int)(0x7F * Config.PSGVolume);
+            byte high = (byte)(0x80 + variance);
+            byte low = (byte)(0x80 - variance);
+
             for (uint i = 0; i < 4; i++) // Squares
             {
                 for (int j = 0; j < len; j++)
-                    buf[j] = (byte)(j < simple[i] * 0x20 ? 0xF * Config.PSGVolume : 0x0);
+                    buf[j] = (j < simple[i] * 0x20 ? high : low);
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
                     defaultfrequency = 112640,
@@ -120,7 +124,7 @@ namespace GBAMusicStudio.Core
                 var buf = new byte[len];
 
                 for (int j = 0; j < len; j++)
-                    buf[j] = (byte)rand.Next(0xF * Config.PSGVolume);
+                    buf[j] = (byte)rand.Next((int)(0xFF * Config.PSGVolume));
 
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {

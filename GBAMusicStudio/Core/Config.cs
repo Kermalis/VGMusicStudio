@@ -68,7 +68,7 @@ namespace GBAMusicStudio.Core
         static readonly uint DefaultTableSize = 1000;
 
         internal static byte DirectCount { get; private set; }
-        internal static byte PSGVolume { get; private set; }
+        internal static float PSGVolume { get; private set; }
         internal static bool MIDIKeyboardFixedVelocity { get; private set; }
         internal static bool TaskbarProgress { get; private set; }
         internal static byte RefreshRate { get; private set; }
@@ -89,7 +89,7 @@ namespace GBAMusicStudio.Core
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
-            PSGVolume = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("PSGVolume")].ToString());
+            PSGVolume = float.Parse(mapping.Children[new YamlScalarNode("PSGVolume")].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children[new YamlScalarNode("MIDIKeyboardFixedVelocity")].ToString());
             TaskbarProgress = bool.Parse(mapping.Children[new YamlScalarNode("TaskbarProgress")].ToString());
             RefreshRate = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
