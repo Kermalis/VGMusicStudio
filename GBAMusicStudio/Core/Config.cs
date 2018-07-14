@@ -170,7 +170,9 @@ namespace GBAMusicStudio.Core
                     game = (YamlMappingNode)mapping.Children[new YamlScalarNode(game.Children[ycopy].ToString())];
 
                 // SongTable Sizes
-                var sizes = game.Children[ysongtablesize].ToString().Split(' ');
+                string[] sizes = { };
+                if (game.Children.ContainsKey(ycopy))
+                    sizes = game.Children[ysongtablesize].ToString().Split(' ');
                 for (int i = 0; i < songTables.Length; i++)
                 {
                     tableSizes[i] = DefaultTableSize;
