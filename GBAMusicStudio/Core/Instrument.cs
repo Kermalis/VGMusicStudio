@@ -65,11 +65,8 @@ namespace GBAMusicStudio.Core
             }
             else
             {
-                float fundamental = 440 * (float)Math.Pow(2, (Note - 69) / 12f + Track.APitch / 768f);
-                if (Voice is M4APSG_Wave)
-                    frequency = fundamental * 0x10;
-                else // Squares
-                    frequency = fundamental * 0x100;
+                float fundamental = 220 * (float)Math.Pow(2, (Note - 69) / 12f + Track.APitch / 768f);
+                frequency = fundamental * 0x10;
             }
             Channel.setFrequency(FixedFrequency ? soundFrequency : frequency);
             UpdatePanpot();
@@ -119,7 +116,7 @@ namespace GBAMusicStudio.Core
                 S *= 16;
                 R *= 32;
             }
-            
+
             track.Instruments.Add(this);
         }
         internal void Stop()

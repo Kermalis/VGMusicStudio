@@ -90,26 +90,28 @@ namespace GBAMusicStudio.Core
         }
         static void PSGSquare()
         {
-            byte[] simple = { 1, 2, 4, 6 };
-            uint len = 0x100;
-            var buf = new byte[len];
-
             int variance = (int)(0x7F * Config.PSGVolume);
             byte high = (byte)(0x80 + variance);
             byte low = (byte)(0x80 - variance);
 
+            byte[][] squares = new byte[][] {
+                new byte[] { high, low, low, low, low, low, low, low }, // 12.5%
+                new byte[] { high, high, low, low, low, low, low, low }, // 25%
+                new byte[] { high, high, high, high, low, low, low, low }, // 50%
+                new byte[] { high, high, high, high, high, high, low, low } // 75%
+            };
+
             for (uint i = 0; i < 4; i++) // Squares
             {
-                for (int j = 0; j < len; j++)
-                    buf[j] = (j < simple[i] * 0x20 ? high : low);
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
-                    defaultfrequency = 112640,
+                    defaultfrequency = 7040,
                     format = FMOD.SOUND_FORMAT.PCM8,
-                    length = len,
+                    length = 8,
                     numchannels = 1
                 };
-                System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
+                // Three groups of 8 periods
+                System.createSound(squares[i].Concat(squares[i]).Concat(squares[i]).ToArray(), FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
                 Sounds.Add(SQUARE12_ID - i, snd);
             }
         }
