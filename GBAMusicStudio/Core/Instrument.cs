@@ -45,7 +45,10 @@ namespace GBAMusicStudio.Core
         internal void UpdateVolume()
         {
             if (Channel == null) return;
-            Channel.setVolume(Velocity * Track.AVolume);
+            byte volume = (byte)((Velocity * Track.AVolume) * 255);
+            if ((volume > 0 && volume < 0xFF) && Voice is M4APSG_Square_1 || Voice is M4APSG_Square_2 || Voice is M4APSG_Noise)
+                volume = (byte)((volume / 17 + 1) * 17);
+            Channel.setVolume(volume / 255f);
         }
         internal void UpdateFrequency()
         {
