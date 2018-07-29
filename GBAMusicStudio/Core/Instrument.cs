@@ -67,6 +67,8 @@ namespace GBAMusicStudio.Core
             {
                 float fundamental = 220 * (float)Math.Pow(2, (Note - 69) / 12f + Track.APitch / 768f);
                 frequency = fundamental * 0x10;
+                if (Voice is M4APSG_Wave)
+                    frequency *= 2;
             }
             Channel.setFrequency(FixedFrequency ? soundFrequency : frequency);
             UpdatePanpot();
