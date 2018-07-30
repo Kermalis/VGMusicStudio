@@ -28,8 +28,9 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Repeat command
 * Nested PATT (3 is the maximum)
 * Confirm that priority kills the next lowest (6 kills 5 even if 4,5,7 are playing) in-game then implement it
-* Fix ADSR on PSG instruments
-* Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\]
+* Find a way to have the UI show the PSG restricted velocities
+* Prevent popping when notes start and end (FMOD issue)
+* Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\] (probably output frequency in fmod)
 * Support pret dissassembly projects
 * Running status in song disassembler
 * MIDI saving - preview the MIDI with the Sequencer class
@@ -40,6 +41,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Voice tables
 
 ## General
+* Custom mixer (forget about FMOD)
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config
