@@ -29,7 +29,6 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Nested PATT (3 is the maximum)
 * Confirm that priority kills the next lowest (6 kills 5 even if 4,5,7 are playing) in-game then implement it
 * Find a way to have the UI show the PSG restricted velocities
-* Prevent popping when notes start and end (FMOD issue)
 * Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\] (probably output frequency in fmod)
 * Support pret dissassembly projects
 * Running status in song disassembler
