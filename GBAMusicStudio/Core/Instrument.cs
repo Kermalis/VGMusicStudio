@@ -126,7 +126,6 @@ namespace GBAMusicStudio.Core
                 R *= 32;
             }
 
-            SongPlayer.System.playSound(Sound, Track.Group, true, out Channel);
             track.Instruments.Add(this);
         }
         internal void Stop()
@@ -152,6 +151,8 @@ namespace GBAMusicStudio.Core
                 switch (State)
                 {
                     case ADSRState.Rising:
+                        if (CurrentVelocity == 0)
+                            SongPlayer.System.playSound(Sound, Track.Group, true, out Channel);
                         CurrentVelocity += A;
                         if (CurrentVelocity >= 0xFF)
                         {
