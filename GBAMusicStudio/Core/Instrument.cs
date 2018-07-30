@@ -80,6 +80,7 @@ namespace GBAMusicStudio.Core
             Channel.setFrequency(FixedFrequency ? soundFrequency : frequency);
             UpdatePanpot();
             UpdateVolume();
+            Channel.setPaused(false);
         }
 
         // Pass -1 to "duration" to trigger a TIE
@@ -126,8 +127,6 @@ namespace GBAMusicStudio.Core
             }
 
             SongPlayer.System.playSound(Sound, Track.Group, true, out Channel);
-            Channel.setVolume(0);
-            Channel.setPaused(false);
             track.Instruments.Add(this);
         }
         internal void Stop()
