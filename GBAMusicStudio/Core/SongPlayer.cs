@@ -43,8 +43,10 @@ namespace GBAMusicStudio.Core
         static SongPlayer()
         {
             FMOD.Factory.System_Create(out System);
+            //System.setSoftwareFormat(13379, FMOD.SPEAKERMODE.DEFAULT, 0);
+            var settings = new FMOD.ADVANCEDSETTINGS { resamplerMethod = FMOD.DSP_RESAMPLER.NOINTERP };
+            System.setAdvancedSettings(ref settings);
             System.init(Config.DirectCount + 4, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
-            System.setSoftwareFormat(13379, FMOD.SPEAKERMODE.DEFAULT, 0);
 
             dsInstruments = new Instrument[Config.DirectCount];
             gbInstruments = new Instrument[4];
