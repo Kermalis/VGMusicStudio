@@ -108,7 +108,7 @@ namespace GBAMusicStudio.Core
             {
                 var ex = new FMOD.CREATESOUNDEXINFO()
                 {
-                    defaultfrequency = 7040,
+                    defaultfrequency = 3520,
                     format = FMOD.SOUND_FORMAT.PCM8,
                     length = 8,
                     numchannels = 1
