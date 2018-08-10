@@ -2,7 +2,7 @@
 
 A tool that is designed to be a Sappy replacement and also support different game engines.
 
-![Preview](https://i.imgur.com/MOBHq03.gif)
+![Preview](https://i.imgur.com/GaNeXPc.gif)
 
 ----
 # Some Advantages Over Sappy:
