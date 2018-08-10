@@ -311,9 +311,9 @@ namespace GBAMusicStudio.Core
     {
         public string Name => "Library Call";
 
-        public byte Arg1, Arg2;
+        public byte Command, Argument;
 
-        public string Arguments => $"{Arg1}, {Arg2}";
+        public string Arguments => $"{Command}, {Argument}";
     }
 
     #endregion

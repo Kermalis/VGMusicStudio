@@ -365,7 +365,7 @@ namespace GBAMusicStudio.Core
                         else if (c is MemoryAccessCommand memacc)
                             file.WriteLine($"\t.byte\t\tMEMACC, {memacc.Arg1,4}, {memacc.Arg2,4}, {memacc.Arg3}");
                         else if (c is LibraryCommand xcmd)
-                            file.WriteLine($"\t.byte\t\tXCMD  , {xcmd.Arg1,4}, {xcmd.Arg2}");
+                            file.WriteLine($"\t.byte\t\tXCMD  , {xcmd.Command,4}, {xcmd.Argument}");
                     }
                 }
 
@@ -477,7 +477,7 @@ namespace GBAMusicStudio.Core
                             case 0xC4: command = new ModDepthCommand { Depth = cmd }; break;
                             case 0xC5: command = new ModTypeCommand { Type = cmd }; break;
                             case 0xC8: command = new TuneCommand { Tune = (sbyte)(cmd - 0x40) }; break;
-                            case 0xCD: command = new LibraryCommand { Arg1 = cmd, Arg2 = reader.ReadByte() }; break;
+                            case 0xCD: command = new LibraryCommand { Command = cmd, Argument = reader.ReadByte() }; break;
                             case 0xCE: command = new EndOfTieCommand { Note = (sbyte)cmd }; prevNote = cmd; break;
                         }
                     }
@@ -506,7 +506,7 @@ namespace GBAMusicStudio.Core
                             case 0xC4: command = new ModDepthCommand { Depth = reader.ReadByte() }; break;
                             case 0xC5: command = new ModTypeCommand { Type = reader.ReadByte() }; break;
                             case 0xC8: command = new TuneCommand { Tune = (sbyte)(reader.ReadByte() - 0x40) }; break;
-                            case 0xCD: command = new LibraryCommand { Arg1 = reader.ReadByte(), Arg2 = reader.ReadByte() }; break;
+                            case 0xCD: command = new LibraryCommand { Command = reader.ReadByte(), Argument = reader.ReadByte() }; break;
                             case 0xCE: // EOT
                                 sbyte note;
 
