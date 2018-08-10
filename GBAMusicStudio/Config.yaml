@@ -1,13 +1,13 @@
 # These cannot be reloaded in the program:
 
-DirectCount: 28 # Value between 5 and 4089.
-Volume: 50 # Value between 0 and 100.
+DirectCount: 24 # 5 or above.
+Volume: 50 # 0 to 100.
+SampleRate: 48000 # Only certain values work for now.
 
 # These can be reloaded in the program:
 
-PSGVolume: 0.5 # Value between 0.0 and 1.0. Applies to sounds loaded after updating.
 MIDIKeyboardFixedVelocity: True # True or False.
-TaskbarProgress: True # True or False. Only works on Windows Vista & above.
+TaskbarProgress: True # True or False.
 RefreshRate: 30 # Value over 0. # Requires a song state change to update.
 CenterIndicators: False # True or False.
 PanpotIndicators: False # True or False.

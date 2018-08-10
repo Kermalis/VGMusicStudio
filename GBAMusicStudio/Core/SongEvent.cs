@@ -2,12 +2,6 @@
 
 namespace GBAMusicStudio.Core
 {
-    internal enum MODT : byte
-    {
-        Vibrate,
-        Volume,
-        Panpot
-    }
     interface ICommand
     {
         string Name { get; }
@@ -78,8 +72,8 @@ namespace GBAMusicStudio.Core
                 ushort max = 0;
                 switch (ROM.Instance.Game.Engine)
                 {
-                    case AEngine.M4A: max = 510; value /= 2; value *= 2; break; // Get rid of odd values
-                    case AEngine.MLSS: max = 0xFF; break;
+                    case EngineType.M4A: max = 510; value /= 2; value *= 2; break; // Get rid of odd values
+                    case EngineType.MLSS: max = 0xFF; break;
                 }
                 tempo = value.Clamp((ushort)0, max);
             }
@@ -100,8 +94,8 @@ namespace GBAMusicStudio.Core
                 byte max = 0;
                 switch (ROM.Instance.Game.Engine)
                 {
-                    case AEngine.M4A: max = 96; break;
-                    case AEngine.MLSS: max = 0xC0; break;
+                    case EngineType.M4A: max = 96; break;
+                    case EngineType.MLSS: max = 0xC0; break;
                 }
                 rest = value.Clamp((byte)0, max);
             }

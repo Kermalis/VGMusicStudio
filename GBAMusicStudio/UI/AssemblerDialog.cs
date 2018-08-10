@@ -68,7 +68,7 @@ namespace GBAMusicStudio.UI
         {
             var cell = addedDefsGrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
             if (cell.Value == null) return;
-            
+
             if (e.ColumnIndex == 0)
             {
                 if (char.IsDigit(cell.Value.ToString()[0]))

@@ -37,11 +37,11 @@ namespace GBAMusicStudio.Core
     internal class AGame
     {
         internal readonly string Code, Name, Creator;
-        internal readonly AEngine Engine;
+        internal readonly EngineType Engine;
         internal readonly uint[] SongTables, SongTableSizes;
         internal readonly List<APlaylist> Playlists;
 
-        internal AGame(string code, string name, string creator, AEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists)
+        internal AGame(string code, string name, string creator, EngineType engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists)
         {
             Code = code;
             Name = name;
@@ -68,7 +68,7 @@ namespace GBAMusicStudio.Core
         static readonly uint DefaultTableSize = 1000;
 
         internal static byte DirectCount { get; private set; }
-        internal static float PSGVolume { get; private set; }
+        internal static uint SampleRate { get; private set; }
         internal static bool MIDIKeyboardFixedVelocity { get; private set; }
         internal static bool TaskbarProgress { get; private set; }
         internal static byte RefreshRate { get; private set; }
@@ -89,7 +89,7 @@ namespace GBAMusicStudio.Core
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
-            PSGVolume = float.Parse(mapping.Children[new YamlScalarNode("PSGVolume")].ToString());
+            SampleRate = (uint)Utils.ParseValue(mapping.Children[new YamlScalarNode("SampleRate")].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children[new YamlScalarNode("MIDIKeyboardFixedVelocity")].ToString());
             TaskbarProgress = bool.Parse(mapping.Children[new YamlScalarNode("TaskbarProgress")].ToString());
             RefreshRate = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
@@ -141,7 +141,7 @@ namespace GBAMusicStudio.Core
             foreach (var g in mapping)
             {
                 string code, name, creator;
-                AEngine engine = AEngine.M4A;
+                EngineType engine = EngineType.M4A;
                 uint[] tables;
                 uint[] tableSizes;
                 List<APlaylist> playlists;
@@ -185,7 +185,7 @@ namespace GBAMusicStudio.Core
 
                 // Engine
                 if (game.Children.ContainsKey(yengine))
-                    engine = (AEngine)Enum.Parse(typeof(AEngine), game.Children[yengine].ToString());
+                    engine = (EngineType)Enum.Parse(typeof(EngineType), game.Children[yengine].ToString());
 
                 // Load playlists
                 playlists = new List<APlaylist>();

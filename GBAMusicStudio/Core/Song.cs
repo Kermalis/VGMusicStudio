@@ -9,7 +9,7 @@ namespace GBAMusicStudio.Core
 {
     internal abstract class Song
     {
-        public uint Offset { get; protected set; }
+        protected internal uint Offset { get; protected set; }
         internal VoiceTable VoiceTable;
         internal List<SongEvent>[] Commands;
         internal int NumTracks => Commands == null ? 0 : Commands.Length;
@@ -94,7 +94,7 @@ namespace GBAMusicStudio.Core
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
-            if (ROM.Instance.Game.Engine != AEngine.M4A)
+            if (ROM.Instance.Game.Engine != EngineType.M4A)
                 throw new PlatformNotSupportedException("Exporting to MIDI from this game engine is not supported at this time.");
 
             CalculateTicks();
@@ -223,7 +223,7 @@ namespace GBAMusicStudio.Core
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
-            if (ROM.Instance.Game.Engine != AEngine.M4A)
+            if (ROM.Instance.Game.Engine != EngineType.M4A)
                 throw new PlatformNotSupportedException("Exporting to ASM from this game engine is not supported at this time.");
 
             using (var file = new StreamWriter(fileName))

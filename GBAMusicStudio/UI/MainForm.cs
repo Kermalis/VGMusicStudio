@@ -1,5 +1,5 @@
 ﻿using GBAMusicStudio.Core;
-using GBAMusicStudio.MIDI;
+//using GBAMusicStudio.MIDI;
 using GBAMusicStudio.Properties;
 using GBAMusicStudio.Util;
 using Microsoft.WindowsAPICodePack.Taskbar;
@@ -27,7 +27,7 @@ namespace GBAMusicStudio.UI
         IContainer components;
         MenuStrip mainMenu;
         ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
-            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem;
+            dataToolStripMenuItem, teToolStripMenuItem, /*eSf2ToolStripMenuItem, */eASMToolStripMenuItem, eMIDIToolStripMenuItem;
         Timer timer;
         readonly object timerLock = new object();
         ThemedNumeric songNumerical, tableNumerical;
@@ -71,8 +71,8 @@ namespace GBAMusicStudio.UI
             teToolStripMenuItem = new ToolStripMenuItem { Text = "Track Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
             teToolStripMenuItem.Click += OpenTrackEditor;
 
-            eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
-            eSf2ToolStripMenuItem.Click += ExportSF2;
+            //eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
+            //eSf2ToolStripMenuItem.Click += ExportSF2;
 
             eASMToolStripMenuItem = new ToolStripMenuItem { Text = "Export Song To ASM", Enabled = false };
             eASMToolStripMenuItem.Click += ExportASM;
@@ -81,7 +81,7 @@ namespace GBAMusicStudio.UI
             eMIDIToolStripMenuItem.Click += ExportMIDI;
 
             dataToolStripMenuItem = new ToolStripMenuItem { Text = "Data" };
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem });
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, /*eSf2ToolStripMenuItem, */eASMToolStripMenuItem, eMIDIToolStripMenuItem });
 
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
@@ -215,7 +215,7 @@ namespace GBAMusicStudio.UI
         internal void PreviewASM(Assembler asm, string headerLabel, string caption)
         {
             Text = "GBA Music Studio - " + caption;
-            bool playing = SongPlayer.State == State.Playing; // Play new song if one is already playing
+            bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
             SongPlayer.Song = new M4AASMSong(asm, headerLabel);
             UpdateTrackInfo(playing);
@@ -235,12 +235,12 @@ namespace GBAMusicStudio.UI
                 Text = "GBA Music Studio";
                 songsComboBox.SelectedIndex = 0;
             }
-            bool playing = SongPlayer.State == State.Playing; // Play new song if one is already playing
+            bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
             SongPlayer.Song = ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value];
             UpdateTrackInfo(playing);
 
-            MIDIKeyboard.Start();
+            //MIDIKeyboard.Start();
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -296,7 +296,7 @@ namespace GBAMusicStudio.UI
                 UpdateMenuInfo();
             }
         }
-        void ExportSF2(object sender, EventArgs e)
+        /*void ExportSF2(object sender, EventArgs e)
         {
             var d = new SaveFileDialog { Title = "Export SF2 File", Filter = "SF2 file|*.sf2" };
             if (d.ShowDialog() != DialogResult.OK) return;
@@ -310,7 +310,7 @@ namespace GBAMusicStudio.UI
             {
                 FlexibleMessageBox.Show(ex.Message, "Error Exporting SF2 File");
             }
-        }
+        }*/
         void ExportASM(object sender, EventArgs e)
         {
             var d = new SaveFileDialog { Title = "Export ASM File", Filter = "ASM file|*.s" };
@@ -356,7 +356,7 @@ namespace GBAMusicStudio.UI
             PopulatePlaylists(game.Playlists);
 
             openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
-                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
+                teToolStripMenuItem.Enabled = /*eSf2ToolStripMenuItem.Enabled = */eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
                 songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
         void UpdateTrackInfo(bool play)
@@ -399,7 +399,7 @@ namespace GBAMusicStudio.UI
         void Pause(object sender, EventArgs e)
         {
             SongPlayer.Pause(); // Change state
-            if (SongPlayer.State != State.Paused)
+            if (SongPlayer.State != PlayerState.Paused)
             {
                 stopButton.Enabled = true;
                 pauseButton.Text = "Pause";
@@ -449,25 +449,26 @@ namespace GBAMusicStudio.UI
                     return;
                 }
                 ClearPianoNotes();
-                var tup = SongPlayer.GetSongState();
+                var info = trackInfo.Info;
+                SongPlayer.GetSongState(info);
                 for (int i = SongPlayer.NumTracks - 1; i >= 0; i--)
                 {
                     if (!PianoTracks[i]) continue;
 
-                    var notes = tup.Item6[i];
+                    var notes = info.Notes[i];
                     pianoNotes.AddRange(notes);
                     foreach (var n in notes)
                         if (n >= piano.LowNoteID && n <= piano.HighNoteID)
                         {
-                            piano[n - piano.LowNoteID].NoteOnColor = Config.Colors[tup.Item8[i]];
+                            piano[n - piano.LowNoteID].NoteOnColor = Config.Colors[info.Voices[i]];
                             piano.PressPianoKey(n);
                         }
                 }
                 if (!drag)
                 {
-                    UpdateSongPosition((int)tup.Item2);
+                    UpdateSongPosition((int)info.Position);
                 }
-                trackInfo.ReceiveData(tup);
+                trackInfo.Invalidate();
             }
             finally
             {
@@ -485,8 +486,8 @@ namespace GBAMusicStudio.UI
             if (Config.TaskbarProgress && TaskbarManager.IsPlatformSupported)
             {
                 TaskbarProgressBarState state = TaskbarProgressBarState.NoProgress;
-                if (SongPlayer.State == State.Playing) state = TaskbarProgressBarState.Normal;
-                else if (SongPlayer.State == State.Paused) state = TaskbarProgressBarState.Paused;
+                if (SongPlayer.State == PlayerState.Playing) state = TaskbarProgressBarState.Normal;
+                else if (SongPlayer.State == PlayerState.Paused) state = TaskbarProgressBarState.Paused;
 
                 TaskbarManager.Instance.SetProgressState(state, Handle);
             }
@@ -495,7 +496,7 @@ namespace GBAMusicStudio.UI
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             Stop(null, null);
-            MIDIKeyboard.Stop();
+            //MIDIKeyboard.Stop();
             base.OnFormClosing(e);
         }
         void OnResize(object sender, EventArgs e)
@@ -529,7 +530,7 @@ namespace GBAMusicStudio.UI
         {
             if (playButton.Enabled && keyData == (Keys.Space))
             {
-                if (SongPlayer.State == State.Stopped)
+                if (SongPlayer.State == PlayerState.Stopped)
                     Play(null, null);
                 else
                     Pause(null, null);

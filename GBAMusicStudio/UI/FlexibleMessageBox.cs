@@ -161,7 +161,7 @@ namespace GBAMusicStudio.UI
         #endregion
 
         #region Internal form class
-        
+
         class FlexibleMessageBoxForm : ThemedForm
         {
             IContainer components = null;
@@ -330,7 +330,7 @@ namespace GBAMusicStudio.UI
             #endregion
 
             #region Private constructor
-            
+
             private FlexibleMessageBoxForm()
             {
                 InitializeComponent();
@@ -390,7 +390,7 @@ namespace GBAMusicStudio.UI
                     flexibleMessageBoxForm.Top = screen.Bounds.Top + screen.Bounds.Height / 2 - flexibleMessageBoxForm.Height / 2;
                 }
             }
-            
+
             static void SetDialogSizes(FlexibleMessageBoxForm flexibleMessageBoxForm, string text, string caption)
             {
                 //First set the bounds for the maximum dialog size
@@ -418,7 +418,7 @@ namespace GBAMusicStudio.UI
                 flexibleMessageBoxForm.Size = new Size(textWidth + marginWidth,
                                                        textHeight + marginHeight);
             }
-            
+
             static void SetDialogIcon(FlexibleMessageBoxForm flexibleMessageBoxForm, MessageBoxIcon icon)
             {
                 switch (icon)
@@ -443,7 +443,7 @@ namespace GBAMusicStudio.UI
                         break;
                 }
             }
-            
+
             static void SetDialogButtons(FlexibleMessageBoxForm flexibleMessageBoxForm, MessageBoxButtons buttons, MessageBoxDefaultButton defaultButton)
             {
                 //Set the buttons visibilities and texts
@@ -583,7 +583,7 @@ namespace GBAMusicStudio.UI
 
                 buttonToFocus.Focus();
             }
-            
+
             void LinkClicked(object sender, LinkClickedEventArgs e)
             {
                 try
@@ -601,7 +601,7 @@ namespace GBAMusicStudio.UI
                     Cursor.Current = Cursors.Default;
                 }
             }
-            
+
             void FlexibleMessageBoxForm_KeyUp(object sender, KeyEventArgs e)
             {
                 //Handle standard key strikes for clipboard copy: "Ctrl + C" and "Ctrl + Insert"
@@ -635,7 +635,7 @@ namespace GBAMusicStudio.UI
             #endregion
 
             #region Public show function
-            
+
             public static DialogResult Show(IWin32Window owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton)
             {
                 //Create a new instance of the FlexibleMessageBox form

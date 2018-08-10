@@ -7,10 +7,10 @@ A tool that is designed to be a Sappy replacement and also support different gam
 ----
 # Some Advantages Over Sappy:
 * Pause button & song position changing
-* You can play the in-game instruments with a MIDI-in keyboard
+* ~~You can play the in-game instruments with a MIDI-in keyboard~~ (Currently disabled)
 * You can view and edit track events
 * You can import MIDI files without having to convert them yourself
-* You can save the voice tables to SF2 soundfont files
+* ~~You can save the voice tables to SF2 soundfont files~~ (Currently disabled)
 * You can save songs to ASM S files
 * The UI scales to the desired window size
 * You can see representation of notes being played
@@ -21,15 +21,14 @@ A tool that is designed to be a Sappy replacement and also support different gam
 ----
 # To Do:
 ## M4A / MP2K Engine
-* Add reverb DSP effect
+* Add Golden Sun reverb effects
+* Add Golden Sun synths
 * Add reverse playback
 * Add SquareWave sweeping
 * Add "note off with noise" for SquareWaves
+* XCMD command
 * Repeat command
 * Nested PATT (3 is the maximum)
-* Confirm that priority kills the next lowest (6 kills 5 even if 4,5,7 are playing) in-game then implement it
-* Find a way to have the UI show the PSG restricted velocities
-* Find out why some instruments sound strange \[Example: Mario Kart Snow Land drum\] (probably output frequency in fmod)
 * Support pret dissassembly projects
 * Running status in song disassembler
 * MIDI saving - preview the MIDI with the Sequencer class
@@ -40,18 +39,18 @@ A tool that is designed to be a Sappy replacement and also support different gam
 * Voice tables
 
 ## General
-* Custom mixer (forget about FMOD)
+* Fix voicetable saver & MIDI keyboard
+* Have mixer output based on callbacks instead of WASAPI
+* Have mixer send output always to eliminate reverb when stopping and allow MIDI keyboard/voicetable UI to play instruments
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config
-* Add keyboard shortcuts to the UI
 * Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
 * Default remap voice
-* Offset for event you're editing
+* Offset for the event you're editing
 * Put the event parameter as text in the parameter name label, so there is reference to the original value or in MODT/Note's cases, text representation
 * Buttons in the taskbar like with most music players
-* Minish cap remap
 * Tempo numerical (it fits)
 * Detachable piano
 * Help dialog that explains the commands for each format
@@ -60,7 +59,7 @@ A tool that is designed to be a Sappy replacement and also support different gam
 
 ----
 # Special Thanks To:
-* Ipatix
+* Ipatix [(And his GBA music player)](https://github.com/ipatix/agbplay/)
 * tuku473
 * Bregalad
 * mimi

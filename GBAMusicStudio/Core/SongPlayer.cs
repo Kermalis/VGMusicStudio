@@ -1,35 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using GBAMusicStudio.Util;
 using System.Threading;
 
 namespace GBAMusicStudio.Core
 {
-    enum State
-    {
-        Playing,
-        Paused,
-        Stopped
-    }
-
     internal static class SongPlayer
     {
-        internal static readonly FMOD.System System;
+        static readonly SoundMixer mixer;
         static readonly TimeBarrier time;
         static Thread thread;
-
-        static readonly Instrument[] dsInstruments;
-        static readonly Instrument[] gbInstruments;
-        static readonly Instrument[] allInstruments;
-
-        internal static Dictionary<uint, FMOD.Sound> Sounds { get; private set; }
-        internal static readonly uint SQUARE12_ID = 0xFFFFFFFF,
-            SQUARE25_ID = SQUARE12_ID - 1,
-            SQUARE50_ID = SQUARE25_ID - 1,
-            SQUARE75_ID = SQUARE50_ID - 1,
-            NOISE0_ID = SQUARE75_ID - 1,
-            NOISE1_ID = NOISE0_ID - 1;
 
         internal static ushort Tempo;
         static int tempoStack;
@@ -42,20 +21,10 @@ namespace GBAMusicStudio.Core
 
         static SongPlayer()
         {
-            FMOD.Factory.System_Create(out System);
-            //System.setSoftwareFormat(13379, FMOD.SPEAKERMODE.DEFAULT, 0);
-            var settings = new FMOD.ADVANCEDSETTINGS { resamplerMethod = FMOD.DSP_RESAMPLER.NOINTERP };
-            System.setAdvancedSettings(ref settings);
-            System.init(Config.DirectCount + 4, FMOD.INITFLAGS.NORMAL, (IntPtr)0);
-
-            dsInstruments = new Instrument[Config.DirectCount];
-            gbInstruments = new Instrument[4];
-            for (int i = 0; i < dsInstruments.Length; i++)
-                dsInstruments[i] = new Instrument();
-            for (int i = 0; i < 4; i++)
-                gbInstruments[i] = new Instrument();
-            allInstruments = dsInstruments.Union(gbInstruments).ToArray();
-
+            // Temporary values
+            byte eVol = 13, eRev = 0, sRev = 178; uint eFreq = 13379; // Emerald
+            //byte eVol = 14, eRev = 0, sRev = 188; uint eFreq = 18157; // PMD
+            mixer = new SoundMixer(eFreq, (byte)(eRev >= 0x80 ? eRev & 0x7F : sRev & 0x7F), ReverbType.Normal, eVol / 16f);
             time = new TimeBarrier();
 
             Reset();
@@ -70,92 +39,25 @@ namespace GBAMusicStudio.Core
             {
                 switch (ROM.Instance.Game.Engine)
                 {
-                    case AEngine.M4A: tracks[i] = new M4ATrack(i); break;
-                    case AEngine.MLSS: tracks[i] = new MLSSTrack(i); break;
+                    case EngineType.M4A: tracks[i] = new M4ATrack(i); break;
+                    case EngineType.MLSS: tracks[i] = new MLSSTrack(i); break;
                 }
             }
 
-            if (Sounds != null)
-            {
-                foreach (var s in Sounds.Values)
-                    s.release();
-                Sounds.Clear();
-                Song = null;
-                M4ASMulti.Cache.Clear();
-                M4ASDrum.Cache.Clear();
-            }
-            else
-            {
-                Sounds = new Dictionary<uint, FMOD.Sound>();
-            }
-            PSGSquare();
-            PSGNoise();
-        }
-        static void PSGSquare()
-        {
-            int variance = (int)(0x7F * Config.PSGVolume);
-            byte high = (byte)(0x80 + variance);
-            byte low = (byte)(0x80 - variance);
-
-            byte[][] squares = new byte[][] {
-                new byte[] { high, low, low, low, low, low, low, low }, // 12.5%
-                new byte[] { high, high, low, low, low, low, low, low }, // 25%
-                new byte[] { high, high, high, high, low, low, low, low }, // 50%
-                new byte[] { high, high, high, high, high, high, low, low } // 75%
-            };
-
-            for (uint i = 0; i < 4; i++) // Squares
-            {
-                var ex = new FMOD.CREATESOUNDEXINFO()
-                {
-                    defaultfrequency = 3520,
-                    format = FMOD.SOUND_FORMAT.PCM8,
-                    length = 8,
-                    numchannels = 1
-                };
-                // Three groups of 8 periods
-                System.createSound(squares[i].Concat(squares[i]).Concat(squares[i]).ToArray(), FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
-                Sounds.Add(SQUARE12_ID - i, snd);
-            }
-        }
-        static void PSGNoise()
-        {
-            uint[] simple = { 32768, 256 };
-            var rand = new Random();
-
-            for (uint i = 0; i < 2; i++)
-            {
-                uint len = simple[i];
-                var buf = new byte[len];
-
-                for (int j = 0; j < len; j++)
-                    buf[j] = (byte)rand.Next((int)(0xFF * Config.PSGVolume));
-
-                var ex = new FMOD.CREATESOUNDEXINFO()
-                {
-                    defaultfrequency = 4096,
-                    format = FMOD.SOUND_FORMAT.PCM8,
-                    length = len,
-                    numchannels = 1
-                };
-                System.createSound(buf, FMOD.MODE.OPENMEMORY | FMOD.MODE.OPENRAW | FMOD.MODE.LOOP_NORMAL | FMOD.MODE.LOWMEM, ref ex, out FMOD.Sound snd);
-                Sounds.Add(NOISE0_ID - i, snd);
-            }
+            Song = null;
+            M4ASMulti.Cache.Clear();
+            M4ASDrum.Cache.Clear();
         }
 
-        internal static State State { get; private set; }
+        internal static PlayerState State { get; private set; }
         internal delegate void SongEndedEvent();
         internal static event SongEndedEvent SongEnded;
 
-        internal static void SetVolume(float v)
-        {
-            System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
-            parentGroup.setVolume(v);
-        }
-        internal static void SetMute(int i, bool m) => tracks[i].Group.setMute(m);
+        internal static void SetVolume(float v) => mixer.MasterVolume = v;
+        internal static void SetMute(int i, bool m) => mixer.SetMute(i, m);
         internal static void SetPosition(uint p)
         {
-            bool pause = State == State.Playing;
+            bool pause = State == PlayerState.Playing;
             if (pause) Pause();
             position = p;
             for (int i = NumTracks - 1; i >= 0; i--)
@@ -170,8 +72,8 @@ namespace GBAMusicStudio.Core
                     if (elapsed <= p && elapsed + track.Delay > p)
                     {
                         track.Delay -= (byte)(p - elapsed);
-                        foreach (var ins in track.Instruments)
-                            ins.Stop();
+                        foreach (var c in mixer.AllChannels)
+                            c.Stop();
                         break;
                     }
                     elapsed += track.Delay;
@@ -219,150 +121,119 @@ namespace GBAMusicStudio.Core
         }
         internal static void Pause()
         {
-            if (State == State.Paused)
+            if (State == PlayerState.Paused)
             {
                 StartThread();
             }
             else
             {
                 StopThread();
-                System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
-                parentGroup.setMute(true);
-                State = State.Paused;
+                State = PlayerState.Paused;
             }
         }
         internal static void Stop()
         {
             StopThread();
-            foreach (Instrument i in allInstruments)
-                i.Stop();
+            foreach (var c in mixer.AllChannels)
+                c.Stop();
         }
         static void StartThread()
         {
             thread = new Thread(Tick);
             thread.Start();
-            System.getMasterChannelGroup(out FMOD.ChannelGroup parentGroup);
-            parentGroup.setMute(false);
-            State = State.Playing;
+            State = PlayerState.Playing;
         }
         static void StopThread()
         {
-            if (State == State.Stopped) return;
-            State = State.Stopped;
+            if (State == PlayerState.Stopped) return;
+            State = PlayerState.Stopped;
             if (thread != null && thread.IsAlive)
                 thread.Join();
         }
 
-        internal static (ushort, uint, uint[], byte[], byte[], sbyte[][], float[], byte[], byte[], int[], float[], string[]) GetSongState()
+        internal static void GetSongState(UI.TrackInfo info)
         {
-            var offsets = new uint[NumTracks];
-            var volumes = new byte[NumTracks];
-            var delays = new byte[NumTracks];
-            var notes = new sbyte[NumTracks][];
-            var velocities = new float[NumTracks];
-            var voices = new byte[NumTracks];
-            var modulations = new byte[NumTracks];
-            var bends = new int[NumTracks];
-            var pans = new float[NumTracks];
-            var types = new string[NumTracks];
+            info.Tempo = Tempo; info.Position = position;
             for (int i = 0; i < NumTracks; i++)
             {
-                offsets[i] = Song.Commands[i][tracks[i].CommandIndex].Offset;
-                volumes[i] = tracks[i].Volume;
-                delays[i] = tracks[i].Delay;
-                voices[i] = tracks[i].Voice;
-                modulations[i] = tracks[i].MODDepth;
-                bends[i] = tracks[i].Bend * tracks[i].BendRange;
-                types[i] = Song.VoiceTable[tracks[i].Voice].ToString();
+                info.Positions[i] = Song.Commands[i][tracks[i].CommandIndex].Offset;
+                info.Delays[i] = tracks[i].Delay;
+                info.Voices[i] = tracks[i].Voice;
+                info.Mods[i] = tracks[i].MODDepth;
+                info.Types[i] = Song.VoiceTable[tracks[i].Voice].ToString();
+                info.Volumes[i] = tracks[i].GetVolume();
+                info.Pitches[i] = tracks[i].GetPitch();
+                info.Pans[i] = tracks[i].GetPan();
 
-                Instrument[] instruments = tracks[i].Instruments.Clone().ToArray();
-                bool none = instruments.Length == 0;
-                Instrument loudest = none ? null : instruments.OrderByDescending(ins => ins.Velocity).ElementAt(0);
-                pans[i] = none ? tracks[i].Pan / (float)Engine.GetPanpotRange() : loudest.Panpot;
-                notes[i] = none ? new sbyte[0] : instruments.Where(ins => ins.State < ADSRState.Releasing).Select(ins => ins.DisplayNote).Distinct().ToArray();
-                velocities[i] = none ? 0 : loudest.Velocity * (volumes[i] / (float)Engine.GetMaxVolume());
+                var channels = mixer.AllChannels.Where(c => c.OwnerIdx == i && c.State != ADSRState.Dead).ToArray();
+                bool none = channels.Length == 0;
+                info.Lefts[i] = none ? 0 : channels.Select(c => c.GetVolume().FromLeftVol).Max();
+                info.Rights[i] = none ? 0 : channels.Select(c => c.GetVolume().FromRightVol).Max();
+                info.Notes[i] = none ? new sbyte[0] : channels.Where(c => c.State < ADSRState.Releasing).Select(c => c.Note.OriginalKey).Distinct().ToArray();
             }
-            return (Tempo, position, offsets, volumes, delays, notes, velocities, voices, modulations, bends, pans, types);
         }
 
-        static Instrument FindInstrument(Track track, IVoice voice)
+        static void PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
-            Instrument instrument = null;
-            if (voice is M4AVoice m4avoice)
+            int shift = note + track.KeyShift;
+            note = (sbyte)(shift.Clamp(0, 127));
+            track.PrevNote = note;
+
+            if (!track.Ready) return;
+
+            SVoice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
+
+            var owner = track.Index;
+            var aNote = new Note { Duration = duration, Velocity = velocity, OriginalKey = note, Key = fromDrum ? voice.Voice.GetRootNote() : note };
+            if (voice.Voice is M4AVoice m4avoice)
             {
                 switch (m4avoice.Type)
                 {
                     case 0x0:
                     case 0x8:
-                        var byAge = dsInstruments.OrderByDescending(ins => (ins.Track == null ? 16 : ins.Track.Index)).ThenByDescending(ins => ins.Age);
-                        foreach (Instrument i in byAge) // Find free
-                            if (i.State == ADSRState.Dead)
-                            {
-                                instrument = i;
-                                break;
-                            }
-                        if (instrument == null) // Find prioritized
-                            foreach (Instrument i in byAge)
-                                if (track.Priority > i.Track.Priority)
-                                {
-                                    instrument = i;
-                                    break;
-                                }
-                        if (instrument == null) // Find releasing
-                            foreach (Instrument i in byAge)
-                                if (i.State == ADSRState.Releasing)
-                                {
-                                    instrument = i;
-                                    break;
-                                }
-                        if (instrument == null) // None available
-                        {
-                            var lowestOldest = byAge.First(); // Kill lowest track's oldest instrument if the track is lower than this one
-                            if (lowestOldest.Track.Index >= track.Index)
-                                instrument = lowestOldest;
-                        }
+                        mixer.NewDSNote(owner, m4avoice.ADSR, aNote,
+                            track.GetVolume(), track.GetPan(), track.GetPitch(),
+                            m4avoice.Type == 0x8, ((M4ASDirect)voice).Sample.ToSample(), tracks);
                         break;
                     case 0x1:
                     case 0x9:
-                        instrument = gbInstruments[0];
+                        mixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                                track.GetVolume(), track.GetPan(), track.GetPitch(),
+                                GBType.Square1, m4avoice.Pattern);
                         break;
                     case 0x2:
                     case 0xA:
-                        instrument = gbInstruments[1];
+                        mixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                                track.GetVolume(), track.GetPan(), track.GetPitch(),
+                                GBType.Square2, m4avoice.Pattern);
                         break;
                     case 0x3:
                     case 0xB:
-                        instrument = gbInstruments[2];
+                        mixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                                track.GetVolume(), track.GetPan(), track.GetPitch(),
+                                GBType.Wave, ((M4ASWave)voice).sample);
                         break;
                     case 0x4:
                     case 0xC:
-                        instrument = gbInstruments[3];
+                        mixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                                track.GetVolume(), track.GetPan(), track.GetPitch(),
+                                GBType.Noise, m4avoice.Pattern);
                         break;
                 }
             }
             else
             {
-                instrument = dsInstruments[0];
+                mixer.NewGBNote(owner, new ADSR { S = 0xF }, aNote,
+                        track.GetVolume(), track.GetPan(), track.GetPitch(),
+                        GBType.Square1, SquarePattern.D50);
             }
-            return instrument;
-        }
-        static void PlayNote(Track track, sbyte note, byte velocity, int duration)
-        {
-            // Hides base note, vel and dur
-            int shift = note + track.KeyShift;
-            note = (sbyte)(shift.Clamp(0, 127));
-
-            if (!track.Ready) return;
-
-            IVoice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
-            Instrument instrument = FindInstrument(track, voice);
-
-            if (instrument != null)
-                instrument.Play(track, note, velocity, duration);
         }
 
-        static void ExecuteNext(int i)
+        // Returns a bool which indicates whether the track needs to update volume, pan, or pitch
+        static bool ExecuteNext(int i)
         {
+            bool update = false;
+
             var track = tracks[i];
             var e = Song.Commands[i][track.CommandIndex];
 
@@ -387,34 +258,41 @@ namespace GBAMusicStudio.Core
                     track.EndOfPattern = 0;
                 }
             }
-            else if (e.Command is FinishCommand) track.Stopped = true;
-            else if (e.Command is PriorityCommand prio) track.SetPriority(prio.Priority);
-            else if (e.Command is TempoCommand tempo) Tempo = tempo.Tempo;
-            else if (e.Command is KeyShiftCommand keysh) track.KeyShift = keysh.Shift;
-            else if (e.Command is RestCommand w) track.Delay = w.Rest;
-            else if (e.Command is VoiceCommand voice) track.SetVoice(voice.Voice);
-            else if (e.Command is VolumeCommand vol) track.SetVolume(vol.Volume);
-            else if (e.Command is PanpotCommand pan) track.SetPan(pan.Panpot);
-            else if (e.Command is BendCommand bend) track.SetBend(bend.Bend);
-            else if (e.Command is BendRangeCommand bendr) track.SetBendRange(bendr.Range);
-            else if (e.Command is LFOSpeedCommand lfos) track.SetLFOSpeed(lfos.Speed);
-            else if (e.Command is LFODelayCommand lfodl) track.SetLFODelay(lfodl.Delay);
-            else if (e.Command is ModDepthCommand mod) track.SetMODDepth(mod.Depth);
-            else if (e.Command is ModTypeCommand modt) track.SetMODType((MODT)modt.Type);
-            else if (e.Command is TuneCommand tune) track.SetTune(tune.Tune);
+            else if (e.Command is FinishCommand)
+            {
+                track.Stopped = true;
+                mixer.ReleaseChannels(i, -1);
+            }
+            else if (e.Command is PriorityCommand prio) { track.Priority = prio.Priority; } // TODO: Update channel priorities
+            else if (e.Command is TempoCommand tempo) { Tempo = tempo.Tempo; }
+            else if (e.Command is KeyShiftCommand keysh) { track.KeyShift = keysh.Shift; }
+            else if (e.Command is RestCommand w) { track.Delay = w.Rest; }
+            else if (e.Command is VoiceCommand voice) { track.Voice = voice.Voice; track.Ready = true; }
+            else if (e.Command is VolumeCommand vol) { track.Volume = vol.Volume; update = true; }
+            else if (e.Command is PanpotCommand pan) { track.Pan = pan.Panpot; update = true; }
+            else if (e.Command is BendCommand bend) { track.Bend = bend.Bend; update = true; }
+            else if (e.Command is BendRangeCommand bendr) { track.BendRange = bendr.Range; update = true; }
+            else if (e.Command is LFOSpeedCommand lfos) { track.LFOSpeed = lfos.Speed; track.LFOPhase = track.LFODelayCount = 0; update = true; }
+            else if (e.Command is LFODelayCommand lfodl) { track.LFODelay = lfodl.Delay; track.LFOPhase = track.LFODelayCount = 0; update = true; }
+            else if (e.Command is ModDepthCommand mod) { track.MODDepth = mod.Depth; update = true; }
+            else if (e.Command is ModTypeCommand modt) { track.MODType = (MODT)modt.Type; update = true; }
+            else if (e.Command is TuneCommand tune) { track.Tune = tune.Tune; update = true; }
+            else if (e.Command is LibraryCommand xcmd)
+            {
+                if (xcmd.Command == 8)
+                    track.EchoVolume = xcmd.Argument;
+                else if (xcmd.Command == 9)
+                    track.EchoLength = xcmd.Argument;
+            }
             else if (e.Command is EndOfTieCommand eot)
             {
-                IEnumerable<Instrument> ins = new Instrument[0];
                 if (eot.Note == -1)
-                    ins = track.Instruments.Where(inst => inst.NoteDuration == -1 && inst.State < ADSRState.Releasing);
+                    mixer.ReleaseChannels(i, track.PrevNote);
                 else
                 {
-                    byte note = (byte)(eot.Note + track.KeyShift).Clamp(0, 127);
-                    // Could be problematic to do "DisplayNote" with high notes and a key shift up
-                    ins = track.Instruments.Where(inst => inst.NoteDuration == -1 && inst.DisplayNote == note && inst.State < ADSRState.Releasing);
+                    sbyte note = (sbyte)(eot.Note + track.KeyShift).Clamp(0, 127);
+                    mixer.ReleaseChannels(i, note);
                 }
-                foreach (var inst in ins)
-                    inst.State = ADSRState.Releasing;
             }
             else if (e.Command is NoteCommand n)
             {
@@ -439,11 +317,13 @@ namespace GBAMusicStudio.Core
 
             if (!track.Stopped)
                 track.CommandIndex++;
+
+            return update;
         }
         static void Tick()
         {
             time.Start();
-            while (State != State.Stopped)
+            while (State != PlayerState.Stopped)
             {
                 // Do Song Tick
                 tempoStack += Tempo;
@@ -452,23 +332,25 @@ namespace GBAMusicStudio.Core
                 {
                     tempoStack -= wait;
                     bool allDone = true;
-                    for (int i = NumTracks - 1; i >= 0; i--)
+                    for (int i = 0; i < NumTracks; i++)
                     {
                         Track track = tracks[i];
-                        if (!track.Stopped || track.Instruments.Any(ins => ins.State != ADSRState.Dead))
+                        if (!track.Stopped || mixer.AllChannels.Any(c => c.OwnerIdx == i && c.State != ADSRState.Dead))
                             allDone = false;
+                        track.Tick(mixer);
+                        bool update = false;
                         while (track.Delay == 0 && !track.Stopped)
-                            ExecuteNext(i);
-                        track.Tick();
+                            if (ExecuteNext(i))
+                                update = true;
+                        if (update || track.MODDepth > 0)
+                            mixer.UpdateChannels(i, track.GetVolume(), track.GetPan(), track.GetPitch());
                     }
                     position++;
                     if (allDone)
                         SongEnded?.Invoke();
                 }
                 // Do Instrument Tick
-                foreach (var i in allInstruments)
-                    i.ADSRTick();
-                System.update();
+                mixer.Process();
                 // Wait for next frame
                 time.Wait();
             }

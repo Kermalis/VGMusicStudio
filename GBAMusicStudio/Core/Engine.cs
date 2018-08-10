@@ -4,22 +4,17 @@ using System.Linq;
 
 namespace GBAMusicStudio.Core
 {
-    internal enum AEngine
-    {
-        M4A,
-        MLSS
-    }
     internal static class Engine
     {
-        internal const int BPM_PER_FRAME = 150, INTERFRAMES = 4;
+        internal const int BPM_PER_FRAME = 150, INTERFRAMES = 4, AGB_FPS = 60, N_CHANNELS = 2;
         static readonly Exception BAD = new PlatformNotSupportedException("Invalid game engine.");
 
-        static readonly Dictionary<AEngine, ICommand[]> allowedCommands;
+        static readonly Dictionary<EngineType, ICommand[]> allowedCommands;
         static Engine()
         {
-            var types = new Dictionary<AEngine, Type[]>()
+            var types = new Dictionary<EngineType, Type[]>()
             {
-                { AEngine.M4A, new Type[] {
+                { EngineType.M4A, new Type[] {
                     typeof(TempoCommand), typeof(RestCommand), typeof(M4ANoteCommand), typeof(EndOfTieCommand),
                     typeof(VoiceCommand), typeof(VolumeCommand), typeof(PanpotCommand), typeof(BendCommand),
                     typeof(TuneCommand), typeof(BendRangeCommand), typeof(LFOSpeedCommand), typeof(LFODelayCommand),
@@ -27,21 +22,21 @@ namespace GBAMusicStudio.Core
                     typeof(GoToCommand), typeof(CallCommand), typeof(ReturnCommand), typeof(M4AFinishCommand),
                     typeof(RepeatCommand), typeof(MemoryAccessCommand), typeof(LibraryCommand)
                 } },
-                { AEngine.MLSS, new Type[] {
+                { EngineType.MLSS, new Type[] {
                     typeof(TempoCommand), typeof(RestCommand), typeof(MLSSNoteCommand), typeof(VoiceCommand),
                     typeof(VolumeCommand), typeof(PanpotCommand), typeof(GoToCommand), typeof(FinishCommand),
                     typeof(FreeNoteCommand)
                 } }
             };
 
-            allowedCommands = new Dictionary<AEngine, ICommand[]>();
+            allowedCommands = new Dictionary<EngineType, ICommand[]>();
             foreach (var pair in types)
             {
                 var commands = pair.Value.Select(type => (ICommand)Activator.CreateInstance(type)).ToArray();
                 allowedCommands.Add(pair.Key, commands);
             }
         }
-        
+
         internal static ICommand[] GetCommands()
         {
             return allowedCommands[ROM.Instance.Game.Engine];
@@ -51,8 +46,8 @@ namespace GBAMusicStudio.Core
         {
             switch (ROM.Instance.Game.Engine)
             {
-                case AEngine.M4A: return 150;
-                case AEngine.MLSS: return 120;
+                case EngineType.M4A: return 150;
+                case EngineType.MLSS: return 120;
             }
             throw BAD;
         }
@@ -60,8 +55,8 @@ namespace GBAMusicStudio.Core
         {
             switch (ROM.Instance.Game.Engine)
             {
-                case AEngine.M4A: return 96;
-                case AEngine.MLSS: return 48;
+                case EngineType.M4A: return 96;
+                case EngineType.MLSS: return 48;
             }
             throw BAD;
         }
@@ -75,8 +70,8 @@ namespace GBAMusicStudio.Core
         {
             switch (ROM.Instance.Game.Engine)
             {
-                case AEngine.M4A: return 0x7F;
-                case AEngine.MLSS: return 0xFF;
+                case EngineType.M4A: return 0x7F;
+                case EngineType.MLSS: return 0xFF;
             }
             throw BAD;
         }
@@ -84,8 +79,8 @@ namespace GBAMusicStudio.Core
         {
             switch (ROM.Instance.Game.Engine)
             {
-                case AEngine.M4A: return 0x40;
-                case AEngine.MLSS: return 0x80;
+                case EngineType.M4A: return 0x40;
+                case EngineType.MLSS: return 0x80;
             }
             throw BAD;
         }

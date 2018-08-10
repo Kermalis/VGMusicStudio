@@ -5,7 +5,7 @@ namespace GBAMusicStudio.Core
     internal abstract class SongTable
     {
         internal uint Offset;
-        uint size;
+        readonly uint size;
         protected readonly Dictionary<int, Song> Songs;
 
         internal SongTable(uint offset, uint size)

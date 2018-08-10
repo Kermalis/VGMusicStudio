@@ -137,7 +137,7 @@ namespace GBAMusicStudio.UI
                 }
                 else
                     throw new ArgumentOutOfRangeException(
-                        "TrackSize has to be greather than zero and lower than half of Slider width");                 
+                        "TrackSize has to be greather than zero and lower than half of Slider width");
 
                 Invalidate();
             }
@@ -266,7 +266,7 @@ namespace GBAMusicStudio.UI
                 {
                     _barOrientation = value;
                     // Switch from horizontal to vertical (design mode)
-					// Comment these lines if problems in Run mode
+                    // Comment these lines if problems in Run mode
                     if (this.DesignMode)
                     {
                         int temp = Width;
@@ -427,7 +427,7 @@ namespace GBAMusicStudio.UI
             get { return _largeChange; }
             set { _largeChange = value; }
         }
-           
+
         private int _mouseWheelBarPartitions = 10;
         /// <summary>
         /// Gets or sets the mouse wheel bar partitions.
@@ -477,7 +477,7 @@ namespace GBAMusicStudio.UI
         /// </summary>
         /// <value>The inner color of the thumb.</value>
         [Description("Set Slider thumb inner color")]
-        [Category("ColorSlider")]        
+        [Category("ColorSlider")]
         public Color ThumbInnerColor
         {
             get { return _thumbInnerColor; }
@@ -494,7 +494,7 @@ namespace GBAMusicStudio.UI
         /// </summary>
         /// <value>The color of the thumb pen.</value>
         [Description("Set Slider thumb pen color")]
-        [Category("ColorSlider")]       
+        [Category("ColorSlider")]
         public Color ThumbPenColor
         {
             get { return _thumbPenColor; }
@@ -529,7 +529,7 @@ namespace GBAMusicStudio.UI
         /// </summary>
         [Description("Gets or sets the top color of the elapsed")]
         [Category("ColorSlider")]
-        public Color ElapsedPenColorTop 
+        public Color ElapsedPenColorTop
         {
             get { return _elapsedPenColorTop; }
             set
@@ -545,7 +545,7 @@ namespace GBAMusicStudio.UI
         /// </summary>
         [Description("Gets or sets the bottom color of the elapsed")]
         [Category("ColorSlider")]
-        public Color ElapsedPenColorBottom 
+        public Color ElapsedPenColorBottom
         {
             get { return _elapsedPenColorBottom; }
             set
@@ -585,7 +585,7 @@ namespace GBAMusicStudio.UI
                 _barPenColorBottom = value;
                 Invalidate();
             }
-        }   
+        }
 
         private Color _elapsedInnerColor = Theme.BorderColor;
         /// <summary>
@@ -593,7 +593,7 @@ namespace GBAMusicStudio.UI
         /// </summary>
         /// <value>The inner color of the elapsed.</value>
         [Description("Set Slider's elapsed part inner color")]
-        [Category("ColorSlider")]        
+        [Category("ColorSlider")]
         public Color ElapsedInnerColor
         {
             get { return _elapsedInnerColor; }
@@ -609,7 +609,7 @@ namespace GBAMusicStudio.UI
         /// Gets or sets the color of the graduations
         /// </summary>
         [Description("Color of graduations")]
-        [Category("ColorSlider")]            
+        [Category("ColorSlider")]
         public Color TickColor
         {
             get { return _tickColor; }
@@ -640,7 +640,8 @@ namespace GBAMusicStudio.UI
         public float TickDivide
         {
             get { return _tickDivide; }
-            set {
+            set
+            {
                 _tickDivide = value;
                 Invalidate();
             }
@@ -652,7 +653,9 @@ namespace GBAMusicStudio.UI
         public float TickAdd
         {
             get { return _tickAdd; }
-            set { _tickAdd = value;
+            set
+            {
+                _tickAdd = value;
                 Invalidate();
             }
         }
@@ -667,7 +670,8 @@ namespace GBAMusicStudio.UI
         public TickStyle TickStyle
         {
             get { return _tickStyle; }
-            set {
+            set
+            {
                 _tickStyle = value;
                 Invalidate();
             }
@@ -682,10 +686,11 @@ namespace GBAMusicStudio.UI
         public int ScaleDivisions
         {
             get { return _scaleDivisions; }
-            set {
+            set
+            {
                 if (value > 0)
                 {
-                    _scaleDivisions = value;                    
+                    _scaleDivisions = value;
                 }
                 //else throw new ArgumentOutOfRangeException("TickFreqency must be > 0 and < Maximum");
 
@@ -705,9 +710,9 @@ namespace GBAMusicStudio.UI
             set
             {
                 if (value > 0 && _scaleDivisions > 0 && (_maximum - _minimum) / ((value + 1) * _scaleDivisions) > 0)
-                { 
+                {
                     _scaleSubDivisions = value;
-                    
+
                 }
                 //else throw new ArgumentOutOfRangeException("TickSubFreqency must be > 0 and < TickFrequency");
 
@@ -724,7 +729,8 @@ namespace GBAMusicStudio.UI
         public bool ShowSmallScale
         {
             get { return _showSmallScale; }
-            set {
+            set
+            {
 
                 if (value == true)
                 {
@@ -756,7 +762,9 @@ namespace GBAMusicStudio.UI
         public bool ShowDivisionsText
         {
             get { return _showDivisionsText; }
-            set { _showDivisionsText = value;
+            set
+            {
+                _showDivisionsText = value;
                 Invalidate();
             }
         }
@@ -798,7 +806,8 @@ namespace GBAMusicStudio.UI
         Description("Get or Sets the Color of the Text being displayed."),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Visible),
         EditorBrowsable(EditorBrowsableState.Always)]
-        public override Color ForeColor {
+        public override Color ForeColor
+        {
             get
             {
                 return base.ForeColor;
@@ -895,7 +904,7 @@ namespace GBAMusicStudio.UI
                 _thumbOuterColor = aColorSchema[sn, 0];
                 _thumbInnerColor = aColorSchema[sn, 1];
                 _thumbPenColor = aColorSchema[sn, 2];
-                
+
                 _barInnerColor = aColorSchema[sn, 3];
 
                 _elapsedPenColorTop = aColorSchema[sn, 4];
@@ -924,7 +933,7 @@ namespace GBAMusicStudio.UI
                      ControlStyles.ResizeRedraw | ControlStyles.Selectable |
                      ControlStyles.SupportsTransparentBackColor | ControlStyles.UserMouse |
                      ControlStyles.UserPaint, true);
-            
+
             // Default ForeColor
             ForeColor = Color.White;
 
@@ -946,15 +955,15 @@ namespace GBAMusicStudio.UI
             if (!Enabled)
             {
                 Color[] desaturatedColors = DesaturateColors(_thumbOuterColor, _thumbInnerColor, _thumbPenColor,
-                                                             _barInnerColor, 
-                                                             _elapsedPenColorTop, _elapsedPenColorBottom, 
+                                                             _barInnerColor,
+                                                             _elapsedPenColorTop, _elapsedPenColorBottom,
                                                              _barPenColorTop, _barPenColorBottom,
                                                              _elapsedInnerColor);
-                DrawColorSlider(e, 
-                                    desaturatedColors[0], desaturatedColors[1], desaturatedColors[2], 
-                                    desaturatedColors[3], 
-                                    desaturatedColors[4], desaturatedColors[5], 
-                                    desaturatedColors[6], desaturatedColors[7], 
+                DrawColorSlider(e,
+                                    desaturatedColors[0], desaturatedColors[1], desaturatedColors[2],
+                                    desaturatedColors[3],
+                                    desaturatedColors[4], desaturatedColors[5],
+                                    desaturatedColors[6], desaturatedColors[7],
                                     desaturatedColors[8]);
             }
             else
@@ -963,22 +972,22 @@ namespace GBAMusicStudio.UI
                 {
                     Color[] lightenedColors = LightenColors(_thumbOuterColor, _thumbInnerColor, _thumbPenColor,
                                                             _barInnerColor,
-                                                            _elapsedPenColorTop, _elapsedPenColorBottom, 
+                                                            _elapsedPenColorTop, _elapsedPenColorBottom,
                                                             _barPenColorTop, _barPenColorBottom,
                                                             _elapsedInnerColor);
-                    DrawColorSlider(e, 
-                        lightenedColors[0], lightenedColors[1], lightenedColors[2], 
-                        lightenedColors[3], 
-                        lightenedColors[4], lightenedColors[5], 
-                        lightenedColors[6], lightenedColors[7], 
+                    DrawColorSlider(e,
+                        lightenedColors[0], lightenedColors[1], lightenedColors[2],
+                        lightenedColors[3],
+                        lightenedColors[4], lightenedColors[5],
+                        lightenedColors[6], lightenedColors[7],
                         lightenedColors[8]);
                 }
                 else
                 {
-                    DrawColorSlider(e, 
+                    DrawColorSlider(e,
                                     _thumbOuterColor, _thumbInnerColor, _thumbPenColor,
                                     _barInnerColor,
-                                    _elapsedPenColorTop, _elapsedPenColorBottom, 
+                                    _elapsedPenColorTop, _elapsedPenColorBottom,
                                     _barPenColorTop, _barPenColorBottom,
                                     _elapsedInnerColor);
                 }
@@ -995,10 +1004,10 @@ namespace GBAMusicStudio.UI
         /// <param name="barInnerColorPaint">The bar inner color paint.</param>
         /// <param name="barPenColorPaint">The bar pen color paint.</param>
         /// <param name="elapsedInnerColorPaint">The elapsed inner color paint.</param>
-        private void DrawColorSlider(PaintEventArgs e, 
-            Color thumbOuterColorPaint, Color thumbInnerColorPaint, Color thumbPenColorPaint, 
+        private void DrawColorSlider(PaintEventArgs e,
+            Color thumbOuterColorPaint, Color thumbInnerColorPaint, Color thumbPenColorPaint,
             Color barInnerColorPaint,
-            Color ElapsedTopPenColorPaint, Color ElapsedBottomPenColorPaint, 
+            Color ElapsedTopPenColorPaint, Color ElapsedBottomPenColorPaint,
             Color barTopPenColorPaint, Color barBottomPenColorPaint,
             Color elapsedInnerColorPaint)
         {
@@ -1011,12 +1020,12 @@ namespace GBAMusicStudio.UI
                     if (_thumbImage != null)
                     {
                         int TrackX = (((_trackerValue - _minimum) * (ClientRectangle.Width - _thumbImage.Width)) / (_maximum - _minimum));
-                        thumbRect = new Rectangle(TrackX, ClientRectangle.Height/2 - _thumbImage.Height/2, _thumbImage.Width, _thumbImage.Height);
+                        thumbRect = new Rectangle(TrackX, ClientRectangle.Height / 2 - _thumbImage.Height / 2, _thumbImage.Width, _thumbImage.Height);
                     }
                     else
                     {
-                        int TrackX = (((_trackerValue - _minimum) * (ClientRectangle.Width - _thumbSize.Width)) / (_maximum - _minimum));                        
-                        thumbRect = new Rectangle(TrackX, ClientRectangle.Y + ClientRectangle.Height/2 - _thumbSize.Height/2 , _thumbSize.Width, _thumbSize.Height);
+                        int TrackX = (((_trackerValue - _minimum) * (ClientRectangle.Width - _thumbSize.Width)) / (_maximum - _minimum));
+                        thumbRect = new Rectangle(TrackX, ClientRectangle.Y + ClientRectangle.Height / 2 - _thumbSize.Height / 2, _thumbSize.Width, _thumbSize.Height);
                     }
                     #endregion
                 }
@@ -1024,14 +1033,14 @@ namespace GBAMusicStudio.UI
                 {
                     #region vertical
                     if (_thumbImage != null)
-                    {                        
+                    {
                         int TrackY = (((_maximum - (_trackerValue)) * (ClientRectangle.Height - _thumbImage.Height)) / (_maximum - _minimum));
-                        thumbRect = new Rectangle(ClientRectangle.Width/2 - _thumbImage.Width/2, TrackY, _thumbImage.Width, _thumbImage.Height);
+                        thumbRect = new Rectangle(ClientRectangle.Width / 2 - _thumbImage.Width / 2, TrackY, _thumbImage.Width, _thumbImage.Height);
                     }
                     else
-                    {                        
+                    {
                         int TrackY = (((_maximum - (_trackerValue)) * (ClientRectangle.Height - _thumbSize.Height)) / (_maximum - _minimum));
-                        thumbRect = new Rectangle(ClientRectangle.X + ClientRectangle.Width/2 - _thumbSize.Width/2, TrackY, _thumbSize.Width, _thumbSize.Height);
+                        thumbRect = new Rectangle(ClientRectangle.X + ClientRectangle.Width / 2 - _thumbSize.Width / 2, TrackY, _thumbSize.Width, _thumbSize.Height);
                     }
                     #endregion
                 }
@@ -1053,7 +1062,7 @@ namespace GBAMusicStudio.UI
                     barHalfRect.Height /= 2;
 
                     gradientOrientation = LinearGradientMode.Vertical;
-                    
+
 
                     thumbHalfRect.Height /= 2;
                     elapsedRect = barRect;
@@ -1066,17 +1075,17 @@ namespace GBAMusicStudio.UI
                     barRect.Inflate(-barRect.Width / 3, -1);
                     barHalfRect = barRect;
                     barHalfRect.Width /= 2;
-                   
+
                     gradientOrientation = LinearGradientMode.Vertical;
 
                     thumbHalfRect.Width /= 2;
-                    elapsedRect = barRect;                    
+                    elapsedRect = barRect;
                     elapsedRect.Height = barRect.Height - (thumbRect.Top + ThumbSize.Height / 2);
-                    elapsedRect.Y = 1 + thumbRect.Top + ThumbSize.Height/2;
+                    elapsedRect.Y = 1 + thumbRect.Top + ThumbSize.Height / 2;
 
                     #endregion
                 }
-                
+
                 //get thumb shape path 
                 GraphicsPath thumbPath;
                 if (_thumbCustomShape == null)
@@ -1098,11 +1107,11 @@ namespace GBAMusicStudio.UI
                 // draw the line on the whole lenght of the control
                 if (_barOrientation == Orientation.Horizontal)
                 {
-                    e.Graphics.DrawLine(new Pen(barInnerColorPaint, 1f), barRect.X, barRect.Y + barRect.Height/2, barRect.X + barRect.Width, barRect.Y + barRect.Height / 2);
+                    e.Graphics.DrawLine(new Pen(barInnerColorPaint, 1f), barRect.X, barRect.Y + barRect.Height / 2, barRect.X + barRect.Width, barRect.Y + barRect.Height / 2);
                 }
                 else
                 {
-                    e.Graphics.DrawLine(new Pen(barInnerColorPaint, 1f), barRect.X + barRect.Width/2, barRect.Y, barRect.X + barRect.Width/2 , barRect.Y + barRect.Height);
+                    e.Graphics.DrawLine(new Pen(barInnerColorPaint, 1f), barRect.X + barRect.Width / 2, barRect.Y, barRect.X + barRect.Width / 2, barRect.Y + barRect.Height);
                 }
                 #endregion
 
@@ -1123,7 +1132,7 @@ namespace GBAMusicStudio.UI
 
 
                 #region draw external contours
-                
+
                 //draw external bar band 
                 // 2 lines: top and bottom
                 if (_barOrientation == Orientation.Horizontal)
@@ -1142,20 +1151,20 @@ namespace GBAMusicStudio.UI
 
 
                     // Left vertical (dark)
-                    e.Graphics.DrawLine(new Pen(barTopPenColorPaint, 1f), barRect.X, barRect.Y -1 + barRect.Height/2, barRect.X, barRect.Y + barRect.Height/2 + 1);
+                    e.Graphics.DrawLine(new Pen(barTopPenColorPaint, 1f), barRect.X, barRect.Y - 1 + barRect.Height / 2, barRect.X, barRect.Y + barRect.Height / 2 + 1);
 
                     // Right vertical (light)                        
-                    e.Graphics.DrawLine(new Pen(barBottomPenColorPaint, 1f), barRect.X + barRect.Width, barRect.Y - 1 + barRect.Height/2, barRect.X + barRect.Width, barRect.Y + 1 + barRect.Height/2);
+                    e.Graphics.DrawLine(new Pen(barBottomPenColorPaint, 1f), barRect.X + barRect.Width, barRect.Y - 1 + barRect.Height / 2, barRect.X + barRect.Width, barRect.Y + 1 + barRect.Height / 2);
                     #endregion
                 }
                 else
                 {
                     #region vertical
                     // Elapsed top
-                    e.Graphics.DrawLine(new Pen(ElapsedTopPenColorPaint, 1f), barRect.X -1 + barRect.Width/2, barRect.Y + (barRect.Height - elapsedRect.Height), barRect.X - 1 + barRect.Width / 2, barRect.Y + barRect.Height);
+                    e.Graphics.DrawLine(new Pen(ElapsedTopPenColorPaint, 1f), barRect.X - 1 + barRect.Width / 2, barRect.Y + (barRect.Height - elapsedRect.Height), barRect.X - 1 + barRect.Width / 2, barRect.Y + barRect.Height);
 
                     // Elapsed bottom
-                    e.Graphics.DrawLine(new Pen(ElapsedBottomPenColorPaint, 1f), barRect.X + 1 + barRect.Width / 2, barRect.Y + (barRect.Height - elapsedRect.Height), barRect.X + 1 + barRect.Width/2, barRect.Y + barRect.Height);
+                    e.Graphics.DrawLine(new Pen(ElapsedBottomPenColorPaint, 1f), barRect.X + 1 + barRect.Width / 2, barRect.Y + (barRect.Height - elapsedRect.Height), barRect.X + 1 + barRect.Width / 2, barRect.Y + barRect.Height);
 
 
                     // Remain top
@@ -1167,17 +1176,17 @@ namespace GBAMusicStudio.UI
 
 
                     // top horizontal (dark) 
-                    e.Graphics.DrawLine(new Pen(barTopPenColorPaint, 1f), barRect.X - 1 + barRect.Width/2, barRect.Y, barRect.X + 1 + barRect.Width/2, barRect.Y);
+                    e.Graphics.DrawLine(new Pen(barTopPenColorPaint, 1f), barRect.X - 1 + barRect.Width / 2, barRect.Y, barRect.X + 1 + barRect.Width / 2, barRect.Y);
 
                     // bottom horizontal (light)
-                    e.Graphics.DrawLine(new Pen(barBottomPenColorPaint, 1f), barRect.X - 1 + barRect.Width/2, barRect.Y + barRect.Height, barRect.X + 1 + barRect.Width/2, barRect.Y + barRect.Height);
+                    e.Graphics.DrawLine(new Pen(barBottomPenColorPaint, 1f), barRect.X - 1 + barRect.Width / 2, barRect.Y + barRect.Height, barRect.X + 1 + barRect.Width / 2, barRect.Y + barRect.Height);
                     #endregion
 
                 }
-                    
+
                 #endregion draw contours
 
-                
+
 
                 #region draw thumb
 
@@ -1196,12 +1205,12 @@ namespace GBAMusicStudio.UI
                 }
                 else
                 {
-                    lgbThumb = new LinearGradientBrush(thumbHalfRect, newthumbOuterColorPaint, newthumbInnerColorPaint, gradientOrientation);                    
+                    lgbThumb = new LinearGradientBrush(thumbHalfRect, newthumbOuterColorPaint, newthumbInnerColorPaint, gradientOrientation);
                 }
                 using (lgbThumb)
                 {
                     lgbThumb.WrapMode = WrapMode.TileFlipXY;
-                    
+
                     e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
                     e.Graphics.FillPath(lgbThumb, thumbPath);
 
@@ -1221,7 +1230,7 @@ namespace GBAMusicStudio.UI
 
                             e.Graphics.DrawImage(bmp, thumbRect, srceRect, GraphicsUnit.Pixel);
                             bmp.Dispose();
-                            
+
                         }
                         else
                         {
@@ -1243,7 +1252,7 @@ namespace GBAMusicStudio.UI
                         r.Width -= 2;
                         r.Height--;
                         r.X++;
-                                               
+
                         using (GraphicsPath gpBorder = CreateRoundRectPath(r, _borderRoundRectSize))
                         {
                             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -1259,7 +1268,7 @@ namespace GBAMusicStudio.UI
                 if (_tickStyle != TickStyle.None)
                 {
                     int x1, x2, y1, y2 = 0;
-                    int nbticks = 1 +  _scaleDivisions * (_scaleSubDivisions + 1);                    
+                    int nbticks = 1 + _scaleDivisions * (_scaleSubDivisions + 1);
                     int interval = 0;
                     int start = 0;
                     int W = 0;
@@ -1281,7 +1290,7 @@ namespace GBAMusicStudio.UI
                         W = barRect.Height - thumbRect.Height;
                         rulerValue = (float)_maximum;
                     }
-                    
+
                     // pen for ticks
                     // TODO: color for subdivision different?
                     Pen penTickL = new Pen(_tickColor, 1f);
@@ -1312,8 +1321,8 @@ namespace GBAMusicStudio.UI
 
 
                     float lineLeftX, lineRightX = 0;
-                    lineLeftX = ClientRectangle.X + maxsize.Width/2;                   
-                    lineRightX = ClientRectangle.X + ClientRectangle.Width - maxsize.Width/2;
+                    lineLeftX = ClientRectangle.X + maxsize.Width / 2;
+                    lineRightX = ClientRectangle.X + ClientRectangle.Width - maxsize.Width / 2;
 
 
                     for (int i = 0; i <= _scaleDivisions; i++)
@@ -1326,10 +1335,10 @@ namespace GBAMusicStudio.UI
                             val = val / _tickDivide;
 
                         if (_tickAdd != 0)
-                            val = val + _tickAdd;                       
+                            val = val + _tickAdd;
 
-                        str = String.Format("{0,0:D}", (int)val);                                               
-                        SizeF size = e.Graphics.MeasureString( str, font );                       
+                        str = String.Format("{0,0:D}", (int)val);
+                        SizeF size = e.Graphics.MeasureString(str, font);
 
                         // HORIZONTAL
                         if (_barOrientation == Orientation.Horizontal)
@@ -1348,17 +1357,17 @@ namespace GBAMusicStudio.UI
                                 if (_tickStyle == TickStyle.BottomRight || _tickStyle == TickStyle.Both)
                                 {
                                     tx = (start + barRect.X + interval) - (float)(size.Width * 0.5);
-                                    ty = ClientRectangle.Y + ClientRectangle.Height - (size.Height) + 3;                                    
-                                    e.Graphics.DrawString(str, font, br, tx, ty );
+                                    ty = ClientRectangle.Y + ClientRectangle.Height - (size.Height) + 3;
+                                    e.Graphics.DrawString(str, font, br, tx, ty);
                                 }
 
                                 startDiv = (int)size.Height;
                             }
 
-                            
+
                             // draw main ticks                           
                             if (_tickStyle == TickStyle.TopLeft || _tickStyle == TickStyle.Both)
-                            {                                 
+                            {
                                 x1 = start + barRect.X + interval;
                                 y1 = ClientRectangle.Y + startDiv;
                                 x2 = start + barRect.X + interval;
@@ -1376,7 +1385,7 @@ namespace GBAMusicStudio.UI
                                 e.Graphics.DrawLine(penTickL, x1, y1, x2, y2);
                             }
 
-                                  
+
                             rulerValue += (float)((_maximum - _minimum) / (_scaleDivisions));
 
                             // Draw subdivisions
@@ -1418,15 +1427,15 @@ namespace GBAMusicStudio.UI
 
                             // Draw string graduations
                             if (_showDivisionsText)
-                            {                                
+                            {
                                 if (_tickStyle == TickStyle.TopLeft || _tickStyle == TickStyle.Both)
-                                {                                    
+                                {
                                     tx = lineLeftX - size.Width / 2;
                                     ty = start + barRect.Y + interval - (float)(size.Height * 0.5);
                                     e.Graphics.DrawString(str, font, br, tx, ty);
                                 }
                                 if (_tickStyle == TickStyle.BottomRight || _tickStyle == TickStyle.Both)
-                                {                                    
+                                {
                                     tx = lineRightX - size.Width / 2;
                                     ty = start + barRect.Y + interval - (float)(size.Height * 0.5);
                                     e.Graphics.DrawString(str, font, br, tx, ty);
@@ -1434,7 +1443,7 @@ namespace GBAMusicStudio.UI
 
                                 startDiv = (int)maxsize.Width + 3;
                             }
-                            
+
 
                             // draw main ticks                            
                             if (_tickStyle == TickStyle.TopLeft || _tickStyle == TickStyle.Both)
@@ -1487,7 +1496,7 @@ namespace GBAMusicStudio.UI
                             }
 
                             #endregion
-                        }                       
+                        }
                     }
                 }
                 #endregion
@@ -1578,7 +1587,7 @@ namespace GBAMusicStudio.UI
                              (float)
                              ((_barOrientation == Orientation.Horizontal ? ClientSize.Width : ClientSize.Height) - 2 * margin);
 
-                
+
                 _trackerValue = _barOrientation == Orientation.Horizontal ? (int)(p * coef + _minimum) : (_maximum - (int)(p * coef));
 
 

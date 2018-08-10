@@ -49,7 +49,7 @@ namespace GBAMusicStudio.UI
             Size = new Size(600, 400);
             Text = "GBA Music Studio ― MIDI Converter";
         }
-        
+
         void PreviewASM(object sender, EventArgs e)
         {
             ((MainForm)Owner).PreviewASM(assembler, "temp", Path.GetFileName(midiFileName));

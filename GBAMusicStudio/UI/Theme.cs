@@ -1,5 +1,4 @@
-﻿using BrightIdeasSoftware;
-using GBAMusicStudio.Properties;
+﻿using GBAMusicStudio.Properties;
 using GBAMusicStudio.Util;
 using System;
 using System.Drawing;
