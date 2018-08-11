@@ -124,14 +124,24 @@
 
     internal class MLSSVoiceTable : VoiceTable
     {
+        const uint sampleCount = 235;
+        internal readonly MLSSSSample[] Samples = new MLSSSSample[sampleCount];
+
         internal override void Load(uint table)
         {
-            Offset = 0x21D1CC;
+            Offset = 0x21D1CC; // Voice table maybe?
 
             for (int i = 0; i < 256; i++)
             {
                 var off = ROM.Instance.ReadUInt16((uint)(Offset + (i * 2)));
                 voices[i] = new SVoice(ROM.Instance.ReadStruct<MLSSVoice>(Offset + off));
+            }
+
+            Offset = 0xA806B8; // Sample table
+            for (uint i = 0; i < sampleCount; i++)
+            {
+                int off = ROM.Instance.ReadInt32(Offset + (i * 4));
+                Samples[i] = (off == 0) ? null : new MLSSSSample((uint)(Offset + off));
             }
             ;
         }

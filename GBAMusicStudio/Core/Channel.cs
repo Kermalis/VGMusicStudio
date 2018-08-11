@@ -229,12 +229,12 @@ namespace GBAMusicStudio.Core
             int bufPos = 0;
             do
             {
-                float baseSamp = sample.Data[pos] / 128f;
+                float baseSamp = sample.Samples[pos];
                 float deltaSamp;
                 if (pos + 1 >= sample.Length)
-                    deltaSamp = sample.bLoop ? (sample.Data[sample.LoopPoint] / 128f) - baseSamp : 0;
+                    deltaSamp = sample.bLoop ? sample.Samples[sample.LoopPoint] - baseSamp : 0;
                 else
-                    deltaSamp = (sample.Data[pos + 1] / 128f) - baseSamp;
+                    deltaSamp = sample.Samples[pos + 1] - baseSamp;
                 float finalSamp = baseSamp + deltaSamp * interPos;
 
                 buffer[bufPos++] += finalSamp * pargs.LeftVol;

@@ -22,8 +22,9 @@ namespace GBAMusicStudio.Core
         static SongPlayer()
         {
             // Temporary values
-            byte eVol = 13, eRev = 0, sRev = 178; uint eFreq = 13379; // Emerald
+            //byte eVol = 13, eRev = 0, sRev = 178; uint eFreq = 13379; // Emerald
             //byte eVol = 14, eRev = 0, sRev = 188; uint eFreq = 18157; // PMD
+            byte eVol = 16, eRev = 0, sRev = 0; uint eFreq = 13379; // No echo
             mixer = new SoundMixer(eFreq, (byte)(eRev >= 0x80 ? eRev & 0x7F : sRev & 0x7F), ReverbType.Normal, eVol / 16f);
             time = new TimeBarrier();
 
@@ -223,9 +224,9 @@ namespace GBAMusicStudio.Core
             }
             else
             {
-                mixer.NewGBNote(owner, new ADSR { S = 0xF }, aNote,
+                mixer.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
                         track.GetVolume(), track.GetPan(), track.GetPitch(),
-                        GBType.Square1, SquarePattern.D50);
+                        false, ((MLSSVoiceTable)Song.VoiceTable).Samples[7].ToSample(), tracks);
             }
         }
 

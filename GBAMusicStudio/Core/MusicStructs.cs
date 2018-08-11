@@ -30,11 +30,11 @@ namespace GBAMusicStudio.Core
         internal bool bLoop;
         internal uint LoopPoint, Length;
         internal float Frequency;
-        internal sbyte[] Data; // Signed 8-bit
+        internal float[] Samples;
 
-        internal Sample(bool loop, uint loopPoint, uint length, float frequency, sbyte[] data)
+        internal Sample(bool loop, uint loopPoint, uint length, float frequency, float[] samples)
         {
-            bLoop = loop; LoopPoint = loopPoint; Length = length; Frequency = frequency; Data = data;
+            bLoop = loop; LoopPoint = loopPoint; Length = length; Frequency = frequency; Samples = samples;
         }
     }
 
@@ -59,13 +59,13 @@ namespace GBAMusicStudio.Core
         internal uint[] Tracks;
     }
     [StructLayout(LayoutKind.Sequential)]
-    internal struct M4ASample
+    internal struct M4AMLSSSample
     {
         internal uint DoesLoop; // Will be 0x40000000 if true
-        internal uint Frequency; // Divide this by 1024
+        internal uint Frequency; // Right shift 10 for value
         internal uint LoopPoint;
         internal uint Length;
-        // 0x10 - byte[Length] of signed PCM8 data
+        // 0x10 - byte[Length] of PCM8 data (Signed for M4A, Unsigned for MLSS)
     }
 
     internal class M4ASDirect : SVoice
@@ -139,19 +139,24 @@ namespace GBAMusicStudio.Core
     internal class M4ASSample : ISample
     {
         internal readonly uint Offset;
-        internal readonly M4ASample Sample;
+        internal readonly M4AMLSSSample Sample;
 
         internal M4ASSample(uint offset)
         {
             Offset = offset;
-            Sample = ROM.Instance.ReadStruct<M4ASample>(offset);
+            Sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
         }
 
         public Sample ToSample()
         {
+            bool bLoop = Sample.DoesLoop == 0x40000000, bGoldenSun = bLoop && Sample.Length == 0 && Sample.LoopPoint == 0;
             // 8 for Golden Sun
-            var buf = ROM.Instance.ReadBytes(Sample.Length == 0 ? 8 : Sample.Length, Offset + 0x10);
-            return new Sample(Sample.DoesLoop == 0x40000000, Sample.LoopPoint, Sample.Length, Sample.Frequency / 1024, (sbyte[])(Array)buf);
+            var buf = ROM.Instance.ReadBytes(bGoldenSun ? 8 : Sample.Length, Offset + 0x10);
+            var result = new float[buf.Length];
+            // Leave the information if it's GoldenSun for DirectSoundChannel.Process() to see
+            for (int i = 0; i < buf.Length; i++)
+                result[i] = ((sbyte)buf[i]) / (bGoldenSun ? 1 : 128f);
+            return new Sample(bLoop, Sample.LoopPoint, Sample.Length, Sample.Frequency >> 10, result);
         }
     }
 
@@ -209,11 +214,33 @@ namespace GBAMusicStudio.Core
 
     #region MLSS
 
+    internal class MLSSSSample : ISample
+    {
+        internal readonly uint Offset;
+        internal readonly M4AMLSSSample Sample;
+
+        internal MLSSSSample(uint offset)
+        {
+            Offset = offset;
+            Sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
+        }
+
+        public Sample ToSample()
+        {
+            var buf = ROM.Instance.ReadBytes(Sample.Length, Offset + 0x10);
+            var result = new float[buf.Length];
+            // Convert from unsigned
+            for (int i = 0; i < buf.Length; i++)
+                result[i] = (buf[i] - 0x80) / 128f;
+            return new Sample(Sample.DoesLoop == 0x40000000, Sample.LoopPoint, Sample.Length, Sample.Frequency >> 10, result);
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     internal struct MLSSVoice : IVoice
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-        internal byte[] Bytes;
+        internal byte[] Bytes; // Temporary while I figure out the format
 
         public sbyte GetRootNote() => 60;
         public override string ToString() => "MLSS";
