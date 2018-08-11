@@ -110,8 +110,10 @@ namespace GBAMusicStudio.Core
         {
             if (State < ADSRState.Releasing)
             {
-                curLeftVol = (byte)(Note.Velocity * vol * (-pan + 0x40) / 0x2000);
-                curRightVol = (byte)(Note.Velocity * vol * (pan + 0x40) / 0x2000);
+                var range = Engine.GetPanpotRange();
+                var fix = ((Engine.GetMaxVolume() + 1) * range);
+                curLeftVol = (byte)(Note.Velocity * vol * (-pan + range) / fix);
+                curRightVol = (byte)(Note.Velocity * vol * (pan + range) / fix);
             }
         }
         internal override void SetPitch(int pitch)
@@ -364,9 +366,10 @@ namespace GBAMusicStudio.Core
         {
             if (State < ADSRState.Releasing)
             {
-                if (pan < -32)
+                var range = Engine.GetPanpotRange() / 2;
+                if (pan < -range)
                     curPan = GBPan.Left;
-                else if (pan > 32)
+                else if (pan > range)
                     curPan = GBPan.Right;
                 else
                     curPan = GBPan.Center;
