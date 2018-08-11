@@ -194,7 +194,7 @@ namespace GBAMusicStudio.Core
                     case 0x8:
                         mixer.NewDSNote(owner, m4avoice.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
-                            m4avoice.Type == 0x8, ((M4ASDirect)voice).Sample.ToSample(), tracks);
+                            m4avoice.Type == 0x8, ((M4ASDirect)voice).Sample.GetSample(), tracks);
                         break;
                     case 0x1:
                     case 0x9:
@@ -226,7 +226,7 @@ namespace GBAMusicStudio.Core
             {
                 mixer.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
                         track.GetVolume(), track.GetPan(), track.GetPitch(),
-                        false, ((MLSSVoiceTable)Song.VoiceTable).Samples[7].ToSample(), tracks);
+                        false, ((MLSSVoiceTable)Song.VoiceTable).Samples[7].GetSample(), tracks);
             }
         }
 

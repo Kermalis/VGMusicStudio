@@ -23,7 +23,7 @@ namespace GBAMusicStudio.Core
     }
     internal interface ISample
     {
-        Sample ToSample();
+        Sample GetSample();
     }
     internal class Sample
     {
@@ -139,25 +139,25 @@ namespace GBAMusicStudio.Core
     internal class M4ASSample : ISample
     {
         internal readonly uint Offset;
-        internal readonly M4AMLSSSample Sample;
+        readonly M4AMLSSSample sample;
+        readonly Sample gSample;
 
         internal M4ASSample(uint offset)
         {
             Offset = offset;
-            Sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
-        }
+            sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
 
-        public Sample ToSample()
-        {
-            bool bLoop = Sample.DoesLoop == 0x40000000, bGoldenSun = bLoop && Sample.Length == 0 && Sample.LoopPoint == 0;
+            bool bLoop = sample.DoesLoop == 0x40000000, bGoldenSun = bLoop && sample.Length == 0 && sample.LoopPoint == 0;
             // 8 for Golden Sun
-            var buf = ROM.Instance.ReadBytes(bGoldenSun ? 8 : Sample.Length, Offset + 0x10);
+            var buf = ROM.Instance.ReadBytes(bGoldenSun ? 8 : sample.Length, Offset + 0x10);
             var result = new float[buf.Length];
             // Leave the information if it's GoldenSun for DirectSoundChannel.Process() to see
             for (int i = 0; i < buf.Length; i++)
                 result[i] = ((sbyte)buf[i]) / (bGoldenSun ? 1 : 128f);
-            return new Sample(bLoop, Sample.LoopPoint, Sample.Length, Sample.Frequency >> 10, result);
+            gSample = new Sample(bLoop, sample.LoopPoint, sample.Length, sample.Frequency >> 10, result);
         }
+
+        public Sample GetSample() => gSample;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -217,23 +217,23 @@ namespace GBAMusicStudio.Core
     internal class MLSSSSample : ISample
     {
         internal readonly uint Offset;
-        internal readonly M4AMLSSSample Sample;
+        readonly M4AMLSSSample sample;
+        readonly Sample gSample;
 
         internal MLSSSSample(uint offset)
         {
             Offset = offset;
-            Sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
-        }
+            sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
 
-        public Sample ToSample()
-        {
-            var buf = ROM.Instance.ReadBytes(Sample.Length, Offset + 0x10);
+            var buf = ROM.Instance.ReadBytes(sample.Length, Offset + 0x10);
             var result = new float[buf.Length];
             // Convert from unsigned
             for (int i = 0; i < buf.Length; i++)
                 result[i] = (buf[i] - 0x80) / 128f;
-            return new Sample(Sample.DoesLoop == 0x40000000, Sample.LoopPoint, Sample.Length, Sample.Frequency >> 10, result);
+            gSample = new Sample(sample.DoesLoop == 0x40000000, sample.LoopPoint, sample.Length, sample.Frequency >> 10, result);
         }
+
+        public Sample GetSample() => gSample;
     }
 
     [StructLayout(LayoutKind.Sequential)]
