@@ -171,7 +171,7 @@ namespace GBAMusicStudio.Core
 
                 // SongTable Sizes
                 string[] sizes = { };
-                if (game.Children.ContainsKey(ycopy))
+                if (game.Children.ContainsKey(ysongtablesize))
                     sizes = game.Children[ysongtablesize].ToString().Split(' ');
                 for (int i = 0; i < songTables.Length; i++)
                 {
