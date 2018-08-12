@@ -55,62 +55,18 @@ namespace GBAMusicStudio.Core
                     case 0x8:
                         voices[i] = new M4ASDirect(voice);
                         break;
-                    case 0x1:
-                    case 0x9:
-                        voices[i] = new SVoice(voice);
-                        break;
-                    case 0x2:
-                    case 0xA:
-                        voices[i] = new SVoice(voice);
-                        break;
                     case 0x3:
                     case 0xB:
                         voices[i] = new M4ASWave(voice);
                         break;
-                    case 0x4:
-                    case 0xC:
-                        voices[i] = new SVoice(voice);
-                        break;
                     case 0x40:
-                        var multi = new M4ASMulti(voice);
-                        voices[i] = multi;
-                        if (!ROM.IsValidRomOffset(voice.Table) || !ROM.IsValidRomOffset(voice.Keys))
-                            break;
-
-                        var keys = ROM.Instance.ReadBytes(256, voice.Keys);
-                        for (uint j = 0; j < 256; j++)
-                        {
-                            byte key = keys[j];
-                            if (key > 0x7F) continue;
-                            uint mOffset = voice.Table + (uint)(key * 0xC);
-                            var subVoice = ROM.Instance.ReadStruct<M4AVoice>(mOffset);
-                            switch (subVoice.Type) // Check type
-                            {
-                                case 0x0:
-                                case 0x8:
-                                    multi.Table[key] = new M4ASDirect(subVoice);
-                                    break;
-                                case 0x1:
-                                case 0x9:
-                                    multi.Table[key] = new SVoice(subVoice);
-                                    break;
-                                case 0x2:
-                                case 0xA:
-                                    multi.Table[key] = new SVoice(subVoice);
-                                    break;
-                                case 0x3:
-                                case 0xB:
-                                    multi.Table[key] = new M4ASWave(subVoice);
-                                    break;
-                                case 0x4:
-                                case 0xC:
-                                    multi.Table[key] = new SVoice(subVoice);
-                                    break;
-                            }
-                        }
+                        voices[i] = new M4ASMulti(voice);
                         break;
                     case 0x80:
                         voices[i] = new M4ASDrum(voice);
+                        break;
+                    default:
+                        voices[i] = new SVoice(voice);
                         break;
                 }
             }
