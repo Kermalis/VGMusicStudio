@@ -1,6 +1,6 @@
 # Kermalis's GBA Music Studio
 
-A tool that is designed to be a Sappy replacement and also support different game engines.
+A tool that is designed to be a Sappy replacement as well as support different game engines.
 
 ![Preview](https://i.imgur.com/ohBwyF0.gif)
 
