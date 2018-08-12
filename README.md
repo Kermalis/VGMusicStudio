@@ -37,7 +37,9 @@ A tool that is designed to be a Sappy replacement and also support different gam
 ## Mario & Luigi: Superstar Saga Engine
 * Properly implement "free notes"
 * Voice table - Find out the last 4 bytes in entry struct
+* Voice table - Figure out squares
 * Include offsets in config for sample/voicetable instead of hardcoding them for the English rom
+* Understand commands F4 & F5
 
 ## General
 * Fix voicetable saver & MIDI keyboard

@@ -332,6 +332,22 @@ namespace GBAMusicStudio.Core
 
         public new string Arguments => $"{SongEvent.NoteName(note)}, {Duration}";
     }
+    internal class MLSSF4Command : ICommand
+    {
+        public string Name => "Command F4";
+
+        public byte Arg;
+
+        public string Arguments => $"{Arg}";
+    }
+    internal class MLSSF5Command : ICommand
+    {
+        public string Name => "Command F5";
+
+        public sbyte Arg;
+
+        public string Arguments => $"{Arg}";
+    }
 
     #endregion
 }
