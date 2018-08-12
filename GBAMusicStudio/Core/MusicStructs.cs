@@ -85,20 +85,10 @@ namespace GBAMusicStudio.Core
     {
         internal readonly M4AVoiceTable Table;
         internal readonly Triple<byte, byte, byte>[] Keys;
-
-        internal static readonly Dictionary<uint, M4AVoiceTable> Cache = new Dictionary<uint, M4AVoiceTable>(); // Prevent stack overflow
+        
         internal M4ASMulti(M4AVoice ks) : base(ks)
         {
-            if (Cache.ContainsKey(ks.Table))
-            {
-                Table = Cache[ks.Table];
-            }
-            else
-            {
-                Table = new M4AVoiceTable();
-                Cache.Add(ks.Table, Table);
-                Table.Load(ks.Table);
-            }
+            Table = VoiceTable.LoadTable<M4AVoiceTable>(ks.Table);
 
             var keys = ROM.Instance.ReadBytes(256, ks.Keys);
             var loading = new List<Triple<byte, byte, byte>>();
@@ -122,19 +112,9 @@ namespace GBAMusicStudio.Core
     {
         internal readonly M4AVoiceTable Table;
 
-        internal static readonly Dictionary<uint, M4AVoiceTable> Cache = new Dictionary<uint, M4AVoiceTable>(); // Prevent stack overflow
         internal M4ASDrum(M4AVoice d) : base(d)
         {
-            if (Cache.ContainsKey(d.Table))
-            {
-                Table = Cache[d.Table];
-            }
-            else
-            {
-                Table = new M4AVoiceTable();
-                Cache.Add(d.Table, Table);
-                Table.Load(d.Table);
-            }
+            Table = VoiceTable.LoadTable<M4AVoiceTable>(d.Table);
         }
     }
     internal class M4ASSample : ISample

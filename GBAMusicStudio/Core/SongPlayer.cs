@@ -46,8 +46,7 @@ namespace GBAMusicStudio.Core
             }
 
             Song = null;
-            M4ASMulti.Cache.Clear();
-            M4ASDrum.Cache.Clear();
+            VoiceTable.ClearCache();
         }
 
         internal static PlayerState State { get; private set; }

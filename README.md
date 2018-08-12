@@ -31,8 +31,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Nested PATT (3 is the maximum)
 * Support pret dissassembly projects
 * Running status in song disassembler
-* MIDI saving - preview the MIDI with the Sequencer class
-* MIDI saving - UI with saving options, such as remapping
 
 ## Mario & Luigi: Superstar Saga Engine
 * Properly implement "free notes"
@@ -40,8 +38,11 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Voice table - Figure out squares
 * Include offsets in config for sample/voicetable instead of hardcoding them for the English rom
 * Understand commands F4 & F5
+* MIDI saving
 
 ## General
+* MIDI saving - preview the MIDI with the Sequencer class
+* MIDI saving - UI with saving options, such as remapping
 * Fix voicetable saver & MIDI keyboard
 * Have mixer output based on callbacks instead of WASAPI
 * Have mixer send output always to eliminate reverb when stopping and allow MIDI keyboard/voicetable UI to play instruments
@@ -57,7 +58,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Tempo numerical (it fits)
 * Detachable piano
 * Help dialog that explains the commands for each format
-* Think about if keeping all songs in memory (and their voice tables in them) was *actually* a good idea
 * If I go insane I'll support the MOD music format
 
 ----

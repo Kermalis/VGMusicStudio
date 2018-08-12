@@ -1,17 +1,37 @@
-﻿namespace GBAMusicStudio.Core
+﻿using System;
+using System.Collections.Generic;
+
+namespace GBAMusicStudio.Core
 {
     internal abstract class VoiceTable
     {
-        public uint Offset { get; protected set; }
+        static readonly Dictionary<uint, VoiceTable> cache = new Dictionary<uint, VoiceTable>();
+        internal static T LoadTable<T>(uint table) where T : VoiceTable
+        {
+            if (cache.ContainsKey(table))
+            {
+                return (T)cache[table];
+            }
+            else
+            {
+                T vTable = Activator.CreateInstance<T>();
+                cache.Add(table, vTable);
+                vTable.Load(table);
+                return vTable;
+            }
+        }
+        internal static void ClearCache() => cache.Clear();
+
+        protected internal uint Offset { get; protected set; }
         protected readonly SVoice[] voices;
 
         internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
-        internal abstract void Load(uint table);
+        protected abstract void Load(uint table);
 
-        internal SVoice this[int i]
+        protected internal SVoice this[int i]
         {
             get => voices[i];
-            set => voices[i] = value;
+            protected set => voices[i] = value;
         }
 
         // The following should only be called after Load()
@@ -20,7 +40,7 @@
 
     internal class M4AVoiceTable : VoiceTable
     {
-        internal override void Load(uint table)
+        protected override void Load(uint table)
         {
             Offset = table;
             for (uint i = 0; i < 256; i++)
@@ -127,7 +147,7 @@
         const uint sampleCount = 235;
         internal readonly MLSSSSample[] Samples = new MLSSSSample[sampleCount];
 
-        internal override void Load(uint table)
+        protected override void Load(uint table)
         {
             Offset = 0x21D1CC; // Voice table
 

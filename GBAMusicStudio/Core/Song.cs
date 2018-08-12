@@ -403,8 +403,7 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < Header.NumTracks; i++)
                 Commands[i] = new List<SongEvent>();
 
-            VoiceTable = new M4AVoiceTable();
-            VoiceTable.Load(Header.VoiceTable);
+            VoiceTable = VoiceTable.LoadTable<M4AVoiceTable>(Header.VoiceTable);
 
             if (NumTracks == 0 || NumTracks > 16) return;
 
@@ -569,8 +568,7 @@ namespace GBAMusicStudio.Core
         internal MLSSSong(uint offset)
         {
             Offset = offset;
-            VoiceTable = new MLSSVoiceTable();
-            VoiceTable.Load(0);
+            VoiceTable = VoiceTable.LoadTable<MLSSVoiceTable>(0); // Hardcoded for now
 
             int amt = GetTrackAmount(ROM.Instance.ReadUInt16(Offset));
 
