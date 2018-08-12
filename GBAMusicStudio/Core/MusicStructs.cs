@@ -1,6 +1,7 @@
 ﻿using GBAMusicStudio.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace GBAMusicStudio.Core
@@ -214,6 +215,28 @@ namespace GBAMusicStudio.Core
 
     #region MLSS
 
+    internal class MLSSVoice : IVoice
+    {
+        internal readonly uint Offset;
+        internal readonly MLSSVoiceEntry[] Entries;
+        
+        internal MLSSVoice(uint offset, uint numEntries)
+        {
+            Offset = offset;
+            Entries = new MLSSVoiceEntry[numEntries];
+            for (int i = 0; i < numEntries; i++)
+                Entries[i] = ROM.Instance.ReadStruct<MLSSVoiceEntry>((uint)(offset + (i * 8)));
+        }
+
+        // Throws exception if it can't find a single
+        internal MLSSVoiceEntry GetEntryFromNote(sbyte note)
+        {
+            return Entries.Single(e => e.MinKey <= note && note <= e.MaxKey);
+        }
+
+        public sbyte GetRootNote() => 60;
+        public override string ToString() => "MLSS";
+    }
     internal class MLSSSSample : ISample
     {
         internal readonly uint Offset;
@@ -237,13 +260,12 @@ namespace GBAMusicStudio.Core
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct MLSSVoice : IVoice
+    internal struct MLSSVoiceEntry
     {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-        internal byte[] Bytes; // Temporary while I figure out the format
-
-        public sbyte GetRootNote() => 60;
-        public override string ToString() => "MLSS";
+        internal byte MinKey, MaxKey;
+        internal byte Sample; // Index in sample table
+        internal byte IsFixedFrequency, // 0x80 if true
+            Unknown1, Unknown2, Unknown3, Unknown4; // Could be ADSR
     }
 
     #endregion

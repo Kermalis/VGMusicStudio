@@ -129,19 +129,21 @@
 
         internal override void Load(uint table)
         {
-            Offset = 0x21D1CC; // Voice table maybe?
+            Offset = 0x21D1CC; // Voice table
 
             for (int i = 0; i < 256; i++)
             {
-                var off = ROM.Instance.ReadUInt16((uint)(Offset + (i * 2)));
-                voices[i] = new SVoice(ROM.Instance.ReadStruct<MLSSVoice>(Offset + off));
+                var off = ROM.Instance.ReadInt16((uint)(Offset + (i * 2)));
+                var nextOff = ROM.Instance.ReadInt16((uint)(Offset + ((i + 1) * 2)));
+                uint numEntries = (uint)(nextOff - off) / 8; // Each entry is 8 bytes
+                voices[i] = new SVoice(new MLSSVoice((uint)(Offset + off), numEntries));
             }
 
-            Offset = 0xA806B8; // Sample table
+            uint sOffset = 0xA806B8; // Sample table
             for (uint i = 0; i < sampleCount; i++)
             {
-                int off = ROM.Instance.ReadInt32(Offset + (i * 4));
-                Samples[i] = (off == 0) ? null : new MLSSSSample((uint)(Offset + off));
+                int off = ROM.Instance.ReadInt32(sOffset + (i * 4));
+                Samples[i] = (off == 0) ? null : new MLSSSSample((uint)(sOffset + off));
             }
             ;
         }

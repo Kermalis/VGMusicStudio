@@ -217,7 +217,7 @@ namespace GBAMusicStudio.Core
             pargs.RightVol = vol.FromRightVol;
 
             if (bFixed && !bGoldenSun)
-                pargs.InterStep = mixer.EngineSampleRate * mixer.SampleRateReciprocal;
+                pargs.InterStep = (ROM.Instance.Game.Engine == EngineType.M4A ? mixer.EngineSampleRate : sample.Frequency) * mixer.SampleRateReciprocal;
             else
                 pargs.InterStep = frequency * mixer.SampleRateReciprocal;
 

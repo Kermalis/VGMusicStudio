@@ -222,11 +222,23 @@ namespace GBAMusicStudio.Core
                         break;
                 }
             }
-            else
+            else if (voice.Voice is MLSSVoice mlssvoice)
             {
-                mixer.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
-                        track.GetVolume(), track.GetPan(), track.GetPitch(),
-                        false, ((MLSSVoiceTable)Song.VoiceTable).Samples[7].GetSample(), tracks);
+                MLSSVoiceEntry entry; bool bFixed = false; Sample sample = null;
+                try
+                {
+                    entry = mlssvoice.GetEntryFromNote(note);
+                    bFixed = entry.IsFixedFrequency == 0x80;
+                    sample = ((MLSSVoiceTable)Song.VoiceTable).Samples[entry.Sample].GetSample();
+                }
+                catch { System.Console.WriteLine("Track {0} tried to play a bad note: {1}", owner + 1, note); }
+                finally
+                {
+                    if (sample != null)
+                        mixer.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
+                                track.GetVolume(), track.GetPan(), track.GetPitch(),
+                                bFixed, sample, tracks);
+                }
             }
         }
 
