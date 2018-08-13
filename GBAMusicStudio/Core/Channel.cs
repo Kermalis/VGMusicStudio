@@ -54,7 +54,7 @@ namespace GBAMusicStudio.Core
                 return false;
             }
         }
-        internal void Stop()
+        internal virtual void Stop()
         {
             State = ADSRState.Dead;
             OwnerIdx = 0xFF;
@@ -119,6 +119,12 @@ namespace GBAMusicStudio.Core
         internal override void SetPitch(int pitch)
         {
             frequency = sample.Frequency * (float)Math.Pow(2, (Note.Key - 60) / 12f + pitch / 768f);
+        }
+
+        internal override void Stop()
+        {
+            base.Stop();
+            sample = null;
         }
 
         void StepEnvelope()
@@ -224,17 +230,22 @@ namespace GBAMusicStudio.Core
             ProcessNormal(buffer, mixer.SamplesPerBuffer, pargs);
         }
 
+        float GetSample(uint position)
+        {
+            position += sample.Offset;
+            return (sample.bUnsigned ? ROM.Instance.ReadByte(position) - 0x80 : ROM.Instance.ReadSByte(position)) / 128f;
+        }
         void ProcessNormal(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
         {
             int bufPos = 0;
             do
             {
-                float baseSamp = sample.Samples[pos];
+                float baseSamp = GetSample(pos);
                 float deltaSamp;
                 if (pos + 1 >= sample.Length)
-                    deltaSamp = sample.bLoop ? sample.Samples[sample.LoopPoint] - baseSamp : 0;
+                    deltaSamp = sample.bLoop ? GetSample(sample.LoopPoint) - baseSamp : 0;
                 else
-                    deltaSamp = sample.Samples[pos + 1] - baseSamp;
+                    deltaSamp = GetSample(pos + 1) - baseSamp;
                 float finalSamp = baseSamp + deltaSamp * interPos;
 
                 buffer[bufPos++] += finalSamp * pargs.LeftVol;

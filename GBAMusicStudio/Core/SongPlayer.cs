@@ -16,7 +16,7 @@ namespace GBAMusicStudio.Core
         static Track[] tracks;
         static int longestTrack;
 
-        internal static Song Song;
+        internal static Song Song { get; private set; }
         internal static int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
 
         static SongPlayer()
@@ -46,6 +46,10 @@ namespace GBAMusicStudio.Core
             }
 
             Song = null;
+        }
+        internal static void LoadSong(Song song)
+        {
+            Song = song;
             VoiceTable.ClearCache();
         }
 

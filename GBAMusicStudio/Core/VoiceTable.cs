@@ -6,7 +6,7 @@ namespace GBAMusicStudio.Core
     internal abstract class VoiceTable
     {
         static readonly Dictionary<uint, VoiceTable> cache = new Dictionary<uint, VoiceTable>();
-        internal static T LoadTable<T>(uint table) where T : VoiceTable
+        internal static T LoadTable<T>(uint table, bool shouldCache = false) where T : VoiceTable
         {
             if (cache.ContainsKey(table))
             {
@@ -15,7 +15,8 @@ namespace GBAMusicStudio.Core
             else
             {
                 T vTable = Activator.CreateInstance<T>();
-                cache.Add(table, vTable);
+                if (shouldCache)
+                    cache.Add(table, vTable);
                 vTable.Load(table);
                 return vTable;
             }
@@ -25,7 +26,10 @@ namespace GBAMusicStudio.Core
         protected internal uint Offset { get; protected set; }
         protected readonly SVoice[] voices;
 
-        internal VoiceTable() => voices = new SVoice[256]; // It is possible to play notes outside of the 128 MIDI standard
+        internal VoiceTable(int capacity = 256) // It is possible to play notes outside of the 128 MIDI standard
+        {
+            voices = new SVoice[capacity];
+        }
         protected abstract void Load(uint table);
 
         protected internal SVoice this[int i]

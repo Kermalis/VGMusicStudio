@@ -217,7 +217,7 @@ namespace GBAMusicStudio.UI
             Text = "GBA Music Studio - " + caption;
             bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.Song = new M4AASMSong(asm, headerLabel);
+            SongPlayer.LoadSong(new M4AASMSong(asm, headerLabel));
             UpdateTrackInfo(playing);
         }
         void LoadSong(object sender, EventArgs e)
@@ -237,7 +237,7 @@ namespace GBAMusicStudio.UI
             }
             bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.Song = ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value];
+            SongPlayer.LoadSong(ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value]);
             UpdateTrackInfo(playing);
 
             //MIDIKeyboard.Start();

@@ -28,14 +28,14 @@ namespace GBAMusicStudio.Core
     }
     internal class Sample
     {
-        internal bool bLoop;
+        internal bool bLoop, bUnsigned;
         internal uint LoopPoint, Length;
         internal float Frequency;
-        internal float[] Samples;
+        internal uint Offset; // Offset of the PCM buffer, not of the header
 
-        internal Sample(bool loop, uint loopPoint, uint length, float frequency, float[] samples)
+        internal Sample(bool loop, uint loopPoint, uint length, float frequency, uint offset, bool unsigned)
         {
-            bLoop = loop; LoopPoint = loopPoint; Length = length; Frequency = frequency; Samples = samples;
+            bLoop = loop; LoopPoint = loopPoint; Length = length; Frequency = frequency; Offset = offset; bUnsigned = unsigned;
         }
     }
 
@@ -85,13 +85,13 @@ namespace GBAMusicStudio.Core
     {
         internal readonly M4AVoiceTable Table;
         internal readonly Triple<byte, byte, byte>[] Keys;
-        
+
         internal M4ASMulti(M4AVoice ks) : base(ks)
         {
-            Table = VoiceTable.LoadTable<M4AVoiceTable>(ks.Table);
+            Table = VoiceTable.LoadTable<M4AVoiceTable>(ks.Table, true);
 
             var keys = ROM.Instance.ReadBytes(256, ks.Keys);
-            var loading = new List<Triple<byte, byte, byte>>();
+            var loading = new List<Triple<byte, byte, byte>>(); // Key, min, max
             int prev = -1;
             for (int i = 0; i < 256; i++)
             {
@@ -114,7 +114,7 @@ namespace GBAMusicStudio.Core
 
         internal M4ASDrum(M4AVoice d) : base(d)
         {
-            Table = VoiceTable.LoadTable<M4AVoiceTable>(d.Table);
+            Table = VoiceTable.LoadTable<M4AVoiceTable>(d.Table, true);
         }
     }
     internal class M4ASSample : ISample
@@ -128,14 +128,14 @@ namespace GBAMusicStudio.Core
             Offset = offset;
             sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
 
-            bool bLoop = sample.DoesLoop == 0x40000000, bGoldenSun = bLoop && sample.Length == 0 && sample.LoopPoint == 0;
-            // 8 for Golden Sun
-            var buf = ROM.Instance.ReadBytes(bGoldenSun ? 8 : sample.Length, Offset + 0x10);
-            var result = new float[buf.Length];
-            // Leave the information if it's GoldenSun for DirectSoundChannel.Process() to see
-            for (int i = 0; i < buf.Length; i++)
-                result[i] = ((sbyte)buf[i]) / (bGoldenSun ? 1 : 128f);
-            gSample = new Sample(bLoop, sample.LoopPoint, sample.Length, sample.Frequency >> 10, result);
+            if (offset == 0 || !ROM.IsValidRomOffset(offset - ROM.Pak) || !ROM.IsValidRomOffset(sample.Length + (offset + 0x10) - ROM.Pak))
+                goto fail;
+            
+            gSample = new Sample(sample.DoesLoop == 0x40000000, sample.LoopPoint, sample.Length, sample.Frequency >> 10, offset + 0x10, false);
+            return;
+
+            fail:
+            Console.WriteLine("Error loading instrument at 0x{0:X}.", offset);
         }
 
         public Sample GetSample() => gSample;
@@ -199,7 +199,7 @@ namespace GBAMusicStudio.Core
     {
         internal readonly uint Offset;
         internal readonly MLSSVoiceEntry[] Entries;
-        
+
         internal MLSSVoice(uint offset, uint numEntries)
         {
             Offset = offset;
@@ -227,13 +227,7 @@ namespace GBAMusicStudio.Core
         {
             Offset = offset;
             sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
-
-            var buf = ROM.Instance.ReadBytes(sample.Length, Offset + 0x10);
-            var result = new float[buf.Length];
-            // Convert from unsigned
-            for (int i = 0; i < buf.Length; i++)
-                result[i] = (buf[i] - 0x80) / 128f;
-            gSample = new Sample(sample.DoesLoop == 0x40000000, sample.LoopPoint, sample.Length, sample.Frequency >> 10, result);
+            gSample = new Sample(sample.DoesLoop == 0x40000000, sample.LoopPoint, sample.Length, sample.Frequency >> 10, offset + 0x10, true);
         }
 
         public Sample GetSample() => gSample;
