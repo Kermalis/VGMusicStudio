@@ -8,7 +8,7 @@ namespace GBAMusicStudio.Core
     internal abstract class Channel
     {
         protected internal ADSRState State { get; protected set; } = ADSRState.Dead;
-        protected internal byte OwnerIdx { get; protected set; } // 0xFF indicates no owner
+        protected internal byte OwnerIdx { get; protected set; } = 0xFF; // 0xFF indicates no owner
 
         internal Note Note;
         protected ADSR adsr;
@@ -54,7 +54,7 @@ namespace GBAMusicStudio.Core
                 return false;
             }
         }
-        internal virtual void Stop()
+        internal void Stop()
         {
             State = ADSRState.Dead;
             OwnerIdx = 0xFF;
@@ -119,12 +119,6 @@ namespace GBAMusicStudio.Core
         internal override void SetPitch(int pitch)
         {
             frequency = sample.Frequency * (float)Math.Pow(2, (Note.Key - 60) / 12f + pitch / 768f);
-        }
-
-        internal override void Stop()
-        {
-            base.Stop();
-            sample = null;
         }
 
         void StepEnvelope()
