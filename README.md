@@ -44,8 +44,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * Fix voicetable saver & MIDI keyboard
-* Have mixer output based on callbacks instead of WASAPI
-* Have mixer send output always to eliminate reverb when stopping and allow MIDI keyboard/voicetable UI to play instruments
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config

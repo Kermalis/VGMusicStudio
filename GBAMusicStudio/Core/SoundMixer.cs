@@ -19,7 +19,7 @@ namespace GBAMusicStudio.Core
         readonly SquareChannel sq1, sq2;
         readonly WaveChannel wave;
         readonly NoiseChannel noise;
-        internal readonly Channel[] AllChannels;
+        readonly Channel[] allChannels;
         readonly Channel[] gbChannels;
 
         readonly BufferedWaveProvider buffer;
@@ -56,7 +56,7 @@ namespace GBAMusicStudio.Core
             }
 
             gbChannels = new GBChannel[] { sq1 = new SquareChannel(), sq2 = new SquareChannel(), wave = new WaveChannel(), noise = new NoiseChannel() };
-            AllChannels = dsChannels.Union(gbChannels).ToArray();
+            allChannels = dsChannels.Union(gbChannels).ToArray();
 
             buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)Config.SampleRate, Engine.N_CHANNELS))
             {
@@ -67,7 +67,7 @@ namespace GBAMusicStudio.Core
             @out.Play();
         }
 
-        internal void SetMute(int i, bool m) => mutes[i] = m;
+        internal void SetMute(int owner, bool m) => mutes[owner] = m;
 
         internal void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, Sample sample, Track[] tracks)
         {
@@ -141,49 +141,62 @@ namespace GBAMusicStudio.Core
             nChn.SetVolume(vol, pan);
             nChn.SetPitch(pitch);
         }
-
+        
         // Returns number of active notes
         internal int TickNotes(int owner)
         {
             int active = 0;
-            foreach (var chn in AllChannels)
-                if (chn.OwnerIdx == owner && chn.TickNote())
+            foreach (var c in allChannels)
+                if (c.OwnerIdx == owner && c.TickNote())
                     active++;
             return active;
         }
+        internal bool AllDead(int owner)
+        {
+            return !allChannels.Any(c => c.OwnerIdx == owner);
+        }
+        internal Channel[] GetChannels(int owner)
+        {
+            return allChannels.Where(c => c.OwnerIdx == owner).ToArray();
+        }
         internal void ReleaseChannels(int owner, int key)
         {
-            foreach (var chn in AllChannels)
-                if (chn.OwnerIdx == owner && (key == -1 || (chn.Note.OriginalKey == key && chn.Note.Duration == -1)))
-                    chn.Release();
+            foreach (var c in allChannels)
+                if (c.OwnerIdx == owner && (key == -1 || (c.Note.OriginalKey == key && c.Note.Duration == -1)))
+                    c.Release();
         }
         internal void UpdateChannels(int owner, byte vol, sbyte pan, int pitch)
         {
-            foreach (var chn in AllChannels)
-                if (chn.OwnerIdx == owner)
+            foreach (var c in allChannels)
+                if (c.OwnerIdx == owner)
                 {
-                    chn.SetVolume(vol, pan);
-                    chn.SetPitch(pitch);
+                    c.SetVolume(vol, pan);
+                    c.SetPitch(pitch);
                 }
         }
-
+        internal void StopChannels()
+        {
+            foreach (var c in allChannels)
+                c.Stop();
+        }
+        
         internal void Process()
         {
             foreach (var b in trackBuffers)
                 b.Clear();
             audio.Clear();
 
-            foreach (var chn in dsChannels)
-                if (chn.OwnerIdx != 0xFF)
-                    chn.Process(trackBuffers[chn.OwnerIdx].FloatBuffer, this);
+            foreach (var c in dsChannels)
+                if (c.OwnerIdx != 0xFF)
+                    c.Process(trackBuffers[c.OwnerIdx].FloatBuffer, this);
 
             // Reverb only applies to DirectSound
             for (int i = 0; i < trackBuffers.Length; i++)
                 reverbs[i].Process(trackBuffers[i].FloatBuffer, (int)SamplesPerBuffer);
 
-            foreach (var chn in gbChannels)
-                if (chn.OwnerIdx != 0xFF)
-                    chn.Process(trackBuffers[chn.OwnerIdx].FloatBuffer, this);
+            foreach (var c in gbChannels)
+                if (c.OwnerIdx != 0xFF)
+                    c.Process(trackBuffers[c.OwnerIdx].FloatBuffer, this);
 
             for (int i = 0; i < 16; i++)
             {

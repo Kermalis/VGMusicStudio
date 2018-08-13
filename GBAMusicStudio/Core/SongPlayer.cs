@@ -27,6 +27,8 @@ namespace GBAMusicStudio.Core
             byte eVol = 16, eRev = 0, sRev = 0; uint eFreq = 13379; // No echo
             mixer = new SoundMixer(eFreq, (byte)(eRev >= 0x80 ? eRev & 0x7F : sRev & 0x7F), ReverbType.Normal, eVol / 16f);
             time = new TimeBarrier();
+            thread = new Thread(Tick) { Name = "SongPlayer Tick" };
+            thread.Start();
 
             Reset();
         }
@@ -47,7 +49,7 @@ namespace GBAMusicStudio.Core
 
             Song = null;
         }
-        internal static void LoadSong(Song song)
+        internal static void SetSong(Song song)
         {
             Song = song;
             VoiceTable.ClearCache();
@@ -76,8 +78,7 @@ namespace GBAMusicStudio.Core
                     if (elapsed <= p && elapsed + track.Delay > p)
                     {
                         track.Delay -= (byte)(p - elapsed);
-                        foreach (var c in mixer.AllChannels)
-                            c.Stop();
+                        mixer.StopChannels();
                         break;
                     }
                     elapsed += track.Delay;
@@ -121,38 +122,23 @@ namespace GBAMusicStudio.Core
             position = 0; tempoStack = 0;
             Tempo = Engine.GetDefaultTempo();
 
-            StartThread();
+            State = PlayerState.Playing;
         }
         internal static void Pause()
         {
-            if (State == PlayerState.Paused)
-            {
-                StartThread();
-            }
-            else
-            {
-                StopThread();
-                State = PlayerState.Paused;
-            }
+            State = (State == PlayerState.Paused ? PlayerState.Playing : PlayerState.Paused);
         }
         internal static void Stop()
         {
-            StopThread();
-            foreach (var c in mixer.AllChannels)
-                c.Stop();
-        }
-        static void StartThread()
-        {
-            thread = new Thread(Tick);
-            thread.Start();
-            State = PlayerState.Playing;
-        }
-        static void StopThread()
-        {
             if (State == PlayerState.Stopped) return;
             State = PlayerState.Stopped;
-            if (thread != null && thread.IsAlive)
-                thread.Join();
+            mixer.StopChannels();
+        }
+        internal static void ShutDown()
+        {
+            Stop();
+            State = PlayerState.ShutDown;
+            thread.Join();
         }
 
         internal static void GetSongState(UI.TrackInfo info)
@@ -169,7 +155,7 @@ namespace GBAMusicStudio.Core
                 info.Pitches[i] = tracks[i].GetPitch();
                 info.Pans[i] = tracks[i].GetPan();
 
-                var channels = mixer.AllChannels.Where(c => c.OwnerIdx == i && c.State != ADSRState.Dead).ToArray();
+                var channels = mixer.GetChannels(i);
                 bool none = channels.Length == 0;
                 info.Lefts[i] = none ? 0 : channels.Select(c => c.GetVolume().FromLeftVol).Max();
                 info.Rights[i] = none ? 0 : channels.Select(c => c.GetVolume().FromRightVol).Max();
@@ -339,34 +325,41 @@ namespace GBAMusicStudio.Core
         static void Tick()
         {
             time.Start();
-            while (State != PlayerState.Stopped)
+            while (State != PlayerState.ShutDown)
             {
-                // Do Song Tick
-                tempoStack += Tempo;
-                int wait = Engine.GetTempoWait();
-                while (tempoStack >= wait)
+                if (State == PlayerState.Playing)
                 {
-                    tempoStack -= wait;
-                    bool allDone = true;
-                    for (int i = 0; i < NumTracks; i++)
+                    // Do Song Tick
+                    tempoStack += Tempo;
+                    int wait = Engine.GetTempoWait();
+                    while (tempoStack >= wait)
                     {
-                        Track track = tracks[i];
-                        if (!track.Stopped || mixer.AllChannels.Any(c => c.OwnerIdx == i && c.State != ADSRState.Dead))
-                            allDone = false;
-                        track.Tick(mixer);
-                        bool update = false;
-                        while (track.Delay == 0 && !track.Stopped)
-                            if (ExecuteNext(i))
-                                update = true;
-                        if (update || track.MODDepth > 0)
-                            mixer.UpdateChannels(i, track.GetVolume(), track.GetPan(), track.GetPitch());
+                        tempoStack -= wait;
+                        bool allDone = true;
+                        for (int i = 0; i < NumTracks; i++)
+                        {
+                            Track track = tracks[i];
+                            if (!track.Stopped || !mixer.AllDead(i))
+                                allDone = false;
+                            track.Tick(mixer);
+                            bool update = false;
+                            while (track.Delay == 0 && !track.Stopped)
+                                if (ExecuteNext(i))
+                                    update = true;
+                            if (update || track.MODDepth > 0)
+                                mixer.UpdateChannels(i, track.GetVolume(), track.GetPan(), track.GetPitch());
+                        }
+                        position++;
+                        if (allDone)
+                        {
+                            Stop();
+                            SongEnded?.Invoke();
+                        }
                     }
-                    position++;
-                    if (allDone)
-                        SongEnded?.Invoke();
                 }
                 // Do Instrument Tick
-                mixer.Process();
+                if (State != PlayerState.Paused)
+                    mixer.Process();
                 // Wait for next frame
                 time.Wait();
             }

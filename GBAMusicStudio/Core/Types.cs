@@ -3,7 +3,7 @@
     internal enum EngineType { M4A, MLSS }
 
     internal enum ADSRState { Initializing, Rising, Decaying, Playing, Releasing, Dying, Dead }
-    internal enum PlayerState { Playing, Paused, Stopped }
+    internal enum PlayerState { Stopped, Playing, Paused, ShutDown }
 
     internal enum MODT : byte { Vibrate, Volume, Panpot }
     internal enum SquarePattern : byte { D12, D25, D50, D75 }

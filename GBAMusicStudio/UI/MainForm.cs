@@ -47,7 +47,7 @@ namespace GBAMusicStudio.UI
             }
             base.Dispose(disposing);
         }
-        public MainForm()
+        internal MainForm()
         {
             components = new Container();
 
@@ -217,7 +217,7 @@ namespace GBAMusicStudio.UI
             Text = "GBA Music Studio - " + caption;
             bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.LoadSong(new M4AASMSong(asm, headerLabel));
+            SongPlayer.SetSong(new M4AASMSong(asm, headerLabel));
             UpdateTrackInfo(playing);
         }
         void LoadSong(object sender, EventArgs e)
@@ -237,7 +237,7 @@ namespace GBAMusicStudio.UI
             }
             bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.LoadSong(ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value]);
+            SongPlayer.SetSong(ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value]);
             UpdateTrackInfo(playing);
 
             //MIDIKeyboard.Start();
@@ -496,6 +496,7 @@ namespace GBAMusicStudio.UI
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             Stop(null, null);
+            SongPlayer.ShutDown();
             //MIDIKeyboard.Stop();
             base.OnFormClosing(e);
         }
