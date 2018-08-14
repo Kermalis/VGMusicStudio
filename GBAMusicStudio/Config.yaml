@@ -2,7 +2,7 @@
 
 DirectCount: 24 # 5 or above.
 Volume: 50 # 0 to 100.
-SampleRate: 48000 # Only certain values work for now.
+SampleRate: 48000 # Must be a multiple of 60.
 
 # These can be reloaded in the program:
 

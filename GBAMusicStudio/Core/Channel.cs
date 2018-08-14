@@ -29,7 +29,7 @@ namespace GBAMusicStudio.Core
                 State = ADSRState.Releasing;
         }
 
-        internal abstract void Process(float[] buffer, SoundMixer mixer);
+        internal abstract void Process(float[] buffer);
 
         // Returns whether the note is active or not
         internal virtual bool TickNote()
@@ -197,7 +197,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override void Process(float[] buffer, SoundMixer mixer)
+        internal override void Process(float[] buffer)
         {
             StepEnvelope();
             prevLeftVol = curLeftVol; prevRightVol = curRightVol;
@@ -205,23 +205,23 @@ namespace GBAMusicStudio.Core
             if (State == ADSRState.Dead) return;
 
             ChannelVolume vol = GetVolume();
-            vol.FromLeftVol *= mixer.DSMasterVolume;
-            vol.FromRightVol *= mixer.DSMasterVolume;
-            vol.ToLeftVol *= mixer.DSMasterVolume;
-            vol.ToRightVol *= mixer.DSMasterVolume;
+            vol.FromLeftVol *= SoundMixer.DSMasterVolume;
+            vol.FromRightVol *= SoundMixer.DSMasterVolume;
+            vol.ToLeftVol *= SoundMixer.DSMasterVolume;
+            vol.ToRightVol *= SoundMixer.DSMasterVolume;
 
             ProcArgs pargs;
-            pargs.LeftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * mixer.SamplesReciprocal;
-            pargs.RightVolStep = (vol.ToRightVol - vol.FromRightVol) * mixer.SamplesReciprocal;
+            pargs.LeftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.SamplesReciprocal;
+            pargs.RightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.SamplesReciprocal;
             pargs.LeftVol = vol.FromLeftVol;
             pargs.RightVol = vol.FromRightVol;
 
             if (bFixed && !bGoldenSun)
-                pargs.InterStep = (ROM.Instance.Game.Engine == EngineType.M4A ? mixer.EngineSampleRate : sample.Frequency) * mixer.SampleRateReciprocal;
+                pargs.InterStep = (ROM.Instance.Game.Engine == EngineType.M4A ? SoundMixer.EngineSampleRate : sample.Frequency) * SoundMixer.SampleRateReciprocal;
             else
-                pargs.InterStep = frequency * mixer.SampleRateReciprocal;
+                pargs.InterStep = frequency * SoundMixer.SampleRateReciprocal;
 
-            ProcessNormal(buffer, mixer.SamplesPerBuffer, pargs);
+            ProcessNormal(buffer, SoundMixer.SamplesPerBuffer, pargs);
         }
 
         float GetSample(uint position)
@@ -568,7 +568,7 @@ namespace GBAMusicStudio.Core
             frequency = 3520 * (float)Math.Pow(2, (Note.Key - 69) / 12f + pitch / 768f);
         }
 
-        internal override void Process(float[] buffer, SoundMixer mixer)
+        internal override void Process(float[] buffer)
         {
             StepEnvelope();
             prevPan = curPan;
@@ -576,13 +576,13 @@ namespace GBAMusicStudio.Core
                 return;
 
             ChannelVolume vol = GetVolume();
-            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * mixer.SamplesReciprocal;
-            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * mixer.SamplesReciprocal;
+            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.SamplesReciprocal;
+            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.SamplesReciprocal;
             float leftVol = vol.FromLeftVol;
             float rightVol = vol.FromRightVol;
-            float interStep = frequency * mixer.SampleRateReciprocal;
+            float interStep = frequency * SoundMixer.SampleRateReciprocal;
 
-            int bufPos = 0; uint samplesPerBuffer = mixer.SamplesPerBuffer;
+            int bufPos = 0; uint samplesPerBuffer = SoundMixer.SamplesPerBuffer;
             do
             {
                 float samp = pat[pos];
@@ -628,7 +628,7 @@ namespace GBAMusicStudio.Core
             frequency = 7040 * (float)Math.Pow(2, (Note.Key - 69) / 12f + pitch / 768f);
         }
 
-        internal override void Process(float[] buffer, SoundMixer mixer)
+        internal override void Process(float[] buffer)
         {
             StepEnvelope();
             prevPan = curPan;
@@ -636,13 +636,13 @@ namespace GBAMusicStudio.Core
                 return;
 
             ChannelVolume vol = GetVolume();
-            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * mixer.SamplesReciprocal;
-            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * mixer.SamplesReciprocal;
+            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.SamplesReciprocal;
+            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.SamplesReciprocal;
             float leftVol = vol.FromLeftVol;
             float rightVol = vol.FromRightVol;
-            float interStep = frequency * mixer.SampleRateReciprocal;
+            float interStep = frequency * SoundMixer.SampleRateReciprocal;
 
-            int bufPos = 0; uint samplesPerBuffer = mixer.SamplesPerBuffer;
+            int bufPos = 0; uint samplesPerBuffer = SoundMixer.SamplesPerBuffer;
             do
             {
                 float samp = sample[pos];
@@ -711,7 +711,7 @@ namespace GBAMusicStudio.Core
             frequency = (0x1000 * (float)Math.Pow(8, (Note.Key - 60) / 12f + pitch / 768f)).Clamp(8, 0x80000); // Thanks ipatix
         }
 
-        internal override void Process(float[] buffer, SoundMixer mixer)
+        internal override void Process(float[] buffer)
         {
             StepEnvelope();
             prevPan = curPan;
@@ -719,13 +719,13 @@ namespace GBAMusicStudio.Core
                 return;
 
             ChannelVolume vol = GetVolume();
-            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * mixer.SamplesReciprocal;
-            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * mixer.SamplesReciprocal;
+            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.SamplesReciprocal;
+            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.SamplesReciprocal;
             float leftVol = vol.FromLeftVol;
             float rightVol = vol.FromRightVol;
-            float interStep = frequency * mixer.SampleRateReciprocal;
+            float interStep = frequency * SoundMixer.SampleRateReciprocal;
 
-            int bufPos = 0; uint samplesPerBuffer = mixer.SamplesPerBuffer;
+            int bufPos = 0; uint samplesPerBuffer = SoundMixer.SamplesPerBuffer;
             do
             {
                 float samp = pat[(int)pos & (pat.Length - 1)] ? 0.5f : -0.5f;

@@ -113,7 +113,7 @@ namespace GBAMusicStudio.UI
                 for (int i = 0; i < SongPlayer.NumTracks; i++)
                 {
                     if (mutes[i] == check)
-                        SongPlayer.SetMute(i, !check.Checked);
+                        SoundMixer.SetMute(i, !check.Checked);
                     if (mutes[i].Checked)
                         on++;
                 }

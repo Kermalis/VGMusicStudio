@@ -143,7 +143,7 @@ namespace GBAMusicStudio.UI
                 Size = new Size(155, 27),
                 SmallChange = 5
             };
-            volumeBar.ValueChanged += (o, e) => SongPlayer.SetVolume(volumeBar.Value / (float)volumeBar.Maximum);
+            volumeBar.ValueChanged += (o, e) => SoundMixer.MasterVolume = (volumeBar.Value / (float)volumeBar.Maximum);
             volumeBar.Value = Config.Volume; // Update MusicPlayer volume
 
             // Playlist box

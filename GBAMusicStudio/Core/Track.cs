@@ -51,11 +51,11 @@ namespace GBAMusicStudio.Core
             LFOSpeed = 22;
             Volume = 127;
         }
-        internal void Tick(SoundMixer mixer)
+        internal void Tick()
         {
             if (Delay != 0)
                 Delay--;
-            if (mixer.TickNotes(Index) > 0)
+            if (SoundMixer.TickNotes(Index) > 0)
             {
                 if (LFODelayCount > 0)
                 {

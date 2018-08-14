@@ -5,16 +5,20 @@ namespace GBAMusicStudio.Core
 {
     internal class Reverb
     {
-        readonly WaveBuffer reverbBuffer;
-        readonly float intensity;
-        uint bufferPos, bufferPos2;
+        WaveBuffer reverbBuffer;
+        float intensity;
+        uint bufferPos, bufferPos2, bufferLen;
 
-        internal Reverb(byte intensity, byte numBuffers)
+        internal Reverb()
         {
-            this.intensity = intensity / 128f;
-            uint bufferLen = Config.SampleRate / Engine.AGB_FPS;
+            bufferLen = Config.SampleRate / Engine.AGB_FPS;
             bufferPos = 0;
             bufferPos2 = bufferLen;
+            Init(0, 1);
+        }
+        internal void Init(byte intensity, byte numBuffers)
+        {
+            this.intensity = intensity / 128f;
             int amt = (int)(bufferLen * Engine.N_CHANNELS * numBuffers);
             reverbBuffer = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
         }
