@@ -1,5 +1,5 @@
 ﻿using GBAMusicStudio.Core;
-//using GBAMusicStudio.MIDI;
+using GBAMusicStudio.MIDI;
 using GBAMusicStudio.Properties;
 using GBAMusicStudio.Util;
 using Microsoft.WindowsAPICodePack.Taskbar;
@@ -240,7 +240,7 @@ namespace GBAMusicStudio.UI
             SongPlayer.SetSong(ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value]);
             UpdateTrackInfo(playing);
 
-            //MIDIKeyboard.Start();
+            MIDIKeyboard.Start();
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -497,7 +497,7 @@ namespace GBAMusicStudio.UI
         {
             Stop(null, null);
             SongPlayer.ShutDown();
-            //MIDIKeyboard.Stop();
+            MIDIKeyboard.Stop();
             base.OnFormClosing(e);
         }
         void OnResize(object sender, EventArgs e)

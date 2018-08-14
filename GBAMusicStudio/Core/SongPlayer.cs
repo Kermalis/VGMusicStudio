@@ -159,7 +159,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        static void PlayNote(Track track, sbyte note, byte velocity, int duration)
+        internal static void PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
             int shift = note + track.KeyShift;
             note = (sbyte)(shift.Clamp(0, 127));

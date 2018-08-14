@@ -23,6 +23,6 @@
         internal sbyte Key;
         internal sbyte OriginalKey;
         internal byte Velocity;
-        internal int Duration;
+        internal int Duration; // -1 = forever
     }
 }

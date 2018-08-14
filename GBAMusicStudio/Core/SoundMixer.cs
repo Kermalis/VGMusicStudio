@@ -88,16 +88,16 @@ namespace GBAMusicStudio.Core
                     nChn = i;
                     break;
                 }
-            if (nChn == null) // Find prioritized
+            if (nChn == null) // Find releasing
                 foreach (var i in byOwner)
-                    if (tracks[owner].Priority > tracks[i.OwnerIdx].Priority)
+                    if (i.State == ADSRState.Releasing)
                     {
                         nChn = i;
                         break;
                     }
-            if (nChn == null) // Find releasing
+            if (nChn == null) // Find prioritized
                 foreach (var i in byOwner)
-                    if (i.State == ADSRState.Releasing)
+                    if (owner >= 16 || tracks[owner].Priority > tracks[i.OwnerIdx].Priority)
                     {
                         nChn = i;
                         break;

@@ -2,20 +2,16 @@
 using Sanford.Multimedia;
 using Sanford.Multimedia.Midi;
 using System;
-using System.Linq;
-using System.Timers;
-using ThreadSafeList;
 
 namespace GBAMusicStudio.MIDI
 {
     internal static class MIDIKeyboard
     {
+        const byte vNum = 48; // Voice number in the voice table
         static readonly bool bGood = false;
         static InputDevice inDevice;
 
-        static sbyte volume = 127;
-        static readonly Timer timer;
-        static readonly ThreadSafeList<Instrument> instruments;
+        static Core.Track track;
 
         static MIDIKeyboard()
         {
@@ -42,10 +38,6 @@ namespace GBAMusicStudio.MIDI
                 }
             }
 
-            instruments = new ThreadSafeList<Instrument>();
-            timer = new Timer() { Interval = 1000 / 60 };
-            timer.Elapsed += Tick;
-
             bGood = true;
         }
 
@@ -54,8 +46,10 @@ namespace GBAMusicStudio.MIDI
             if (!bGood) return;
             try
             {
-                timer.Start();
                 inDevice.StartRecording();
+                track = new Core.Track(16);
+                track.Init();
+                track.Voice = vNum;
             }
             catch (Exception ex)
             {
@@ -67,9 +61,6 @@ namespace GBAMusicStudio.MIDI
             if (!bGood) return;
             try
             {
-                timer.Stop();
-                foreach (Instrument i in instruments)
-                    i.Stop();
                 inDevice.StopRecording();
             }
             catch (Exception ex)
@@ -78,40 +69,25 @@ namespace GBAMusicStudio.MIDI
             }
         }
 
-        static void Tick(object sender, ElapsedEventArgs e)
-        {
-            foreach (Instrument i in instruments)
-            {
-                i.ADSRTick();
-                if (i.State == ADSRState.Dead)
-                    instruments.Remove(i);
-            }
-            SongPlayer.System.update();
-        }
-
         static void HandleChannelMessageReceived(object sender, ChannelMessageEventArgs e)
         {
             Console.WriteLine("{0}\t\t{1}\t{2}\t{3}", e.Message.Command, e.Message.MidiChannel, e.Message.Data1, e.Message.Data2);
 
-            byte vNum = 48; // Voice number from the voice table
-
             var note = (sbyte)e.Message.Data1;
+            byte volumeOrVelocity = (byte)((e.Message.Data2 / 127f) * Engine.GetMaxVolume());
 
             if (e.Message.Command == ChannelCommand.Controller && e.Message.Data1 == 7) // Volume
             {
-                volume = (sbyte)e.Message.Data2;
+                track.Volume = volumeOrVelocity;
             }
             else if ((e.Message.Command == ChannelCommand.NoteOn && e.Message.Data2 == 0) || e.Message.Command == ChannelCommand.NoteOff) // Note off
             {
-                foreach (var i in instruments.Where(ins => ins.DisplayNote == note))
-                    i.State = ADSRState.Releasing;
+                SoundMixer.ReleaseChannels(16, note);
             }
             else if (e.Message.Command == ChannelCommand.NoteOn) // Note on
             {
-                var i = new Instrument();
-                i.Play(new M4ATrack(16) { Voice = vNum, Volume = (byte)volume }, note, (byte)(Config.MIDIKeyboardFixedVelocity ? 127 : e.Message.Data2), -1);
-                instruments.Add(i);
-                Tick(null, null); // Prevent input delay
+                // Has some input lag
+                SongPlayer.PlayNote(track, note, Config.MIDIKeyboardFixedVelocity ? Engine.GetMaxVolume() : volumeOrVelocity, -1);
             }
         }
         static void LogError(object sender, ErrorEventArgs e)

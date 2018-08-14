@@ -93,6 +93,7 @@
     <Compile Include="Core\Types.cs" />
     <Compile Include="Core\Track.cs" />
     <Compile Include="Core\VoiceTable.cs" />
+    <Compile Include="MIDI\MIDIKeyboard.cs" />
     <Compile Include="Soundfont\SF2.cs" />
     <Compile Include="Soundfont\SF2Chunks.cs" />
     <Compile Include="Soundfont\SF2Types.cs" />
@@ -163,8 +164,6 @@
     <None Include="Properties\Song.png" />
     <None Include="Properties\Playlist.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="MIDI\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

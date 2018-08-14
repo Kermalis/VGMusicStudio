@@ -7,7 +7,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 ----
 # Some Advantages Over Sappy:
 * Pause button & song position changing
-* ~~You can play the in-game instruments with a MIDI-in keyboard~~ (Currently disabled)
+* You can play the in-game instruments with a MIDI-in keyboard
 * You can view and edit track events
 * You can import MIDI files without having to convert them yourself
 * ~~You can save the voice tables to SF2 soundfont files~~ (Currently disabled)
@@ -43,7 +43,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 ## General
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
-* Fix voicetable saver & MIDI keyboard
+* Fix voicetable saver
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config
