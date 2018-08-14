@@ -7,7 +7,7 @@ namespace GBAMusicStudio.MIDI
 {
     internal static class MIDIKeyboard
     {
-        const byte vNum = 48; // Voice number in the voice table
+        const byte vNum = 1; // Voice number in the voice table
         static readonly bool bGood = false;
         static InputDevice inDevice;
 
