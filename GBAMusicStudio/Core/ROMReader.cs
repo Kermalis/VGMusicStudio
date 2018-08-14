@@ -5,23 +5,27 @@ namespace GBAMusicStudio.Core
 {
     internal class ROMReader
     {
+        object _lock = new object();
         BinaryReader Reader;
-        internal void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
+        protected internal void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
         internal uint Position => (uint)Reader.BaseStream.Position;
 
         object Parse(uint offset, uint amt, bool signed = false, bool array = false)
         {
-            if (ROM.IsValidRomOffset(offset))
-                SetOffset(offset);
-            if (array)
-                return Reader.ReadBytes((int)amt);
-            switch (amt)
+            lock (_lock)
             {
-                case 1: return signed ? (object)Reader.ReadSByte() : (object)Reader.ReadByte();
-                case 2: return signed ? (object)Reader.ReadInt16() : (object)Reader.ReadUInt16();
-                case 4: return signed ? (object)Reader.ReadInt32() : (object)Reader.ReadUInt32();
+                if (ROM.IsValidRomOffset(offset))
+                    SetOffset(offset);
+                if (array)
+                    return Reader.ReadBytes((int)amt);
+                switch (amt)
+                {
+                    case 1: return signed ? (object)Reader.ReadSByte() : (object)Reader.ReadByte();
+                    case 2: return signed ? (object)Reader.ReadInt16() : (object)Reader.ReadUInt16();
+                    case 4: return signed ? (object)Reader.ReadInt32() : (object)Reader.ReadUInt32();
+                }
+                return null;
             }
-            return null;
         }
 
         internal byte PeekByte(uint offset = 0xFFFFFFFF)
