@@ -113,12 +113,6 @@ namespace GBAMusicStudio.Core
         }
         internal static void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, GBType type, object arg)
         {
-            T ObjToEnum<T>(object o)
-            {
-                T enumVal = (T)Enum.Parse(typeof(T), o.ToString());
-                return enumVal;
-            }
-
             GBChannel nChn;
             switch (type)
             {
@@ -126,13 +120,13 @@ namespace GBAMusicStudio.Core
                     nChn = sq1;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
-                    sq1.Init(owner, note, env, ObjToEnum<SquarePattern>(arg));
+                    sq1.Init(owner, note, env, (SquarePattern)arg);
                     break;
                 case GBType.Square2:
                     nChn = sq2;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
-                    sq2.Init(owner, note, env, ObjToEnum<SquarePattern>(arg));
+                    sq2.Init(owner, note, env, (SquarePattern)arg);
                     break;
                 case GBType.Wave:
                     nChn = wave;
@@ -144,7 +138,7 @@ namespace GBAMusicStudio.Core
                     nChn = noise;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
-                    noise.Init(owner, note, env, ObjToEnum<NoisePattern>(arg));
+                    noise.Init(owner, note, env, (NoisePattern)arg);
                     break;
             }
             nChn.SetVolume(vol, pan);

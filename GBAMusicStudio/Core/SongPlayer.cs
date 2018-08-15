@@ -185,13 +185,13 @@ namespace GBAMusicStudio.Core
                     case 0x9:
                         SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Square1, m4avoice.Pattern);
+                                GBType.Square1, m4avoice.SquarePattern);
                         break;
                     case 0x2:
                     case 0xA:
                         SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Square2, m4avoice.Pattern);
+                                GBType.Square2, m4avoice.SquarePattern);
                         break;
                     case 0x3:
                     case 0xB:
@@ -203,7 +203,7 @@ namespace GBAMusicStudio.Core
                     case 0xC:
                         SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Noise, m4avoice.Pattern);
+                                GBType.Noise, m4avoice.NoisePattern);
                         break;
                 }
             }
@@ -273,7 +273,7 @@ namespace GBAMusicStudio.Core
             else if (e.Command is LFOSpeedCommand lfos) { track.LFOSpeed = lfos.Speed; track.LFOPhase = track.LFODelayCount = 0; update = true; }
             else if (e.Command is LFODelayCommand lfodl) { track.LFODelay = lfodl.Delay; track.LFOPhase = track.LFODelayCount = 0; update = true; }
             else if (e.Command is ModDepthCommand mod) { track.MODDepth = mod.Depth; update = true; }
-            else if (e.Command is ModTypeCommand modt) { track.MODType = (MODT)modt.Type; update = true; }
+            else if (e.Command is ModTypeCommand modt) { track.MODType = (MODType)modt.Type; update = true; }
             else if (e.Command is TuneCommand tune) { track.Tune = tune.Tune; update = true; }
             else if (e.Command is LibraryCommand xcmd)
             {

@@ -10,7 +10,7 @@ namespace GBAMusicStudio.Core
             LFOPhase, LFODelayCount, BendRange,
             LFOSpeed, LFODelay, MODDepth,
             EchoVolume, EchoLength; // Unused for now
-        internal MODT MODType;
+        internal MODType MODType;
         internal sbyte Bend, Tune, Pan, KeyShift, PrevNote;
         internal int CommandIndex, EndOfPattern;
         internal bool Ready, Stopped;
@@ -23,17 +23,17 @@ namespace GBAMusicStudio.Core
 
         internal int GetPitch()
         {
-            int mod = MODType == MODT.Vibrate ? (Tri(LFOPhase) * MODDepth) >> 8 : 0;
+            int mod = MODType == MODType.Vibrate ? (Tri(LFOPhase) * MODDepth) >> 8 : 0;
             return Bend * BendRange + Tune + mod;
         }
         internal byte GetVolume()
         {
-            int mod = MODType == MODT.Volume ? (Tri(LFOPhase) * MODDepth * 3 * Volume) >> 19 : 0;
+            int mod = MODType == MODType.Volume ? (Tri(LFOPhase) * MODDepth * 3 * Volume) >> 19 : 0;
             return (byte)(Volume + mod).Clamp(0, Engine.GetMaxVolume());
         }
         internal sbyte GetPan()
         {
-            int mod = MODType == MODT.Panpot ? (Tri(LFOPhase) * MODDepth * 3) >> 12 : 0;
+            int mod = MODType == MODType.Panpot ? (Tri(LFOPhase) * MODDepth * 3) >> 12 : 0;
             byte range = Engine.GetPanpotRange();
             return (sbyte)(Pan + mod).Clamp(-range, range - 1);
         }
@@ -44,7 +44,7 @@ namespace GBAMusicStudio.Core
             Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = EchoVolume = EchoLength = 0;
             Bend = Tune = Pan = KeyShift = 0;
             CommandIndex = EndOfPattern = 0;
-            MODType = MODT.Vibrate;
+            MODType = MODType.Vibrate;
             Ready = true;
             Stopped = false;
             BendRange = 2;

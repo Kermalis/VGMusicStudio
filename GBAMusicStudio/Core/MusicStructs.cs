@@ -157,7 +157,9 @@ namespace GBAMusicStudio.Core
         internal byte Sweep; // Square1
 
         [FieldOffset(4)]
-        internal byte Pattern; // Square1, Square2, Noise
+        internal SquarePattern SquarePattern; // Square1, Square2
+        [FieldOffset(4)]
+        internal NoisePattern NoisePattern; // Noise
         [FieldOffset(4)]
         internal uint Address; // Direct, Wave
         [FieldOffset(4)]
