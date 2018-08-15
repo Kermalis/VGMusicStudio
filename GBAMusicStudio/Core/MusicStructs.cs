@@ -172,12 +172,19 @@ namespace GBAMusicStudio.Core
 
 
         public sbyte GetRootNote() => RootNote;
+        public bool IsGoldenSunPSG()
+        {
+            if (Type != 0x0 && Type != 0x8) return false;
+            var gSample = new M4ASSample(Address).GetSample();
+            if (gSample == null) return false;
+            return (gSample.bLoop && gSample.LoopPoint == 0 && gSample.Length == 0);
+        }
         public override string ToString()
         {
             switch (Type)
             {
                 case 0x0:
-                case 0x8: return "Direct Sound";
+                case 0x8: return IsGoldenSunPSG() ? $"GS {ROM.Instance.ReadStruct<GoldenSunPSG>(Address + 0x10).Type.ToString()}" : "Direct Sound";
                 case 0x1:
                 case 0x9: return "Square 1";
                 case 0x2:
@@ -191,6 +198,17 @@ namespace GBAMusicStudio.Core
                 default: return Type.ToString();
             }
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct GoldenSunPSG
+    {
+        internal sbyte Unknown; // Always signed 0
+        internal GSPSGType Type;
+        internal byte InitialCycle;
+        internal byte CycleSpeed;
+        internal byte CycleAmplitude;
+        internal byte MinimumCycle;
     }
 
     #endregion

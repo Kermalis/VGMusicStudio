@@ -60,6 +60,14 @@ A88P:
   SongTable: 0x21DC50
   Name: "Mario & Luigi - Superstar Saga (P)"
   Copy: "A88E"
+AGFE:
+  SongTable: 0x1C4530
+  Name: "Golden Sun: The Lost Age (USA)"
+  Creator: "Camelot"
+AGSE:
+  SongTable: 0xFC684
+  Name: "Golden Sun (USA)"
+  Creator: "Camelot"
 AMKE:
   SongTable: 0x102498
   SongTableSize: 403

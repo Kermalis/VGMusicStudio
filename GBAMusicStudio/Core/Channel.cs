@@ -72,7 +72,7 @@ namespace GBAMusicStudio.Core
             internal float InterStep;
         }
 
-        Sample sample;
+        Sample sample; GoldenSunPSG gsPSG;
 
         bool bFixed, bGoldenSun;
         byte curLeftVol, curRightVol, prevLeftVol, prevRightVol;
@@ -87,6 +87,8 @@ namespace GBAMusicStudio.Core
             this.sample = sample;
             this.bFixed = bFixed;
             bGoldenSun = (sample.bLoop && sample.LoopPoint == 0 && sample.Length == 0);
+            if (bGoldenSun)
+                gsPSG = ROM.Instance.ReadStruct<GoldenSunPSG>(sample.Offset);
 
             SetVolume(vol, pan);
             SetPitch(pitch);
@@ -221,16 +223,30 @@ namespace GBAMusicStudio.Core
             else
                 pargs.InterStep = frequency * SoundMixer.SampleRateReciprocal;
 
-            ProcessNormal(buffer, SoundMixer.SamplesPerBuffer, pargs);
+            if (bGoldenSun) // Most Golden Sun processing is thanks to ipatix
+            {
+                pargs.InterStep /= 0x40;
+                switch (gsPSG.Type)
+                {
+                    case GSPSGType.Square: ProcessSquare(buffer, SoundMixer.SamplesPerBuffer, pargs); break;
+                    case GSPSGType.Saw: ProcessSaw(buffer, SoundMixer.SamplesPerBuffer, pargs); break;
+                    case GSPSGType.Triangle: ProcessTri(buffer, SoundMixer.SamplesPerBuffer, pargs); break;
+                }
+            }
+            else
+            {
+                ProcessNormal(buffer, SoundMixer.SamplesPerBuffer, pargs);
+            }
         }
 
-        float GetSample(uint position)
-        {
-            position += sample.Offset;
-            return (sample.bUnsigned ? ROM.Instance.ReadByte(position) - 0x80 : ROM.Instance.ReadSByte(position)) / 128f;
-        }
         void ProcessNormal(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
         {
+            float GetSample(uint position)
+            {
+                position += sample.Offset;
+                return (sample.bUnsigned ? ROM.Instance.ReadByte(position) - 0x80 : ROM.Instance.ReadSByte(position)) / 128f;
+            }
+
             int bufPos = 0;
             do
             {
@@ -264,6 +280,89 @@ namespace GBAMusicStudio.Core
                         break;
                     }
                 }
+            } while (--samplesPerBuffer > 0);
+        }
+        void ProcessSquare(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
+        {
+            float CalcThresh(uint val)
+            {
+                uint iThreshold = (uint)(gsPSG.MinimumCycle << 24) + val;
+                iThreshold = ((int)iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
+                iThreshold = iThreshold * gsPSG.CycleAmplitude + (uint)(gsPSG.InitialCycle << 24);
+                return iThreshold / (float)0x100000000;
+            }
+
+            uint curPos = pos += (uint)(processStep == 0 ? gsPSG.CycleSpeed << 24 : 0);
+            uint nextPos = curPos + (uint)(gsPSG.CycleSpeed << 24);
+
+            float curThresh = CalcThresh(curPos), nextThresh = CalcThresh(nextPos);
+
+            float deltaThresh = nextThresh - curThresh;
+            float baseThresh = curThresh + (deltaThresh * (processStep / (float)Engine.INTERFRAMES));
+            float threshStep = deltaThresh / Engine.INTERFRAMES * SoundMixer.SamplesReciprocal;
+            float fThreshold = baseThresh;
+
+            int bufPos = 0;
+            do
+            {
+                float baseSamp = interPos < fThreshold ? 0.5f : -0.5f;
+                baseSamp += 0.5f - fThreshold;
+                fThreshold += threshStep;
+                buffer[bufPos++] += baseSamp * pargs.LeftVol;
+                buffer[bufPos++] += baseSamp * pargs.RightVol;
+
+                pargs.LeftVol += pargs.LeftVolStep;
+                pargs.RightVol += pargs.RightVolStep;
+
+                interPos += pargs.InterStep;
+                if (interPos >= 1) interPos--;
+            } while (--samplesPerBuffer > 0);
+        }
+        void ProcessSaw(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
+        {
+            const uint fix = 0x70;
+
+            int bufPos = 0;
+            do
+            {
+                interPos += pargs.InterStep;
+                if (interPos >= 1) interPos--;
+                uint var1 = (uint)(interPos * 0x100) - fix;
+                uint var2 = (uint)(interPos * 0x10000) << 17;
+                uint var3 = var1 - (var2 >> 27);
+                pos = var3 + (uint)((int)pos >> 1);
+
+                float baseSamp = (float)(int)pos / 0x100;
+
+                buffer[bufPos++] += baseSamp * pargs.LeftVol;
+                buffer[bufPos++] += baseSamp * pargs.RightVol;
+
+                pargs.LeftVol += pargs.LeftVolStep;
+                pargs.RightVol += pargs.RightVolStep;
+            } while (--samplesPerBuffer > 0);
+        }
+        void ProcessTri(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
+        {
+            int bufPos = 0;
+            do
+            {
+                interPos += pargs.InterStep;
+                if (interPos >= 1) interPos--;
+                float baseSamp;
+                if (interPos < 0.5f)
+                {
+                    baseSamp = interPos * 4 - 1;
+                }
+                else
+                {
+                    baseSamp = 3 - (interPos * 4);
+                }
+
+                buffer[bufPos++] += baseSamp * pargs.LeftVol;
+                buffer[bufPos++] += baseSamp * pargs.RightVol;
+
+                pargs.LeftVol += pargs.LeftVolStep;
+                pargs.RightVol += pargs.RightVolStep;
             } while (--samplesPerBuffer > 0);
         }
     }
