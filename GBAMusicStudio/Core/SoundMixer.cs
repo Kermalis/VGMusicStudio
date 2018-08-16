@@ -68,6 +68,7 @@ namespace GBAMusicStudio.Core
                 switch (ROM.Instance.Game.Engine.ReverbType)
                 {
                     default: reverbs[i] = new Reverb(reverb, numBuffers); break;
+                    case ReverbType.Camelot1: reverbs[i] = new ReverbCamelot1(reverb, numBuffers); break;
                     case ReverbType.None: reverbs[i] = new Reverb(0, numBuffers); break;
                 }
             }

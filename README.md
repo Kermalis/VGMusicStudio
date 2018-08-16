@@ -22,7 +22,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 ----
 # To Do:
 ## M4A / MP2K Engine
-* Add Golden Sun reverb effects
+* Add Golden Sun 2 reverb effect
 * Add reverse playback
 * Add SquareWave sweeping
 * Add "note off with noise" for SquareWaves
