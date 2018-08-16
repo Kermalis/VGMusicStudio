@@ -69,6 +69,8 @@ namespace GBAMusicStudio.Core
                 {
                     default: reverbs[i] = new Reverb(reverb, numBuffers); break;
                     case ReverbType.Camelot1: reverbs[i] = new ReverbCamelot1(reverb, numBuffers); break;
+                    case ReverbType.Camelot2: reverbs[i] = new ReverbCamelot2(reverb, numBuffers, 53 / 128f, -8 / 128f); break;
+                    case ReverbType.MGAT: reverbs[i] = new ReverbCamelot2(reverb, numBuffers, 32 / 128f, -6 / 128f); break;
                     case ReverbType.None: reverbs[i] = new Reverb(0, numBuffers); break;
                 }
             }
@@ -154,7 +156,7 @@ namespace GBAMusicStudio.Core
         }
         internal static bool AllDead(int owner)
         {
-            return allChannels.All(c => c.OwnerIdx == owner);
+            return !allChannels.Any(c => c.OwnerIdx == owner);
         }
         internal static Channel[] GetChannels(int owner)
         {
