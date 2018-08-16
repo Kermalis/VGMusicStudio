@@ -1,26 +1,21 @@
-﻿using NAudio.Wave;
-using System;
+﻿using System;
 
 namespace GBAMusicStudio.Core
 {
+    // All of this was written in C++ by ipatix; I just converted it
     internal class Reverb
     {
-        WaveBuffer reverbBuffer;
-        float intensity;
-        uint bufferPos, bufferPos2, bufferLen;
+        protected readonly float[] reverbBuffer;
+        protected readonly float intensity;
+        protected readonly uint bufferLen;
+        protected uint bufferPos, bufferPos2;
 
-        internal Reverb()
+        internal Reverb(byte intensity, byte numBuffers)
         {
             bufferLen = Config.SampleRate / Engine.AGB_FPS;
-            bufferPos = 0;
             bufferPos2 = bufferLen;
-            Init(0, 1);
-        }
-        internal void Init(byte intensity, byte numBuffers)
-        {
-            this.intensity = intensity / 128f;
-            int amt = (int)(bufferLen * Engine.N_CHANNELS * numBuffers);
-            reverbBuffer = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
+            this.intensity = intensity / (float)0x80;
+            reverbBuffer = new float[bufferLen * 2 * numBuffers];
         }
 
         internal void Process(float[] buffer, int samplesPerBuffer)
@@ -29,26 +24,29 @@ namespace GBAMusicStudio.Core
             while (samplesPerBuffer > 0)
             {
                 var left = Process(buffer, samplesPerBuffer, ref index);
-                index += (samplesPerBuffer - left) * Engine.N_CHANNELS;
+                index += (samplesPerBuffer - left) * 2;
                 samplesPerBuffer = left;
             }
         }
 
-        int Process(float[] buffer, int samplesPerBuffer, ref int index)
+        protected virtual int Process(float[] buffer, int samplesPerBuffer, ref int index)
         {
-            int rSamplesPerBuffer = reverbBuffer.FloatBufferCount / Engine.N_CHANNELS;
+            int rSamplesPerBuffer = reverbBuffer.Length / 2;
 
-            var count = (int)Math.Min(Math.Min(rSamplesPerBuffer - bufferPos2, rSamplesPerBuffer - bufferPos), samplesPerBuffer);
+            var count = (int)Math.Min(
+                Math.Min(rSamplesPerBuffer - bufferPos2, rSamplesPerBuffer - bufferPos),
+                samplesPerBuffer
+                );
             bool reset = (rSamplesPerBuffer - bufferPos == count),
                 reset2 = (rSamplesPerBuffer - bufferPos2 == count);
             var c = count;
             do
             {
-                float rev = (reverbBuffer.FloatBuffer[bufferPos * Engine.N_CHANNELS] * 2
-                    + reverbBuffer.FloatBuffer[bufferPos * Engine.N_CHANNELS + 1] * 2) * intensity / 4;
+                float rev = (reverbBuffer[bufferPos * 2] * 2
+                    + reverbBuffer[bufferPos * 2 + 1] * 2) * intensity / 4;
 
-                reverbBuffer.FloatBuffer[bufferPos * Engine.N_CHANNELS] = buffer[index++] += rev;
-                reverbBuffer.FloatBuffer[bufferPos * Engine.N_CHANNELS + 1] = buffer[index++] += rev;
+                reverbBuffer[bufferPos * 2] = buffer[index++] += rev;
+                reverbBuffer[bufferPos * 2 + 1] = buffer[index++] += rev;
                 bufferPos++; bufferPos2++;
             } while (--c > 0);
             if (reset) bufferPos = 0; if (reset2) bufferPos2 = 0;

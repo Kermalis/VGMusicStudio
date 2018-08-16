@@ -6,7 +6,7 @@ namespace GBAMusicStudio.Core
 {
     internal static class Engine
     {
-        internal const int BPM_PER_FRAME = 150, INTERFRAMES = 4, AGB_FPS = 60, N_CHANNELS = 2;
+        internal const int BPM_PER_FRAME = 150, INTERFRAMES = 4, AGB_FPS = 60;
         static readonly Exception BAD = new PlatformNotSupportedException("Invalid game engine.");
 
         static readonly Dictionary<EngineType, ICommand[]> allowedCommands;
@@ -39,12 +39,12 @@ namespace GBAMusicStudio.Core
 
         internal static ICommand[] GetCommands()
         {
-            return allowedCommands[ROM.Instance.Game.Engine];
+            return allowedCommands[ROM.Instance.Game.Engine.Type];
         }
 
         internal static ushort GetDefaultTempo()
         {
-            switch (ROM.Instance.Game.Engine)
+            switch (ROM.Instance.Game.Engine.Type)
             {
                 case EngineType.M4A: return 150;
                 case EngineType.MLSS: return 120;
@@ -53,7 +53,7 @@ namespace GBAMusicStudio.Core
         }
         internal static int GetTicksPerBar()
         {
-            switch (ROM.Instance.Game.Engine)
+            switch (ROM.Instance.Game.Engine.Type)
             {
                 case EngineType.M4A: return 96;
                 case EngineType.MLSS: return 48;
@@ -68,7 +68,7 @@ namespace GBAMusicStudio.Core
 
         internal static byte GetMaxVolume()
         {
-            switch (ROM.Instance.Game.Engine)
+            switch (ROM.Instance.Game.Engine.Type)
             {
                 case EngineType.M4A: return 0x7F;
                 case EngineType.MLSS: return 0xFF;
@@ -77,7 +77,7 @@ namespace GBAMusicStudio.Core
         }
         internal static byte GetPanpotRange()
         {
-            switch (ROM.Instance.Game.Engine)
+            switch (ROM.Instance.Game.Engine.Type)
             {
                 case EngineType.M4A: return 0x40;
                 case EngineType.MLSS: return 0x80;

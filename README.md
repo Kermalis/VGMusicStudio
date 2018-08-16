@@ -17,12 +17,12 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * It is not intimidating to use
 * Support for multiple song tables
 * Support for "Mario & Luigi: Superstar Saga"
+* Support for "Golden Sun" synth instruments
 
 ----
 # To Do:
 ## M4A / MP2K Engine
 * Add Golden Sun reverb effects
-* Add Golden Sun synths
 * Add reverse playback
 * Add SquareWave sweeping
 * Add "note off with noise" for SquareWaves
@@ -35,12 +35,13 @@ A tool that is designed to be a Sappy replacement as well as support different g
 ## Mario & Luigi: Superstar Saga Engine
 * Properly implement "free notes"
 * Voice table - Find out the last 4 bytes in entry struct
-* Voice table - Figure out squares
+* Voice table - Figure out squares (they probably only activate if their voice is 190 <= voice < 199)
 * Include offsets in config for sample/voicetable instead of hardcoding them for the English rom
 * Understand commands F4 & F5
 * MIDI saving
 
 ## General
+* Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * Fix voicetable saver

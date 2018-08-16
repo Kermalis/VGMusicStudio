@@ -15,8 +15,7 @@ namespace GBAMusicStudio.Core
 
         internal ASong(ushort index, string name)
         {
-            Index = index;
-            Name = name;
+            Index = index; Name = name;
         }
 
         public override string ToString() => Name;
@@ -28,25 +27,36 @@ namespace GBAMusicStudio.Core
 
         internal APlaylist(string name, ASong[] songs)
         {
-            Name = name.Humanize();
-            Songs = songs;
+            Name = name.Humanize(); Songs = songs;
         }
 
         public override string ToString() => string.Format("{0} - ({1})", Name, "Song".ToQuantity(Songs.Where(s => s.Name != "Playlist is empty.").Count()));
     }
+    internal class AnEngine
+    {
+        internal readonly EngineType Type;
+        internal readonly ReverbType ReverbType;
+        internal readonly byte Reverb;
+        internal readonly byte Volume; // 0-F
+        internal readonly uint Frequency;
+
+        internal AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, uint frequency)
+        {
+            Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; Frequency = frequency;
+        }
+
+        public override string ToString() => Type.ToString();
+    }
     internal class AGame
     {
         internal readonly string Code, Name, Creator;
-        internal readonly EngineType Engine;
+        internal readonly AnEngine Engine;
         internal readonly uint[] SongTables, SongTableSizes;
         internal readonly List<APlaylist> Playlists;
 
-        internal AGame(string code, string name, string creator, EngineType engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists)
+        internal AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists)
         {
-            Code = code;
-            Name = name;
-            Creator = creator;
-            Engine = engine;
+            Code = code; Name = name; Creator = creator; Engine = engine;
             SongTables = tables; SongTableSizes = tableSizes;
             Playlists = playlists;
         }
@@ -141,7 +151,8 @@ namespace GBAMusicStudio.Core
             foreach (var g in mapping)
             {
                 string code, name, creator;
-                EngineType engine = EngineType.M4A;
+                EngineType engineType = EngineType.M4A; ReverbType reverbType = ReverbType.Normal;
+                byte engineReverb = 0, engineVolume = 0xF; uint engineFrequency = 13379;
                 uint[] tables;
                 uint[] tableSizes;
                 List<APlaylist> playlists;
@@ -185,7 +196,21 @@ namespace GBAMusicStudio.Core
 
                 // Engine
                 if (game.Children.ContainsKey(yengine))
-                    engine = (EngineType)Enum.Parse(typeof(EngineType), game.Children[yengine].ToString());
+                {
+                    var eng = (YamlMappingNode)game.Children[yengine];
+                    if(eng.Children.TryGetValue(new YamlScalarNode("Type"), out YamlNode type))
+                        engineType = (EngineType)Enum.Parse(typeof(EngineType), type.ToString());
+                    if(eng.Children.TryGetValue(new YamlScalarNode("ReverbType"), out YamlNode rType))
+                        reverbType = (ReverbType)Enum.Parse(typeof(ReverbType), rType.ToString());
+                    if(eng.Children.TryGetValue(new YamlScalarNode("Reverb"), out YamlNode reverb))
+                        engineReverb = (byte)Utils.ParseValue(reverb.ToString());
+                    if(eng.Children.TryGetValue(new YamlScalarNode("Volume"), out YamlNode volume))
+                        engineVolume = (byte)Utils.ParseValue(volume.ToString());
+                    if(eng.Children.TryGetValue(new YamlScalarNode("Frequency"), out YamlNode frequency))
+                        engineFrequency = (uint)Utils.ParseValue(frequency.ToString());
+                    
+                }
+                var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineFrequency);
 
                 // Load playlists
                 playlists = new List<APlaylist>();

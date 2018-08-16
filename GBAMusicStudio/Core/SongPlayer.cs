@@ -33,7 +33,7 @@ namespace GBAMusicStudio.Core
             tracks = new Track[16];
             for (byte i = 0; i < 16; i++)
             {
-                switch (ROM.Instance.Game.Engine)
+                switch (ROM.Instance.Game.Engine.Type)
                 {
                     case EngineType.M4A: tracks[i] = new M4ATrack(i); break;
                     case EngineType.MLSS: tracks[i] = new MLSSTrack(i); break;
@@ -51,13 +51,7 @@ namespace GBAMusicStudio.Core
         {
             Song = song;
             VoiceTable.ClearCache();
-            // Temporary values
-            //byte eVol = 15, eRev = 0, sRev = 178; uint eFreq = 21024; // Golden Sun
-            byte eVol = 15, eRev = 0, sRev = 178; uint eFreq = 31536; // Golden Sun 2
-            //byte eVol = 13, eRev = 0, sRev = 178; uint eFreq = 13379; // Emerald
-            //byte eVol = 14, eRev = 0, sRev = 188; uint eFreq = 18157; // PMD
-            //byte eVol = 16, eRev = 0, sRev = 0; uint eFreq = 13379; // No echo
-            SoundMixer.Init(eFreq, (byte)(eRev >= 0x80 ? eRev & 0x7F : sRev & 0x7F), ReverbType.Normal, eVol / 16f);
+            SoundMixer.Init(song.GetReverb());
         }
         internal static void SetPosition(uint p)
         {

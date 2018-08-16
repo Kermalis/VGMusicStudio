@@ -8,7 +8,7 @@
     internal enum MODType : byte { Vibrate, Volume, Panpot }
     internal enum GSPSGType : byte { Square, Saw, Triangle }
     internal enum GBType { Square1, Square2, Wave, Noise }
-    internal enum ReverbType { None, Normal }
+    internal enum ReverbType { Normal, Camelot1, Camelot2, MGAT, None }
     internal enum SquarePattern : byte { D12, D25, D50, D75 }
     internal enum NoisePattern : byte { Fine, Rough }
 

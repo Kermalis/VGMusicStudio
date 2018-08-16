@@ -33,6 +33,8 @@ namespace GBAMusicStudio.Core
             }
         }
 
+        internal virtual byte GetReverb() => 0;
+
         internal void CalculateTicks()
         {
             for (int i = 0; i < NumTracks; i++)
@@ -94,7 +96,7 @@ namespace GBAMusicStudio.Core
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
-            if (ROM.Instance.Game.Engine != EngineType.M4A)
+            if (ROM.Instance.Game.Engine.Type != EngineType.M4A)
                 throw new PlatformNotSupportedException("Exporting to MIDI from this game engine is not supported at this time.");
 
             CalculateTicks();
@@ -223,7 +225,7 @@ namespace GBAMusicStudio.Core
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
-            if (ROM.Instance.Game.Engine != EngineType.M4A)
+            if (ROM.Instance.Game.Engine.Type != EngineType.M4A)
                 throw new PlatformNotSupportedException("Exporting to ASM from this game engine is not supported at this time.");
 
             using (var file = new StreamWriter(fileName))
@@ -393,6 +395,8 @@ namespace GBAMusicStudio.Core
     {
         byte[] _binary;
         internal M4ASongHeader Header;
+
+        internal override byte GetReverb() => Header.Reverb;
 
         protected void Load(byte[] binary, M4ASongHeader head)
         {

@@ -8,14 +8,13 @@ namespace GBAMusicStudio.Core
     {
         const int MAX_TRACKS = 17; // 16 for playback, 1 for program use
 
-        internal static uint EngineSampleRate { get; private set; }
         internal static readonly float SampleRateReciprocal, SamplesReciprocal;
         internal static readonly uint SamplesPerBuffer;
 
         internal static float MasterVolume; internal static float DSMasterVolume { get; private set; }
 
         static readonly WaveBuffer audio;
-        static readonly WaveBuffer[] trackBuffers;
+        static readonly float[][] trackBuffers;
         static readonly bool[] mutes;
         static readonly Reverb[] reverbs;
         static readonly DirectSoundChannel[] dsChannels;
@@ -36,23 +35,20 @@ namespace GBAMusicStudio.Core
             dsChannels = new DirectSoundChannel[Config.DirectCount];
             for (int i = 0; i < Config.DirectCount; i++)
                 dsChannels[i] = new DirectSoundChannel();
-            
-            trackBuffers = new WaveBuffer[MAX_TRACKS];
+
+            trackBuffers = new float[MAX_TRACKS][];
             reverbs = new Reverb[MAX_TRACKS];
             mutes = new bool[MAX_TRACKS];
 
-            int amt = (int)(Engine.N_CHANNELS * SamplesPerBuffer);
+            int amt = (int)(SamplesPerBuffer * 2);
             audio = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
             for (int i = 0; i < MAX_TRACKS; i++)
-            {
-                trackBuffers[i] = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
-                reverbs[i] = new Reverb();
-            }
+                trackBuffers[i] = new float[amt];
 
             gbChannels = new GBChannel[] { sq1 = new SquareChannel(), sq2 = new SquareChannel(), wave = new WaveChannel(), noise = new NoiseChannel() };
             allChannels = dsChannels.Union(gbChannels).ToArray();
 
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)Config.SampleRate, Engine.N_CHANNELS))
+            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)Config.SampleRate, 2))
             {
                 DiscardOnBufferOverflow = true
             };
@@ -60,18 +56,19 @@ namespace GBAMusicStudio.Core
             @out.Init(buffer);
             @out.Play();
         }
-        internal static void Init(uint engineRate, byte reverb, ReverbType rType, float pcmVol)
+        internal static void Init(byte songReverb)
         {
-            EngineSampleRate = engineRate;
-            DSMasterVolume = pcmVol;
+            DSMasterVolume = ROM.Instance.Game.Engine.Volume / (float)0xF;
 
+            byte engineReverb = ROM.Instance.Game.Engine.Reverb;
+            byte reverb = (byte)(engineReverb >= 0x80 ? engineReverb & 0x7F : songReverb & 0x7F);
             for (int i = 0; i < MAX_TRACKS; i++)
             {
-                byte numBuffers = (byte)(0x630 / (engineRate / Engine.AGB_FPS));
-                switch (rType)
+                byte numBuffers = (byte)(0x630 / (ROM.Instance.Game.Engine.Frequency / Engine.AGB_FPS));
+                switch (ROM.Instance.Game.Engine.ReverbType)
                 {
-                    default: reverbs[i].Init(reverb, numBuffers); break;
-                    case ReverbType.None: reverbs[i].Init(0, numBuffers); break;
+                    default: reverbs[i] = new Reverb(reverb, numBuffers); break;
+                    case ReverbType.None: reverbs[i] = new Reverb(0, numBuffers); break;
                 }
             }
         }
@@ -156,7 +153,7 @@ namespace GBAMusicStudio.Core
         }
         internal static bool AllDead(int owner)
         {
-            return !allChannels.Any(c => c.OwnerIdx == owner);
+            return allChannels.All(c => c.OwnerIdx == owner);
         }
         internal static Channel[] GetChannels(int owner)
         {
@@ -185,31 +182,31 @@ namespace GBAMusicStudio.Core
 
         internal static void Process()
         {
-            foreach (var b in trackBuffers)
-                b.Clear();
+            foreach (var buf in trackBuffers)
+                Array.Clear(buf, 0, buf.Length);
             audio.Clear();
 
             foreach (var c in dsChannels)
                 if (c.OwnerIdx != 0xFF)
-                    c.Process(trackBuffers[c.OwnerIdx].FloatBuffer);
+                    c.Process(trackBuffers[c.OwnerIdx]);
 
             // Reverb only applies to DirectSound
             for (int i = 0; i < trackBuffers.Length; i++)
-                reverbs[i].Process(trackBuffers[i].FloatBuffer, (int)SamplesPerBuffer);
+                reverbs[i]?.Process(trackBuffers[i], (int)SamplesPerBuffer);
 
             foreach (var c in gbChannels)
                 if (c.OwnerIdx != 0xFF)
-                    c.Process(trackBuffers[c.OwnerIdx].FloatBuffer);
+                    c.Process(trackBuffers[c.OwnerIdx]);
 
             for (int i = 0; i < MAX_TRACKS; i++)
             {
                 if (mutes[i]) continue;
 
-                var b = trackBuffers[i];
+                var buf = trackBuffers[i];
                 for (int j = 0; j < SamplesPerBuffer; j++)
                 {
-                    audio.FloatBuffer[j * Engine.N_CHANNELS] += (b.FloatBuffer[j * Engine.N_CHANNELS] * MasterVolume);
-                    audio.FloatBuffer[j * Engine.N_CHANNELS + 1] += (b.FloatBuffer[j * Engine.N_CHANNELS + 1] * MasterVolume);
+                    audio.FloatBuffer[j * 2] += buf[j * 2] * MasterVolume;
+                    audio.FloatBuffer[j * 2 + 1] += buf[j * 2 + 1] * MasterVolume;
                 }
             }
 

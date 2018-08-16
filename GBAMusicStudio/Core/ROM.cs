@@ -30,7 +30,7 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < Game.SongTables.Length; i++)
             {
                 uint o = Game.SongTables[i], s = Game.SongTableSizes[i];
-                switch (Game.Engine)
+                switch (Game.Engine.Type)
                 {
                     case EngineType.M4A: SongTables[i] = new M4ASongTable(o, s); break;
                     case EngineType.MLSS: SongTables[i] = new MLSSSongTable(o, s); break;

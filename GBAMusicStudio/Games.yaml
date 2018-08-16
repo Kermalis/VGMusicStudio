@@ -1,9 +1,11 @@
 A88E:
   SongTable: 0x21CB70
   SongTableSize: 407
-  Engine: "MLSS"
   Name: "Mario & Luigi - Superstar Saga (USA)"
   Creator: "AlphaDream"
+  Engine:
+    Type: "MLSS"
+    ReverbType: "None"
   Music:
     Music:
       1: "1"
@@ -62,17 +64,27 @@ A88P:
   Copy: "A88E"
 AGFE:
   SongTable: 0x1C4530
+  SongTableSize: 800
   Name: "Golden Sun: The Lost Age (USA)"
   Creator: "Camelot"
+  Engine:
+    ReverbType: "Camelot2"
+    Frequency: 31536
 AGSE:
   SongTable: 0xFC684
+  SongTableSize: 312
   Name: "Golden Sun (USA)"
   Creator: "Camelot"
+  Engine:
+    ReverbType: "Camelot1"
+    Frequency: 21024
 AMKE:
   SongTable: 0x102498
   SongTableSize: 403
   Name: "Mario Kart: Super Circuit (USA)"
   Creator: "Nintendo"
+  Engine:
+    Frequency: 10512
   Music:
     Music:
       2: "Main Menu"
@@ -141,6 +153,8 @@ AXVE:
   SongTableSize: 468
   Name: "Pokémon Ruby Version (USA)"
   Creator: "Game Freak"
+  Engine:
+    Volume: 12
   Music:
     Disc_1:
       414: "Opening Movie: Setting out on a Journey in the Hoenn Region"
@@ -273,6 +287,9 @@ B24P:
   SongTableSize: 940
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   Creator: "Game Freak"
+  Engine:
+    Volume: 14
+    Frequency: 18157
   Music:
     Disc_1:
       40: "Intro"
@@ -368,6 +385,8 @@ BPEE:
   SongTableSize: 610
   Name: "Pokémon Emerald Version (USA)"
   Creator: "Game Freak"
+  Engine:
+    Volume: 12
   Music:
     Music:
       350: "Unused - TETSUJI"
@@ -588,6 +607,8 @@ BPRE:
   SongTableSize: 347
   Name: "Pokémon Fire Red Version (USA)"
   Creator: "Game Freak"
+  Engine:
+    Volume: 12
   Music:
     Disc_1:
       321: "Game Freak Logo"
@@ -693,14 +714,20 @@ KERB:
   SongTableSize: 356 356 356 356
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
+  Engine:
+    Volume: 12
 KERH:
   SongTable: 0x1000038 0x1000B78
   SongTableSize: 360 360
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
   Remap: "HGSS"
+  Engine:
+    Volume: 12
 KERP:
   SongTable: 0x1000000 0x1001310 0x1002620 0x1003930
   SongTableSize: 610 610 610 610
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
+  Engine:
+    Volume: 12

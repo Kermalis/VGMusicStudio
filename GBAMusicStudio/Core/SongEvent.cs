@@ -70,7 +70,7 @@ namespace GBAMusicStudio.Core
             set
             {
                 ushort max = 0;
-                switch (ROM.Instance.Game.Engine)
+                switch (ROM.Instance.Game.Engine.Type)
                 {
                     case EngineType.M4A: max = 510; value /= 2; value *= 2; break; // Get rid of odd values
                     case EngineType.MLSS: max = 0xFF; break;
@@ -92,7 +92,7 @@ namespace GBAMusicStudio.Core
             set
             {
                 byte max = 0;
-                switch (ROM.Instance.Game.Engine)
+                switch (ROM.Instance.Game.Engine.Type)
                 {
                     case EngineType.M4A: max = 96; break;
                     case EngineType.MLSS: max = 0xC0; break;
