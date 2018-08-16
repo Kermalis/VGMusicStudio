@@ -164,7 +164,13 @@ namespace GBAMusicStudio.Core
         public string Name => "Bend";
 
         sbyte bend;
-        public sbyte Bend { get => bend; set => bend = value.Clamp((sbyte)-64, (sbyte)63); }
+        public sbyte Bend { get => bend;
+            set
+            {
+                byte range = Engine.GetBendingRange();
+                bend = value.Clamp((sbyte)-range, (sbyte)(range - 1));
+            }
+        }
 
         public string Arguments => bend.ToString();
     }
@@ -331,22 +337,6 @@ namespace GBAMusicStudio.Core
         public new int Duration { get => dur; set => dur = value.Clamp(0, 0xC0); }
 
         public new string Arguments => $"{SongEvent.NoteName(note)}, {Duration}";
-    }
-    internal class MLSSF4Command : ICommand
-    {
-        public string Name => "Command F4";
-
-        public byte Arg;
-
-        public string Arguments => $"{Arg}";
-    }
-    internal class MLSSF5Command : ICommand
-    {
-        public string Name => "Command F5";
-
-        public sbyte Arg;
-
-        public string Arguments => $"{Arg}";
     }
 
     #endregion

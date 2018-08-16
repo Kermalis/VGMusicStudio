@@ -84,5 +84,14 @@ namespace GBAMusicStudio.Core
             }
             throw BAD;
         }
+        internal static byte GetBendingRange()
+        {
+            switch (ROM.Instance.Game.Engine.Type)
+            {
+                case EngineType.M4A: return 0x40;
+                case EngineType.MLSS: return 0x80;
+            }
+            throw BAD;
+        }
     }
 }

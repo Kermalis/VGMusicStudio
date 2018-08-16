@@ -596,8 +596,8 @@ namespace GBAMusicStudio.Core
                         case 0xF0: command = new VoiceCommand { Voice = ROM.Instance.ReadByte() }; break;
                         case 0xF1: command = new VolumeCommand { Volume = ROM.Instance.ReadByte() }; break;
                         case 0xF2: command = new PanpotCommand { Panpot = (sbyte)(ROM.Instance.ReadByte() - 0x80) }; break;
-                        case 0xF4: command = new MLSSF4Command { Arg = ROM.Instance.ReadByte() }; break;
-                        case 0xF5: command = new MLSSF5Command { Arg = ROM.Instance.ReadSByte() }; break;
+                        case 0xF4: command = new BendRangeCommand { Range = ROM.Instance.ReadByte() }; break;
+                        case 0xF5: command = new BendCommand { Bend = ROM.Instance.ReadSByte() }; break;
                         case 0xF6: command = new RestCommand { Rest = ROM.Instance.ReadByte() }; break;
                         case 0xF8:
                             short offsetFromEnd = ROM.Instance.ReadInt16();

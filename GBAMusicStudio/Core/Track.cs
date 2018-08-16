@@ -24,7 +24,10 @@ namespace GBAMusicStudio.Core
         internal int GetPitch()
         {
             int mod = MODType == MODType.Vibrate ? (Tri(LFOPhase) * MODDepth) >> 8 : 0;
-            return Bend * BendRange + Tune + mod;
+            byte range = BendRange;
+            if (ROM.Instance.Game.Engine.Type == EngineType.MLSS)
+                range /= 2;
+            return Bend * range + Tune + mod;
         }
         internal byte GetVolume()
         {
@@ -41,13 +44,12 @@ namespace GBAMusicStudio.Core
         internal Track(byte i) => Index = i;
         internal virtual void Init()
         {
-            Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = EchoVolume = EchoLength = 0;
+            Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = EchoVolume = EchoLength = BendRange = 0;
             Bend = Tune = Pan = KeyShift = 0;
             CommandIndex = EndOfPattern = 0;
             MODType = MODType.Vibrate;
             Ready = true;
             Stopped = false;
-            BendRange = 2;
             LFOSpeed = 22;
             Volume = 127;
         }
@@ -86,6 +88,7 @@ namespace GBAMusicStudio.Core
             base.Init();
 
             Ready = false;
+            BendRange = 2;
             Volume = 100;
         }
     }
