@@ -289,7 +289,7 @@ AZLE:
   SongTableSize: 545
 B24P:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
-  Creator: "Game Freak"
+  Creator: "Chunsoft"
   SongTable: 0x1E866BC
   SongTableSize: 940
   Engine:
