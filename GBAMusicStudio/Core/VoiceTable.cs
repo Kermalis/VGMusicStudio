@@ -104,12 +104,14 @@ namespace GBAMusicStudio.Core
 
     internal class MLSSVoiceTable : VoiceTable
     {
-        const uint sampleCount = 235;
-        internal readonly MLSSSSample[] Samples = new MLSSSSample[sampleCount];
+        internal MLSSSSample[] Samples { get; private set; }
 
         protected override void Load(uint table)
         {
-            Offset = 0x21D1CC; // Voice table
+            uint sampleCount = ROM.Instance.Game.SampleTableSize;
+
+            Samples = new MLSSSSample[sampleCount];
+            Offset = ROM.Instance.Game.VoiceTable;
 
             for (int i = 0; i < 256; i++)
             {
@@ -119,13 +121,12 @@ namespace GBAMusicStudio.Core
                 voices[i] = new SVoice(new MLSSVoice((uint)(Offset + off), numEntries));
             }
 
-            uint sOffset = 0xA806B8; // Sample table
+            uint sOffset = ROM.Instance.Game.SampleTable;
             for (uint i = 0; i < sampleCount; i++)
             {
                 int off = ROM.Instance.ReadInt32(sOffset + (i * 4));
                 Samples[i] = (off == 0) ? null : new MLSSSSample((uint)(sOffset + off));
             }
-            ;
         }
 
         internal override SVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)

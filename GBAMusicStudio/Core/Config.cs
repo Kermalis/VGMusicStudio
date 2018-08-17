@@ -54,11 +54,17 @@ namespace GBAMusicStudio.Core
         internal readonly uint[] SongTables, SongTableSizes;
         internal readonly List<APlaylist> Playlists;
 
-        internal AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists)
+        // MLSS only
+        internal readonly uint VoiceTable, SampleTable, SampleTableSize;
+
+        internal AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists,
+            uint voiceTable, uint sampleTable, uint sampleTableSize)
         {
             Code = code; Name = name; Creator = creator; Engine = engine;
             SongTables = tables; SongTableSizes = tableSizes;
             Playlists = playlists;
+
+            VoiceTable = voiceTable; SampleTable = sampleTable; SampleTableSize = sampleTableSize;
         }
 
         public override string ToString() => Name;
@@ -98,16 +104,16 @@ namespace GBAMusicStudio.Core
             yaml.Load(new StringReader(File.ReadAllText("Config.yaml")));
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            DirectCount = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("DirectCount")].ToString());
-            SampleRate = (uint)Utils.ParseValue(mapping.Children[new YamlScalarNode("SampleRate")].ToString());
-            MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children[new YamlScalarNode("MIDIKeyboardFixedVelocity")].ToString());
-            TaskbarProgress = bool.Parse(mapping.Children[new YamlScalarNode("TaskbarProgress")].ToString());
-            RefreshRate = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("RefreshRate")].ToString());
-            CenterIndicators = bool.Parse(mapping.Children[new YamlScalarNode("CenterIndicators")].ToString());
-            PanpotIndicators = bool.Parse(mapping.Children[new YamlScalarNode("PanpotIndicators")].ToString());
-            Volume = (byte)Utils.ParseValue(mapping.Children[new YamlScalarNode("Volume")].ToString());
+            DirectCount = (byte)Utils.ParseValue(mapping.Children["DirectCount"].ToString());
+            SampleRate = (uint)Utils.ParseValue(mapping.Children["SampleRate"].ToString());
+            MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children["MIDIKeyboardFixedVelocity"].ToString());
+            TaskbarProgress = bool.Parse(mapping.Children["TaskbarProgress"].ToString());
+            RefreshRate = (byte)Utils.ParseValue(mapping.Children["RefreshRate"].ToString());
+            CenterIndicators = bool.Parse(mapping.Children["CenterIndicators"].ToString());
+            PanpotIndicators = bool.Parse(mapping.Children["PanpotIndicators"].ToString());
+            Volume = (byte)Utils.ParseValue(mapping.Children["Volume"].ToString());
 
-            var cmap = (YamlMappingNode)mapping.Children[new YamlScalarNode("Colors")];
+            var cmap = (YamlMappingNode)mapping.Children["Colors"];
             Colors = new HSLColor[256];
             foreach (var c in cmap)
             {
@@ -127,7 +133,7 @@ namespace GBAMusicStudio.Core
                 Colors[i] = Colors[i + 0x80] = color;
             }
 
-            var rmap = (YamlMappingNode)mapping.Children[new YamlScalarNode("InstrumentRemaps")];
+            var rmap = (YamlMappingNode)mapping.Children["InstrumentRemaps"];
             InstrumentRemaps = new Dictionary<string, ARemap>();
             foreach (var r in rmap)
             {
@@ -153,37 +159,38 @@ namespace GBAMusicStudio.Core
                 string code, name, creator;
                 EngineType engineType = EngineType.M4A; ReverbType reverbType = ReverbType.Normal;
                 byte engineReverb = 0, engineVolume = 0xF; uint engineFrequency = 13379;
-                uint[] tables;
-                uint[] tableSizes;
+                uint[] tables, tableSizes;
                 List<APlaylist> playlists;
+                uint voiceTable = 0, sampleTable = 0, sampleTableSize = 0;
 
                 code = g.Key.ToString();
                 var game = (YamlMappingNode)g.Value;
 
-                YamlScalarNode yname = new YamlScalarNode("Name"),
-                    ysongtable = new YamlScalarNode("SongTable"),
-                    ycopy = new YamlScalarNode("Copy"),
-                    ysongtablesize = new YamlScalarNode("SongTableSize"),
-                    ycreator = new YamlScalarNode("Creator"),
-                    ymusic = new YamlScalarNode("Music"),
-                    yengine = new YamlScalarNode("Engine");
-
                 // Basic info
-                name = game.Children[yname].ToString();
+                name = game.Children["Name"].ToString();
 
-                var songTables = game.Children[ysongtable].ToString().Split(' ');
+                // SongTables
+                var songTables = game.Children["SongTable"].ToString().Split(' ');
                 tables = new uint[songTables.Length]; tableSizes = new uint[songTables.Length];
                 for (int i = 0; i < songTables.Length; i++)
                     tables[i] = (uint)Utils.ParseValue(songTables[i]);
 
+                // MLSS info
+                if (game.Children.TryGetValue("VoiceTable", out YamlNode vTable))
+                    voiceTable = (uint)Utils.ParseValue(vTable.ToString());
+                if (game.Children.TryGetValue("SampleTable", out YamlNode sTable))
+                    sampleTable = (uint)Utils.ParseValue(sTable.ToString());
+                if (game.Children.TryGetValue("SampleTableSize", out YamlNode saTableSize))
+                    sampleTableSize = (uint)Utils.ParseValue(saTableSize.ToString());
+
                 // If we are to copy another game's config
-                if (game.Children.ContainsKey(ycopy))
-                    game = (YamlMappingNode)mapping.Children[new YamlScalarNode(game.Children[ycopy].ToString())];
+                if (game.Children.TryGetValue("Copy", out YamlNode copy))
+                    game = (YamlMappingNode)mapping.Children[copy];
 
                 // SongTable Sizes
                 string[] sizes = { };
-                if (game.Children.ContainsKey(ysongtablesize))
-                    sizes = game.Children[ysongtablesize].ToString().Split(' ');
+                if (game.Children.TryGetValue("SongTableSize", out YamlNode soTableSize))
+                    sizes = soTableSize.ToString().Split(' ');
                 for (int i = 0; i < songTables.Length; i++)
                 {
                     tableSizes[i] = DefaultTableSize;
@@ -192,21 +199,21 @@ namespace GBAMusicStudio.Core
                 }
 
                 // Creator name
-                creator = game.Children[ycreator].ToString();
+                creator = game.Children["Creator"].ToString();
 
                 // Engine
-                if (game.Children.ContainsKey(yengine))
+                if (game.Children.TryGetValue("Engine", out YamlNode yeng))
                 {
-                    var eng = (YamlMappingNode)game.Children[yengine];
-                    if(eng.Children.TryGetValue(new YamlScalarNode("Type"), out YamlNode type))
+                    var eng = (YamlMappingNode)yeng;
+                    if(eng.Children.TryGetValue("Type", out YamlNode type))
                         engineType = (EngineType)Enum.Parse(typeof(EngineType), type.ToString());
-                    if(eng.Children.TryGetValue(new YamlScalarNode("ReverbType"), out YamlNode rType))
+                    if(eng.Children.TryGetValue("ReverbType", out YamlNode rType))
                         reverbType = (ReverbType)Enum.Parse(typeof(ReverbType), rType.ToString());
-                    if(eng.Children.TryGetValue(new YamlScalarNode("Reverb"), out YamlNode reverb))
+                    if(eng.Children.TryGetValue("Reverb", out YamlNode reverb))
                         engineReverb = (byte)Utils.ParseValue(reverb.ToString());
-                    if(eng.Children.TryGetValue(new YamlScalarNode("Volume"), out YamlNode volume))
+                    if(eng.Children.TryGetValue("Volume", out YamlNode volume))
                         engineVolume = (byte)Utils.ParseValue(volume.ToString());
-                    if(eng.Children.TryGetValue(new YamlScalarNode("Frequency"), out YamlNode frequency))
+                    if(eng.Children.TryGetValue("Frequency", out YamlNode frequency))
                         engineFrequency = (uint)Utils.ParseValue(frequency.ToString());
                     
                 }
@@ -214,9 +221,9 @@ namespace GBAMusicStudio.Core
 
                 // Load playlists
                 playlists = new List<APlaylist>();
-                if (game.Children.ContainsKey(ymusic))
+                if (game.Children.TryGetValue("Music", out YamlNode ymusic))
                 {
-                    var music = (YamlMappingNode)game.Children[ymusic];
+                    var music = (YamlMappingNode)ymusic;
                     foreach (var kvp in music)
                     {
                         var songs = new List<ASong>();
@@ -235,7 +242,8 @@ namespace GBAMusicStudio.Core
                     if (playlists[i].Songs.Length == 0)
                         playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "Playlist is empty.") });
 
-                Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists));
+                Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists,
+                    voiceTable, sampleTable, sampleTableSize));
             }
         }
 

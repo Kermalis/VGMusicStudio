@@ -1,8 +1,11 @@
 A88E:
-  SongTable: 0x21CB70
-  SongTableSize: 407
   Name: "Mario & Luigi - Superstar Saga (USA)"
   Creator: "AlphaDream"
+  SongTable: 0x21CB70
+  SongTableSize: 407
+  VoiceTable: 0x21D1CC
+  SampleTable: 0xA806B8
+  SampleTableSize: 235
   Engine:
     Type: "MLSS"
     ReverbType: "None"
@@ -59,30 +62,32 @@ A88E:
       49: "Ghostly Encounter"
       50: "Bean Time!"
 A88P:
-  SongTable: 0x21DC50
   Name: "Mario & Luigi - Superstar Saga (P)"
+  SongTable: 0x21DC50
+  VoiceTable: 0x21E2AC
+  SampleTable: 0xA82088
   Copy: "A88E"
 AGFE:
-  SongTable: 0x1C4530
-  SongTableSize: 800
   Name: "Golden Sun: The Lost Age (USA)"
   Creator: "Camelot"
+  SongTable: 0x1C4530
+  SongTableSize: 800
   Engine:
     ReverbType: "Camelot2"
     Frequency: 31536
 AGSE:
-  SongTable: 0xFC684
-  SongTableSize: 312
   Name: "Golden Sun (USA)"
   Creator: "Camelot"
+  SongTable: 0xFC684
+  SongTableSize: 312
   Engine:
     ReverbType: "Camelot1"
     Frequency: 21024
 AMKE:
-  SongTable: 0x102498
-  SongTableSize: 403
   Name: "Mario Kart: Super Circuit (USA)"
   Creator: "Nintendo"
+  SongTable: 0x102498
+  SongTableSize: 403
   Engine:
     Frequency: 10512
   Music:
@@ -140,19 +145,19 @@ AMKE:
       59: "59"
       60: "60"
 AMTE:
-  SongTable: 0xA8D3C
-  SongTableSize: 745
   Name: "Metroid Fusion (USA)"
   Creator: "Nintendo"
+  SongTable: 0xA8D3C
+  SongTableSize: 745
 AXPE:
-  SongTable: 0x4554E8
   Name: "Pokémon Sapphire Version (USA)"
+  SongTable: 0x4554E8
   Copy: "AXVE"
 AXVE:
-  SongTable: 0x45548C
-  SongTableSize: 468
   Name: "Pokémon Ruby Version (USA)"
   Creator: "Game Freak"
+  SongTable: 0x45548C
+  SongTableSize: 468
   Engine:
     Volume: 12
   Music:
@@ -278,15 +283,15 @@ AXVE:
       396: "Pokémon Contest! (Multiplayer - Player 4)"
       467: "Unused - Team Rocket Appears!"
 AZLE:
-  SongTable: 0x3C3BBC
-  SongTableSize: 545
   Name: "The Legend of Zelda: A Link to the Past and Four Swords"
   Creator: "Nintendo, Capcom"
+  SongTable: 0x3C3BBC
+  SongTableSize: 545
 B24P:
-  SongTable: 0x1E866BC
-  SongTableSize: 940
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   Creator: "Game Freak"
+  SongTable: 0x1E866BC
+  SongTableSize: 940
   Engine:
     Volume: 14
     Frequency: 18157
@@ -372,19 +377,19 @@ B24P:
       51: "Exploration Failed"
       52: "Exploration Complete!"
 BMXE:
-  SongTable: 0x8F2C0
-  SongTableSize: 708
   Name: "Metroid: Zero Mission"
   Creator: "Nintendo"
+  SongTable: 0x8F2C0
+  SongTableSize: 708
 BPED:
-  SongTable: 0x6C5BDC
   Name: "Pokémon Emerald Version (Germany)"
+  SongTable: 0x6C5BDC
   Copy: "BPEE"
 BPEE:
-  SongTable: 0x6B49F0
-  SongTableSize: 610
   Name: "Pokémon Emerald Version (USA)"
   Creator: "Game Freak"
+  SongTable: 0x6B49F0
+  SongTableSize: 610
   Engine:
     Volume: 12
   Music:
@@ -599,14 +604,14 @@ BPEE:
       557: "Epilogue (FRLG)"
       558: "Teachy TV Menu (FRLG)"
 BPGE:
-  SongTable: 0x4A2BA8
   Name: "Pokémon Leaf Green Version (USA)"
+  SongTable: 0x4A2BA8
   Copy: "BPRE"
 BPRE:
-  SongTable: 0x4A32CC
-  SongTableSize: 347
   Name: "Pokémon Fire Red Version (USA)"
   Creator: "Game Freak"
+  SongTable: 0x4A32CC
+  SongTableSize: 347
   Engine:
     Volume: 12
   Music:
@@ -705,29 +710,29 @@ BPRE:
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
 BZME:
-  SongTable: 0xA11DBC
-  SongTableSize: 546
   Name: "The Legend of Zelda: The Minish Cap"
   Creator: "Capcom, Flagship"
+  SongTable: 0xA11DBC
+  SongTableSize: 546
 KERB:
-  SongTable: 0x100004C 0x1000B6C 0x100168C 0x10021AC
-  SongTableSize: 356 356 356 356
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
+  SongTable: 0x100004C 0x1000B6C 0x100168C 0x10021AC
+  SongTableSize: 356 356 356 356
   Engine:
     Volume: 12
 KERH:
-  SongTable: 0x1000038 0x1000B78
-  SongTableSize: 360 360
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
+  SongTable: 0x1000038 0x1000B78
+  SongTableSize: 360 360
   Remap: "HGSS"
   Engine:
     Volume: 12
 KERP:
-  SongTable: 0x1000000 0x1001310 0x1002620 0x1003930
-  SongTableSize: 610 610 610 610
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
+  SongTable: 0x1000000 0x1001310 0x1002620 0x1003930
+  SongTableSize: 610 610 610 610
   Engine:
     Volume: 12

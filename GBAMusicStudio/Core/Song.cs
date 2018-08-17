@@ -572,7 +572,7 @@ namespace GBAMusicStudio.Core
         internal MLSSSong(uint offset)
         {
             Offset = offset;
-            VoiceTable = VoiceTable.LoadTable<MLSSVoiceTable>(0); // Hardcoded for now
+            VoiceTable = VoiceTable.LoadTable<MLSSVoiceTable>(0, true); // 0 won't be used in the Load method
 
             int amt = GetTrackAmount(ROM.Instance.ReadUInt16(Offset));
 
