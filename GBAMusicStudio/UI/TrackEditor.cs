@@ -16,16 +16,16 @@ namespace GBAMusicStudio.UI
         List<SongEvent> events;
 
         readonly ObjectListView listView;
-        readonly ThemedLabel[] labels = new ThemedLabel[3];
-        readonly ThemedNumeric[] args = new ThemedNumeric[3];
+        readonly ThemedLabel[] argLabels = new ThemedLabel[3];
+        readonly ThemedNumeric[] argNumerics = new ThemedNumeric[3];
 
         readonly ComboBox tracksBox, commandsBox;
-        readonly ThemedButton tvButton, taeButton, treButton;
-        readonly ThemedNumeric[] tvArgs = new ThemedNumeric[2];
+        readonly ThemedButton trackChangeVoicesButton, trackAddEventButton, trackRemoveEventButton;
+        readonly ThemedNumeric[] trackVoiceArgs = new ThemedNumeric[2];
 
         readonly ComboBox remapsBox;
-        readonly ThemedButton rfButton, rtButton, gvButton;
-        readonly ThemedNumeric[] gvArgs = new ThemedNumeric[2];
+        readonly ThemedButton remapFromButton, remapToButton, globalChangeVoicesButton;
+        readonly ThemedNumeric[] globalVoiceArgs = new ThemedNumeric[2];
 
         internal TrackEditor()
         {
@@ -62,18 +62,18 @@ namespace GBAMusicStudio.UI
             var panel2 = new ThemedPanel { Location = new Point(306, 140), Size = new Size(w, h2 - 1) };
             var panel3 = new ThemedPanel { Location = new Point(306, 267), Size = new Size(w, h2) };
 
-            // Arguments numericals
+            // Arguments Info
             for (int i = 0; i < 3; i++)
             {
                 int y = 17 + (33 * i);
-                labels[i] = new ThemedLabel
+                argLabels[i] = new ThemedLabel
                 {
                     AutoSize = true,
                     Location = new Point(52, y + 3),
                     Text = "Arg. " + (i + 1).ToString(),
                     Visible = false,
                 };
-                args[i] = new ThemedNumeric
+                argNumerics[i] = new ThemedNumeric
                 {
                     Location = new Point(w - 152, y),
                     Maximum = int.MaxValue,
@@ -81,8 +81,8 @@ namespace GBAMusicStudio.UI
                     Size = new Size(100, 25),
                     Visible = false
                 };
-                args[i].ValueChanged += ArgumentChanged;
-                panel1.Controls.AddRange(new Control[] { labels[i], args[i] });
+                argNumerics[i].ValueChanged += ArgumentChanged;
+                panel1.Controls.AddRange(new Control[] { argLabels[i], argNumerics[i] });
             }
 
             // Track controls
@@ -92,40 +92,40 @@ namespace GBAMusicStudio.UI
                 Size = new Size(100, 21)
             };
             tracksBox.SelectedIndexChanged += TracksBox_SelectedIndexChanged;
-            tvButton = new ThemedButton
+            trackChangeVoicesButton = new ThemedButton
             {
                 Location = new Point(13, 30),
                 Text = "Change Voices"
             };
-            tvButton.Click += ChangeEvents;
-            taeButton = new ThemedButton
+            trackChangeVoicesButton.Click += ChangeEvents;
+            trackAddEventButton = new ThemedButton
             {
                 Location = new Point(13, 30 + 25 + 5),
                 Text = "Add Event"
             };
-            taeButton.Click += AddEvent;
+            trackAddEventButton.Click += AddEvent;
             commandsBox = new ComboBox
             {
                 Location = new Point(115, 30 + 25 + 5 + 2),
                 Size = new Size(100, 21)
             };
-            treButton = new ThemedButton
+            trackRemoveEventButton = new ThemedButton
             {
                 Location = new Point(13, 30 + 25 + 5 + 25 + 5),
                 Text = "Remove Event"
             };
-            treButton.Click += RemoveEvent;
-            tracksBox.Enabled = tvButton.Enabled = taeButton.Enabled = treButton.Enabled = commandsBox.Enabled = false;
-            tvButton.Size = taeButton.Size = treButton.Size = new Size(95, 25);
-            var tvFrom = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
-            tvArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
-            var tvTo = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
-            tvArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
-            tvArgs[0].Maximum = tvArgs[1].Maximum = 0xFF;
-            tvArgs[0].Size = tvArgs[1].Size = new Size(45, 23);
-            tvArgs[0].TextAlign = tvArgs[1].TextAlign = HorizontalAlignment.Center;
-            tvFrom.AutoSize = tvTo.AutoSize = true;
-            panel2.Controls.AddRange(new Control[] { tracksBox, tvButton, tvFrom, tvTo, tvArgs[0], tvArgs[1], taeButton, commandsBox, treButton });
+            trackRemoveEventButton.Click += RemoveEvent;
+            tracksBox.Enabled = trackChangeVoicesButton.Enabled = trackAddEventButton.Enabled = trackRemoveEventButton.Enabled = commandsBox.Enabled = false;
+            trackChangeVoicesButton.Size = trackAddEventButton.Size = trackRemoveEventButton.Size = new Size(95, 25);
+            var trackFromVoiceButton = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
+            trackVoiceArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
+            var trackToVoiceButton = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
+            trackVoiceArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
+            trackVoiceArgs[0].Maximum = trackVoiceArgs[1].Maximum = 0xFF;
+            trackVoiceArgs[0].Size = trackVoiceArgs[1].Size = new Size(45, 23);
+            trackVoiceArgs[0].TextAlign = trackVoiceArgs[1].TextAlign = HorizontalAlignment.Center;
+            trackFromVoiceButton.AutoSize = trackToVoiceButton.AutoSize = true;
+            panel2.Controls.AddRange(new Control[] { tracksBox, trackChangeVoicesButton, trackFromVoiceButton, trackToVoiceButton, trackVoiceArgs[0], trackVoiceArgs[1], trackAddEventButton, commandsBox, trackRemoveEventButton });
 
             // Global controls
             remapsBox = new ComboBox
@@ -134,35 +134,35 @@ namespace GBAMusicStudio.UI
                 Location = new Point(4, 4),
                 Size = new Size(100, 21)
             };
-            rfButton = new ThemedButton
+            remapFromButton = new ThemedButton
             {
                 Location = new Point(116, 3),
                 Text = "From"
             };
-            rfButton.Click += (s, e) => ApplyRemap(true);
-            rtButton = new ThemedButton
+            remapFromButton.Click += (s, e) => ApplyRemap(true);
+            remapToButton = new ThemedButton
             {
                 Location = new Point(203, 3),
                 Text = "To"
             };
-            rtButton.Click += (s, e) => ApplyRemap(false);
-            gvButton = new ThemedButton
+            remapToButton.Click += (s, e) => ApplyRemap(false);
+            globalChangeVoicesButton = new ThemedButton
             {
                 Location = new Point(13, 30),
                 Size = new Size(95, 25),
                 Text = "Change Voices"
             };
-            gvButton.Click += ChangeAllEvents;
-            var gvFrom = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
-            gvArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
-            var gvTo = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
-            gvArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
-            gvArgs[0].Maximum = gvArgs[1].Maximum = 0xFF;
-            gvArgs[0].Size = gvArgs[1].Size = new Size(45, 23);
-            gvArgs[0].TextAlign = gvArgs[1].TextAlign = HorizontalAlignment.Center;
-            gvFrom.AutoSize = gvTo.AutoSize = true;
-            remapsBox.Enabled = rfButton.Enabled = rtButton.Enabled = gvButton.Enabled = false;
-            panel3.Controls.AddRange(new Control[] { remapsBox, rfButton, rtButton, gvButton, gvFrom, gvTo, gvArgs[0], gvArgs[1] });
+            globalChangeVoicesButton.Click += ChangeAllEvents;
+            var globalFromVoiceButton = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
+            globalVoiceArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
+            var globalToVoiceButton = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
+            globalVoiceArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
+            globalVoiceArgs[0].Maximum = globalVoiceArgs[1].Maximum = 0xFF;
+            globalVoiceArgs[0].Size = globalVoiceArgs[1].Size = new Size(45, 23);
+            globalVoiceArgs[0].TextAlign = globalVoiceArgs[1].TextAlign = HorizontalAlignment.Center;
+            globalFromVoiceButton.AutoSize = globalToVoiceButton.AutoSize = true;
+            remapsBox.Enabled = remapFromButton.Enabled = remapToButton.Enabled = globalChangeVoicesButton.Enabled = false;
+            panel3.Controls.AddRange(new Control[] { remapsBox, remapFromButton, remapToButton, globalChangeVoicesButton, globalFromVoiceButton, globalToVoiceButton, globalVoiceArgs[0], globalVoiceArgs[1] });
 
             ClientSize = new Size(600, 400);
             Controls.AddRange(new Control[] { listView, panel1, panel2, panel3 });
@@ -241,9 +241,9 @@ namespace GBAMusicStudio.UI
         {
             bool changed = false;
             foreach (var ev in events)
-                if (sender == tvButton && ev.Command is VoiceCommand voice && voice.Voice == tvArgs[0].Value)
+                if (sender == trackChangeVoicesButton && ev.Command is VoiceCommand voice && voice.Voice == trackVoiceArgs[0].Value)
                 {
-                    voice.Voice = (byte)tvArgs[1].Value;
+                    voice.Voice = (byte)trackVoiceArgs[1].Value;
                     changed = true;
                 }
             if (changed)
@@ -257,9 +257,9 @@ namespace GBAMusicStudio.UI
             bool changed = false;
             foreach (var track in SongPlayer.Song.Commands)
                 foreach (var ev in track)
-                    if (sender == gvButton && ev.Command is VoiceCommand voice && voice.Voice == gvArgs[0].Value)
+                    if (sender == globalChangeVoicesButton && ev.Command is VoiceCommand voice && voice.Voice == globalVoiceArgs[0].Value)
                     {
-                        voice.Voice = (byte)gvArgs[1].Value;
+                        voice.Voice = (byte)globalVoiceArgs[1].Value;
                         changed = true;
                     }
             if (changed)
@@ -280,10 +280,10 @@ namespace GBAMusicStudio.UI
         internal void UpdateTracks()
         {
             bool tracks = SongPlayer.NumTracks > 0;
-            tracksBox.Enabled = tvButton.Enabled = taeButton.Enabled = treButton.Enabled = commandsBox.Enabled = gvButton.Enabled = tracks;
+            tracksBox.Enabled = trackChangeVoicesButton.Enabled = trackAddEventButton.Enabled = trackRemoveEventButton.Enabled = commandsBox.Enabled = globalChangeVoicesButton.Enabled = tracks;
 
             tracksBox.DataSource = Enumerable.Range(1, SongPlayer.NumTracks).Select(i => $"Track {i}").ToList();
-            remapsBox.Enabled = rfButton.Enabled = rtButton.Enabled = tracks && remapsBox.Items.Count > 0;
+            remapsBox.Enabled = remapFromButton.Enabled = remapToButton.Enabled = tracks && remapsBox.Items.Count > 0;
 
             commandsBox.DataSource = Engine.GetCommands().Select(c => c.Name).ToList();
 
@@ -301,11 +301,11 @@ namespace GBAMusicStudio.UI
         {
             for (int i = 0; i < 3; i++)
             {
-                if (sender == args[i])
+                if (sender == argNumerics[i])
                 {
                     var se = events[listView.SelectedIndices[0]];
-                    object value = args[i].Value;
-                    var m = se.Command.GetType().GetMember(labels[i].Text)[0];
+                    object value = argNumerics[i].Value;
+                    var m = se.Command.GetType().GetMember(argLabels[i].Text)[0];
                     if (m is FieldInfo f)
                         f.SetValue(se.Command, Convert.ChangeType(value, f.FieldType));
                     else if (m is PropertyInfo p)
@@ -326,8 +326,8 @@ namespace GBAMusicStudio.UI
         {
             if (listView.SelectedIndices.Count != 1)
             {
-                labels[0].Visible = labels[1].Visible = labels[2].Visible =
-                    args[0].Visible = args[1].Visible = args[2].Visible = false;
+                argLabels[0].Visible = argLabels[1].Visible = argLabels[2].Visible =
+                    argNumerics[0].Visible = argNumerics[1].Visible = argNumerics[2].Visible = false;
             }
             else
             {
@@ -336,33 +336,33 @@ namespace GBAMusicStudio.UI
                 var mi = se.Command == null ? new MemberInfo[0] : se.Command.GetType().GetMembers().Where(m => !ignore.Any(a => m.Name == a.Name) && (m is FieldInfo || m is PropertyInfo)).ToArray();
                 for (int i = 0; i < 3; i++)
                 {
-                    labels[i].Visible = args[i].Visible = i < mi.Length;
-                    if (args[i].Visible)
+                    argLabels[i].Visible = argNumerics[i].Visible = i < mi.Length;
+                    if (argNumerics[i].Visible)
                     {
-                        labels[i].Text = mi[i].Name;
+                        argLabels[i].Text = mi[i].Name;
 
-                        args[i].ValueChanged -= ArgumentChanged;
+                        argNumerics[i].ValueChanged -= ArgumentChanged;
 
                         dynamic m = mi[i];
 
-                        args[i].Hexadecimal = se.Command is CallCommand || se.Command is GoToCommand;
+                        argNumerics[i].Hexadecimal = se.Command is CallCommand || se.Command is GoToCommand;
 
                         TypeInfo valueType;
                         if (mi[i].MemberType == MemberTypes.Field)
                             valueType = m.FieldType;
                         else
                             valueType = m.PropertyType;
-                        args[i].Maximum = valueType.DeclaredFields.Single(f => f.Name == "MaxValue").GetValue(m);
-                        args[i].Minimum = valueType.DeclaredFields.Single(f => f.Name == "MinValue").GetValue(m);
+                        argNumerics[i].Maximum = valueType.DeclaredFields.Single(f => f.Name == "MaxValue").GetValue(m);
+                        argNumerics[i].Minimum = valueType.DeclaredFields.Single(f => f.Name == "MinValue").GetValue(m);
 
                         object value = m.GetValue(se.Command);
-                        args[i].Value = (decimal)Convert.ChangeType(value, TypeCode.Decimal);
+                        argNumerics[i].Value = (decimal)Convert.ChangeType(value, TypeCode.Decimal);
 
-                        args[i].ValueChanged += ArgumentChanged;
+                        argNumerics[i].ValueChanged += ArgumentChanged;
                     }
                 }
             }
-            labels[0].Parent.Refresh();
+            argLabels[0].Parent.Refresh();
         }
     }
 }
