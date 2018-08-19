@@ -40,7 +40,8 @@ namespace GBAMusicStudio.UI
             offsetValueBox = new ValueTextBox
             {
                 Hexadecimal = true,
-                Maximum = ROM.Capacity - 1
+                Maximum = ROM.Capacity - 1,
+                Value = SongPlayer.Song.VoiceTable.Offset - ROM.Pak
             };
 
             Controls.AddRange(new Control[] { openButton, previewButton, sizeLabel, offsetValueBox });
@@ -72,7 +73,7 @@ namespace GBAMusicStudio.UI
                 };
                 process.Start();
                 process.WaitForExit();
-                assembler = new Assembler("temp.s", (uint)(ROM.Pak + offsetValueBox.Value), new Dictionary<string, int> { { "voicegroup000", (int)SongPlayer.Song.VoiceTable.Offset } });
+                assembler = new Assembler("temp.s", ROM.Pak, new Dictionary<string, int> { { "voicegroup000", (int)(ROM.Pak + offsetValueBox.Value) } });
                 File.Delete("temp.s");
                 sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
                 previewButton.Enabled = true;

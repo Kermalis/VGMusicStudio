@@ -26,7 +26,7 @@ namespace GBAMusicStudio.Core
             mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
             cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
 
-        internal uint BaseOffset { get; private set; } = 0;
+        internal uint BaseOffset { get; private set; } = ROM.Pak;
         List<string> loaded = new List<string>();
         Dictionary<string, int> defines;
 
@@ -42,7 +42,7 @@ namespace GBAMusicStudio.Core
         internal byte[] Binary => bytes.ToArray();
         internal int BinaryLength => bytes.Count;
 
-        internal Assembler(string fileName, uint baseOffset = 0, Dictionary<string, int> initialDefines = null)
+        internal Assembler(string fileName, uint baseOffset = ROM.Pak, Dictionary<string, int> initialDefines = null)
         {
             FileName = fileName;
             defines = initialDefines ?? new Dictionary<string, int>();
