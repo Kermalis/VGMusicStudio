@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Util;
+using System;
 using System.IO;
 
 namespace GBAMusicStudio.Core
@@ -40,11 +41,19 @@ namespace GBAMusicStudio.Core
 
         internal T ReadStruct<T>(uint offset = 0xFFFFFFFF)
         {
-            if (IsValidRomOffset(offset))
-                SetOffset(offset);
+            if (offset != 0xFFFFFFFF)
+                Position = offset;
             return Utils.ReadStruct<T>(ROMFile, Position);
         }
 
         internal static bool IsValidRomOffset(uint offset) => (offset < Capacity && offset < Instance.ROMFile.Length) || (offset >= Pak && offset < Pak + Capacity && offset < Instance.ROMFile.Length + Pak);
+        internal static uint SanitizeOffset(uint offset)
+        {
+            if (!IsValidRomOffset(offset))
+                throw new ArgumentOutOfRangeException("\"offset\" was invalid.");
+            if (offset >= Pak)
+                return offset - Pak;
+            return offset;
+        }
     }
 }

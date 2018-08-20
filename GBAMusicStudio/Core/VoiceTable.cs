@@ -46,10 +46,10 @@ namespace GBAMusicStudio.Core
     {
         protected override void Load(uint table)
         {
-            Offset = table;
+            Offset = ROM.SanitizeOffset(table);
             for (uint i = 0; i < 256; i++)
             {
-                uint off = table + (i * 0xC);
+                uint off = Offset + (i * 0xC);
                 if (!ROM.IsValidRomOffset(off))
                     break;
                 var voice = ROM.Instance.ReadStruct<M4AVoice>(off);

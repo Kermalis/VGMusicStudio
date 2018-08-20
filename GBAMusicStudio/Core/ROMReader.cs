@@ -1,21 +1,20 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace GBAMusicStudio.Core
 {
     internal class ROMReader
     {
-        object _lock = new object();
+        readonly object _lock = new object();
         BinaryReader Reader;
         protected internal void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
-        internal uint Position => (uint)Reader.BaseStream.Position;
+        internal uint Position { get => (uint)Reader.BaseStream.Position; set => Reader.BaseStream.Position = ROM.SanitizeOffset(value); }
 
         object Parse(uint offset, uint amt, bool signed = false, bool array = false)
         {
             lock (_lock)
             {
-                if (ROM.IsValidRomOffset(offset))
-                    SetOffset(offset);
+                if (offset != 0xFFFFFFFF)
+                    Position = offset;
                 if (array)
                     return Reader.ReadBytes((int)amt);
                 switch (amt)
@@ -52,14 +51,5 @@ namespace GBAMusicStudio.Core
         internal int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
         internal uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);
         internal uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Pak;
-
-        internal void SetOffset(uint offset)
-        {
-            if (offset > ROM.Capacity)
-                offset -= ROM.Pak;
-            if (!ROM.IsValidRomOffset(offset))
-                throw new ArgumentOutOfRangeException("\"offset\" was invalid.");
-            Reader.BaseStream.Position = offset;
-        }
     }
 }

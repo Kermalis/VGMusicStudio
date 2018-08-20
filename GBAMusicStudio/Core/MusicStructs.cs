@@ -82,24 +82,32 @@ namespace GBAMusicStudio.Core
 
         internal M4ASMulti(M4AVoice ks) : base(ks)
         {
-            Table = VoiceTable.LoadTable<M4AVoiceTable>(ks.Table, true);
-
-            var keys = ROM.Instance.ReadBytes(256, ks.Keys);
-            var loading = new List<Triple<byte, byte, byte>>(); // Key, min, max
-            int prev = -1;
-            for (int i = 0; i < 256; i++)
+            try
             {
-                byte a = keys[i];
-                byte bi = (byte)i;
-                if (prev == a)
-                    loading[loading.Count - 1].Item3 = bi;
-                else
+                Table = VoiceTable.LoadTable<M4AVoiceTable>(multi.Table, true);
+
+                var keys = ROM.Instance.ReadBytes(256, multi.Keys);
+                var loading = new List<Triple<byte, byte, byte>>(); // Key, min, max
+                int prev = -1;
+                for (int i = 0; i < 256; i++)
                 {
-                    prev = a;
-                    loading.Add(new Triple<byte, byte, byte>(a, bi, bi));
+                    byte a = keys[i];
+                    byte bi = (byte)i;
+                    if (prev == a)
+                        loading[loading.Count - 1].Item3 = bi;
+                    else
+                    {
+                        prev = a;
+                        loading.Add(new Triple<byte, byte, byte>(a, bi, bi));
+                    }
                 }
+                Keys = loading.ToArray();
             }
-            Keys = loading.ToArray();
+            catch
+            {
+                Table = null;
+                Keys = null;
+            }
         }
     }
     internal class M4ASDrum : SVoice
@@ -108,7 +116,14 @@ namespace GBAMusicStudio.Core
 
         internal M4ASDrum(M4AVoice d) : base(d)
         {
-            Table = VoiceTable.LoadTable<M4AVoiceTable>(d.Table, true);
+            try
+            {
+                Table = VoiceTable.LoadTable<M4AVoiceTable>(drum.Table, true);
+            }
+            catch
+            {
+                Table = null;
+            }
         }
     }
     internal class M4ASSample : ISample
@@ -120,15 +135,21 @@ namespace GBAMusicStudio.Core
         internal M4ASSample(uint offset)
         {
             Offset = offset;
+
+            if (offset == 0 || !ROM.IsValidRomOffset(offset - ROM.Pak))
+                goto fail;
+
             sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
 
-            if (offset == 0 || !ROM.IsValidRomOffset(offset - ROM.Pak) || !ROM.IsValidRomOffset(sample.Length + (offset + 0x10) - ROM.Pak))
+            if (!ROM.IsValidRomOffset(sample.Length + (offset + 0x10) - ROM.Pak))
                 goto fail;
-            
+
             gSample = new Sample(sample.DoesLoop == 0x40000000, sample.LoopPoint, sample.Length, sample.Frequency >> 10, offset + 0x10, false);
             return;
 
             fail:
+            sample = new M4AMLSSSample();
+            gSample = null;
             Console.WriteLine("Error loading instrument at 0x{0:X}.", offset);
         }
 

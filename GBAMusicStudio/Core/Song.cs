@@ -416,7 +416,7 @@ namespace GBAMusicStudio.Core
 
             for (int i = 0; i < NumTracks; i++)
             {
-                reader.SetOffset(Header.Tracks[i]);
+                reader.Position = Header.Tracks[i];
 
                 byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 127;
 
@@ -574,7 +574,7 @@ namespace GBAMusicStudio.Core
             {
                 Commands[i] = new List<SongEvent>();
                 uint track = Offset + ROM.Instance.ReadUInt16((uint)(Offset + 2 + (i * 2)));
-                ROM.Instance.SetOffset(track);
+                ROM.Instance.Position = track;
 
                 byte cmd = 0;
                 while (cmd != 0xFF && cmd != 0xF8)
