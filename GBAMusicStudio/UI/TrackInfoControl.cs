@@ -194,7 +194,7 @@ namespace GBAMusicStudio.UI
                 pianos[i].Visible = mutes[i].Visible = true;
                 pianos[i].Location = new Point(checkboxSize + co * 2, (int)r1y + co);
 
-                e.Graphics.DrawString(string.Format("0x{0:X6}", Info.Positions[i]), Font, Brushes.Lime, px, r1y);
+                e.Graphics.DrawString(string.Format("0x{0:X7}", Info.Positions[i]), Font, Brushes.Lime, px, r1y);
                 e.Graphics.DrawString(Info.Delays[i].ToString(), Font, Brushes.Crimson, dex, r1y);
 
                 e.Graphics.DrawString(Info.Voices[i].ToString(), Font, brush, vox, r2y);

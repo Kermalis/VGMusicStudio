@@ -54,7 +54,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Buttons in the taskbar like with most music players
 * Tempo numerical (it fits)
 * Detachable piano
-* Help dialog that explains the commands for each format
+* Help dialog that explains the commands for each engine
 * If I go insane I'll support the MOD music format
 
 ----
