@@ -130,7 +130,7 @@ namespace GBAMusicStudio.Core
                     nChn = wave;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
-                    wave.Init(owner, note, env, (byte[])arg);
+                    wave.Init(owner, note, env, (uint)arg);
                     break;
                 case GBType.Noise:
                     nChn = noise;

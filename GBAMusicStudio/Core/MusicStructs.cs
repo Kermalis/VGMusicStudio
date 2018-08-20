@@ -75,12 +75,6 @@ namespace GBAMusicStudio.Core
 
         internal M4ASDirect(M4AVoice direct) : base(direct) => Sample = new M4ASSample(direct.Address);
     }
-    internal class M4ASWave : SVoice
-    {
-        internal readonly byte[] sample;
-
-        internal M4ASWave(M4AVoice wave) : base(wave) => sample = ROM.Instance.ReadBytes(16, wave.Address);
-    }
     internal class M4ASMulti : SVoice
     {
         internal readonly M4AVoiceTable Table;

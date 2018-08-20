@@ -59,10 +59,6 @@ namespace GBAMusicStudio.Core
                     case 0x8:
                         voices[i] = new M4ASDirect(voice);
                         break;
-                    case 0x3:
-                    case 0xB:
-                        voices[i] = new M4ASWave(voice);
-                        break;
                     case 0x40:
                         voices[i] = new M4ASMulti(voice);
                         break;

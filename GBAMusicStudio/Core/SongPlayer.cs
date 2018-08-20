@@ -193,7 +193,7 @@ namespace GBAMusicStudio.Core
                     case 0xB:
                         SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Wave, ((M4ASWave)voice).sample);
+                                GBType.Wave, m4avoice.Address);
                         break;
                     case 0x4:
                     case 0xC:

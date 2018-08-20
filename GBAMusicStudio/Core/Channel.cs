@@ -704,10 +704,11 @@ namespace GBAMusicStudio.Core
         readonly float[] sample = new float[0x20];
 
         internal WaveChannel() : base() { }
-        internal void Init(byte ownerIdx, Note note, ADSR env, byte[] data)
+        internal void Init(byte ownerIdx, Note note, ADSR env, uint address)
         {
             Init(ownerIdx, note, env);
 
+            byte[] data = ROM.Instance.ReadBytes(16, address);
             float sum = 0;
             for (int i = 0; i < 0x10; i++)
             {
