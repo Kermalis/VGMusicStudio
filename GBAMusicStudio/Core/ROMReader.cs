@@ -31,7 +31,14 @@ namespace GBAMusicStudio.Core
         internal byte PeekByte(uint offset = 0xFFFFFFFF)
         {
             var org = Reader.BaseStream.Position;
-            byte ret = (byte)Parse(offset, 1);
+            byte ret = ReadByte(offset);
+            Reader.BaseStream.Position = org;
+            return ret;
+        }
+        internal byte[] PeekBytes(uint amt, uint offset = 0xFFFFFFFF)
+        {
+            var org = Reader.BaseStream.Position;
+            byte[] ret = ReadBytes(amt, offset);
             Reader.BaseStream.Position = org;
             return ret;
         }

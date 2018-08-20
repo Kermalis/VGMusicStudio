@@ -433,25 +433,18 @@ namespace GBAMusicStudio.Core
 
                     if (runCmd >= 0xCF && cmd < 0x80) // Within running status
                     {
-                        var o = reader.Position;
-                        byte peek1 = reader.ReadByte(),
-                            peek2 = reader.ReadByte();
-                        reader.SetOffset(o);
-                        if (peek1 >= 128) command = AddNoteEvent(cmd, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
-                        else if (peek2 > 3 || peek2 < 1) command = AddNoteEvent(cmd, reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
+                        var peek = reader.PeekBytes(2);
+                        if (peek[0] >= 128) command = AddNoteEvent(cmd, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        else if (peek[1] > 3 || peek[1] < 1) command = AddNoteEvent(cmd, reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
                         else command = AddNoteEvent(cmd, reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
                     }
                     else if (cmd >= 0xCF)
                     {
-                        var o = reader.Position;
-                        byte peek1 = reader.ReadByte(),
-                            peek2 = reader.ReadByte(),
-                            peek3 = reader.ReadByte();
-                        reader.SetOffset(o);
-                        if (peek1 >= 128) command = AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
-                        else if (peek2 >= 128) command = AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        var peek = reader.PeekBytes(3);
+                        if (peek[0] >= 128) command = AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        else if (peek[1] >= 128) command = AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
                         // TIE cannot have an added duration so it needs to stop here
-                        else if (cmd == 0xCF || peek3 > 3 || peek3 < 1) command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
+                        else if (cmd == 0xCF || peek[2] > 3 || peek[2] < 1) command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
                         else command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
                     }
 
