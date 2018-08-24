@@ -76,7 +76,7 @@ namespace GBAMusicStudio.Core
 
         internal static void SetMute(int owner, bool m) => mutes[owner] = m;
 
-        internal static void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, Sample sample, Track[] tracks)
+        internal static void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
         {
             DirectSoundChannel nChn = null;
             var byOwner = dsChannels.OrderByDescending(c => c.OwnerIdx);

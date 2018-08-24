@@ -72,12 +72,12 @@ namespace GBAMusicStudio.Core
             internal float InterStep;
         }
 
-        Sample sample; GoldenSunPSG gsPSG;
+        WrappedSample sample; GoldenSunPSG gsPSG;
 
         bool bFixed, bGoldenSun;
         byte curLeftVol, curRightVol, prevLeftVol, prevRightVol;
 
-        internal void Init(byte ownerIdx, Note note, ADSR adsr, Sample sample, byte vol, sbyte pan, int pitch, bool bFixed)
+        internal void Init(byte ownerIdx, Note note, ADSR adsr, WrappedSample sample, byte vol, sbyte pan, int pitch, bool bFixed)
         {
             State = ADSRState.Initializing;
             pos = 0; processStep = 0; interPos = 0;

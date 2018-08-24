@@ -142,7 +142,7 @@ namespace GBAMusicStudio.Core
                 info.Delays[i] = tracks[i].Delay;
                 info.Voices[i] = tracks[i].Voice;
                 info.Mods[i] = tracks[i].MODDepth;
-                info.Types[i] = Song.VoiceTable[tracks[i].Voice].ToString();
+                info.Types[i] = Song.VoiceTable[tracks[i].Voice].GetName();
                 info.Volumes[i] = tracks[i].GetVolume();
                 info.Pitches[i] = tracks[i].GetPitch();
                 info.Pans[i] = tracks[i].GetPan();
@@ -163,49 +163,50 @@ namespace GBAMusicStudio.Core
 
             if (!track.Ready) return;
 
-            SVoice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
+            WrappedVoice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
 
             var owner = track.Index;
             var aNote = new Note { Duration = duration, Velocity = velocity, OriginalKey = note, Key = fromDrum ? voice.Voice.GetRootNote() : note };
-            if (voice.Voice is M4AVoice m4avoice)
+            if (voice.Voice is M4AVoice m4a)
             {
-                switch (m4avoice.Type)
+                M4AVoiceEntry entry = m4a.Entry;
+                switch (entry.Type)
                 {
                     case 0x0:
                     case 0x8:
-                        SoundMixer.NewDSNote(owner, m4avoice.ADSR, aNote,
+                        SoundMixer.NewDSNote(owner, entry.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
-                            m4avoice.Type == 0x8, ((M4ASDirect)voice).Sample.GetSample(), tracks);
+                            entry.Type == 0x8, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
                         break;
                     case 0x1:
                     case 0x9:
-                        SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Square1, m4avoice.SquarePattern);
+                                GBType.Square1, entry.SquarePattern);
                         break;
                     case 0x2:
                     case 0xA:
-                        SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Square2, m4avoice.SquarePattern);
+                                GBType.Square2, entry.SquarePattern);
                         break;
                     case 0x3:
                     case 0xB:
-                        SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Wave, m4avoice.Address);
+                                GBType.Wave, entry.Address);
                         break;
                     case 0x4:
                     case 0xC:
-                        SoundMixer.NewGBNote(owner, m4avoice.ADSR, aNote,
+                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Noise, m4avoice.NoisePattern);
+                                GBType.Noise, entry.NoisePattern);
                         break;
                 }
             }
             else if (voice.Voice is MLSSVoice mlssvoice)
             {
-                MLSSVoiceEntry entry; bool bFixed = false; Sample sample = null;
+                MLSSVoiceEntry entry; bool bFixed = false; WrappedSample sample = null;
                 try
                 {
                     entry = mlssvoice.GetEntryFromNote(note);
