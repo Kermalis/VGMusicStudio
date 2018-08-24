@@ -41,7 +41,7 @@ namespace GBAMusicStudio.Core
         }
         public IEnumerator<WrappedVoice> GetEnumerator() => ((IEnumerable<WrappedVoice>)voices).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         internal virtual WrappedVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
         {
             fromDrum = false;
@@ -60,22 +60,14 @@ namespace GBAMusicStudio.Core
                 if (!ROM.IsValidRomOffset(off))
                     break;
                 var voice = new M4AVoice(off);
-                switch (voice.Entry.Type)
-                {
-                    case 0x0:
-                    case 0x8:
-                        voices[i] = new M4AWrappedDirect(voice);
-                        break;
-                    case 0x40:
-                        voices[i] = new M4AWrappedMulti(voice);
-                        break;
-                    case 0x80:
-                        voices[i] = new M4AWrappedDrum(voice);
-                        break;
-                    default:
-                        voices[i] = new WrappedVoice(voice);
-                        break;
-                }
+                if (voice.Entry.Type == (int)M4AVoiceFlags.KeySplit)
+                    voices[i] = new M4AWrappedMulti(voice);
+                else if (voice.Entry.Type == (int)M4AVoiceFlags.Drum)
+                    voices[i] = new M4AWrappedDrum(voice);
+                else if ((voice.Entry.Type & 0x7) == (int)M4AVoiceType.Direct)
+                    voices[i] = new M4AWrappedDirect(voice);
+                else
+                    voices[i] = new WrappedVoice(voice);
             }
         }
 
@@ -88,13 +80,13 @@ namespace GBAMusicStudio.Core
             M4AVoiceEntry v = ((M4AVoice)sv.Voice).Entry;
             switch (v.Type)
             {
-                case 0x40:
+                case (int)M4AVoiceFlags.KeySplit:
                     var multi = (M4AWrappedMulti)sv;
                     byte inst = ROM.Instance.ReadByte((uint)(v.Keys + note));
                     sv = multi.Table[inst];
                     fromDrum = false; // In case there is a multi within a drum
                     goto Read;
-                case 0x80:
+                case (int)M4AVoiceFlags.Drum:
                     var drum = (M4AWrappedDrum)sv;
                     sv = drum.Table[note];
                     fromDrum = true;

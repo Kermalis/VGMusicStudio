@@ -170,37 +170,30 @@ namespace GBAMusicStudio.Core
             if (voice.Voice is M4AVoice m4a)
             {
                 M4AVoiceEntry entry = m4a.Entry;
-                switch (entry.Type)
+                M4AVoiceType type = (M4AVoiceType)(entry.Type & 0x7);
+                switch (type)
                 {
-                    case 0x0:
-                    case 0x8:
+                    case M4AVoiceType.Direct:
+                        bool bFixed = (entry.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
                         SoundMixer.NewDSNote(owner, entry.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
-                            entry.Type == 0x8, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
+                            bFixed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
                         break;
-                    case 0x1:
-                    case 0x9:
+                    case M4AVoiceType.Square1:
+                    case M4AVoiceType.Square2:
                         SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Square1, entry.SquarePattern);
+                                type, entry.SquarePattern);
                         break;
-                    case 0x2:
-                    case 0xA:
+                    case M4AVoiceType.Wave:
                         SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Square2, entry.SquarePattern);
+                                type, entry.Address);
                         break;
-                    case 0x3:
-                    case 0xB:
+                    case M4AVoiceType.Noise:
                         SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Wave, entry.Address);
-                        break;
-                    case 0x4:
-                    case 0xC:
-                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
-                                track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                GBType.Noise, entry.NoisePattern);
+                                type, entry.NoisePattern);
                         break;
                 }
             }

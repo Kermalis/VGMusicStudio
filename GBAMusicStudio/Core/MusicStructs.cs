@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Util;
+using Humanizer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,7 +86,7 @@ namespace GBAMusicStudio.Core
 
         public bool IsGoldenSunPSG()
         {
-            if (Entry.Type != 0x0 && Entry.Type != 0x8) return false;
+            if ((Entry.Type & 0x7) != (int)M4AVoiceType.Direct) return false;
             var gSample = new M4AWrappedSample(Entry.Address).GetSample();
             if (gSample == null) return false;
             return (gSample.bLoop && gSample.LoopPoint == 0 && gSample.Length == 0);
@@ -95,23 +96,20 @@ namespace GBAMusicStudio.Core
         {
             if (name == string.Empty)
             {
-                switch (Entry.Type)
+                if (Entry.Type == (int)M4AVoiceFlags.KeySplit)
+                    name = "Key Split";
+                else if (Entry.Type == (int)M4AVoiceFlags.Drum)
+                    name = "Drum";
+                else
                 {
-                    case 0x0:
-                    case 0x8:
-                        name = IsGoldenSunPSG() ? $"GS {ROM.Instance.ReadStruct<GoldenSunPSG>(Entry.Address + 0x10).Type}" : "Direct Sound";
-                        break;
-                    case 0x1:
-                    case 0x9: name = "Square 1"; break;
-                    case 0x2:
-                    case 0xA: name = "Square 2"; break;
-                    case 0x3:
-                    case 0xB: name = "Wave"; break;
-                    case 0x4:
-                    case 0xC: name = "Noise"; break;
-                    case 0x40: name = "Key Split"; break;
-                    case 0x80: name = "Drum"; break;
-                    default: name = $"Invalid (0x{Entry.Type:X})"; break;
+                    var type = (M4AVoiceType)(Entry.Type & 0x7);
+                    switch (type)
+                    {
+                        case M4AVoiceType.Direct:
+                            name = IsGoldenSunPSG() ? $"GS {ROM.Instance.ReadStruct<GoldenSunPSG>(Entry.Address + 0x10).Type}" : "Direct Sound";
+                            break;
+                        default: name = type.Humanize(); break;
+                    }
                 }
             }
             return name;
@@ -120,14 +118,29 @@ namespace GBAMusicStudio.Core
         public override string ToString()
         {
             string str = GetName();
-            switch (Entry.Type)
+            if (Entry.Type != (int)M4AVoiceFlags.KeySplit && Entry.Type != (int)M4AVoiceFlags.Drum)
             {
-                case 0x1:
-                case 0x9:
-                case 0x2:
-                case 0xA: str += $" - {Entry.SquarePattern}"; break;
-                case 0x4:
-                case 0xC: str += $" - {Entry.NoisePattern}"; break;
+                var flags = (M4AVoiceFlags)Entry.Type;
+                switch ((M4AVoiceType)(Entry.Type & 0x7))
+                {
+                    case M4AVoiceType.Direct:
+                        bool bFixed = (flags & M4AVoiceFlags.Fixed) == M4AVoiceFlags.Fixed,
+                            bReversed = (flags & M4AVoiceFlags.Reversed) == M4AVoiceFlags.Reversed,
+                            bCompressed = (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
+                        if (bFixed || bReversed || bCompressed)
+                        {
+                            str += " [ ";
+                            if (bFixed) str += "Fixed ";
+                            if (bReversed) str += "Reversed ";
+                            if (bCompressed) str += "Compressed ";
+                            str += ']';
+                        }
+                        break;
+                    default:
+                        bool bOWN = (flags & M4AVoiceFlags.OffWithNoise) == M4AVoiceFlags.OffWithNoise;
+                        if (bOWN) str += " [ OWN ]";
+                        break;
+                }
             }
             return str;
         }

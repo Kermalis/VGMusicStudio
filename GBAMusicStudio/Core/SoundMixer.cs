@@ -109,35 +109,36 @@ namespace GBAMusicStudio.Core
             if (nChn != null) // Could still be null from the above if
                 nChn.Init(owner, note, env, sample, vol, pan, pitch, bFixed);
         }
-        internal static void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, GBType type, object arg)
+        internal static void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
         {
             GBChannel nChn;
             switch (type)
             {
-                default:
+                case M4AVoiceType.Square1:
                     nChn = sq1;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
                     sq1.Init(owner, note, env, (SquarePattern)arg);
                     break;
-                case GBType.Square2:
+                case M4AVoiceType.Square2:
                     nChn = sq2;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
                     sq2.Init(owner, note, env, (SquarePattern)arg);
                     break;
-                case GBType.Wave:
+                case M4AVoiceType.Wave:
                     nChn = wave;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
                     wave.Init(owner, note, env, (uint)arg);
                     break;
-                case GBType.Noise:
+                case M4AVoiceType.Noise:
                     nChn = noise;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
                     noise.Init(owner, note, env, (NoisePattern)arg);
                     break;
+                default: return;
             }
             nChn.SetVolume(vol, pan);
             nChn.SetPitch(pitch);
