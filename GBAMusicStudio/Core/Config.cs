@@ -85,6 +85,7 @@ namespace GBAMusicStudio.Core
 
         internal static byte DirectCount { get; private set; }
         internal static uint SampleRate { get; private set; }
+        internal static bool All256Voices { get; private set; }
         internal static bool MIDIKeyboardFixedVelocity { get; private set; }
         internal static bool TaskbarProgress { get; private set; }
         internal static byte RefreshRate { get; private set; }
@@ -106,6 +107,7 @@ namespace GBAMusicStudio.Core
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseValue(mapping.Children["DirectCount"].ToString());
             SampleRate = (uint)Utils.ParseValue(mapping.Children["SampleRate"].ToString());
+            All256Voices = bool.Parse(mapping.Children["All256Voices"].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children["MIDIKeyboardFixedVelocity"].ToString());
             TaskbarProgress = bool.Parse(mapping.Children["TaskbarProgress"].ToString());
             RefreshRate = (byte)Utils.ParseValue(mapping.Children["RefreshRate"].ToString());

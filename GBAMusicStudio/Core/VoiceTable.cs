@@ -26,12 +26,10 @@ namespace GBAMusicStudio.Core
         internal static void ClearCache() => cache.Clear();
 
         public uint Offset { get; protected set; }
+        protected uint Length { get; private set; }
         protected readonly WrappedVoice[] voices;
 
-        internal VoiceTable(int capacity = 256) // It is possible to play notes outside of the 128 MIDI standard
-        {
-            voices = new WrappedVoice[capacity];
-        }
+        internal VoiceTable(uint capacity) => voices = new WrappedVoice[Length = capacity];
         protected abstract void Load(uint table);
 
         protected internal WrappedVoice this[int i]
@@ -51,10 +49,11 @@ namespace GBAMusicStudio.Core
 
     internal class M4AVoiceTable : VoiceTable
     {
+        public M4AVoiceTable() : base(Config.All256Voices ? 256u : 128u) { }
         protected override void Load(uint table)
         {
             Offset = table;
-            for (uint i = 0; i < 256; i++)
+            for (uint i = 0; i < Length; i++)
             {
                 uint off = table + (i * 0xC);
                 if (!ROM.IsValidRomOffset(off))
@@ -101,6 +100,7 @@ namespace GBAMusicStudio.Core
     {
         internal MLSSWrappedSample[] Samples { get; private set; }
 
+        public MLSSVoiceTable() : base(256u) { }
         protected override void Load(uint table)
         {
             uint sampleCount = ROM.Instance.Game.SampleTableSize;

@@ -1,11 +1,12 @@
-# These cannot be reloaded in the program:
+# These cannot be refreshed in the program:
 
 DirectCount: 24 # 5 or above.
 Volume: 50 # 0 to 100.
 SampleRate: 48000 # Must be a multiple of 60.
 
-# These can be reloaded in the program:
+# These can be refreshed in the program:
 
+All256Voices: False # True or False. # Only applies to VoiceTables loaded after a refresh.
 MIDIKeyboardFixedVelocity: True # True or False.
 TaskbarProgress: True # True or False.
 RefreshRate: 30 # Value over 0. # Requires a song state change to update.
