@@ -245,7 +245,7 @@ namespace GBAMusicStudio.Core
         public string Name => "Go To";
 
         uint offset;
-        public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
+        public uint Offset { get => offset; set => offset = value.Clamp(0u, ROM.Capacity); }
 
         public string Arguments => $"0x{offset:X7}";
     }
@@ -279,7 +279,7 @@ namespace GBAMusicStudio.Core
         public string Name => "Call";
 
         uint offset;
-        public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
+        public uint Offset { get => offset; set => offset = value.Clamp(0u, ROM.Capacity); }
 
         public string Arguments => $"0x{offset:X7}";
     }
@@ -295,7 +295,7 @@ namespace GBAMusicStudio.Core
 
         public byte Times;
         uint offset;
-        public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
+        public uint Offset { get => offset; set => offset = value.Clamp(0u, ROM.Capacity); }
 
         public string Arguments => $"{Times}, 0x{offset:X7}";
     }

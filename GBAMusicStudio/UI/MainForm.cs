@@ -205,7 +205,7 @@ namespace GBAMusicStudio.UI
             SongPlayer.SetPosition((uint)positionBar.Value);
             drag = false;
         }
-        void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(int)tableNumerical.Value] - 1;
+        void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(uint)tableNumerical.Value] - 1;
         void TableChanged(object sender, EventArgs e)
         {
             SetSongMaximum();
@@ -237,7 +237,7 @@ namespace GBAMusicStudio.UI
             }
             bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.SetSong(ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value]);
+            SongPlayer.SetSong(ROM.Instance.SongTables[(uint)tableNumerical.Value][(uint)songNumerical.Value]);
             UpdateTrackInfo(playing);
 
             MIDIKeyboard.Start();

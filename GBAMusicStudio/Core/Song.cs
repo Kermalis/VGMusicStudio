@@ -570,10 +570,10 @@ namespace GBAMusicStudio.Core
             int amt = GetTrackAmount(ROM.Instance.ReadUInt16(Offset));
 
             Commands = new List<SongEvent>[amt];
-            for (int i = 0; i < amt; i++)
+            for (uint i = 0; i < amt; i++)
             {
                 Commands[i] = new List<SongEvent>();
-                uint track = Offset + ROM.Instance.ReadUInt16((uint)(Offset + 2 + (i * 2)));
+                uint track = Offset + ROM.Instance.ReadUInt16(Offset + 2 + (i * 2));
                 ROM.Instance.Position = track;
 
                 byte cmd = 0;

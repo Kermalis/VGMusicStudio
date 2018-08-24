@@ -100,7 +100,7 @@ namespace GBAMusicStudio.Core
     {
         internal MLSSWrappedSample[] Samples { get; private set; }
 
-        public MLSSVoiceTable() : base(256u) { }
+        public MLSSVoiceTable() : base(256) { }
         protected override void Load(uint table)
         {
             uint sampleCount = ROM.Instance.Game.SampleTableSize;
@@ -108,10 +108,10 @@ namespace GBAMusicStudio.Core
             Samples = new MLSSWrappedSample[sampleCount];
             Offset = ROM.Instance.Game.VoiceTable;
 
-            for (int i = 0; i < 256; i++)
+            for (uint i = 0; i < 256; i++)
             {
-                var off = ROM.Instance.ReadInt16((uint)(Offset + (i * 2)));
-                var nextOff = ROM.Instance.ReadInt16((uint)(Offset + ((i + 1) * 2)));
+                var off = ROM.Instance.ReadInt16(Offset + (i * 2));
+                var nextOff = ROM.Instance.ReadInt16(Offset + ((i + 1) * 2));
                 uint numEntries = (uint)(nextOff - off) / 8; // Each entry is 8 bytes
                 voices[i] = new MLSSWrappedVoice((uint)(Offset + off), numEntries);
             }

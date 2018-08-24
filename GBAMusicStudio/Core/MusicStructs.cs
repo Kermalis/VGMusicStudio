@@ -294,8 +294,8 @@ namespace GBAMusicStudio.Core
         {
             Offset = offset;
             Entries = new MLSSWrappedVoiceEntry[numEntries];
-            for (int i = 0; i < numEntries; i++)
-                Entries[i] = new MLSSWrappedVoiceEntry((uint)(offset + (i * 8)));
+            for (uint i = 0; i < numEntries; i++)
+                Entries[i] = new MLSSWrappedVoiceEntry(offset + (i * 8));
         }
 
         // Throws exception if it can't find a single

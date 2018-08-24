@@ -11,18 +11,18 @@
             this.size = size;
         }
 
-        internal Song this[int i] { get => LoadSong(i); }
+        internal Song this[uint i] { get => LoadSong(i); }
 
-        protected abstract Song LoadSong(int i);
+        protected abstract Song LoadSong(uint i);
     }
 
     internal class M4ASongTable : SongTable
     {
         internal M4ASongTable(uint offset, uint size) : base(offset, size) { }
 
-        protected override Song LoadSong(int i)
+        protected override Song LoadSong(uint i)
         {
-            var entry = ROM.Instance.ReadStruct<M4ASongEntry>((uint)(Offset + (i * 8)));
+            var entry = ROM.Instance.ReadStruct<M4ASongEntry>(Offset + (i * 8));
             return new M4AROMSong(entry.Header);
         }
     }
@@ -31,9 +31,9 @@
     {
         internal MLSSSongTable(uint offset, uint size) : base(offset, size) { }
 
-        protected override Song LoadSong(int i)
+        protected override Song LoadSong(uint i)
         {
-            return new MLSSSong(ROM.Instance.ReadUInt32((uint)(Offset + (i * 4))));
+            return new MLSSSong(ROM.Instance.ReadUInt32(Offset + (i * 4)));
         }
     }
 }
