@@ -2,6 +2,7 @@
 using GBAMusicStudio.Core;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +10,7 @@ using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    [System.ComponentModel.DesignerCategory("")]
+    [DesignerCategory("")]
     internal class TrackEditor : ThemedForm
     {
         int currentTrack = 0;
@@ -29,7 +30,7 @@ namespace GBAMusicStudio.UI
 
         internal TrackEditor()
         {
-            int w = 300 - 12 - 6, h = 400 - 24;
+            int w = (600 / 2) - 12 - 6, h = 400 - 12 - 11;
             listView = new ObjectListView
             {
                 FullRowSelect = true,
@@ -37,7 +38,7 @@ namespace GBAMusicStudio.UI
                 HideSelection = false,
                 Location = new Point(12, 12),
                 MultiSelect = false,
-                RowFormatter = RowFormatter,
+                RowFormatter = RowColorer,
                 ShowGroups = false,
                 Size = new Size(w, h),
                 UseFiltering = true,
@@ -46,7 +47,7 @@ namespace GBAMusicStudio.UI
             OLVColumn c1, c2, c3, c4;
             c1 = new OLVColumn("Event", "Command.Name");
             c2 = new OLVColumn("Arguments", "Command.Arguments") { UseFiltering = false };
-            c3 = new OLVColumn("Offset", "Offset") { AspectToStringFormat = "0x{0:X}", UseFiltering = false };
+            c3 = new OLVColumn("Offset", "Offset") { AspectToStringFormat = "0x{0:X7}", UseFiltering = false };
             c4 = new OLVColumn("Ticks", "AbsoluteTicks") { UseFiltering = false };
             c1.Width = c2.Width = c3.Width = 72;
             c4.Width = 45;
@@ -57,10 +58,10 @@ namespace GBAMusicStudio.UI
             listView.SelectedIndexChanged += SelectedIndexChanged;
             listView.ItemActivate += ListView_ItemActivate;
 
-            int h2 = h / 3 - 4;
+            int h2 = (h / 3) - 4;
             var panel1 = new ThemedPanel { Location = new Point(306, 12), Size = new Size(w, h2) };
-            var panel2 = new ThemedPanel { Location = new Point(306, 140), Size = new Size(w, h2 - 1) };
-            var panel3 = new ThemedPanel { Location = new Point(306, 267), Size = new Size(w, h2) };
+            var panel2 = new ThemedPanel { Location = new Point(306, 140), Size = new Size(w, h2) };
+            var panel3 = new ThemedPanel { Location = new Point(306, 268), Size = new Size(w, h2) };
 
             // Arguments Info
             for (int i = 0; i < 3; i++)
@@ -197,7 +198,7 @@ namespace GBAMusicStudio.UI
             LoadTrack(currentTrack);
         }
 
-        void RowFormatter(OLVListItem item)
+        void RowColorer(OLVListItem item)
         {
             var e = (SongEvent)item.RowObject;
             if (e.Command is GoToCommand || e.Command is CallCommand || e.Command is ReturnCommand || e.Command is FinishCommand)

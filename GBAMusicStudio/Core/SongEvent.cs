@@ -18,7 +18,7 @@ namespace GBAMusicStudio.Core
             Command = command;
         }
 
-        public override string ToString() => $"{Command}\t-\t0x{Offset.ToString("X")}\t-\t{AbsoluteTicks}";
+        public override string ToString() => $"{Command}\t-\t0x{Offset:X7}\t-\t{AbsoluteTicks}";
 
         internal static byte RestFromCMD(byte startCMD, byte cmd)
         {
@@ -247,7 +247,7 @@ namespace GBAMusicStudio.Core
         uint offset;
         public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
 
-        public string Arguments => $"0x{offset:X}";
+        public string Arguments => $"0x{offset:X7}";
     }
     internal class FinishCommand : ICommand
     {
@@ -281,7 +281,7 @@ namespace GBAMusicStudio.Core
         uint offset;
         public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
 
-        public string Arguments => $"0x{offset:X}";
+        public string Arguments => $"0x{offset:X7}";
     }
     internal class ReturnCommand : ICommand
     {
@@ -297,7 +297,7 @@ namespace GBAMusicStudio.Core
         uint offset;
         public uint Offset { get => offset; set => offset = value.Clamp((uint)0, ROM.Capacity); }
 
-        public string Arguments => $"{Times}, 0x{offset:X}";
+        public string Arguments => $"{Times}, 0x{offset:X7}";
     }
     internal class MemoryAccessCommand : ICommand
     {

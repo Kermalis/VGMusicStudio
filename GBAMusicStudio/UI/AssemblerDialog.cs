@@ -2,6 +2,7 @@
 using GBAMusicStudio.Util;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    [System.ComponentModel.DesignerCategory("")]
+    [DesignerCategory("")]
     internal class AssemblerDialog : ThemedForm
     {
         Assembler assembler;

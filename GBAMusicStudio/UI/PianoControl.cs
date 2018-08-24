@@ -26,13 +26,14 @@
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    [System.ComponentModel.DesignerCategory("")]
+    [DesignerCategory("")]
     public partial class PianoControl : Control
     {
         public class PianoKey : Control

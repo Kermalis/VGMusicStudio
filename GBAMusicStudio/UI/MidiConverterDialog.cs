@@ -1,6 +1,7 @@
 ﻿using GBAMusicStudio.Core;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -8,7 +9,7 @@ using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    [System.ComponentModel.DesignerCategory("")]
+    [DesignerCategory("")]
     internal class MIDIConverterDialog : ThemedForm
     {
         Assembler assembler;
