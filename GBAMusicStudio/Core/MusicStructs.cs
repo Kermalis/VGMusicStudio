@@ -151,18 +151,18 @@ namespace GBAMusicStudio.Core
 
         internal M4AWrappedDirect(M4AVoice direct) : base(direct) => Sample = new M4AWrappedSample(direct.Entry.Address);
     }
-    internal class M4AWrappedMulti : WrappedVoice
+    internal class M4AWrappedKeySplit : WrappedVoice
     {
         internal readonly M4AVoiceTable Table;
         internal readonly Triple<byte, byte, byte>[] Keys;
 
-        internal M4AWrappedMulti(M4AVoice multi) : base(multi)
+        internal M4AWrappedKeySplit(M4AVoice keySplit) : base(keySplit)
         {
             try
             {
-                Table = VoiceTable.LoadTable<M4AVoiceTable>(multi.Entry.Table, true);
+                Table = VoiceTable.LoadTable<M4AVoiceTable>(keySplit.Entry.Address, true);
 
-                var keys = ROM.Instance.ReadBytes(256, multi.Entry.Keys);
+                var keys = ROM.Instance.ReadBytes(256, keySplit.Entry.Keys);
                 var loading = new List<Triple<byte, byte, byte>>(); // Key, min, max
                 int prev = -1;
                 for (int i = 0; i < 256; i++)
@@ -196,7 +196,7 @@ namespace GBAMusicStudio.Core
         {
             try
             {
-                Table = VoiceTable.LoadTable<M4AVoiceTable>(drum.Entry.Table, true);
+                Table = VoiceTable.LoadTable<M4AVoiceTable>(drum.Entry.Address, true);
             }
             catch
             {
@@ -256,14 +256,12 @@ namespace GBAMusicStudio.Core
         [FieldOffset(4)]
         internal NoisePattern NoisePattern; // Noise
         [FieldOffset(4)]
-        internal uint Address; // Direct, Wave
-        [FieldOffset(4)]
-        internal uint Table; // Multi, Drum
+        internal uint Address; // Direct, Wave, Key Split, Drum
 
         [FieldOffset(8)]
         internal ADSR ADSR; // Direct, Square1, Square2, Wave, Noise
         [FieldOffset(8)]
-        internal uint Keys; // Multi
+        internal uint Keys; // Key Split
     }
 
     [StructLayout(LayoutKind.Sequential)]
