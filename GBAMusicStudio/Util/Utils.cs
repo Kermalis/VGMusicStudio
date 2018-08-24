@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace GBAMusicStudio.Util
 {
-    public static class Utils
+    static class Utils
     {
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
         {

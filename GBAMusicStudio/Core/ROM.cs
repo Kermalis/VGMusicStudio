@@ -4,18 +4,18 @@ using System.IO;
 
 namespace GBAMusicStudio.Core
 {
-    internal class ROM : ROMReader
+    class ROM : ROMReader
     {
-        internal const uint Pak = 0x8000000;
-        internal const uint Capacity = 0x2000000;
+        public const uint Pak = 0x8000000;
+        public const uint Capacity = 0x2000000;
 
-        internal static ROM Instance { get; private set; } // If you want to read with the reader
+        public static ROM Instance { get; private set; } // If you want to read with the reader
 
-        internal readonly byte[] ROMFile;
-        internal AGame Game { get; private set; }
-        internal SongTable[] SongTables { get; private set; }
+        public readonly byte[] ROMFile;
+        public AGame Game { get; private set; }
+        public SongTable[] SongTables { get; private set; }
 
-        internal ROM(string filePath)
+        public ROM(string filePath)
         {
             Instance = this;
             SongPlayer.Stop();
@@ -24,7 +24,7 @@ namespace GBAMusicStudio.Core
             ReloadGameConfig();
             SongPlayer.Reset();
         }
-        internal void ReloadGameConfig()
+        public void ReloadGameConfig()
         {
             Game = Config.Games[System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC))];
             SongTables = new SongTable[Game.SongTables.Length];
@@ -39,15 +39,15 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal T ReadStruct<T>(uint offset = 0xFFFFFFFF)
+        public T ReadStruct<T>(uint offset = 0xFFFFFFFF)
         {
             if (offset != 0xFFFFFFFF)
                 Position = offset;
             return Utils.ReadStruct<T>(ROMFile, Position);
         }
 
-        internal static bool IsValidRomOffset(uint offset) => (offset < Capacity && offset < Instance.ROMFile.Length) || (offset >= Pak && offset < Pak + Capacity && offset < Instance.ROMFile.Length + Pak);
-        internal static uint SanitizeOffset(uint offset)
+        public static bool IsValidRomOffset(uint offset) => (offset < Capacity && offset < Instance.ROMFile.Length) || (offset >= Pak && offset < Pak + Capacity && offset < Instance.ROMFile.Length + Pak);
+        public static uint SanitizeOffset(uint offset)
         {
             if (!IsValidRomOffset(offset))
                 throw new ArgumentOutOfRangeException("\"offset\" was invalid.");

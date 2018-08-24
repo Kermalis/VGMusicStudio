@@ -1,24 +1,24 @@
 ﻿namespace GBAMusicStudio.Core
 {
-    internal abstract class SongTable
+    abstract class SongTable
     {
-        internal uint Offset;
+        public readonly uint Offset;
         readonly uint size;
 
-        internal SongTable(uint offset, uint size)
+        public SongTable(uint offset, uint size)
         {
             Offset = offset;
             this.size = size;
         }
 
-        internal Song this[uint i] { get => LoadSong(i); }
+        public Song this[uint i] { get => LoadSong(i); }
 
         protected abstract Song LoadSong(uint i);
     }
 
-    internal class M4ASongTable : SongTable
+    class M4ASongTable : SongTable
     {
-        internal M4ASongTable(uint offset, uint size) : base(offset, size) { }
+        public M4ASongTable(uint offset, uint size) : base(offset, size) { }
 
         protected override Song LoadSong(uint i)
         {
@@ -27,9 +27,9 @@
         }
     }
 
-    internal class MLSSSongTable : SongTable
+    class MLSSSongTable : SongTable
     {
-        internal MLSSSongTable(uint offset, uint size) : base(offset, size) { }
+        public MLSSSongTable(uint offset, uint size) : base(offset, size) { }
 
         protected override Song LoadSong(uint i)
         {

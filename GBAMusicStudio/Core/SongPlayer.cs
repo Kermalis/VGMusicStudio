@@ -4,19 +4,19 @@ using System.Threading;
 
 namespace GBAMusicStudio.Core
 {
-    internal static class SongPlayer
+    static class SongPlayer
     {
         static readonly TimeBarrier time;
         static Thread thread;
 
-        internal static ushort Tempo;
+        public static ushort Tempo;
         static int tempoStack;
         static uint position;
         static Track[] tracks;
         static int longestTrack;
 
-        internal static Song Song { get; private set; }
-        internal static int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
+        public static Song Song { get; private set; }
+        public static int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
 
         static SongPlayer()
         {
@@ -26,7 +26,7 @@ namespace GBAMusicStudio.Core
 
             Reset();
         }
-        internal static void Reset()
+        public static void Reset()
         {
             if (ROM.Instance == null) return;
 
@@ -43,17 +43,17 @@ namespace GBAMusicStudio.Core
             Song = null;
         }
 
-        internal static PlayerState State { get; private set; }
-        internal delegate void SongEndedEvent();
-        internal static event SongEndedEvent SongEnded;
+        public static PlayerState State { get; private set; }
+        public delegate void SongEndedEvent();
+        public static event SongEndedEvent SongEnded;
 
-        internal static void SetSong(Song song)
+        public static void SetSong(Song song)
         {
             Song = song;
             VoiceTable.ClearCache();
             SoundMixer.Init(song.GetReverb());
         }
-        internal static void SetPosition(uint p)
+        public static void SetPosition(uint p)
         {
             bool pause = State == PlayerState.Playing;
             if (pause) Pause();
@@ -80,7 +80,7 @@ namespace GBAMusicStudio.Core
             if (pause) Pause();
         }
 
-        internal static void RefreshSong()
+        public static void RefreshSong()
         {
             DetermineLongestTrack();
             SetPosition(position);
@@ -97,7 +97,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal static void Play()
+        public static void Play()
         {
             Stop();
 
@@ -116,24 +116,24 @@ namespace GBAMusicStudio.Core
 
             State = PlayerState.Playing;
         }
-        internal static void Pause()
+        public static void Pause()
         {
             State = (State == PlayerState.Paused ? PlayerState.Playing : PlayerState.Paused);
         }
-        internal static void Stop()
+        public static void Stop()
         {
             if (State == PlayerState.Stopped) return;
             State = PlayerState.Stopped;
             SoundMixer.StopAllChannels();
         }
-        internal static void ShutDown()
+        public static void ShutDown()
         {
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
         }
 
-        internal static void GetSongState(UI.TrackInfo info)
+        public static void GetSongState(UI.TrackInfo info)
         {
             info.Tempo = Tempo; info.Position = position;
             for (int i = 0; i < NumTracks; i++)
@@ -155,7 +155,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal static void PlayNote(Track track, sbyte note, byte velocity, int duration)
+        public static void PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
             int shift = note + track.KeyShift;
             note = (sbyte)(shift.Clamp(0, 127));

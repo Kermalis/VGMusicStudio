@@ -11,7 +11,7 @@ using System.Windows.Forms;
 namespace GBAMusicStudio.UI
 {
     [DesignerCategory("")]
-    internal class TrackEditor : ThemedForm
+    class TrackEditor : ThemedForm
     {
         int currentTrack = 0;
         List<SongEvent> events;
@@ -28,7 +28,7 @@ namespace GBAMusicStudio.UI
         readonly ThemedButton remapFromButton, remapToButton, globalChangeVoicesButton;
         readonly ThemedNumeric[] globalVoiceArgs = new ThemedNumeric[2];
 
-        internal TrackEditor()
+        public TrackEditor()
         {
             int w = (600 / 2) - 12 - 6, h = 400 - 12 - 11;
             listView = new ObjectListView
@@ -278,7 +278,7 @@ namespace GBAMusicStudio.UI
             SelectedIndexChanged(null, null);
         }
         void TracksBox_SelectedIndexChanged(object sender, EventArgs e) => LoadTrack(tracksBox.SelectedIndex);
-        internal void UpdateTracks()
+        public void UpdateTracks()
         {
             bool tracks = SongPlayer.NumTracks > 0;
             tracksBox.Enabled = trackChangeVoicesButton.Enabled = trackAddEventButton.Enabled = trackRemoveEventButton.Enabled = commandsBox.Enabled = globalChangeVoicesButton.Enabled = tracks;

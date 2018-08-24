@@ -13,12 +13,12 @@ using System.Windows.Forms;
 namespace GBAMusicStudio.UI
 {
     [DesignerCategory("")]
-    internal class MainForm : Form
+    class MainForm : Form
     {
         bool stopUI = false, drag = false;
         TrackEditor trackEditor;
         List<sbyte> pianoNotes = new List<sbyte>();
-        internal readonly bool[] PianoTracks = new bool[16];
+        public readonly bool[] PianoTracks = new bool[16];
 
         readonly int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)
         readonly float sfWidth = 2.35f; // Song combobox and volumebar width
@@ -47,7 +47,7 @@ namespace GBAMusicStudio.UI
             }
             base.Dispose(disposing);
         }
-        internal MainForm()
+        public MainForm()
         {
             components = new Container();
 
@@ -212,7 +212,7 @@ namespace GBAMusicStudio.UI
             LoadSong(sender, e);
         }
 
-        internal void PreviewASM(Assembler asm, string headerLabel, string caption)
+        public void PreviewASM(Assembler asm, string headerLabel, string caption)
         {
             Text = "GBA Music Studio - " + caption;
             bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing

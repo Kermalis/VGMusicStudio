@@ -7,12 +7,12 @@ namespace GBAMusicStudio.Core
         string Name { get; }
         string Arguments { get; }
     }
-    internal class SongEvent
+    class SongEvent
     {
         public uint Offset, AbsoluteTicks;
         public ICommand Command;
 
-        internal SongEvent(uint offset, ICommand command)
+        public SongEvent(uint offset, ICommand command)
         {
             Offset = offset;
             Command = command;
@@ -20,7 +20,7 @@ namespace GBAMusicStudio.Core
 
         public override string ToString() => $"{Command}\t-\t0x{Offset:X7}\t-\t{AbsoluteTicks}";
 
-        internal static byte RestFromCMD(byte startCMD, byte cmd)
+        public static byte RestFromCMD(byte startCMD, byte cmd)
         {
             byte[] added = { 4, 4, 2, 2 };
             byte wait = (byte)(cmd - startCMD);
@@ -29,7 +29,7 @@ namespace GBAMusicStudio.Core
                 add += added[i % 4];
             return add;
         }
-        internal static byte[] RestToCMD = {
+        public static byte[] RestToCMD = {
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
             17, 18, 19, 20, 21, 22, 23, 24, 24, 24, 24, 28, 28, 30, 30,
             32, 32, 32, 32, 36, 36, 36, 36, 40, 40, 42, 42, 44, 44, 44,
@@ -51,7 +51,7 @@ namespace GBAMusicStudio.Core
             return str;
         }
 
-        internal static string CenterValueString(sbyte value)
+        public static string CenterValueString(sbyte value)
         {
             return string.Format("c_v{0}{1}", value >= 0 ? "+" : "", value);
         }
@@ -59,7 +59,7 @@ namespace GBAMusicStudio.Core
 
     #region Commands
 
-    internal class TempoCommand : ICommand
+    class TempoCommand : ICommand
     {
         public string Name => "Tempo";
 
@@ -81,7 +81,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Tempo.ToString();
     }
-    internal class RestCommand : ICommand
+    class RestCommand : ICommand
     {
         public string Name => "Rest";
 
@@ -103,7 +103,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Rest.ToString();
     }
-    internal class NoteCommand : ICommand
+    class NoteCommand : ICommand
     {
         public string Name => "Note";
 
@@ -116,7 +116,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => string.Empty;
     }
-    internal class EndOfTieCommand : ICommand
+    class EndOfTieCommand : ICommand
     {
         public string Name => "End Of Tie";
 
@@ -125,7 +125,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => SongEvent.NoteName(note);
     }
-    internal class VoiceCommand : ICommand
+    class VoiceCommand : ICommand
     {
         public string Name => "Voice";
 
@@ -133,7 +133,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Voice.ToString();
     }
-    internal class VolumeCommand : ICommand
+    class VolumeCommand : ICommand
     {
         public string Name => "Volume";
 
@@ -142,7 +142,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => vol.ToString();
     }
-    internal class PanpotCommand : ICommand
+    class PanpotCommand : ICommand
     {
         public string Name => "Panpot";
 
@@ -159,12 +159,14 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => pan.ToString();
     }
-    internal class BendCommand : ICommand
+    class BendCommand : ICommand
     {
         public string Name => "Bend";
 
         sbyte bend;
-        public sbyte Bend { get => bend;
+        public sbyte Bend
+        {
+            get => bend;
             set
             {
                 byte range = Engine.GetBendingRange();
@@ -174,7 +176,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => bend.ToString();
     }
-    internal class TuneCommand : ICommand
+    class TuneCommand : ICommand
     {
         public string Name => "Fine Tuning";
 
@@ -183,7 +185,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => tune.ToString();
     }
-    internal class BendRangeCommand : ICommand
+    class BendRangeCommand : ICommand
     {
         public string Name => "Bend Range";
 
@@ -191,7 +193,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Range.ToString();
     }
-    internal class LFOSpeedCommand : ICommand
+    class LFOSpeedCommand : ICommand
     {
         public string Name => "LFO Speed";
 
@@ -199,7 +201,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Speed.ToString();
     }
-    internal class LFODelayCommand : ICommand
+    class LFODelayCommand : ICommand
     {
         public string Name => "LFO Delay";
 
@@ -207,7 +209,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Delay.ToString();
     }
-    internal class ModDepthCommand : ICommand
+    class ModDepthCommand : ICommand
     {
         public string Name => "MOD Depth";
 
@@ -215,7 +217,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Depth.ToString();
     }
-    internal class ModTypeCommand : ICommand
+    class ModTypeCommand : ICommand
     {
         public string Name => "MOD Type";
 
@@ -224,7 +226,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => type.ToString();
     }
-    internal class PriorityCommand : ICommand
+    class PriorityCommand : ICommand
     {
         public string Name => "Priority";
 
@@ -232,7 +234,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Priority.ToString();
     }
-    internal class KeyShiftCommand : ICommand
+    class KeyShiftCommand : ICommand
     {
         public string Name => "Key Shift";
 
@@ -240,7 +242,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => Shift.ToString();
     }
-    internal class GoToCommand : ICommand
+    class GoToCommand : ICommand
     {
         public string Name => "Go To";
 
@@ -249,7 +251,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => $"0x{offset:X7}";
     }
-    internal class FinishCommand : ICommand
+    class FinishCommand : ICommand
     {
         public string Name => "Finish";
 
@@ -260,21 +262,21 @@ namespace GBAMusicStudio.Core
 
     #region M4A Commands
 
-    internal class M4ANoteCommand : NoteCommand
+    class M4ANoteCommand : NoteCommand
     {
         public new byte Velocity { get => vel; set => vel = value.Clamp((byte)0, (byte)0x7F); }
         public new int Duration { get => dur; set => dur = value.Clamp(-1, 0x7F); }
 
         public new string Arguments => $"{SongEvent.NoteName(note)} {vel} {dur}";
     }
-    internal class M4AFinishCommand : FinishCommand
+    class M4AFinishCommand : FinishCommand
     {
         bool prev; // PREV is 0xB6, FINE is 0xB1
         public byte Type { get => (byte)(prev ? 0xB6 : 0xB1); set => prev = value == 0xB6; }
 
         public new string Arguments => prev ? "Resume previous track" : "End track";
     }
-    internal class CallCommand : ICommand
+    class CallCommand : ICommand
     {
         public string Name => "Call";
 
@@ -283,13 +285,13 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => $"0x{offset:X7}";
     }
-    internal class ReturnCommand : ICommand
+    class ReturnCommand : ICommand
     {
         public string Name => "Return";
 
         public string Arguments => string.Empty;
     }
-    internal class RepeatCommand : ICommand
+    class RepeatCommand : ICommand
     {
         public string Name => "Repeat";
 
@@ -299,7 +301,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => $"{Times}, 0x{offset:X7}";
     }
-    internal class MemoryAccessCommand : ICommand
+    class MemoryAccessCommand : ICommand
     {
         public string Name => "Memory Access";
 
@@ -307,7 +309,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => $"{Arg1}, {Arg2}, {Arg3}";
     }
-    internal class LibraryCommand : ICommand
+    class LibraryCommand : ICommand
     {
         public string Name => "Library Call";
 
@@ -320,7 +322,7 @@ namespace GBAMusicStudio.Core
 
     #region MLSS Commands
 
-    internal class FreeNoteCommand : ICommand
+    class FreeNoteCommand : ICommand
     {
         public string Name => "Free Note";
 
@@ -331,7 +333,7 @@ namespace GBAMusicStudio.Core
 
         public string Arguments => $"{SongEvent.NoteName((sbyte)(note - 0x80))}, {Extension}";
     }
-    internal class MLSSNoteCommand : NoteCommand
+    class MLSSNoteCommand : NoteCommand
     {
         internal new byte Velocity { get => 127; }
         public new int Duration { get => dur; set => dur = value.Clamp(0, 0xC0); }

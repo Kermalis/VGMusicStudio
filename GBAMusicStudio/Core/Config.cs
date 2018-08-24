@@ -8,56 +8,56 @@ using YamlDotNet.RepresentationModel;
 
 namespace GBAMusicStudio.Core
 {
-    internal class ASong
+    class ASong
     {
-        internal readonly ushort Index;
-        internal readonly string Name;
+        public readonly ushort Index;
+        public readonly string Name;
 
-        internal ASong(ushort index, string name)
+        public ASong(ushort index, string name)
         {
             Index = index; Name = name;
         }
 
         public override string ToString() => Name;
     }
-    internal class APlaylist
+    class APlaylist
     {
-        internal readonly string Name;
-        internal readonly ASong[] Songs;
+        public readonly string Name;
+        public readonly ASong[] Songs;
 
-        internal APlaylist(string name, ASong[] songs)
+        public APlaylist(string name, ASong[] songs)
         {
             Name = name.Humanize(); Songs = songs;
         }
 
         public override string ToString() => string.Format("{0} - ({1})", Name, "Song".ToQuantity(Songs.Where(s => s.Name != "Playlist is empty.").Count()));
     }
-    internal class AnEngine
+    class AnEngine
     {
-        internal readonly EngineType Type;
-        internal readonly ReverbType ReverbType;
-        internal readonly byte Reverb;
-        internal readonly byte Volume; // 0-F
-        internal readonly uint Frequency;
+        public readonly EngineType Type;
+        public readonly ReverbType ReverbType;
+        public readonly byte Reverb;
+        public readonly byte Volume; // 0-F
+        public readonly uint Frequency;
 
-        internal AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, uint frequency)
+        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, uint frequency)
         {
             Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; Frequency = frequency;
         }
 
         public override string ToString() => Type.ToString();
     }
-    internal class AGame
+    class AGame
     {
-        internal readonly string Code, Name, Creator;
-        internal readonly AnEngine Engine;
-        internal readonly uint[] SongTables, SongTableSizes;
-        internal readonly List<APlaylist> Playlists;
+        public readonly string Code, Name, Creator;
+        public readonly AnEngine Engine;
+        public readonly uint[] SongTables, SongTableSizes;
+        public readonly List<APlaylist> Playlists;
 
         // MLSS only
-        internal readonly uint VoiceTable, SampleTable, SampleTableSize;
+        public readonly uint VoiceTable, SampleTable, SampleTableSize;
 
-        internal AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists,
+        public AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists,
             uint voiceTable, uint sampleTable, uint sampleTableSize)
         {
             Code = code; Name = name; Creator = creator; Engine = engine;
@@ -69,36 +69,36 @@ namespace GBAMusicStudio.Core
 
         public override string ToString() => Name;
     }
-    internal class ARemap
+    class ARemap
     {
-        internal readonly List<Tuple<byte, byte>> Remaps;
+        public readonly Tuple<byte, byte>[] Remaps;
 
-        internal ARemap(List<Tuple<byte, byte>> remaps)
+        public ARemap(Tuple<byte, byte>[] remaps)
         {
             Remaps = remaps;
         }
     }
 
-    internal static class Config
+    static class Config
     {
         static readonly uint DefaultTableSize = 1000;
 
-        internal static byte DirectCount { get; private set; }
-        internal static uint SampleRate { get; private set; }
-        internal static bool All256Voices { get; private set; }
-        internal static bool MIDIKeyboardFixedVelocity { get; private set; }
-        internal static bool TaskbarProgress { get; private set; }
-        internal static byte RefreshRate { get; private set; }
-        internal static bool CenterIndicators { get; private set; }
-        internal static bool PanpotIndicators { get; private set; }
-        internal static byte Volume { get; private set; }
-        internal static HSLColor[] Colors { get; private set; }
-        internal static Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
+        public static byte DirectCount { get; private set; }
+        public static uint SampleRate { get; private set; }
+        public static bool All256Voices { get; private set; }
+        public static bool MIDIKeyboardFixedVelocity { get; private set; }
+        public static bool TaskbarProgress { get; private set; }
+        public static byte RefreshRate { get; private set; }
+        public static bool CenterIndicators { get; private set; }
+        public static bool PanpotIndicators { get; private set; }
+        public static byte Volume { get; private set; }
+        public static HSLColor[] Colors { get; private set; }
+        public static Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
 
-        internal static Dictionary<string, AGame> Games { get; private set; }
+        public static Dictionary<string, AGame> Games { get; private set; }
 
         static Config() => Load();
-        internal static void Load() { LoadConfig(); LoadGames(); }
+        public static void Load() { LoadConfig(); LoadGames(); }
         static void LoadConfig()
         {
             var yaml = new YamlStream();
@@ -145,7 +145,7 @@ namespace GBAMusicStudio.Core
                 foreach (var v in children)
                     remaps.Add(new Tuple<byte, byte>(byte.Parse(v.Key.ToString()), byte.Parse(v.Value.ToString())));
 
-                InstrumentRemaps.Add(r.Key.ToString(), new ARemap(remaps));
+                InstrumentRemaps.Add(r.Key.ToString(), new ARemap(remaps.ToArray()));
             }
         }
         static void LoadGames()
@@ -207,17 +207,17 @@ namespace GBAMusicStudio.Core
                 if (game.Children.TryGetValue("Engine", out YamlNode yeng))
                 {
                     var eng = (YamlMappingNode)yeng;
-                    if(eng.Children.TryGetValue("Type", out YamlNode type))
+                    if (eng.Children.TryGetValue("Type", out YamlNode type))
                         engineType = (EngineType)Enum.Parse(typeof(EngineType), type.ToString());
-                    if(eng.Children.TryGetValue("ReverbType", out YamlNode rType))
+                    if (eng.Children.TryGetValue("ReverbType", out YamlNode rType))
                         reverbType = (ReverbType)Enum.Parse(typeof(ReverbType), rType.ToString());
-                    if(eng.Children.TryGetValue("Reverb", out YamlNode reverb))
+                    if (eng.Children.TryGetValue("Reverb", out YamlNode reverb))
                         engineReverb = (byte)Utils.ParseValue(reverb.ToString());
-                    if(eng.Children.TryGetValue("Volume", out YamlNode volume))
+                    if (eng.Children.TryGetValue("Volume", out YamlNode volume))
                         engineVolume = (byte)Utils.ParseValue(volume.ToString());
-                    if(eng.Children.TryGetValue("Frequency", out YamlNode frequency))
+                    if (eng.Children.TryGetValue("Frequency", out YamlNode frequency))
                         engineFrequency = (uint)Utils.ParseValue(frequency.ToString());
-                    
+
                 }
                 var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineFrequency);
 
@@ -249,7 +249,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal static byte GetRemap(byte voice, string key, bool from)
+        public static byte GetRemap(byte voice, string key, bool from)
         {
             if (InstrumentRemaps.TryGetValue(key, out ARemap remap))
             {

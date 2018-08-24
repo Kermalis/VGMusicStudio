@@ -2,7 +2,7 @@
 
 namespace GBAMusicStudio.Util
 {
-    public class Pair<T1, T2>
+    class Pair<T1, T2>
     {
         public T1 Item1;
         public T2 Item2;
@@ -13,7 +13,7 @@ namespace GBAMusicStudio.Util
         }
         public Tuple<T1, T2> ToTuple() => new Tuple<T1, T2>(Item1, Item2);
     }
-    public class Triple<T1, T2, T3>
+    class Triple<T1, T2, T3>
     {
         public T1 Item1;
         public T2 Item2;

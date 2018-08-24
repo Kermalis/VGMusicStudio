@@ -7,14 +7,14 @@ using System.Linq;
 
 namespace GBAMusicStudio.Core
 {
-    internal abstract class Song
+    abstract class Song
     {
-        protected internal uint Offset { get; protected set; }
-        internal VoiceTable VoiceTable;
-        internal List<SongEvent>[] Commands;
-        internal int NumTracks => Commands == null ? 0 : Commands.Length;
+        public uint Offset { get; protected set; }
+        public VoiceTable VoiceTable;
+        public List<SongEvent>[] Commands;
+        public int NumTracks => Commands == null ? 0 : Commands.Length;
         int ticks = -1; // Cache the amount. Setting to -1 again will cause a refresh
-        internal int NumTicks
+        public int NumTicks
         {
             get
             {
@@ -33,14 +33,14 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal virtual byte GetReverb() => 0;
+        public virtual byte GetReverb() => 0;
 
-        internal void CalculateTicks()
+        public void CalculateTicks()
         {
             for (int i = 0; i < NumTracks; i++)
                 CalculateTicks(i);
         }
-        internal void CalculateTicks(int trackIndex)
+        public void CalculateTicks(int trackIndex)
         {
             var track = Commands[trackIndex];
 
@@ -81,18 +81,18 @@ namespace GBAMusicStudio.Core
 
             ticks = -1; // Trigger recount of NumTicks
         }
-        internal void InsertEvent(SongEvent e, int trackIndex, int insertIndex)
+        public void InsertEvent(SongEvent e, int trackIndex, int insertIndex)
         {
             Commands[trackIndex].Insert(insertIndex, e);
             CalculateTicks(trackIndex);
         }
-        internal void RemoveEvent(int trackIndex, int eventIndex)
+        public void RemoveEvent(int trackIndex, int eventIndex)
         {
             Commands[trackIndex].RemoveAt(eventIndex);
             CalculateTicks(trackIndex);
         }
 
-        internal void SaveAsMIDI(string fileName)
+        public void SaveAsMIDI(string fileName)
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
@@ -221,7 +221,7 @@ namespace GBAMusicStudio.Core
             }
             midi.Save(fileName);
         }
-        internal void SaveAsASM(string fileName)
+        public void SaveAsASM(string fileName)
         {
             if (NumTracks == 0)
                 throw new InvalidDataException("This song has no tracks.");
@@ -391,12 +391,12 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal abstract class M4ASong : Song
+    abstract class M4ASong : Song
     {
         byte[] _binary;
-        internal M4ASongHeader Header;
+        public M4ASongHeader Header;
 
-        internal override byte GetReverb() => Header.Reverb;
+        public override byte GetReverb() => Header.Reverb;
 
         protected void Load(byte[] binary, M4ASongHeader head)
         {
@@ -540,9 +540,9 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal class M4AROMSong : M4ASong
+    class M4AROMSong : M4ASong
     {
-        internal M4AROMSong(uint offset)
+        public M4AROMSong(uint offset)
         {
             Offset = offset;
             var header = ROM.Instance.ReadStruct<M4ASongHeader>(offset);
@@ -550,9 +550,9 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal class M4AASMSong : M4ASong
+    class M4AASMSong : M4ASong
     {
-        internal M4AASMSong(Assembler assembler, string headerLabel)
+        public M4AASMSong(Assembler assembler, string headerLabel)
         {
             Offset = assembler.BaseOffset;
             var binary = assembler.Binary;
@@ -560,9 +560,9 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal class MLSSSong : Song
+    class MLSSSong : Song
     {
-        internal MLSSSong(uint offset)
+        public MLSSSong(uint offset)
         {
             Offset = offset;
             VoiceTable = VoiceTable.LoadTable<MLSSVoiceTable>(0, true); // 0 won't be used in the Load method
@@ -622,12 +622,12 @@ namespace GBAMusicStudio.Core
     /* This didn't work well. Also, there's no point in re-inventing the wheel (mid2agb by Nintendo exists)
     I used https://github.com/Kermalis/MidiSharp if you are interested
 
-    internal class MIDISong : Song
+    public class MIDISong : Song
     {
         readonly MidiSequence midi;
         readonly MidiTrackCollection tracks;
 
-        internal MIDISong(string fileName)
+        public MIDISong(string fileName)
         {
             using (Stream inputStream = File.OpenRead(fileName))
             {

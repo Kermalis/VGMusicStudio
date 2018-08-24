@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 namespace GBAMusicStudio.Core
 {
-    internal abstract class VoiceTable : IEnumerable<WrappedVoice>
+    abstract class VoiceTable : IEnumerable<WrappedVoice>
     {
         static readonly Dictionary<uint, VoiceTable> cache = new Dictionary<uint, VoiceTable>();
-        internal static T LoadTable<T>(uint table, bool shouldCache = false) where T : VoiceTable
+        public static T LoadTable<T>(uint table, bool shouldCache = false) where T : VoiceTable
         {
             table = ROM.SanitizeOffset(table);
             if (cache.ContainsKey(table))
@@ -23,16 +23,16 @@ namespace GBAMusicStudio.Core
                 return vTable;
             }
         }
-        internal static void ClearCache() => cache.Clear();
+        public static void ClearCache() => cache.Clear();
 
         public uint Offset { get; protected set; }
         protected uint Length { get; private set; }
         protected readonly WrappedVoice[] voices;
 
-        internal VoiceTable(uint capacity) => voices = new WrappedVoice[Length = capacity];
+        public VoiceTable(uint capacity) => voices = new WrappedVoice[Length = capacity];
         protected abstract void Load(uint table);
 
-        protected internal WrappedVoice this[int i]
+        public WrappedVoice this[int i]
         {
             get => voices[i];
             protected set => voices[i] = value;
@@ -40,14 +40,14 @@ namespace GBAMusicStudio.Core
         public IEnumerator<WrappedVoice> GetEnumerator() => ((IEnumerable<WrappedVoice>)voices).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        internal virtual WrappedVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
+        public virtual WrappedVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
         {
             fromDrum = false;
             return voices[voice];
         }
     }
 
-    internal class M4AVoiceTable : VoiceTable
+    class M4AVoiceTable : VoiceTable
     {
         public M4AVoiceTable() : base(Config.All256Voices ? 256u : 128u) { }
         protected override void Load(uint table)
@@ -60,7 +60,7 @@ namespace GBAMusicStudio.Core
                     break;
                 var voice = new M4AVoice(off);
                 if (voice.Entry.Type == (int)M4AVoiceFlags.KeySplit)
-                    voices[i] = new M4AWrappedKeySplit(voice);
+                    voices[i] = new M4AWrappedMulti(voice);
                 else if (voice.Entry.Type == (int)M4AVoiceFlags.Drum)
                     voices[i] = new M4AWrappedDrum(voice);
                 else if ((voice.Entry.Type & 0x7) == (int)M4AVoiceType.Direct)
@@ -70,7 +70,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override WrappedVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
+        public override WrappedVoice GetVoiceFromNote(byte voice, sbyte note, out bool fromDrum)
         {
             fromDrum = false;
 
@@ -80,7 +80,7 @@ namespace GBAMusicStudio.Core
             switch (v.Type)
             {
                 case (int)M4AVoiceFlags.KeySplit:
-                    var multi = (M4AWrappedKeySplit)sv;
+                    var multi = (M4AWrappedMulti)sv;
                     byte inst = ROM.Instance.ReadByte((uint)(v.Keys + note));
                     sv = multi.Table[inst];
                     fromDrum = false; // In case there is a multi within a drum
@@ -96,9 +96,9 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal class MLSSVoiceTable : VoiceTable
+    class MLSSVoiceTable : VoiceTable
     {
-        internal MLSSWrappedSample[] Samples { get; private set; }
+        public MLSSWrappedSample[] Samples { get; private set; }
 
         public MLSSVoiceTable() : base(256) { }
         protected override void Load(uint table)

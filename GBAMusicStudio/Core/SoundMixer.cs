@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace GBAMusicStudio.Core
 {
-    internal static class SoundMixer
+    static class SoundMixer
     {
         const int MAX_TRACKS = 17; // 16 for playback, 1 for program use
 
-        internal static readonly float SampleRateReciprocal, SamplesReciprocal;
-        internal static readonly uint SamplesPerBuffer;
+        public static readonly float SampleRateReciprocal, SamplesReciprocal;
+        public static readonly uint SamplesPerBuffer;
 
-        internal static float MasterVolume; internal static float DSMasterVolume { get; private set; }
+        public static float MasterVolume; public static float DSMasterVolume { get; private set; }
 
         static readonly WaveBuffer audio;
         static readonly float[][] trackBuffers;
@@ -56,7 +56,7 @@ namespace GBAMusicStudio.Core
             @out.Init(buffer);
             @out.Play();
         }
-        internal static void Init(byte songReverb)
+        public static void Init(byte songReverb)
         {
             DSMasterVolume = ROM.Instance.Game.Engine.Volume / (float)0xF;
 
@@ -74,9 +74,9 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal static void SetMute(int owner, bool m) => mutes[owner] = m;
+        public static void SetMute(int owner, bool m) => mutes[owner] = m;
 
-        internal static void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
+        public static void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
         {
             DirectSoundChannel nChn = null;
             var byOwner = dsChannels.OrderByDescending(c => c.OwnerIdx);
@@ -109,7 +109,7 @@ namespace GBAMusicStudio.Core
             if (nChn != null) // Could still be null from the above if
                 nChn.Init(owner, note, env, sample, vol, pan, pitch, bFixed);
         }
-        internal static void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
+        public static void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
         {
             GBChannel nChn;
             switch (type)
@@ -145,7 +145,7 @@ namespace GBAMusicStudio.Core
         }
 
         // Returns number of active notes
-        internal static int TickNotes(int owner)
+        public static int TickNotes(int owner)
         {
             int active = 0;
             foreach (var c in allChannels)
@@ -153,21 +153,21 @@ namespace GBAMusicStudio.Core
                     active++;
             return active;
         }
-        internal static bool AllDead(int owner)
+        public static bool AllDead(int owner)
         {
             return !allChannels.Any(c => c.OwnerIdx == owner);
         }
-        internal static Channel[] GetChannels(int owner)
+        public static Channel[] GetChannels(int owner)
         {
             return allChannels.Where(c => c.OwnerIdx == owner).ToArray();
         }
-        internal static void ReleaseChannels(int owner, int key)
+        public static void ReleaseChannels(int owner, int key)
         {
             foreach (var c in allChannels)
                 if (c.OwnerIdx == owner && (key == -1 || (c.Note.OriginalKey == key && c.Note.Duration == -1)))
                     c.Release();
         }
-        internal static void UpdateChannels(int owner, byte vol, sbyte pan, int pitch)
+        public static void UpdateChannels(int owner, byte vol, sbyte pan, int pitch)
         {
             foreach (var c in allChannels)
                 if (c.OwnerIdx == owner)
@@ -176,13 +176,13 @@ namespace GBAMusicStudio.Core
                     c.SetPitch(pitch);
                 }
         }
-        internal static void StopAllChannels()
+        public static void StopAllChannels()
         {
             foreach (var c in allChannels)
                 c.Stop();
         }
 
-        internal static void Process()
+        public static void Process()
         {
             foreach (var buf in trackBuffers)
                 Array.Clear(buf, 0, buf.Length);

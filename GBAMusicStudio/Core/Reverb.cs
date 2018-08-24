@@ -3,14 +3,14 @@
 namespace GBAMusicStudio.Core
 {
     // All of this was written in C++ by ipatix; I just converted it
-    internal class Reverb
+    class Reverb
     {
         protected readonly float[] reverbBuffer;
         protected readonly float intensity;
         protected readonly uint bufferLen;
         protected uint bufferPos, bufferPos2;
 
-        internal Reverb(byte intensity, byte numBuffers)
+        public Reverb(byte intensity, byte numBuffers)
         {
             bufferLen = Config.SampleRate / Engine.AGB_FPS;
             bufferPos2 = bufferLen;
@@ -18,7 +18,7 @@ namespace GBAMusicStudio.Core
             reverbBuffer = new float[bufferLen * 2 * numBuffers];
         }
 
-        internal void Process(float[] buffer, int samplesPerBuffer)
+        public void Process(float[] buffer, int samplesPerBuffer)
         {
             int index = 0;
             while (samplesPerBuffer > 0)
@@ -54,10 +54,10 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal class ReverbCamelot1 : Reverb
+    class ReverbCamelot1 : Reverb
     {
         float[] cBuffer;
-        internal ReverbCamelot1(byte intensity, byte numBuffers) : base(intensity, numBuffers)
+        public ReverbCamelot1(byte intensity, byte numBuffers) : base(intensity, numBuffers)
         {
             bufferPos2 = 0;
             cBuffer = new float[bufferLen * 2];

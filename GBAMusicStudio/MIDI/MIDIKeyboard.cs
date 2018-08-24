@@ -5,7 +5,7 @@ using System;
 
 namespace GBAMusicStudio.MIDI
 {
-    internal static class MIDIKeyboard
+    static class MIDIKeyboard
     {
         const byte vNum = 1; // Voice number in the voice table
         static readonly bool bGood = false;
@@ -41,7 +41,7 @@ namespace GBAMusicStudio.MIDI
             bGood = true;
         }
 
-        internal static void Start()
+        public static void Start()
         {
             if (!bGood) return;
             try
@@ -56,7 +56,7 @@ namespace GBAMusicStudio.MIDI
                 Console.WriteLine(ex.Message);
             }
         }
-        internal static void Stop()
+        public static void Stop()
         {
             if (!bGood) return;
             try

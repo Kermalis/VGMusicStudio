@@ -5,12 +5,12 @@ using System.Collections;
 namespace GBAMusicStudio.Core
 {
     // All channels have very basic interpolation
-    internal abstract class Channel
+    abstract class Channel
     {
-        protected internal ADSRState State { get; protected set; } = ADSRState.Dead;
-        protected internal byte OwnerIdx { get; protected set; } = 0xFF; // 0xFF indicates no owner
+        public ADSRState State { get; protected set; } = ADSRState.Dead;
+        public byte OwnerIdx { get; protected set; } = 0xFF; // 0xFF indicates no owner
 
-        internal Note Note;
+        public Note Note;
         protected ADSR adsr;
 
         protected byte processStep;
@@ -20,19 +20,19 @@ namespace GBAMusicStudio.Core
 
         protected byte curVelocity, prevVelocity;
 
-        internal abstract ChannelVolume GetVolume();
-        internal abstract void SetVolume(byte vol, sbyte pan);
-        internal abstract void SetPitch(int pitch);
-        internal virtual void Release()
+        public abstract ChannelVolume GetVolume();
+        public abstract void SetVolume(byte vol, sbyte pan);
+        public abstract void SetPitch(int pitch);
+        public virtual void Release()
         {
             if (State < ADSRState.Releasing)
                 State = ADSRState.Releasing;
         }
 
-        internal abstract void Process(float[] buffer);
+        public abstract void Process(float[] buffer);
 
         // Returns whether the note is active or not
-        internal virtual bool TickNote()
+        public virtual bool TickNote()
         {
             if (State < ADSRState.Releasing)
             {
@@ -54,22 +54,22 @@ namespace GBAMusicStudio.Core
                 return false;
             }
         }
-        internal void Stop()
+        public void Stop()
         {
             State = ADSRState.Dead;
             OwnerIdx = 0xFF;
             processStep = 0;
         }
     }
-    internal class DirectSoundChannel : Channel
+    class DirectSoundChannel : Channel
     {
-        private struct ProcArgs
+        struct ProcArgs
         {
-            internal float LeftVol;
-            internal float RightVol;
-            internal float LeftVolStep;
-            internal float RightVolStep;
-            internal float InterStep;
+            public float LeftVol;
+            public float RightVol;
+            public float LeftVolStep;
+            public float RightVolStep;
+            public float InterStep;
         }
 
         WrappedSample sample; GoldenSunPSG gsPSG;
@@ -77,7 +77,7 @@ namespace GBAMusicStudio.Core
         bool bFixed, bGoldenSun;
         byte curLeftVol, curRightVol, prevLeftVol, prevRightVol;
 
-        internal void Init(byte ownerIdx, Note note, ADSR adsr, WrappedSample sample, byte vol, sbyte pan, int pitch, bool bFixed)
+        public void Init(byte ownerIdx, Note note, ADSR adsr, WrappedSample sample, byte vol, sbyte pan, int pitch, bool bFixed)
         {
             State = ADSRState.Initializing;
             pos = 0; processStep = 0; interPos = 0;
@@ -94,7 +94,7 @@ namespace GBAMusicStudio.Core
             SetPitch(pitch);
         }
 
-        internal override ChannelVolume GetVolume()
+        public override ChannelVolume GetVolume()
         {
             float baseVel = prevVelocity;
             float deltaVel = (curVelocity - baseVel) / Engine.INTERFRAMES;
@@ -108,7 +108,7 @@ namespace GBAMusicStudio.Core
                 ToRightVol = curRightVol * toVel / 0x10000
             };
         }
-        internal override void SetVolume(byte vol, sbyte pan)
+        public override void SetVolume(byte vol, sbyte pan)
         {
             if (State < ADSRState.Releasing)
             {
@@ -118,7 +118,7 @@ namespace GBAMusicStudio.Core
                 curRightVol = (byte)(Note.Velocity * vol * (pan + range) / fix);
             }
         }
-        internal override void SetPitch(int pitch)
+        public override void SetPitch(int pitch)
         {
             frequency = sample.Frequency * (float)Math.Pow(2, (Note.Key - 60) / 12f + pitch / 768f);
         }
@@ -199,7 +199,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override void Process(float[] buffer)
+        public override void Process(float[] buffer)
         {
             StepEnvelope();
             prevLeftVol = curLeftVol; prevRightVol = curRightVol;
@@ -366,7 +366,7 @@ namespace GBAMusicStudio.Core
             } while (--samplesPerBuffer > 0);
         }
     }
-    internal abstract class GBChannel : Channel
+    abstract class GBChannel : Channel
     {
         protected enum GBPan
         {
@@ -390,7 +390,7 @@ namespace GBAMusicStudio.Core
             adsr.R = (byte)(env.R & 0x7);
         }
 
-        internal override void Release()
+        public override void Release()
         {
             if (State < ADSRState.Releasing)
             {
@@ -409,7 +409,7 @@ namespace GBAMusicStudio.Core
                 }
             }
         }
-        internal override bool TickNote()
+        public override bool TickNote()
         {
             if (State < ADSRState.Releasing)
             {
@@ -435,7 +435,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override ChannelVolume GetVolume()
+        public override ChannelVolume GetVolume()
         {
             float baseVel = prevVelocity;
             uint step;
@@ -466,7 +466,7 @@ namespace GBAMusicStudio.Core
                 ToRightVol = prevPan == GBPan.Left ? 0 : toVel / 0x20
             };
         }
-        internal override void SetVolume(byte vol, sbyte pan)
+        public override void SetVolume(byte vol, sbyte pan)
         {
             if (State < ADSRState.Releasing)
             {
@@ -645,12 +645,12 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    internal class SquareChannel : GBChannel
+    class SquareChannel : GBChannel
     {
         float[] pat;
 
-        internal SquareChannel() : base() { }
-        internal void Init(byte ownerIdx, Note note, ADSR env, SquarePattern pattern)
+        public SquareChannel() : base() { }
+        public void Init(byte ownerIdx, Note note, ADSR env, SquarePattern pattern)
         {
             Init(ownerIdx, note, env);
             switch (pattern)
@@ -662,12 +662,12 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override void SetPitch(int pitch)
+        public override void SetPitch(int pitch)
         {
             frequency = 3520 * (float)Math.Pow(2, (Note.Key - 69) / 12f + pitch / 768f);
         }
 
-        internal override void Process(float[] buffer)
+        public override void Process(float[] buffer)
         {
             StepEnvelope();
             prevPan = curPan;
@@ -699,12 +699,12 @@ namespace GBAMusicStudio.Core
             } while (--samplesPerBuffer > 0);
         }
     }
-    internal class WaveChannel : GBChannel
+    class WaveChannel : GBChannel
     {
         readonly float[] sample = new float[0x20];
 
-        internal WaveChannel() : base() { }
-        internal void Init(byte ownerIdx, Note note, ADSR env, uint address)
+        public WaveChannel() : base() { }
+        public void Init(byte ownerIdx, Note note, ADSR env, uint address)
         {
             Init(ownerIdx, note, env);
 
@@ -723,12 +723,12 @@ namespace GBAMusicStudio.Core
                 sample[i] -= dcCorrection;
         }
 
-        internal override void SetPitch(int pitch)
+        public override void SetPitch(int pitch)
         {
             frequency = 7040 * (float)Math.Pow(2, (Note.Key - 69) / 12f + pitch / 768f);
         }
 
-        internal override void Process(float[] buffer)
+        public override void Process(float[] buffer)
         {
             StepEnvelope();
             prevPan = curPan;
@@ -760,12 +760,12 @@ namespace GBAMusicStudio.Core
             } while (--samplesPerBuffer > 0);
         }
     }
-    internal class NoiseChannel : GBChannel
+    class NoiseChannel : GBChannel
     {
         BitArray pat;
         readonly BitArray fine, rough;
 
-        internal NoiseChannel() : base()
+        public NoiseChannel() : base()
         {
             fine = new BitArray(0x8000);
             int reg = 0x4000;
@@ -800,18 +800,18 @@ namespace GBAMusicStudio.Core
                 }
             }
         }
-        internal void Init(byte ownerIdx, Note note, ADSR env, NoisePattern pattern)
+        public void Init(byte ownerIdx, Note note, ADSR env, NoisePattern pattern)
         {
             Init(ownerIdx, note, env);
             pat = (pattern == NoisePattern.Fine ? fine : rough);
         }
 
-        internal override void SetPitch(int pitch)
+        public override void SetPitch(int pitch)
         {
             frequency = (0x1000 * (float)Math.Pow(8, (Note.Key - 60) / 12f + pitch / 768f)).Clamp(8, 0x80000); // Thanks ipatix
         }
 
-        internal override void Process(float[] buffer)
+        public override void Process(float[] buffer)
         {
             StepEnvelope();
             prevPan = curPan;

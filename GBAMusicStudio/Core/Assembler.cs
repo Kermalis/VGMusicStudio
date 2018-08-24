@@ -5,28 +5,23 @@ using System.IO;
 
 namespace GBAMusicStudio.Core
 {
-    internal class Assembler
+    class Assembler
     {
         private class Pair
         {
-            internal bool Global;
-            internal int Offset;
+            public bool Global;
+            public int Offset;
         }
         private class Pointer
         {
-            internal string Label;
-            internal int Offset;
-            internal Pointer(string l, int o)
-            {
-                Label = l;
-                Offset = o;
-            }
+            public string Label;
+            public int Offset;
         }
         readonly string fileErrorFormat = "{0}{3}{3}Error reading file included in line {1}:{3}{2}",
             mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
             cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
 
-        internal uint BaseOffset { get; private set; } = ROM.Pak;
+        public uint BaseOffset { get; private set; } = ROM.Pak;
         List<string> loaded = new List<string>();
         Dictionary<string, int> defines;
 
@@ -34,15 +29,15 @@ namespace GBAMusicStudio.Core
         List<Pointer> lPointers = new List<Pointer>();
         List<byte> bytes = new List<byte>();
 
-        internal readonly string FileName;
-        internal int this[string Label]
+        public readonly string FileName;
+        public int this[string Label]
         {
             get => labels[FixLabel(Label)].Offset;
         }
-        internal byte[] Binary => bytes.ToArray();
-        internal int BinaryLength => bytes.Count;
+        public byte[] Binary => bytes.ToArray();
+        public int BinaryLength => bytes.Count;
 
-        internal Assembler(string fileName, uint baseOffset = ROM.Pak, Dictionary<string, int> initialDefines = null)
+        public Assembler(string fileName, uint baseOffset = ROM.Pak, Dictionary<string, int> initialDefines = null)
         {
             FileName = fileName;
             defines = initialDefines ?? new Dictionary<string, int>();
@@ -50,7 +45,7 @@ namespace GBAMusicStudio.Core
             SetBaseOffset(baseOffset);
         }
 
-        internal void SetBaseOffset(uint baseOffset)
+        public void SetBaseOffset(uint baseOffset)
         {
             if (BaseOffset == baseOffset) return;
             foreach (var p in lPointers)
@@ -66,7 +61,7 @@ namespace GBAMusicStudio.Core
             BaseOffset = baseOffset;
         }
 
-        internal static string FixLabel(string label)
+        public static string FixLabel(string label)
         {
             string ret = "";
             for (int i = 0; i < label.Length; i++)
@@ -225,7 +220,7 @@ namespace GBAMusicStudio.Core
             if (defines.TryGetValue(value, out int def)) return def;
             if (labels.TryGetValue(value, out Pair pair))
             {
-                lPointers.Add(new Pointer(value, bytes.Count));
+                lPointers.Add(new Pointer { Label = value, Offset = bytes.Count });
                 return pair.Offset;
             }
 

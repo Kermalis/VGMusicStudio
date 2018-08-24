@@ -11,7 +11,7 @@ using System.Windows.Forms;
 namespace GBAMusicStudio.UI
 {
     [DesignerCategory("")]
-    internal class AssemblerDialog : ThemedForm
+    class AssemblerDialog : ThemedForm
     {
         Assembler assembler;
         readonly ThemedButton previewButton;
@@ -20,7 +20,7 @@ namespace GBAMusicStudio.UI
         readonly ThemedTextBox headerLabelTextBox;
         readonly DataGridView addedDefsGrid;
 
-        internal AssemblerDialog()
+        public AssemblerDialog()
         {
             var openButton = new ThemedButton
             {

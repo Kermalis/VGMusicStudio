@@ -8,19 +8,19 @@ using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    internal class TrackInfo
+    class TrackInfo
     {
-        internal ushort Tempo; internal uint Position;
-        internal uint[] Positions = new uint[16];
-        internal byte[] Voices = new byte[16], Volumes = new byte[16],
+        public ushort Tempo; public uint Position;
+        public uint[] Positions = new uint[16];
+        public byte[] Voices = new byte[16], Volumes = new byte[16],
             Delays = new byte[16], Mods = new byte[16];
-        internal sbyte[] Pans = new sbyte[16];
-        internal float[] Lefts = new float[16], Rights = new float[16];
-        internal int[] Pitches = new int[16];
-        internal string[] Types = new string[16];
-        internal sbyte[][] Notes = new sbyte[16][];
+        public sbyte[] Pans = new sbyte[16];
+        public float[] Lefts = new float[16], Rights = new float[16];
+        public int[] Pitches = new int[16];
+        public string[] Types = new string[16];
+        public sbyte[][] Notes = new sbyte[16][];
 
-        internal TrackInfo()
+        public TrackInfo()
         {
             for (int i = 0; i < 16; i++)
                 Notes[i] = new sbyte[0];
@@ -28,7 +28,7 @@ namespace GBAMusicStudio.UI
     }
 
     [DesignerCategory("")]
-    internal class TrackInfoControl : UserControl
+    class TrackInfoControl : UserControl
     {
         readonly string noNotes = ""; //"…";
         readonly int checkboxSize = 15;
@@ -36,10 +36,10 @@ namespace GBAMusicStudio.UI
         readonly CheckBox[] mutes;
         readonly CheckBox[] pianos;
 
-        internal TrackInfo Info = new TrackInfo();
+        public TrackInfo Info = new TrackInfo();
         Tuple<int[], string[]> previousNotes;
 
-        internal TrackInfoControl()
+        public TrackInfoControl()
         {
             DoubleBuffered = true;
             Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
@@ -123,7 +123,7 @@ namespace GBAMusicStudio.UI
             }
         }
 
-        internal void DeleteData()
+        public void DeleteData()
         {
             Info = new TrackInfo();
             previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);

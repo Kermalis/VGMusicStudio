@@ -2,12 +2,12 @@
 
 namespace GBAMusicStudio.Core
 {
-    internal class ROMReader
+    class ROMReader
     {
         readonly object _lock = new object();
         BinaryReader Reader;
-        protected internal void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
-        internal uint Position { get => (uint)Reader.BaseStream.Position; set => Reader.BaseStream.Position = ROM.SanitizeOffset(value); }
+        public void InitReader(byte[] binary = null) => Reader = new BinaryReader(new MemoryStream(binary ?? ROM.Instance.ROMFile));
+        public uint Position { get => (uint)Reader.BaseStream.Position; set => Reader.BaseStream.Position = ROM.SanitizeOffset(value); }
 
         object Parse(uint offset, uint amt, bool signed = false, bool array = false)
         {
@@ -27,14 +27,14 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal byte PeekByte(uint offset = 0xFFFFFFFF)
+        public byte PeekByte(uint offset = 0xFFFFFFFF)
         {
             var org = Reader.BaseStream.Position;
             byte ret = ReadByte(offset);
             Reader.BaseStream.Position = org;
             return ret;
         }
-        internal byte[] PeekBytes(uint amt, uint offset = 0xFFFFFFFF)
+        public byte[] PeekBytes(uint amt, uint offset = 0xFFFFFFFF)
         {
             var org = Reader.BaseStream.Position;
             byte[] ret = ReadBytes(amt, offset);
@@ -42,14 +42,14 @@ namespace GBAMusicStudio.Core
             return ret;
         }
 
-        internal byte[] ReadBytes(uint amt, uint offset = 0xFFFFFFFF) => (byte[])Parse(offset, amt, false, true);
+        public byte[] ReadBytes(uint amt, uint offset = 0xFFFFFFFF) => (byte[])Parse(offset, amt, false, true);
 
-        internal sbyte ReadSByte(uint offset = 0xFFFFFFFF) => (sbyte)Parse(offset, 1, true);
-        internal byte ReadByte(uint offset = 0xFFFFFFFF) => (byte)Parse(offset, 1);
-        internal short ReadInt16(uint offset = 0xFFFFFFFF) => (short)Parse(offset, 2, true);
-        internal ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
-        internal int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
-        internal uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);
-        internal uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Pak;
+        public sbyte ReadSByte(uint offset = 0xFFFFFFFF) => (sbyte)Parse(offset, 1, true);
+        public byte ReadByte(uint offset = 0xFFFFFFFF) => (byte)Parse(offset, 1);
+        public short ReadInt16(uint offset = 0xFFFFFFFF) => (short)Parse(offset, 2, true);
+        public ushort ReadUInt16(uint offset = 0xFFFFFFFF) => (ushort)Parse(offset, 2);
+        public int ReadInt32(uint offset = 0xFFFFFFFF) => (int)Parse(offset, 4, true);
+        public uint ReadUInt32(uint offset = 0xFFFFFFFF) => (uint)Parse(offset, 4);
+        public uint ReadPointer(uint offset = 0xFFFFFFFF) => ReadUInt32(offset) - ROM.Pak;
     }
 }

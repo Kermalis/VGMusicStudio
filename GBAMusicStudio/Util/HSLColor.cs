@@ -4,7 +4,7 @@ using System.Drawing;
 namespace GBAMusicStudio.Util
 {
     // https://richnewman.wordpress.com/about/code-listings-and-diagrams/hslcolor-class/
-    public class HSLColor
+    class HSLColor
     {
         // Private data members below are on scale 0-1
         // They are scaled for use externally based on scale

@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace GBAMusicStudio.Core
 {
-    internal static class Engine
+    static class Engine
     {
-        internal const int BPM_PER_FRAME = 150, INTERFRAMES = 4, AGB_FPS = 60;
+        public const int BPM_PER_FRAME = 150, INTERFRAMES = 4, AGB_FPS = 60;
         static readonly Exception BAD = new PlatformNotSupportedException("Invalid game engine.");
 
         static readonly Dictionary<EngineType, ICommand[]> allowedCommands;
@@ -37,12 +37,12 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal static ICommand[] GetCommands()
+        public static ICommand[] GetCommands()
         {
             return allowedCommands[ROM.Instance.Game.Engine.Type];
         }
 
-        internal static ushort GetDefaultTempo()
+        public static ushort GetDefaultTempo()
         {
             switch (ROM.Instance.Game.Engine.Type)
             {
@@ -51,7 +51,7 @@ namespace GBAMusicStudio.Core
             }
             throw BAD;
         }
-        internal static int GetTicksPerBar()
+        public static int GetTicksPerBar()
         {
             switch (ROM.Instance.Game.Engine.Type)
             {
@@ -60,13 +60,13 @@ namespace GBAMusicStudio.Core
             }
             throw BAD;
         }
-        internal static int GetTempoWait()
+        public static int GetTempoWait()
         {
             int baseWait = BPM_PER_FRAME * INTERFRAMES;
             return baseWait / (96 / GetTicksPerBar());
         }
 
-        internal static byte GetMaxVolume()
+        public static byte GetMaxVolume()
         {
             switch (ROM.Instance.Game.Engine.Type)
             {
@@ -75,7 +75,7 @@ namespace GBAMusicStudio.Core
             }
             throw BAD;
         }
-        internal static byte GetPanpotRange()
+        public static byte GetPanpotRange()
         {
             switch (ROM.Instance.Game.Engine.Type)
             {
@@ -84,7 +84,7 @@ namespace GBAMusicStudio.Core
             }
             throw BAD;
         }
-        internal static byte GetBendingRange()
+        public static byte GetBendingRange()
         {
             switch (ROM.Instance.Game.Engine.Type)
             {

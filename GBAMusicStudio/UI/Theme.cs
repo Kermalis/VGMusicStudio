@@ -7,10 +7,10 @@ using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    internal static class Theme
+    static class Theme
     {
-        internal static readonly Font Font = new Font("Segoe UI", 8f, FontStyle.Bold);
-        internal static readonly Color
+        public static readonly Font Font = new Font("Segoe UI", 8f, FontStyle.Bold);
+        public static readonly Color
             BackColor = Color.FromArgb(33, 33, 39),
             BackColorDisabled = Color.FromArgb(35, 42, 47),
             BackColorMouseOver = Color.FromArgb(32, 37, 47),
@@ -21,7 +21,7 @@ namespace GBAMusicStudio.UI
             SelectionColor = Color.FromArgb(7, 51, 141),
             TitleBar = Color.FromArgb(16, 40, 63);
 
-        internal static HSLColor DrainColor(Color c)
+        public static HSLColor DrainColor(Color c)
         {
             var drained = new HSLColor(c);
             drained.Saturation /= 2.5;
@@ -29,7 +29,7 @@ namespace GBAMusicStudio.UI
         }
     }
 
-    internal class ThemedButton : Button
+    class ThemedButton : Button
     {
         public ThemedButton() : base()
         {
@@ -53,7 +53,7 @@ namespace GBAMusicStudio.UI
         }
         protected override bool ShowFocusCues => false;
     }
-    internal class ThemedLabel : Label
+    class ThemedLabel : Label
     {
         public ThemedLabel() : base()
         {
@@ -61,7 +61,7 @@ namespace GBAMusicStudio.UI
             ForeColor = Theme.ForeColor;
         }
     }
-    internal class ThemedForm : Form
+    class ThemedForm : Form
     {
         public ThemedForm() : base()
         {
@@ -69,7 +69,7 @@ namespace GBAMusicStudio.UI
             Icon = Resources.Icon;
         }
     }
-    internal class ThemedPanel : Panel
+    class ThemedPanel : Panel
     {
         public ThemedPanel() : base()
         {
@@ -85,7 +85,7 @@ namespace GBAMusicStudio.UI
                 e.Graphics.DrawRectangle(p, e.ClipRectangle);
         }
     }
-    internal class ThemedTextBox : TextBox
+    class ThemedTextBox : TextBox
     {
         public ThemedTextBox() : base()
         {
@@ -121,7 +121,7 @@ namespace GBAMusicStudio.UI
             RedrawWindow(Handle, IntPtr.Zero, IntPtr.Zero, RDW_FRAME | RDW_IUPDATENOW | RDW_INVALIDATE);
         }
     }
-    internal class ThemedRichTextBox : RichTextBox
+    class ThemedRichTextBox : RichTextBox
     {
         public ThemedRichTextBox() : base()
         {
@@ -131,7 +131,7 @@ namespace GBAMusicStudio.UI
             SelectionColor = Theme.SelectionColor;
         }
     }
-    internal class ThemedNumeric : NumericUpDown
+    class ThemedNumeric : NumericUpDown
     {
         public ThemedNumeric() : base()
         {
@@ -147,7 +147,7 @@ namespace GBAMusicStudio.UI
             ControlPaint.DrawBorder(e.Graphics, ClientRectangle, Enabled ? Theme.BorderColor : Theme.BorderColorDisabled, ButtonBorderStyle.Solid);
         }
     }
-    /*internal class ThemedComboBox : ComboBox
+    /*class ThemedComboBox : ComboBox
     {
         public ThemedComboBox() : base()
         {

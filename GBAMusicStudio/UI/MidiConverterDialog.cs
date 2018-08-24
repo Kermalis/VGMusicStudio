@@ -10,7 +10,7 @@ using System.Windows.Forms;
 namespace GBAMusicStudio.UI
 {
     [DesignerCategory("")]
-    internal class MIDIConverterDialog : ThemedForm
+    class MIDIConverterDialog : ThemedForm
     {
         Assembler assembler;
         string midiFileName;
@@ -18,7 +18,7 @@ namespace GBAMusicStudio.UI
         readonly ValueTextBox offsetValueBox;
         readonly ThemedLabel sizeLabel;
 
-        internal MIDIConverterDialog()
+        public MIDIConverterDialog()
         {
             var openButton = new ThemedButton
             {

@@ -8,39 +8,39 @@ using System.Runtime.InteropServices;
 namespace GBAMusicStudio.Core
 {
     // Used in the VoiceTableEditor. GetName() is also used for the UI
-    internal interface IVoiceTableInfo
+    interface IVoiceTableInfo
     {
         uint Offset { get; }
         string GetName();
     }
-    internal interface IVoice : IVoiceTableInfo
+    interface IVoice : IVoiceTableInfo
     {
         sbyte GetRootNote();
     }
-    internal class WrappedVoice : IVoiceTableInfo
+    class WrappedVoice : IVoiceTableInfo
     {
-        internal readonly IVoice Voice;
+        public readonly IVoice Voice;
         public uint Offset => Voice.Offset;
 
-        internal WrappedVoice(IVoice i) { Voice = i; }
+        public WrappedVoice(IVoice i) { Voice = i; }
 
-        internal virtual IEnumerable<IVoiceTableInfo> GetSubVoices() => Enumerable.Empty<IVoiceTableInfo>();
+        public virtual IEnumerable<IVoiceTableInfo> GetSubVoices() => Enumerable.Empty<IVoiceTableInfo>();
 
         public string GetName() => Voice.GetName();
         public override string ToString() => Voice.ToString();
     }
-    internal interface IWrappedSample
+    interface IWrappedSample
     {
         WrappedSample GetSample();
     }
-    internal class WrappedSample
+    class WrappedSample
     {
-        internal bool bLoop, bUnsigned;
-        internal uint LoopPoint, Length;
-        internal float Frequency;
-        internal uint Offset; // Offset of the PCM buffer, not of the header
+        public readonly bool bLoop, bUnsigned;
+        public readonly uint LoopPoint, Length;
+        public readonly float Frequency;
+        public readonly uint Offset; // Offset of the PCM buffer, not of the header
 
-        internal WrappedSample(bool loop, uint loopPoint, uint length, float frequency, uint offset, bool unsigned)
+        public WrappedSample(bool loop, uint loopPoint, uint length, float frequency, uint offset, bool unsigned)
         {
             bLoop = loop; LoopPoint = loopPoint; Length = length; Frequency = frequency; Offset = offset; bUnsigned = unsigned;
         }
@@ -49,40 +49,40 @@ namespace GBAMusicStudio.Core
     #region M4A
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct M4ASongEntry
+    struct M4ASongEntry
     {
-        internal uint Header;
-        internal ushort Player;
-        internal ushort Unknown;
+        public uint Header;
+        public ushort Player;
+        public ushort Unknown;
     }
     [StructLayout(LayoutKind.Sequential)]
-    internal struct M4ASongHeader
+    struct M4ASongHeader
     {
-        internal byte NumTracks;
-        internal byte NumBlocks;
-        internal byte Priority;
-        internal byte Reverb;
-        internal uint VoiceTable;
+        public byte NumTracks;
+        public byte NumBlocks;
+        public byte Priority;
+        public byte Reverb;
+        public uint VoiceTable;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-        internal uint[] Tracks;
+        public uint[] Tracks;
     }
     [StructLayout(LayoutKind.Sequential)]
-    internal struct M4AMLSSSample
+    struct M4AMLSSSample
     {
-        internal uint DoesLoop; // Will be 0x40000000 if true
-        internal uint Frequency; // Right shift 10 for value
-        internal uint LoopPoint;
-        internal uint Length;
+        public uint DoesLoop; // Will be 0x40000000 if true
+        public uint Frequency; // Right shift 10 for value
+        public uint LoopPoint;
+        public uint Length;
         // 0x10 - byte[Length] of PCM8 data (Signed for M4A, Unsigned for MLSS)
     }
 
-    internal class M4AVoice : IVoice
+    class M4AVoice : IVoice
     {
         public uint Offset { get; }
-        internal readonly M4AVoiceEntry Entry;
+        public readonly M4AVoiceEntry Entry;
         string name = string.Empty; // Cache the name
 
-        internal M4AVoice(uint offset) => Entry = ROM.Instance.ReadStruct<M4AVoiceEntry>(Offset = offset);
+        public M4AVoice(uint offset) => Entry = ROM.Instance.ReadStruct<M4AVoiceEntry>(Offset = offset);
 
         public bool IsGoldenSunPSG()
         {
@@ -120,10 +120,10 @@ namespace GBAMusicStudio.Core
             string str = GetName();
             if (Entry.Type != (int)M4AVoiceFlags.KeySplit && Entry.Type != (int)M4AVoiceFlags.Drum)
             {
-                var flags = (M4AVoiceFlags)Entry.Type;
                 switch ((M4AVoiceType)(Entry.Type & 0x7))
                 {
                     case M4AVoiceType.Direct:
+                        var flags = (M4AVoiceFlags)Entry.Type;
                         bool bFixed = (flags & M4AVoiceFlags.Fixed) == M4AVoiceFlags.Fixed,
                             bReversed = (flags & M4AVoiceFlags.Reversed) == M4AVoiceFlags.Reversed,
                             bCompressed = (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
@@ -137,32 +137,33 @@ namespace GBAMusicStudio.Core
                         }
                         break;
                     default:
-                        bool bOWN = (flags & M4AVoiceFlags.OffWithNoise) == M4AVoiceFlags.OffWithNoise;
-                        if (bOWN) str += " [ OWN ]";
+                        flags = (M4AVoiceFlags)Entry.Type;
+                        bool bOFN = (flags & M4AVoiceFlags.OffWithNoise) == M4AVoiceFlags.OffWithNoise;
+                        if (bOFN) str += " [ OWN ]";
                         break;
                 }
             }
             return str;
         }
     }
-    internal class M4AWrappedDirect : WrappedVoice
+    class M4AWrappedDirect : WrappedVoice
     {
-        internal readonly M4AWrappedSample Sample;
+        public readonly M4AWrappedSample Sample;
 
-        internal M4AWrappedDirect(M4AVoice direct) : base(direct) => Sample = new M4AWrappedSample(direct.Entry.Address);
+        public M4AWrappedDirect(M4AVoice direct) : base(direct) => Sample = new M4AWrappedSample(direct.Entry.Address);
     }
-    internal class M4AWrappedKeySplit : WrappedVoice
+    class M4AWrappedMulti : WrappedVoice
     {
-        internal readonly M4AVoiceTable Table;
-        internal readonly Triple<byte, byte, byte>[] Keys;
+        public readonly M4AVoiceTable Table;
+        public readonly Triple<byte, byte, byte>[] Keys;
 
-        internal M4AWrappedKeySplit(M4AVoice keySplit) : base(keySplit)
+        public M4AWrappedMulti(M4AVoice multi) : base(multi)
         {
             try
             {
-                Table = VoiceTable.LoadTable<M4AVoiceTable>(keySplit.Entry.Address, true);
+                Table = VoiceTable.LoadTable<M4AVoiceTable>(multi.Entry.Address, true);
 
-                var keys = ROM.Instance.ReadBytes(256, keySplit.Entry.Keys);
+                var keys = ROM.Instance.ReadBytes(256, multi.Entry.Keys);
                 var loading = new List<Triple<byte, byte, byte>>(); // Key, min, max
                 int prev = -1;
                 for (int i = 0; i < 256; i++)
@@ -186,13 +187,13 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override IEnumerable<IVoiceTableInfo> GetSubVoices() => Table;
+        public override IEnumerable<IVoiceTableInfo> GetSubVoices() => Table;
     }
-    internal class M4AWrappedDrum : WrappedVoice
+    class M4AWrappedDrum : WrappedVoice
     {
-        internal readonly M4AVoiceTable Table;
+        public readonly M4AVoiceTable Table;
 
-        internal M4AWrappedDrum(M4AVoice drum) : base(drum)
+        public M4AWrappedDrum(M4AVoice drum) : base(drum)
         {
             try
             {
@@ -204,15 +205,15 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        internal override IEnumerable<IVoiceTableInfo> GetSubVoices() => Table;
+        public override IEnumerable<IVoiceTableInfo> GetSubVoices() => Table;
     }
-    internal class M4AWrappedSample : IWrappedSample
+    class M4AWrappedSample : IWrappedSample
     {
-        internal readonly uint Offset;
+        public readonly uint Offset;
         readonly M4AMLSSSample sample;
         readonly WrappedSample gSample;
 
-        internal M4AWrappedSample(uint offset)
+        public M4AWrappedSample(uint offset)
         {
             Offset = offset;
 
@@ -237,60 +238,60 @@ namespace GBAMusicStudio.Core
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    internal class M4AVoiceEntry
+    class M4AVoiceEntry
     {
         [FieldOffset(0)]
-        internal byte Type;
+        public byte Type;
         [FieldOffset(1)]
-        internal sbyte RootNote;
+        public sbyte RootNote;
         [FieldOffset(2)]
-        internal byte Unknown;
+        public byte Unknown;
 
         [FieldOffset(3)]
-        internal byte Panpot; // Direct, Noise
+        public byte Panpot; // Direct, Noise
         [FieldOffset(3)]
-        internal byte Sweep; // Square1
+        public byte Sweep; // Square1
 
         [FieldOffset(4)]
-        internal SquarePattern SquarePattern; // Square1, Square2
+        public SquarePattern SquarePattern; // Square1, Square2
         [FieldOffset(4)]
-        internal NoisePattern NoisePattern; // Noise
+        public NoisePattern NoisePattern; // Noise
         [FieldOffset(4)]
-        internal uint Address; // Direct, Wave, Key Split, Drum
+        public uint Address; // Direct, Wave, KeySplit, Drum
 
         [FieldOffset(8)]
-        internal ADSR ADSR; // Direct, Square1, Square2, Wave, Noise
+        public ADSR ADSR; // Direct, Square1, Square2, Wave, Noise
         [FieldOffset(8)]
-        internal uint Keys; // Key Split
+        public uint Keys; // KeySplit
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct GoldenSunPSG
+    struct GoldenSunPSG
     {
-        internal sbyte Unknown; // Always signed 0
-        internal GSPSGType Type;
-        internal byte InitialCycle;
-        internal byte CycleSpeed;
-        internal byte CycleAmplitude;
-        internal byte MinimumCycle;
+        public sbyte Unknown; // Always signed 0
+        public GSPSGType Type;
+        public byte InitialCycle;
+        public byte CycleSpeed;
+        public byte CycleAmplitude;
+        public byte MinimumCycle;
     }
 
     #endregion
 
     #region MLSS
 
-    internal class MLSSWrappedVoice : WrappedVoice
+    class MLSSWrappedVoice : WrappedVoice
     {
-        internal MLSSWrappedVoice(uint offset, uint numEntries) : base(new MLSSVoice(offset, numEntries)) { }
+        public MLSSWrappedVoice(uint offset, uint numEntries) : base(new MLSSVoice(offset, numEntries)) { }
 
-        internal override IEnumerable<IVoiceTableInfo> GetSubVoices() => ((MLSSVoice)Voice).Entries;
+        public override IEnumerable<IVoiceTableInfo> GetSubVoices() => ((MLSSVoice)Voice).Entries;
     }
-    internal class MLSSVoice : IVoice
+    class MLSSVoice : IVoice
     {
         public uint Offset { get; }
-        internal readonly MLSSWrappedVoiceEntry[] Entries;
+        public readonly MLSSWrappedVoiceEntry[] Entries;
 
-        internal MLSSVoice(uint offset, uint numEntries)
+        public MLSSVoice(uint offset, uint numEntries)
         {
             Offset = offset;
             Entries = new MLSSWrappedVoiceEntry[numEntries];
@@ -299,7 +300,7 @@ namespace GBAMusicStudio.Core
         }
 
         // Throws exception if it can't find a single
-        internal MLSSVoiceEntry GetEntryFromNote(sbyte note)
+        public MLSSVoiceEntry GetEntryFromNote(sbyte note)
         {
             return Entries.Select(e => e.Entry).Single(e => e.MinKey <= note && note <= e.MaxKey);
         }
@@ -308,13 +309,13 @@ namespace GBAMusicStudio.Core
         public string GetName() => "MLSS";
         public override string ToString() => $"{GetName()} ({Entries.Length})";
     }
-    internal class MLSSWrappedSample : IWrappedSample
+    class MLSSWrappedSample : IWrappedSample
     {
-        internal readonly uint Offset;
+        public readonly uint Offset;
         readonly M4AMLSSSample sample;
         readonly WrappedSample gSample;
 
-        internal MLSSWrappedSample(uint offset)
+        public MLSSWrappedSample(uint offset)
         {
             Offset = offset;
             sample = ROM.Instance.ReadStruct<M4AMLSSSample>(offset);
@@ -324,22 +325,22 @@ namespace GBAMusicStudio.Core
         public WrappedSample GetSample() => gSample;
     }
 
-    internal class MLSSWrappedVoiceEntry : IVoiceTableInfo
+    class MLSSWrappedVoiceEntry : IVoiceTableInfo
     {
         public uint Offset { get; }
-        internal readonly MLSSVoiceEntry Entry;
+        public readonly MLSSVoiceEntry Entry;
 
-        internal MLSSWrappedVoiceEntry(uint offset) => Entry = ROM.Instance.ReadStruct<MLSSVoiceEntry>(Offset = offset);
+        public MLSSWrappedVoiceEntry(uint offset) => Entry = ROM.Instance.ReadStruct<MLSSVoiceEntry>(Offset = offset);
 
         public string GetName() => "Voice Entry";
         public override string ToString() => GetName();
     }
     [StructLayout(LayoutKind.Sequential)]
-    internal struct MLSSVoiceEntry
+    struct MLSSVoiceEntry
     {
-        internal byte MinKey, MaxKey;
-        internal byte Sample; // Index in sample table
-        internal byte IsFixedFrequency, // 0x80 if true
+        public byte MinKey, MaxKey;
+        public byte Sample; // Index in sample table
+        public byte IsFixedFrequency, // 0x80 if true
             Unknown1, Unknown2, Unknown3, Unknown4; // Could be ADSR
     }
 
