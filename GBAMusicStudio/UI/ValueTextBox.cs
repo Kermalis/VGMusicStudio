@@ -51,12 +51,13 @@ namespace GBAMusicStudio.UI
                 int i = SelectionStart;
                 Text = Hexadecimal ? ("0x" + value.ToString("X")) : value.ToString();
                 SelectionStart = i;
+                OnValueChanged(EventArgs.Empty);
             }
         }
 
-        const int WM_NOTIFY = 0x0282;
         protected override void WndProc(ref Message m)
         {
+            const int WM_NOTIFY = 0x0282;
             if (m.Msg == WM_NOTIFY && m.WParam == new IntPtr(0xB))
             {
                 if (Hexadecimal && SelectionStart < 2)
@@ -81,6 +82,17 @@ namespace GBAMusicStudio.UI
         {
             base.OnTextChanged(e);
             Value = Value.Clamp(min, max);
+        }
+
+        EventHandler onValueChanged = null;
+        public event EventHandler ValueChanged
+        {
+            add => onValueChanged += value;
+            remove => onValueChanged -= value;
+        }
+        protected virtual void OnValueChanged(EventArgs e)
+        {
+            onValueChanged?.Invoke(this, e);
         }
     }
 }

@@ -105,7 +105,7 @@ namespace GBAMusicStudio.UI
 
             songNumerical.Size = tableNumerical.Size = new Size(45, 23);
             songNumerical.ValueChanged += LoadSong;
-            tableNumerical.ValueChanged += TableChanged;
+            tableNumerical.ValueChanged += TableIndexChanged;
 
             // Labels
             creatorLabel = new ThemedLabel { Location = new Point(3, 43), Size = new Size(72, 13) };
@@ -206,7 +206,7 @@ namespace GBAMusicStudio.UI
             drag = false;
         }
         void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(uint)tableNumerical.Value] - 1;
-        void TableChanged(object sender, EventArgs e)
+        void TableIndexChanged(object sender, EventArgs e)
         {
             SetSongMaximum();
             LoadSong(sender, e);
