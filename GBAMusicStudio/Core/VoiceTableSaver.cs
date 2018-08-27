@@ -72,12 +72,12 @@ namespace GBAMusicStudio.Core
                     else
                         AddDirect(direct);
                 }
-                else if (isNewInst && voice is M4AWrappedMulti multi)
+                else if (isNewInst && voice is M4AWrappedKeySplit keySplit)
                 {
-                    foreach (var key in multi.Keys)
+                    foreach (var key in keySplit.Keys)
                     {
                         if (key.Item1 > amt || key.Item2 > amt) continue;
-                        var subvoice = multi.Table[key.Item1];
+                        var subvoice = keySplit.Table[key.Item1];
 
                         if (subvoice is M4AWrappedDirect subdirect)
                         {

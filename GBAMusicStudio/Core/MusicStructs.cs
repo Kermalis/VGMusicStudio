@@ -152,21 +152,22 @@ namespace GBAMusicStudio.Core
 
         public M4AWrappedDirect(M4AVoice direct) : base(direct) => Sample = new M4AWrappedSample(direct.Entry.Address);
     }
-    class M4AWrappedMulti : WrappedVoice
+    class M4AWrappedKeySplit : WrappedVoice
     {
         public readonly M4AVoiceTable Table;
+        // VoiceTableSaver helper
         public readonly Triple<byte, byte, byte>[] Keys;
 
-        public M4AWrappedMulti(M4AVoice multi) : base(multi)
+        public M4AWrappedKeySplit(M4AVoice keySplit) : base(keySplit)
         {
             try
             {
-                Table = VoiceTable.LoadTable<M4AVoiceTable>(multi.Entry.Address, true);
+                Table = VoiceTable.LoadTable<M4AVoiceTable>(keySplit.Entry.Address, true);
 
-                var keys = ROM.Instance.ReadBytes(256, multi.Entry.Keys);
+                var keys = ROM.Instance.ReadBytes(128, keySplit.Entry.Keys);
                 var loading = new List<Triple<byte, byte, byte>>(); // Key, min, max
                 int prev = -1;
-                for (int i = 0; i < 256; i++)
+                for (int i = 0; i < 128; i++)
                 {
                     byte a = keys[i];
                     byte bi = (byte)i;
@@ -188,6 +189,7 @@ namespace GBAMusicStudio.Core
         }
 
         public override IEnumerable<IVoiceTableInfo> GetSubVoices() => Table;
+        public override string ToString() => $"Key Split ({Keys.Select(k => k.Item1).Distinct().Count()})";
     }
     class M4AWrappedDrum : WrappedVoice
     {

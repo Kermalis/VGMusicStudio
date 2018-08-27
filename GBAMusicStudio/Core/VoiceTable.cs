@@ -60,7 +60,7 @@ namespace GBAMusicStudio.Core
                     break;
                 var voice = new M4AVoice(off);
                 if (voice.Entry.Type == (int)M4AVoiceFlags.KeySplit)
-                    voices[i] = new M4AWrappedMulti(voice);
+                    voices[i] = new M4AWrappedKeySplit(voice);
                 else if (voice.Entry.Type == (int)M4AVoiceFlags.Drum)
                     voices[i] = new M4AWrappedDrum(voice);
                 else if ((voice.Entry.Type & 0x7) == (int)M4AVoiceType.Direct)
@@ -80,9 +80,9 @@ namespace GBAMusicStudio.Core
             switch (v.Type)
             {
                 case (int)M4AVoiceFlags.KeySplit:
-                    var multi = (M4AWrappedMulti)sv;
+                    var keySplit = (M4AWrappedKeySplit)sv;
                     byte inst = ROM.Instance.ReadByte((uint)(v.Keys + note));
-                    sv = multi.Table[inst];
+                    sv = keySplit.Table[inst];
                     fromDrum = false; // In case there is a multi within a drum
                     goto Read;
                 case (int)M4AVoiceFlags.Drum:
