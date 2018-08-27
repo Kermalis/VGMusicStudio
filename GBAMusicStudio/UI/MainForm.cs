@@ -16,7 +16,7 @@ namespace GBAMusicStudio.UI
     class MainForm : Form
     {
         bool stopUI = false, drag = false;
-        TrackEditor trackEditor;
+        TrackEditor trackEditor; VoiceTableEditor voiceTableEditor;
         List<sbyte> pianoNotes = new List<sbyte>();
         public readonly bool[] PianoTracks = new bool[16];
 
@@ -27,7 +27,7 @@ namespace GBAMusicStudio.UI
         IContainer components;
         MenuStrip mainMenu;
         ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
-            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem;
+            dataToolStripMenuItem, teToolStripMenuItem, vteToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem;
         Timer timer;
         readonly object timerLock = new object();
         ThemedNumeric songNumerical, tableNumerical;
@@ -71,6 +71,9 @@ namespace GBAMusicStudio.UI
             teToolStripMenuItem = new ToolStripMenuItem { Text = "Track Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
             teToolStripMenuItem.Click += OpenTrackEditor;
 
+            vteToolStripMenuItem = new ToolStripMenuItem { Text = "VoiceTable Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.V };
+            vteToolStripMenuItem.Click += OpenVoiceTableEditor;
+
             eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
             eSf2ToolStripMenuItem.Click += ExportSF2;
 
@@ -81,7 +84,7 @@ namespace GBAMusicStudio.UI
             eMIDIToolStripMenuItem.Click += ExportMIDI;
 
             dataToolStripMenuItem = new ToolStripMenuItem { Text = "Data" };
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem });
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, vteToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem });
 
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
@@ -287,6 +290,17 @@ namespace GBAMusicStudio.UI
             trackEditor.FormClosed += (o, s) => trackEditor = null;
             trackEditor.Show();
         }
+        void OpenVoiceTableEditor(object sender, EventArgs e)
+        {
+            if (voiceTableEditor != null)
+            {
+                voiceTableEditor.Focus();
+                return;
+            }
+            voiceTableEditor = new VoiceTableEditor { Owner = this };
+            voiceTableEditor.FormClosed += (o, s) => voiceTableEditor = null;
+            voiceTableEditor.Show();
+        }
         void ReloadConfig(object sender, EventArgs e)
         {
             Config.Load();
@@ -356,7 +370,7 @@ namespace GBAMusicStudio.UI
             PopulatePlaylists(game.Playlists);
 
             openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
-                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
+                teToolStripMenuItem.Enabled = vteToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
                 songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
         void UpdateTrackInfo(bool play)
@@ -367,8 +381,8 @@ namespace GBAMusicStudio.UI
             positionBar.Maximum = SongPlayer.Song.NumTicks;
             positionBar.LargeChange = (uint)(positionBar.Maximum / 10);
             positionBar.SmallChange = positionBar.LargeChange / 4;
-            if (trackEditor != null)
-                trackEditor.UpdateTracks();
+            trackEditor?.UpdateTracks();
+            voiceTableEditor?.UpdateTable();
             if (play)
                 Play(null, null);
             else

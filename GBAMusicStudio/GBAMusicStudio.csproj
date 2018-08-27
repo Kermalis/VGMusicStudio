@@ -119,6 +119,7 @@
     <Compile Include="UI\PianoControl.cs" />
     <Compile Include="UI\TrackInfoControl.cs" />
     <Compile Include="UI\TrackEditor.cs" />
+    <Compile Include="UI\VoiceTableEditor.cs" />
     <Compile Include="Util\HSLColor.cs" />
     <Compile Include="Util\TimeBarrier.cs" />
     <Compile Include="Util\Tuple.cs" />

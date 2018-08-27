@@ -39,6 +39,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * MIDI saving
 
 ## General
+* Show tooltips in the VoiceTableEditor which provide a huge chunk of information
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
