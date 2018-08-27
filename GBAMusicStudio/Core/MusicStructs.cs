@@ -270,7 +270,7 @@ namespace GBAMusicStudio.Core
     [StructLayout(LayoutKind.Sequential)]
     struct GoldenSunPSG
     {
-        public sbyte Unknown; // Always signed 0
+        public byte Unknown; // Always 0x80
         public GSPSGType Type;
         public byte InitialCycle;
         public byte CycleSpeed;

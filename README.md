@@ -66,7 +66,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * SomeShrug
 
 ----
-# GBA Music Studio uses:
+# GBA Music Studio Uses:
 * [NAudio](https://github.com/naudio/NAudio)
 * [Humanizer](https://github.com/Humanizr/Humanizer)
 * [ObjectListView](http://objectlistview.sourceforge.net)
