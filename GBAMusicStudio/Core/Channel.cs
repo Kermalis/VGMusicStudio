@@ -655,10 +655,10 @@ namespace GBAMusicStudio.Core
             Init(ownerIdx, note, env);
             switch (pattern)
             {
-                default: pat = new float[] { 0.50f, 0.50f, 0.50f, 0.50f, -0.50f, -0.50f, -0.50f, -0.50f }; break;
-                case SquarePattern.D12: pat = new float[] { 0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f }; break;
-                case SquarePattern.D25: pat = new float[] { 0.75f, 0.75f, -0.25f, -0.25f, -0.25f, -0.25f, -0.25f, -0.25f }; break;
-                case SquarePattern.D75: pat = new float[] { 0.25f, 0.25f, 0.25f, 0.25f, 0.25f, 0.25f, -0.75f, -0.75f }; break;
+                default: pat = GBSamples.SquareD12; break;
+                case SquarePattern.D12: pat = GBSamples.SquareD25; break;
+                case SquarePattern.D25: pat = GBSamples.SquareD50; break;
+                case SquarePattern.D75: pat = GBSamples.SquareD75; break;
             }
         }
 
@@ -701,26 +701,14 @@ namespace GBAMusicStudio.Core
     }
     class WaveChannel : GBChannel
     {
-        readonly float[] sample = new float[0x20];
+        float[] sample;
 
         public WaveChannel() : base() { }
         public void Init(byte ownerIdx, Note note, ADSR env, uint address)
         {
             Init(ownerIdx, note, env);
 
-            byte[] data = ROM.Instance.ReadBytes(16, address);
-            float sum = 0;
-            for (int i = 0; i < 0x10; i++)
-            {
-                byte b = data[i];
-                float first = (b >> 4) / 16f;
-                float second = (b & 0xF) / 16f;
-                sum += sample[i * 2] = first;
-                sum += sample[i * 2 + 1] = second;
-            }
-            float dcCorrection = sum / 0x20;
-            for (int i = 0; i < 0x20; i++)
-                sample[i] -= dcCorrection;
+            sample = GBSamples.PCM4ToFloat(address);
         }
 
         public override void SetPitch(int pitch)
@@ -763,47 +751,11 @@ namespace GBAMusicStudio.Core
     class NoiseChannel : GBChannel
     {
         BitArray pat;
-        readonly BitArray fine, rough;
-
-        public NoiseChannel() : base()
-        {
-            fine = new BitArray(0x8000);
-            int reg = 0x4000;
-            for (int i = 0; i < fine.Length; i++)
-            {
-                if ((reg & 1) == 1)
-                {
-                    reg >>= 1;
-                    reg ^= 0x6000;
-                    fine[i] = true;
-                }
-                else
-                {
-                    reg >>= 1;
-                    fine[i] = false;
-                }
-            }
-            rough = new BitArray(0x80);
-            reg = 0x40;
-            for (int i = 0; i < rough.Length; i++)
-            {
-                if ((reg & 1) == 1)
-                {
-                    reg >>= 1;
-                    reg ^= 0x60;
-                    rough[i] = true;
-                }
-                else
-                {
-                    reg >>= 1;
-                    rough[i] = false;
-                }
-            }
-        }
+        
         public void Init(byte ownerIdx, Note note, ADSR env, NoisePattern pattern)
         {
             Init(ownerIdx, note, env);
-            pat = (pattern == NoisePattern.Fine ? fine : rough);
+            pat = (pattern == NoisePattern.Fine ? GBSamples.NoiseFine : GBSamples.NoiseRough);
         }
 
         public override void SetPitch(int pitch)

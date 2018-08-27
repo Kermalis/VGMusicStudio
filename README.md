@@ -10,7 +10,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * You can play the in-game instruments with a MIDI-in keyboard
 * You can view and edit track events
 * You can import MIDI files without having to convert them yourself
-* ~~You can save the voice tables to SF2 soundfont files~~ (Currently disabled)
+* You can save the voice tables to SF2 SoundFont files
 * You can save songs to ASM S files
 * The UI scales to the desired window size
 * You can see representation of notes being played
@@ -42,7 +42,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
-* Fix voicetable saver
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config
@@ -59,9 +58,19 @@ A tool that is designed to be a Sappy replacement as well as support different g
 
 ----
 # Special Thanks To:
-* Ipatix [(And his GBA music player)](https://github.com/ipatix/agbplay/)
+* Ipatix [(And his GBA music player)](https://github.com/ipatix/agbplay)
 * tuku473
 * Bregalad
 * mimi
 * Jesse (jelle)
 * SomeShrug
+
+----
+# GBA Music Studio uses:
+* [NAudio](https://github.com/naudio/NAudio)
+* [Humanizer](https://github.com/Humanizr/Humanizer)
+* [ObjectListView](http://objectlistview.sourceforge.net)
+* [Sanford.Multimedia.Midi](https://github.com/tebjan/Sanford.Multimedia.Midi)
+* [YamlDotNet](https://github.com/aaubry/YamlDotNet/wiki)
+* [ImageComboBox](https://www.codeproject.com/Articles/10670/Image-ComboBox-Control)
+* [My SoundFont2 library](https://github.com/Kermalis/SoundFont2)

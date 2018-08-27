@@ -27,7 +27,7 @@ namespace GBAMusicStudio.UI
         IContainer components;
         MenuStrip mainMenu;
         ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
-            dataToolStripMenuItem, teToolStripMenuItem, /*eSf2ToolStripMenuItem, */eASMToolStripMenuItem, eMIDIToolStripMenuItem;
+            dataToolStripMenuItem, teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem;
         Timer timer;
         readonly object timerLock = new object();
         ThemedNumeric songNumerical, tableNumerical;
@@ -71,8 +71,8 @@ namespace GBAMusicStudio.UI
             teToolStripMenuItem = new ToolStripMenuItem { Text = "Track Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
             teToolStripMenuItem.Click += OpenTrackEditor;
 
-            //eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
-            //eSf2ToolStripMenuItem.Click += ExportSF2;
+            eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
+            eSf2ToolStripMenuItem.Click += ExportSF2;
 
             eASMToolStripMenuItem = new ToolStripMenuItem { Text = "Export Song To ASM", Enabled = false };
             eASMToolStripMenuItem.Click += ExportASM;
@@ -81,7 +81,7 @@ namespace GBAMusicStudio.UI
             eMIDIToolStripMenuItem.Click += ExportMIDI;
 
             dataToolStripMenuItem = new ToolStripMenuItem { Text = "Data" };
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, /*eSf2ToolStripMenuItem, */eASMToolStripMenuItem, eMIDIToolStripMenuItem });
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem });
 
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
@@ -296,7 +296,7 @@ namespace GBAMusicStudio.UI
                 UpdateMenuInfo();
             }
         }
-        /*void ExportSF2(object sender, EventArgs e)
+        void ExportSF2(object sender, EventArgs e)
         {
             var d = new SaveFileDialog { Title = "Export SF2 File", Filter = "SF2 file|*.sf2" };
             if (d.ShowDialog() != DialogResult.OK) return;
@@ -310,7 +310,7 @@ namespace GBAMusicStudio.UI
             {
                 FlexibleMessageBox.Show(ex.Message, "Error Exporting SF2 File");
             }
-        }*/
+        }
         void ExportASM(object sender, EventArgs e)
         {
             var d = new SaveFileDialog { Title = "Export ASM File", Filter = "ASM file|*.s" };
@@ -356,7 +356,7 @@ namespace GBAMusicStudio.UI
             PopulatePlaylists(game.Playlists);
 
             openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
-                teToolStripMenuItem.Enabled = /*eSf2ToolStripMenuItem.Enabled = */eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
+                teToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
                 songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
         }
         void UpdateTrackInfo(bool play)
