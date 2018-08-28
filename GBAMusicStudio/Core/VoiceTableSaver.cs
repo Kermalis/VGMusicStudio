@@ -223,7 +223,6 @@ namespace GBAMusicStudio.Core
             sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { UAmount = (ushort)(gSample.bLoop ? 1 : 0) });
             sf2.AddInstrumentGenerator(SF2Generator.SampleID, new SF2GeneratorAmount { UAmount = (ushort)(sample) });
         }
-                byte[] pcm8 = ROM.Instance.ReadBytes(gSample.Length, gSample.Offset);
 
 
         // These two methods have to add 6 because the first 6 samples are the squares and noises
@@ -245,6 +244,7 @@ namespace GBAMusicStudio.Core
                 return 6 + savedSamples.IndexOf(sample.Offset);
 
             var gSample = sample.GetSample();
+            byte[] pcm8 = ROM.Instance.ReadBytes(gSample.Length, gSample.Offset);
             short[] pcm16 = PCM8ToPCM16(pcm8);
             sf2.AddSample(pcm16, string.Format("Sample 0x{0:X7}", sample.Offset), gSample.bLoop, gSample.LoopPoint, (uint)gSample.Frequency, 60, 0);
 
