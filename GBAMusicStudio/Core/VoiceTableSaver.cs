@@ -147,6 +147,10 @@ namespace GBAMusicStudio.Core
 
                 sf2.AddInstrumentBag();
 
+                high = Math.Min((byte)127, high);
+                if (!(low == 0 && high == 127))
+                    sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
+
                 // ADSR
                 if (entry.ADSR.A != 0)
                 {
@@ -177,9 +181,6 @@ namespace GBAMusicStudio.Core
                     sf2.AddInstrumentGenerator(SF2Generator.ReleaseVolEnv, new SF2GeneratorAmount { UAmount = (ushort)rel });
                 }
 
-                high = Math.Min((byte)127, high);
-                if (!(low == 0 && high == 127))
-                    sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
                 if ((entry.Type & 0x7) == (int)M4AVoiceType.Noise && entry.Panpot != 0)
                     sf2.AddInstrumentGenerator(SF2Generator.Pan, new SF2GeneratorAmount { UAmount = (ushort)((entry.Panpot - 0xC0) * (500d / 0x80)) });
                 sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { Amount = 1 });
@@ -196,6 +197,10 @@ namespace GBAMusicStudio.Core
                 uint sample = AddDirectSample(direct.Sample);
 
                 sf2.AddInstrumentBag();
+
+                high = Math.Min((byte)127, high);
+                if (!(low == 0 && high == 127))
+                    sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
 
                 // Fixed frequency
                 if ((entry.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed)
@@ -232,9 +237,6 @@ namespace GBAMusicStudio.Core
                     sf2.AddInstrumentGenerator(SF2Generator.ReleaseVolEnv, new SF2GeneratorAmount { UAmount = (ushort)rel });
                 }
 
-                high = Math.Min((byte)127, high);
-                if (!(low == 0 && high == 127))
-                    sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
                 if (entry.Panpot != 0)
                     sf2.AddInstrumentGenerator(SF2Generator.Pan, new SF2GeneratorAmount { UAmount = (ushort)((entry.Panpot - 0xC0) * (500d / 0x80)) });
                 sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { UAmount = (ushort)(gSample.bLoop ? 1 : 0) });
@@ -328,9 +330,10 @@ namespace GBAMusicStudio.Core
                     foreach (var entry in entries)
                     {
                         sf2.AddInstrumentBag();
+                        if (!(entry.MinKey == 0 && entry.MaxKey == 127))
+                            sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = entry.MinKey, HighByte = entry.MaxKey });
                         if (entry.IsFixedFrequency == 0x80)
                             sf2.AddInstrumentGenerator(SF2Generator.ScaleTuning, new SF2GeneratorAmount { Amount = 0 });
-                        sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = entry.MinKey, HighByte = entry.MaxKey });
                         if (entry.Sample < table.Samples.Length)
                         {
                             var sample = table.Samples[entry.Sample];
