@@ -5,7 +5,7 @@ A88E:
   SongTableSize: 407
   VoiceTable: 0x21D1CC
   SampleTable: 0xA806B8
-  SampleTableSize: 235
+  SampleTableSize: 236
   Remap: "MLSS"
   Engine:
     Type: "MLSS"
