@@ -81,8 +81,8 @@ namespace GBAMusicStudio.Core
                         sf2.AddPreset(name, i, 0);
                         //sf2.AddPreset(name, i, (ushort)(voice is M4AWrappedDrum ? 128 : 0));
                         sf2.AddPresetBag();
-                        sf2.AddPresetGenerator(SF2Generator.Instrument, new SF2GeneratorAmount { UAmount = i });
-                        sf2.AddInstrument(name);
+                        sf2.AddPresetGenerator(SF2Generator.Instrument,
+                            new SF2GeneratorAmount { UAmount = (ushort)sf2.AddInstrument(name) });
                     }
 
                     if (voice is M4AWrappedDirect direct)
@@ -323,8 +323,8 @@ namespace GBAMusicStudio.Core
                     string name = "Instrument " + i;
                     sf2.AddPreset(name, i, 0);
                     sf2.AddPresetBag();
-                    sf2.AddPresetGenerator(SF2Generator.Instrument, new SF2GeneratorAmount { UAmount = i });
-                    sf2.AddInstrument(name);
+                    sf2.AddPresetGenerator(SF2Generator.Instrument,
+                        new SF2GeneratorAmount { UAmount = (ushort)sf2.AddInstrument(name) });
                     foreach (var entry in entries)
                     {
                         sf2.AddInstrumentBag();
