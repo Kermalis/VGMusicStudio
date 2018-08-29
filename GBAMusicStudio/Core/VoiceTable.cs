@@ -26,7 +26,7 @@ namespace GBAMusicStudio.Core
         public static void ClearCache() => cache.Clear();
 
         public uint Offset { get; protected set; }
-        protected uint Length { get; private set; }
+        public uint Length { get; private set; }
         protected readonly WrappedVoice[] voices;
 
         public VoiceTable(uint capacity) => voices = new WrappedVoice[Length = capacity];

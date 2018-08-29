@@ -317,7 +317,7 @@ namespace GBAMusicStudio.UI
 
             try
             {
-                new VoiceTableSaver(SongPlayer.Song.VoiceTable, d.FileName);
+                VoiceTableSaver.Save(d.FileName);
                 FlexibleMessageBox.Show($"Voice table saved to {d.FileName}.", Text);
             }
             catch (Exception ex)
