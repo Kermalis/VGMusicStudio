@@ -36,6 +36,12 @@ namespace GBAMusicStudio.Core
             }
             throw new PlatformNotSupportedException("Exporting to SF2 from this game engine is not supported at this time.");
         }
+        static void AddInfo(SF2 sf2)
+        {
+            sf2.InfoChunk.Bank = ROM.Instance.Game.Name;
+            sf2.InfoChunk.Copyright = ROM.Instance.Game.Creator;
+            sf2.InfoChunk.Tools = "GBA Music Studio by Kermalis";
+        }
 
         static short[] PCM8ToPCM16(byte[] pcm8) => pcm8.Select(i => (short)(i << 8)).ToArray();
         static short[] PCMU8ToPCM16(byte[] pcm8) => pcm8.Select(i => (short)((i - 0x80) << 8)).ToArray();
@@ -55,16 +61,16 @@ namespace GBAMusicStudio.Core
             public M4AVoiceTableSaver(string fileName, bool saveAfter7F)
             {
                 sf2 = new SF2();
-                //sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Game.Creator, "", "GBA Music Studio by Kermalis");
+                AddInfo(sf2);
 
                 AddSquaresAndNoises();
-                AddTable((M4AVoiceTable)SongPlayer.Song.VoiceTable, saveAfter7F, true);
+                AddTable((M4AVoiceTable)SongPlayer.Song.VoiceTable, saveAfter7F, false);
 
                 sf2.Save(fileName);
             }
 
             List<uint> addedTables = new List<uint>();
-            void AddTable(M4AVoiceTable table, bool saveAfter7F, bool isNewInst)
+            void AddTable(M4AVoiceTable table, bool saveAfter7F, bool fromDrum)
             {
                 if (addedTables.Contains(table.Offset)) return;
                 addedTables.Add(table.Offset);
@@ -75,7 +81,7 @@ namespace GBAMusicStudio.Core
                 {
                     var voice = table[i];
 
-                    if (isNewInst)
+                    if (!fromDrum)
                     {
                         string name = "Instrument " + i;
                         sf2.AddPreset(name, i, 0);
@@ -87,15 +93,16 @@ namespace GBAMusicStudio.Core
 
                     if (voice is M4AWrappedDirect direct)
                     {
-                        if (!isNewInst)
+                        if (fromDrum)
                         {
                             AddDirect(direct, (byte)i, (byte)i);
-                            sf2.AddInstrumentGenerator(SF2Generator.OverridingRootKey, new SF2GeneratorAmount { UAmount = (ushort)(i - (direct.Voice.GetRootNote() - 60)) });
+                            sf2.AddInstrumentGenerator(SF2Generator.OverridingRootKey,
+                                new SF2GeneratorAmount { UAmount = (ushort)(i - (direct.Voice.GetRootNote() - 60)) });
                         }
                         else
                             AddDirect(direct);
                     }
-                    else if (isNewInst && voice is M4AWrappedKeySplit keySplit)
+                    else if (!fromDrum && voice is M4AWrappedKeySplit keySplit)
                     {
                         foreach (var key in keySplit.Keys)
                         {
@@ -110,17 +117,18 @@ namespace GBAMusicStudio.Core
                     }
                     else if (voice is M4AWrappedDrum drum)
                     {
-                        AddTable(drum.Table, saveAfter7F, false);
+                        AddTable(drum.Table, saveAfter7F, true);
                     }
                     else
                     {
                         var m4 = ((M4AVoice)voice.Voice).Entry;
-                        if (!isNewInst)
+                        if (fromDrum)
                         {
                             if ((m4.Type & 0x7) == (int)M4AVoiceType.Noise)
                             {
                                 AddPSG(m4, (byte)i, (byte)i);
-                                sf2.AddInstrumentGenerator(SF2Generator.OverridingRootKey, new SF2GeneratorAmount { UAmount = (ushort)(i - (m4.RootNote - 60)) });
+                                sf2.AddInstrumentGenerator(SF2Generator.OverridingRootKey,
+                                    new SF2GeneratorAmount { UAmount = (ushort)(i - (m4.RootNote - 60)) });
                             }
                         }
                         else
@@ -251,7 +259,8 @@ namespace GBAMusicStudio.Core
                     return (uint)(6 + savedSamples.IndexOf(address));
                 savedSamples.Add(address);
 
-                short[] pcm16 = FloatToPCM16(GBSamples.PCM4ToFloat(address));
+                float[] ieee = GBSamples.PCM4ToFloat(address);
+                short[] pcm16 = FloatToPCM16(ieee);
                 return sf2.AddSample(pcm16, string.Format("Wave 0x{0:X7}", address), true, 0, 7040, 69, 0);
             }
             uint AddDirectSample(M4AWrappedSample sample)
@@ -288,7 +297,7 @@ namespace GBAMusicStudio.Core
             public MLSSVoiceTableSaver(string fileName)
             {
                 sf2 = new SF2();
-                //sf2 = new SF2("", "", "", 0, 0, "", ROM.Instance.Game.Creator, "", "GBA Music Studio by Kermalis");
+                AddInfo(sf2);
 
                 var table = (MLSSVoiceTable)SongPlayer.Song.VoiceTable;
                 AddSamples(table);
