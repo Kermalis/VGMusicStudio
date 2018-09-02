@@ -146,8 +146,8 @@ namespace GBAMusicStudio.UI
                 Size = new Size(155, 27),
                 SmallChange = 5
             };
-            volumeBar.ValueChanged += (o, e) => SoundMixer.MasterVolume = (volumeBar.Value / (float)volumeBar.Maximum);
-            volumeBar.Value = Config.Volume; // Update MusicPlayer volume
+            volumeBar.ValueChanged += (o, e) => SoundMixer.Instance.MasterVolume = (volumeBar.Value / (float)volumeBar.Maximum);
+            volumeBar.Value = Config.Instance.Volume; // Update MusicPlayer volume
 
             // Playlist box
             ImageList il = new ImageList(components)
@@ -198,14 +198,14 @@ namespace GBAMusicStudio.UI
             Icon = Resources.Icon;
             MainMenuStrip = mainMenu;
             MinimumSize = new Size(8 + iWidth + 8, 30 + iHeight + 8); // Borders
-            SongPlayer.SongEnded += () => stopUI = true;
+            SongPlayer.Instance.SongEnded += () => stopUI = true;
             Resize += OnResize;
             Text = "GBA Music Studio";
         }
 
         void SetPosition(object sender, EventArgs e)
         {
-            SongPlayer.SetPosition((uint)positionBar.Value);
+            SongPlayer.Instance.SetPosition((uint)positionBar.Value);
             drag = false;
         }
         void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(uint)tableNumerical.Value] - 1;
@@ -218,9 +218,9 @@ namespace GBAMusicStudio.UI
         public void PreviewASM(Assembler asm, string headerLabel, string caption)
         {
             Text = "GBA Music Studio - " + caption;
-            bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
+            bool playing = SongPlayer.Instance.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.SetSong(new M4AASMSong(asm, headerLabel));
+            SongPlayer.Instance.SetSong(new M4AASMSong(asm, headerLabel));
             UpdateTrackInfo(playing);
         }
         void LoadSong(object sender, EventArgs e)
@@ -238,9 +238,9 @@ namespace GBAMusicStudio.UI
                 Text = "GBA Music Studio";
                 songsComboBox.SelectedIndex = 0;
             }
-            bool playing = SongPlayer.State == PlayerState.Playing; // Play new song if one is already playing
+            bool playing = SongPlayer.Instance.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.SetSong(ROM.Instance.SongTables[(uint)tableNumerical.Value][(uint)songNumerical.Value]);
+            SongPlayer.Instance.SetSong(ROM.Instance.SongTables[(uint)tableNumerical.Value][(uint)songNumerical.Value]);
             UpdateTrackInfo(playing);
 
             MIDIKeyboard.Start();
@@ -303,10 +303,10 @@ namespace GBAMusicStudio.UI
         }
         void ReloadConfig(object sender, EventArgs e)
         {
-            Config.Load();
+            Config.Instance.Load();
             if (ROM.Instance != null)
             {
-                ROM.Instance.ReloadGameConfig();
+                ROM.Instance.HandleConfigLoaded();
                 UpdateMenuInfo();
             }
         }
@@ -332,7 +332,7 @@ namespace GBAMusicStudio.UI
 
             try
             {
-                SongPlayer.Song.SaveAsASM(d.FileName);
+                SongPlayer.Instance.Song.SaveAsASM(d.FileName);
                 FlexibleMessageBox.Show($"Song saved to {d.FileName}.", Text);
             }
             catch (Exception ex)
@@ -347,7 +347,7 @@ namespace GBAMusicStudio.UI
 
             try
             {
-                SongPlayer.Song.SaveAsMIDI(d.FileName);
+                SongPlayer.Instance.Song.SaveAsMIDI(d.FileName);
                 FlexibleMessageBox.Show($"Song saved to {d.FileName}.", Text);
             }
             catch (Exception ex)
@@ -378,7 +378,7 @@ namespace GBAMusicStudio.UI
             trackInfo.DeleteData(); // Refresh track count
             UpdateSongPosition(0);
             UpdateTaskbarState();
-            positionBar.Maximum = SongPlayer.Song.NumTicks;
+            positionBar.Maximum = SongPlayer.Instance.Song.NumTicks;
             positionBar.LargeChange = (uint)(positionBar.Maximum / 10);
             positionBar.SmallChange = positionBar.LargeChange / 4;
             trackEditor?.UpdateTracks();
@@ -403,17 +403,17 @@ namespace GBAMusicStudio.UI
 
         void Play(object sender, EventArgs e)
         {
-            SongPlayer.Play();
+            SongPlayer.Instance.Play();
             positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = true;
             pauseButton.Text = "Pause";
-            timer.Interval = (int)(1000f / Config.RefreshRate);
+            timer.Interval = (int)(1000f / Config.Instance.RefreshRate);
             timer.Start();
             UpdateTaskbarState();
         }
         void Pause(object sender, EventArgs e)
         {
-            SongPlayer.Pause(); // Change state
-            if (SongPlayer.State != PlayerState.Paused)
+            SongPlayer.Instance.Pause(); // Change state
+            if (SongPlayer.Instance.State != PlayerState.Paused)
             {
                 stopButton.Enabled = true;
                 pauseButton.Text = "Pause";
@@ -431,7 +431,7 @@ namespace GBAMusicStudio.UI
         }
         void Stop(object sender, EventArgs e)
         {
-            SongPlayer.Stop();
+            SongPlayer.Instance.Stop();
             positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
             timer.Stop();
             System.Threading.Monitor.Enter(timerLock);
@@ -464,8 +464,8 @@ namespace GBAMusicStudio.UI
                 }
                 ClearPianoNotes();
                 var info = trackInfo.Info;
-                SongPlayer.GetSongState(info);
-                for (int i = SongPlayer.NumTracks - 1; i >= 0; i--)
+                SongPlayer.Instance.GetSongState(info);
+                for (int i = SongPlayer.Instance.NumTracks - 1; i >= 0; i--)
                 {
                     if (!PianoTracks[i]) continue;
 
@@ -474,7 +474,7 @@ namespace GBAMusicStudio.UI
                     foreach (var n in notes)
                         if (n >= piano.LowNoteID && n <= piano.HighNoteID)
                         {
-                            piano[n - piano.LowNoteID].NoteOnColor = Config.Colors[info.Voices[i]];
+                            piano[n - piano.LowNoteID].NoteOnColor = Config.Instance.Colors[info.Voices[i]];
                             piano.PressPianoKey(n);
                         }
                 }
@@ -492,16 +492,16 @@ namespace GBAMusicStudio.UI
         void UpdateSongPosition(int position)
         {
             positionBar.Value = position.Clamp(0, positionBar.Maximum);
-            if (Config.TaskbarProgress && TaskbarManager.IsPlatformSupported)
+            if (Config.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
                 TaskbarManager.Instance.SetProgressValue(positionBar.Value, positionBar.Maximum, Handle);
         }
         void UpdateTaskbarState()
         {
-            if (Config.TaskbarProgress && TaskbarManager.IsPlatformSupported)
+            if (Config.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
             {
                 TaskbarProgressBarState state = TaskbarProgressBarState.NoProgress;
-                if (SongPlayer.State == PlayerState.Playing) state = TaskbarProgressBarState.Normal;
-                else if (SongPlayer.State == PlayerState.Paused) state = TaskbarProgressBarState.Paused;
+                if (SongPlayer.Instance.State == PlayerState.Playing) state = TaskbarProgressBarState.Normal;
+                else if (SongPlayer.Instance.State == PlayerState.Paused) state = TaskbarProgressBarState.Paused;
 
                 TaskbarManager.Instance.SetProgressState(state, Handle);
             }
@@ -510,7 +510,7 @@ namespace GBAMusicStudio.UI
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             Stop(null, null);
-            SongPlayer.ShutDown();
+            SongPlayer.Instance.ShutDown();
             MIDIKeyboard.Stop();
             base.OnFormClosing(e);
         }
@@ -545,7 +545,7 @@ namespace GBAMusicStudio.UI
         {
             if (playButton.Enabled && keyData == (Keys.Space))
             {
-                if (SongPlayer.State == PlayerState.Stopped)
+                if (SongPlayer.Instance.State == PlayerState.Stopped)
                     Play(null, null);
                 else
                     Pause(null, null);

@@ -131,7 +131,7 @@ namespace GBAMusicStudio.UI
             // Global controls
             remapsBox = new ComboBox
             {
-                DataSource = Config.InstrumentRemaps.Keys.ToArray(),
+                DataSource = Config.Instance.InstrumentRemaps.Keys.ToArray(),
                 Location = new Point(4, 4),
                 Size = new Size(100, 21)
             };
@@ -176,7 +176,7 @@ namespace GBAMusicStudio.UI
 
         void ListView_ItemActivate(object sender, EventArgs e)
         {
-            SongPlayer.SetPosition(((SongEvent)listView.SelectedItem.RowObject).AbsoluteTicks);
+            SongPlayer.Instance.SetPosition(((SongEvent)listView.SelectedItem.RowObject).AbsoluteTicks);
         }
 
         void AddEvent(object sender, EventArgs e)
@@ -184,8 +184,8 @@ namespace GBAMusicStudio.UI
             var cmd = (ICommand)Activator.CreateInstance(Engine.GetCommands()[commandsBox.SelectedIndex].GetType());
             var ev = new SongEvent(0xFFFFFFFF, cmd);
             int index = listView.SelectedIndex + 1;
-            SongPlayer.Song.InsertEvent(ev, currentTrack, index);
-            SongPlayer.RefreshSong();
+            SongPlayer.Instance.Song.InsertEvent(ev, currentTrack, index);
+            SongPlayer.Instance.RefreshSong();
             LoadTrack(currentTrack);
             SelectItem(index);
         }
@@ -193,8 +193,8 @@ namespace GBAMusicStudio.UI
         {
             if (listView.SelectedIndex == -1)
                 return;
-            SongPlayer.Song.RemoveEvent(currentTrack, listView.SelectedIndex);
-            SongPlayer.RefreshSong();
+            SongPlayer.Instance.Song.RemoveEvent(currentTrack, listView.SelectedIndex);
+            SongPlayer.Instance.RefreshSong();
             LoadTrack(currentTrack);
         }
 
@@ -225,16 +225,16 @@ namespace GBAMusicStudio.UI
         {
             bool changed = false;
             string remap = (string)remapsBox.SelectedItem;
-            foreach (var track in SongPlayer.Song.Commands)
+            foreach (var track in SongPlayer.Instance.Song.Commands)
                 foreach (var ev in track)
                     if (ev.Command is VoiceCommand voice)
                     {
-                        voice.Voice = Config.GetRemap(voice.Voice, remap, from);
+                        voice.Voice = Config.Instance.GetRemap(voice.Voice, remap, from);
                         changed = true;
                     }
             if (changed)
             {
-                SongPlayer.RefreshSong();
+                SongPlayer.Instance.RefreshSong();
                 LoadTrack(currentTrack);
             }
         }
@@ -249,14 +249,14 @@ namespace GBAMusicStudio.UI
                 }
             if (changed)
             {
-                SongPlayer.RefreshSong();
+                SongPlayer.Instance.RefreshSong();
                 LoadTrack(currentTrack);
             }
         }
         void ChangeAllEvents(object sender, EventArgs e)
         {
             bool changed = false;
-            foreach (var track in SongPlayer.Song.Commands)
+            foreach (var track in SongPlayer.Instance.Song.Commands)
                 foreach (var ev in track)
                     if (sender == globalChangeVoicesButton && ev.Command is VoiceCommand voice && voice.Voice == globalVoiceArgs[0].Value)
                     {
@@ -265,7 +265,7 @@ namespace GBAMusicStudio.UI
                     }
             if (changed)
             {
-                SongPlayer.RefreshSong();
+                SongPlayer.Instance.RefreshSong();
                 LoadTrack(currentTrack);
             }
         }
@@ -273,17 +273,17 @@ namespace GBAMusicStudio.UI
         void LoadTrack(int track)
         {
             currentTrack = track;
-            events = SongPlayer.Song.Commands[track];
+            events = SongPlayer.Instance.Song.Commands[track];
             listView.SetObjects(events);
             SelectedIndexChanged(null, null);
         }
         void TracksBox_SelectedIndexChanged(object sender, EventArgs e) => LoadTrack(tracksBox.SelectedIndex);
         public void UpdateTracks()
         {
-            bool tracks = SongPlayer.NumTracks > 0;
+            bool tracks = SongPlayer.Instance.NumTracks > 0;
             tracksBox.Enabled = trackChangeVoicesButton.Enabled = trackAddEventButton.Enabled = trackRemoveEventButton.Enabled = commandsBox.Enabled = globalChangeVoicesButton.Enabled = tracks;
 
-            tracksBox.DataSource = Enumerable.Range(1, SongPlayer.NumTracks).Select(i => $"Track {i}").ToList();
+            tracksBox.DataSource = Enumerable.Range(1, SongPlayer.Instance.NumTracks).Select(i => $"Track {i}").ToList();
             remapsBox.Enabled = remapFromButton.Enabled = remapToButton.Enabled = tracks && remapsBox.Items.Count > 0;
 
             commandsBox.DataSource = Engine.GetCommands().Select(c => c.Name).ToList();
@@ -311,7 +311,7 @@ namespace GBAMusicStudio.UI
                         f.SetValue(se.Command, Convert.ChangeType(value, f.FieldType));
                     else if (m is PropertyInfo p)
                         p.SetValue(se.Command, Convert.ChangeType(value, p.PropertyType));
-                    SongPlayer.RefreshSong();
+                    SongPlayer.Instance.RefreshSong();
 
                     var control = ActiveControl;
                     int index = listView.SelectedIndex;

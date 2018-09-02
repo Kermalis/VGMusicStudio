@@ -82,12 +82,12 @@ namespace GBAMusicStudio.MIDI
             }
             else if ((e.Message.Command == ChannelCommand.NoteOn && e.Message.Data2 == 0) || e.Message.Command == ChannelCommand.NoteOff) // Note off
             {
-                SoundMixer.ReleaseChannels(16, note);
+                SoundMixer.Instance.ReleaseChannels(16, note);
             }
             else if (e.Message.Command == ChannelCommand.NoteOn) // Note on
             {
                 // Has some input lag
-                SongPlayer.PlayNote(track, note, Config.MIDIKeyboardFixedVelocity ? Engine.GetMaxVolume() : volumeOrVelocity, -1);
+                SongPlayer.Instance.PlayNote(track, note, Config.Instance.MIDIKeyboardFixedVelocity ? Engine.GetMaxVolume() : volumeOrVelocity, -1);
             }
         }
         static void LogError(object sender, ErrorEventArgs e)

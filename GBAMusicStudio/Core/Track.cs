@@ -57,7 +57,7 @@ namespace GBAMusicStudio.Core
         {
             if (Delay != 0)
                 Delay--;
-            if (SoundMixer.TickNotes(Index) > 0)
+            if (SoundMixer.Instance.TickNotes(Index) > 0)
             {
                 if (LFODelayCount > 0)
                 {

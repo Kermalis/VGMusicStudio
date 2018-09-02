@@ -12,7 +12,7 @@ namespace GBAMusicStudio.Core
 
         public Reverb(byte intensity, byte numBuffers)
         {
-            bufferLen = Config.SampleRate / Engine.AGB_FPS;
+            bufferLen = Config.Instance.SampleRate / Engine.AGB_FPS;
             bufferPos2 = bufferLen;
             this.intensity = intensity / (float)0x80;
             reverbBuffer = new float[bufferLen * 2 * numBuffers];

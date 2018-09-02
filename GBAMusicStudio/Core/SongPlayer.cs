@@ -4,21 +4,32 @@ using System.Threading;
 
 namespace GBAMusicStudio.Core
 {
-    static class SongPlayer
+    class SongPlayer
     {
-        static readonly TimeBarrier time;
-        static Thread thread;
+        static SongPlayer instance;
+        public static SongPlayer Instance
+        {
+            get
+            {
+                if (instance == null)
+                    instance = new SongPlayer();
+                return instance;
+            }
+        }
 
-        public static ushort Tempo;
-        static int tempoStack;
-        static uint position;
-        static Track[] tracks;
-        static int longestTrack;
+        readonly TimeBarrier time;
+        Thread thread;
 
-        public static Song Song { get; private set; }
-        public static int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
+        public ushort Tempo;
+        int tempoStack;
+        uint position;
+        Track[] tracks;
+        int longestTrack;
 
-        static SongPlayer()
+        public Song Song { get; private set; }
+        public int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
+
+        private SongPlayer()
         {
             time = new TimeBarrier();
             thread = new Thread(Tick) { Name = "SongPlayer Tick" };
@@ -26,7 +37,7 @@ namespace GBAMusicStudio.Core
 
             Reset();
         }
-        public static void Reset()
+        public void Reset()
         {
             if (ROM.Instance == null) return;
 
@@ -43,17 +54,17 @@ namespace GBAMusicStudio.Core
             Song = null;
         }
 
-        public static PlayerState State { get; private set; }
+        public PlayerState State { get; private set; }
         public delegate void SongEndedEvent();
-        public static event SongEndedEvent SongEnded;
+        public event SongEndedEvent SongEnded;
 
-        public static void SetSong(Song song)
+        public void SetSong(Song song)
         {
             Song = song;
             VoiceTable.ClearCache();
-            SoundMixer.Init(song.GetReverb());
+            SoundMixer.Instance.Init(song.GetReverb());
         }
-        public static void SetPosition(uint p)
+        public void SetPosition(uint p)
         {
             bool pause = State == PlayerState.Playing;
             if (pause) Pause();
@@ -70,7 +81,7 @@ namespace GBAMusicStudio.Core
                     if (elapsed <= p && elapsed + track.Delay > p)
                     {
                         track.Delay -= (byte)(p - elapsed);
-                        SoundMixer.StopAllChannels();
+                        SoundMixer.Instance.StopAllChannels();
                         break;
                     }
                     elapsed += track.Delay;
@@ -80,12 +91,12 @@ namespace GBAMusicStudio.Core
             if (pause) Pause();
         }
 
-        public static void RefreshSong()
+        public void RefreshSong()
         {
             DetermineLongestTrack();
             SetPosition(position);
         }
-        static void DetermineLongestTrack()
+        void DetermineLongestTrack()
         {
             for (int i = 0; i < NumTracks; i++)
             {
@@ -97,7 +108,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public static void Play()
+        public void Play()
         {
             Stop();
 
@@ -116,24 +127,24 @@ namespace GBAMusicStudio.Core
 
             State = PlayerState.Playing;
         }
-        public static void Pause()
+        public void Pause()
         {
             State = (State == PlayerState.Paused ? PlayerState.Playing : PlayerState.Paused);
         }
-        public static void Stop()
+        public void Stop()
         {
             if (State == PlayerState.Stopped) return;
             State = PlayerState.Stopped;
-            SoundMixer.StopAllChannels();
+            SoundMixer.Instance.StopAllChannels();
         }
-        public static void ShutDown()
+        public void ShutDown()
         {
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
         }
 
-        public static void GetSongState(UI.TrackInfo info)
+        public void GetSongState(UI.TrackInfo info)
         {
             info.Tempo = Tempo; info.Position = position;
             for (int i = 0; i < NumTracks; i++)
@@ -147,7 +158,7 @@ namespace GBAMusicStudio.Core
                 info.Pitches[i] = tracks[i].GetPitch();
                 info.Pans[i] = tracks[i].GetPan();
 
-                var channels = SoundMixer.GetChannels(i);
+                var channels = SoundMixer.Instance.GetChannels(i);
                 bool none = channels.Length == 0;
                 info.Lefts[i] = none ? 0 : channels.Select(c => c.GetVolume().FromLeftVol).Max();
                 info.Rights[i] = none ? 0 : channels.Select(c => c.GetVolume().FromRightVol).Max();
@@ -155,7 +166,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public static void PlayNote(Track track, sbyte note, byte velocity, int duration)
+        public void PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
             int shift = note + track.KeyShift;
             note = (sbyte)(shift.Clamp(0, 127));
@@ -175,23 +186,23 @@ namespace GBAMusicStudio.Core
                 {
                     case M4AVoiceType.Direct:
                         bool bFixed = (entry.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
-                        SoundMixer.NewDSNote(owner, entry.ADSR, aNote,
+                        SoundMixer.Instance.NewDSNote(owner, entry.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
                             bFixed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
                         break;
                     case M4AVoiceType.Square1:
                     case M4AVoiceType.Square2:
-                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
+                        SoundMixer.Instance.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 type, entry.SquarePattern);
                         break;
                     case M4AVoiceType.Wave:
-                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
+                        SoundMixer.Instance.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 type, entry.Address);
                         break;
                     case M4AVoiceType.Noise:
-                        SoundMixer.NewGBNote(owner, entry.ADSR, aNote,
+                        SoundMixer.Instance.NewGBNote(owner, entry.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 type, entry.NoisePattern);
                         break;
@@ -210,7 +221,7 @@ namespace GBAMusicStudio.Core
                 finally
                 {
                     if (sample != null)
-                        SoundMixer.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
+                        SoundMixer.Instance.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 bFixed, sample, tracks);
                 }
@@ -218,7 +229,7 @@ namespace GBAMusicStudio.Core
         }
 
         // Returns a bool which indicates whether the track needs to update volume, pan, or pitch
-        static bool ExecuteNext(int i)
+        bool ExecuteNext(int i)
         {
             bool update = false;
 
@@ -249,7 +260,7 @@ namespace GBAMusicStudio.Core
             else if (e.Command is FinishCommand)
             {
                 track.Stopped = true;
-                SoundMixer.ReleaseChannels(i, -1);
+                SoundMixer.Instance.ReleaseChannels(i, -1);
             }
             else if (e.Command is PriorityCommand prio) { track.Priority = prio.Priority; } // TODO: Update channel priorities
             else if (e.Command is TempoCommand tempo) { Tempo = tempo.Tempo; }
@@ -275,11 +286,11 @@ namespace GBAMusicStudio.Core
             else if (e.Command is EndOfTieCommand eot)
             {
                 if (eot.Note == -1)
-                    SoundMixer.ReleaseChannels(i, track.PrevNote);
+                    SoundMixer.Instance.ReleaseChannels(i, track.PrevNote);
                 else
                 {
                     sbyte note = (sbyte)(eot.Note + track.KeyShift).Clamp(0, 127);
-                    SoundMixer.ReleaseChannels(i, note);
+                    SoundMixer.Instance.ReleaseChannels(i, note);
                 }
             }
             else if (e.Command is NoteCommand n)
@@ -308,7 +319,7 @@ namespace GBAMusicStudio.Core
 
             return update;
         }
-        static void Tick()
+        void Tick()
         {
             time.Start();
             while (State != PlayerState.ShutDown)
@@ -325,7 +336,7 @@ namespace GBAMusicStudio.Core
                         for (int i = 0; i < NumTracks; i++)
                         {
                             Track track = tracks[i];
-                            if (!track.Stopped || !SoundMixer.AllDead(i))
+                            if (!track.Stopped || !SoundMixer.Instance.AllDead(i))
                                 allDone = false;
                             track.Tick();
                             bool update = false;
@@ -333,7 +344,7 @@ namespace GBAMusicStudio.Core
                                 if (ExecuteNext(i))
                                     update = true;
                             if (update || track.MODDepth > 0)
-                                SoundMixer.UpdateChannels(i, track.GetVolume(), track.GetPan(), track.GetPitch());
+                                SoundMixer.Instance.UpdateChannels(i, track.GetVolume(), track.GetPan(), track.GetPitch());
                         }
                         position++;
                         if (allDone)
@@ -345,7 +356,7 @@ namespace GBAMusicStudio.Core
                 }
                 // Do Instrument Tick
                 if (State != PlayerState.Paused)
-                    SoundMixer.Process();
+                    SoundMixer.Instance.Process();
                 // Wait for next frame
                 time.Wait();
             }

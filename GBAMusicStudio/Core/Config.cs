@@ -79,27 +79,38 @@ namespace GBAMusicStudio.Core
         }
     }
 
-    static class Config
+    class Config
     {
-        static readonly uint DefaultTableSize = 1000;
+        static Config instance;
+        public static Config Instance
+        {
+            get
+            {
+                if (instance == null)
+                    instance = new Config();
+                return instance;
+            }
+        }
 
-        public static byte DirectCount { get; private set; }
-        public static uint SampleRate { get; private set; }
-        public static bool All256Voices { get; private set; }
-        public static bool MIDIKeyboardFixedVelocity { get; private set; }
-        public static bool TaskbarProgress { get; private set; }
-        public static byte RefreshRate { get; private set; }
-        public static bool CenterIndicators { get; private set; }
-        public static bool PanpotIndicators { get; private set; }
-        public static byte Volume { get; private set; }
-        public static HSLColor[] Colors { get; private set; }
-        public static Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
+        readonly uint DefaultTableSize = 1000;
 
-        public static Dictionary<string, AGame> Games { get; private set; }
+        public byte DirectCount { get; private set; }
+        public uint SampleRate { get; private set; }
+        public bool All256Voices { get; private set; }
+        public bool MIDIKeyboardFixedVelocity { get; private set; }
+        public bool TaskbarProgress { get; private set; }
+        public byte RefreshRate { get; private set; }
+        public bool CenterIndicators { get; private set; }
+        public bool PanpotIndicators { get; private set; }
+        public byte Volume { get; private set; }
+        public HSLColor[] Colors { get; private set; }
+        public Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
 
-        static Config() => Load();
-        public static void Load() { LoadConfig(); LoadGames(); }
-        static void LoadConfig()
+        public Dictionary<string, AGame> Games { get; private set; }
+
+        private Config() => Load();
+        public void Load() { LoadConfig(); LoadGames(); }
+        void LoadConfig()
         {
             var yaml = new YamlStream();
             yaml.Load(new StringReader(File.ReadAllText("Config.yaml")));
@@ -148,7 +159,7 @@ namespace GBAMusicStudio.Core
                 InstrumentRemaps.Add(r.Key.ToString(), new ARemap(remaps.ToArray()));
             }
         }
-        static void LoadGames()
+        void LoadGames()
         {
             var yaml = new YamlStream();
             yaml.Load(new StringReader(File.ReadAllText("Games.yaml")));
@@ -249,7 +260,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public static byte GetRemap(byte voice, string key, bool from)
+        public byte GetRemap(byte voice, string key, bool from)
         {
             if (InstrumentRemaps.TryGetValue(key, out ARemap remap))
             {

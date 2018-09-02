@@ -9,7 +9,7 @@ namespace GBAMusicStudio.Core
         public const uint Pak = 0x8000000;
         public const uint Capacity = 0x2000000;
 
-        public static ROM Instance { get; private set; } // If you want to read with the reader
+        public static ROM Instance { get; private set; }
 
         public readonly byte[] ROMFile;
         public AGame Game { get; private set; }
@@ -18,15 +18,15 @@ namespace GBAMusicStudio.Core
         public ROM(string filePath)
         {
             Instance = this;
-            SongPlayer.Stop();
+            SongPlayer.Instance.Stop();
             ROMFile = File.ReadAllBytes(filePath);
             InitReader();
-            ReloadGameConfig();
-            SongPlayer.Reset();
+            HandleConfigLoaded();
+            SongPlayer.Instance.Reset();
         }
-        public void ReloadGameConfig()
+        public void HandleConfigLoaded()
         {
-            Game = Config.Games[System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC))];
+            Game = Config.Instance.Games[System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC))];
             SongTables = new SongTable[Game.SongTables.Length];
             for (int i = 0; i < Game.SongTables.Length; i++)
             {

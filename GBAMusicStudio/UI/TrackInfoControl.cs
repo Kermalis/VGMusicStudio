@@ -80,13 +80,13 @@ namespace GBAMusicStudio.UI
             if (check == pianos[16])
             {
                 bool b = check.CheckState != CheckState.Unchecked;
-                for (int i = 0; i < SongPlayer.NumTracks; i++)
+                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
                     pianos[i].Checked = b;
             }
             else
             {
                 int on = 0;
-                for (int i = 0; i < SongPlayer.NumTracks; i++)
+                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
                 {
                     if (pianos[i] == check)
                         ((MainForm)ParentForm).PianoTracks[i] = pianos[i].Checked && pianos[i].Visible;
@@ -94,7 +94,7 @@ namespace GBAMusicStudio.UI
                         on++;
                 }
                 pianos[16].CheckStateChanged -= TogglePiano;
-                pianos[16].CheckState = on == SongPlayer.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
+                pianos[16].CheckState = on == SongPlayer.Instance.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
                 pianos[16].CheckStateChanged += TogglePiano;
             }
         }
@@ -104,21 +104,21 @@ namespace GBAMusicStudio.UI
             if (check == mutes[16])
             {
                 bool b = check.CheckState != CheckState.Unchecked;
-                for (int i = 0; i < SongPlayer.NumTracks; i++)
+                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
                     mutes[i].Checked = b;
             }
             else
             {
                 int on = 0;
-                for (int i = 0; i < SongPlayer.NumTracks; i++)
+                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
                 {
                     if (mutes[i] == check)
-                        SoundMixer.SetMute(i, !check.Checked);
+                        SoundMixer.Instance.SetMute(i, !check.Checked);
                     if (mutes[i].Checked)
                         on++;
                 }
                 mutes[16].CheckStateChanged -= ToggleMute;
-                mutes[16].CheckState = on == SongPlayer.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
+                mutes[16].CheckState = on == SongPlayer.Instance.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
                 mutes[16].CheckStateChanged += ToggleMute;
             }
         }
@@ -129,7 +129,7 @@ namespace GBAMusicStudio.UI
             previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
             for (int i = 0; i < 16; i++)
                 previousNotes.Item2[i] = noNotes;
-            for (int i = SongPlayer.NumTracks; i < 16; i++)
+            for (int i = SongPlayer.Instance.NumTracks; i < 16; i++)
                 pianos[i].Visible = mutes[i].Visible = false;
             Invalidate();
         }
@@ -177,14 +177,14 @@ namespace GBAMusicStudio.UI
             e.Graphics.DrawString("Type", Font, Brushes.DeepPink, itx, iy);
             e.Graphics.DrawLine(Pens.Gold, 0, ih, Width, ih);
 
-            for (int i = 0; i < SongPlayer.NumTracks; i++)
+            for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
             {
                 float r1y = ih + ym + (i * th); // Row 1 y
                 float r2y = r1y + r2o; // Row 2 y
                 int by = (int)(r1y + ym); // Bar y
                 int pax = (int)(bx + (bw / 2) + (bw / 2 * (Info.Pans[i] / (float)Engine.GetPanpotRange()))); // Pan line x
 
-                Color color = Config.Colors[Info.Voices[i]];
+                Color color = Config.Instance.Colors[Info.Voices[i]];
                 Pen pen = new Pen(color);
                 var brush = new SolidBrush(color);
                 byte velocity = (byte)((Info.Lefts[i] + Info.Rights[i]) * 0xFF);
@@ -204,8 +204,8 @@ namespace GBAMusicStudio.UI
                 e.Graphics.DrawString(Info.Pitches[i].ToString(), Font, Brushes.Purple, vox + (r2d * 4), r2y);
 
                 e.Graphics.DrawLine(Pens.GreenYellow, bx, by, bx, by + bh); // Left bar bound line
-                if (Config.CenterIndicators) e.Graphics.DrawLine(pen, cx, by, cx, by + bh); // Center line
-                if (Config.PanpotIndicators) e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, by + bh); // Pan line
+                if (Config.Instance.CenterIndicators) e.Graphics.DrawLine(pen, cx, by, cx, by + bh); // Center line
+                if (Config.Instance.PanpotIndicators) e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, by + bh); // Pan line
                 e.Graphics.DrawLine(Pens.GreenYellow, brx, by, brx, by + bh); // Right bar bound line
 
                 var rect = new Rectangle((int)(bx + (bw / 2) - (Info.Lefts[i] * bw / 2)) + bwd,
@@ -218,7 +218,7 @@ namespace GBAMusicStudio.UI
                 string theseNotes = string.Join(" ", Info.Notes[i].Select(n => SongEvent.NoteName(n)));
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? noNotes : theseNotes;
-                if (empty && previousNotes.Item1[i]++ < Config.RefreshRate * 10) theseNotes = previousNotes.Item2[i];
+                if (empty && previousNotes.Item1[i]++ < Config.Instance.RefreshRate * 10) theseNotes = previousNotes.Item2[i];
                 else if (!empty || previousNotes.Item2[i] != theseNotes) { previousNotes.Item1[i] = 0; previousNotes.Item2[i] = theseNotes; }
                 e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, nx, r1y);
 

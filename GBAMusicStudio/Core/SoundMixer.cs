@@ -4,36 +4,47 @@ using System.Linq;
 
 namespace GBAMusicStudio.Core
 {
-    static class SoundMixer
+    class SoundMixer
     {
         const int MAX_TRACKS = 17; // 16 for playback, 1 for program use
 
-        public static readonly float SampleRateReciprocal, SamplesReciprocal;
-        public static readonly uint SamplesPerBuffer;
-
-        public static float MasterVolume; public static float DSMasterVolume { get; private set; }
-
-        static readonly WaveBuffer audio;
-        static readonly float[][] trackBuffers;
-        static readonly bool[] mutes;
-        static readonly Reverb[] reverbs;
-        static readonly DirectSoundChannel[] dsChannels;
-        static readonly SquareChannel sq1, sq2;
-        static readonly WaveChannel wave;
-        static readonly NoiseChannel noise;
-        static readonly Channel[] allChannels;
-        static readonly Channel[] gbChannels;
-
-        static readonly BufferedWaveProvider buffer;
-        static readonly WasapiOut @out;
-
-        static SoundMixer()
+        static SoundMixer instance;
+        public static SoundMixer Instance
         {
-            SamplesPerBuffer = Config.SampleRate / (Engine.AGB_FPS * Engine.INTERFRAMES);
-            SampleRateReciprocal = 1f / Config.SampleRate; SamplesReciprocal = 1f / SamplesPerBuffer;
+            get
+            {
+                if (instance == null)
+                    instance = new SoundMixer();
+                return instance;
+            }
+        }
 
-            dsChannels = new DirectSoundChannel[Config.DirectCount];
-            for (int i = 0; i < Config.DirectCount; i++)
+        public readonly float SampleRateReciprocal, SamplesReciprocal;
+        public readonly uint SamplesPerBuffer;
+
+        public float MasterVolume; public float DSMasterVolume { get; private set; }
+
+        readonly WaveBuffer audio;
+        readonly float[][] trackBuffers;
+        readonly bool[] mutes;
+        readonly Reverb[] reverbs;
+        readonly DirectSoundChannel[] dsChannels;
+        readonly SquareChannel sq1, sq2;
+        readonly WaveChannel wave;
+        readonly NoiseChannel noise;
+        readonly Channel[] allChannels;
+        readonly Channel[] gbChannels;
+
+        readonly BufferedWaveProvider buffer;
+        readonly WasapiOut @out;
+
+        private SoundMixer()
+        {
+            SamplesPerBuffer = Config.Instance.SampleRate / (Engine.AGB_FPS * Engine.INTERFRAMES);
+            SampleRateReciprocal = 1f / Config.Instance.SampleRate; SamplesReciprocal = 1f / SamplesPerBuffer;
+
+            dsChannels = new DirectSoundChannel[Config.Instance.DirectCount];
+            for (int i = 0; i < Config.Instance.DirectCount; i++)
                 dsChannels[i] = new DirectSoundChannel();
 
             trackBuffers = new float[MAX_TRACKS][];
@@ -48,7 +59,7 @@ namespace GBAMusicStudio.Core
             gbChannels = new GBChannel[] { sq1 = new SquareChannel(), sq2 = new SquareChannel(), wave = new WaveChannel(), noise = new NoiseChannel() };
             allChannels = dsChannels.Union(gbChannels).ToArray();
 
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)Config.SampleRate, 2))
+            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)Config.Instance.SampleRate, 2))
             {
                 DiscardOnBufferOverflow = true
             };
@@ -56,7 +67,7 @@ namespace GBAMusicStudio.Core
             @out.Init(buffer);
             @out.Play();
         }
-        public static void Init(byte songReverb)
+        public void Init(byte songReverb)
         {
             DSMasterVolume = ROM.Instance.Game.Engine.Volume / (float)0xF;
 
@@ -74,9 +85,9 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public static void SetMute(int owner, bool m) => mutes[owner] = m;
+        public void SetMute(int owner, bool m) => mutes[owner] = m;
 
-        public static void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
+        public void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
         {
             DirectSoundChannel nChn = null;
             var byOwner = dsChannels.OrderByDescending(c => c.OwnerIdx);
@@ -109,7 +120,7 @@ namespace GBAMusicStudio.Core
             if (nChn != null) // Could still be null from the above if
                 nChn.Init(owner, note, env, sample, vol, pan, pitch, bFixed);
         }
-        public static void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
+        public void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
         {
             GBChannel nChn;
             switch (type)
@@ -145,7 +156,7 @@ namespace GBAMusicStudio.Core
         }
 
         // Returns number of active notes
-        public static int TickNotes(int owner)
+        public int TickNotes(int owner)
         {
             int active = 0;
             foreach (var c in allChannels)
@@ -153,21 +164,21 @@ namespace GBAMusicStudio.Core
                     active++;
             return active;
         }
-        public static bool AllDead(int owner)
+        public bool AllDead(int owner)
         {
             return !allChannels.Any(c => c.OwnerIdx == owner);
         }
-        public static Channel[] GetChannels(int owner)
+        public Channel[] GetChannels(int owner)
         {
             return allChannels.Where(c => c.OwnerIdx == owner).ToArray();
         }
-        public static void ReleaseChannels(int owner, int key)
+        public void ReleaseChannels(int owner, int key)
         {
             foreach (var c in allChannels)
                 if (c.OwnerIdx == owner && (key == -1 || (c.Note.OriginalKey == key && c.Note.Duration == -1)))
                     c.Release();
         }
-        public static void UpdateChannels(int owner, byte vol, sbyte pan, int pitch)
+        public void UpdateChannels(int owner, byte vol, sbyte pan, int pitch)
         {
             foreach (var c in allChannels)
                 if (c.OwnerIdx == owner)
@@ -176,13 +187,13 @@ namespace GBAMusicStudio.Core
                     c.SetPitch(pitch);
                 }
         }
-        public static void StopAllChannels()
+        public void StopAllChannels()
         {
             foreach (var c in allChannels)
                 c.Stop();
         }
 
-        public static void Process()
+        public void Process()
         {
             foreach (var buf in trackBuffers)
                 Array.Clear(buf, 0, buf.Length);

@@ -64,7 +64,7 @@ namespace GBAMusicStudio.Core
                 AddInfo(sf2);
 
                 AddSquaresAndNoises();
-                AddTable((M4AVoiceTable)SongPlayer.Song.VoiceTable, saveAfter7F, false);
+                AddTable((M4AVoiceTable)SongPlayer.Instance.Song.VoiceTable, saveAfter7F, false);
 
                 sf2.Save(fileName);
             }
@@ -299,7 +299,7 @@ namespace GBAMusicStudio.Core
                 sf2 = new SF2();
                 AddInfo(sf2);
 
-                var table = (MLSSVoiceTable)SongPlayer.Song.VoiceTable;
+                var table = (MLSSVoiceTable)SongPlayer.Instance.Song.VoiceTable;
                 AddSamples(table);
                 AddInstruments(table);
 

@@ -110,7 +110,7 @@ namespace GBAMusicStudio.UI
             // Auto-color
             if (e.ListView == voicesListView)
             {
-                var color = Config.Colors[e.RowIndex];
+                var color = Config.Instance.Colors[e.RowIndex];
                 e.Item.BackColor = color;
                 if (color.Luminosity <= 100)
                     e.Item.ForeColor = Color.White;
@@ -134,7 +134,7 @@ namespace GBAMusicStudio.UI
         }
         public void UpdateTable()
         {
-            voicesListView.SetObjects(table = SongPlayer.Song.VoiceTable);
+            voicesListView.SetObjects(table = SongPlayer.Instance.Song.VoiceTable);
             subVoicesListView.ClearObjects();
             Text = $"GBA Music Studio ― VoiceTable Editor (0x{table.Offset:X7})";
             voicesListView.SelectedIndex = 0;

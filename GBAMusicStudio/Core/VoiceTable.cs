@@ -49,7 +49,7 @@ namespace GBAMusicStudio.Core
 
     class M4AVoiceTable : VoiceTable
     {
-        public M4AVoiceTable() : base(Config.All256Voices ? 256u : 128u) { }
+        public M4AVoiceTable() : base(Config.Instance.All256Voices ? 256u : 128u) { }
         protected override void Load(uint table)
         {
             Offset = table;
