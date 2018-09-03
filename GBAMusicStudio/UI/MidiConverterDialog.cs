@@ -42,7 +42,7 @@ namespace GBAMusicStudio.UI
             {
                 Hexadecimal = true,
                 Maximum = ROM.Capacity - 1,
-                Value = SongPlayer.Instance.Song.VoiceTable.Offset - ROM.Pak
+                Value = SongPlayer.Instance.Song.VoiceTable.Offset
             };
 
             Controls.AddRange(new Control[] { openButton, previewButton, sizeLabel, offsetValueBox });

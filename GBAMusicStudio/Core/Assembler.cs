@@ -21,7 +21,7 @@ namespace GBAMusicStudio.Core
             mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
             cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
 
-        public uint BaseOffset { get; private set; } = ROM.Pak;
+        public uint BaseOffset { get; private set; }
         List<string> loaded = new List<string>();
         Dictionary<string, int> defines;
 
@@ -47,7 +47,6 @@ namespace GBAMusicStudio.Core
 
         public void SetBaseOffset(uint baseOffset)
         {
-            if (BaseOffset == baseOffset) return;
             foreach (var p in lPointers)
             {
                 // Our example label is SEQ_STUFF at the binary offset 0x1000, curBase is 0x500, baseOffset is 0x1800

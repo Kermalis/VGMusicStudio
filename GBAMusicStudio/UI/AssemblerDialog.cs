@@ -55,7 +55,7 @@ namespace GBAMusicStudio.UI
             addedDefsGrid.Columns[0].Name = "Definition";
             addedDefsGrid.Columns[1].Name = "Value";
             addedDefsGrid.Columns[1].DefaultCellStyle.NullValue = "0";
-            addedDefsGrid.Rows.Add(new string[] { "voicegroup000", "0x" + SongPlayer.Instance.Song.VoiceTable.Offset.ToString("X") });
+            addedDefsGrid.Rows.Add(new string[] { "voicegroup000", $"0x{SongPlayer.Instance.Song.VoiceTable.Offset:X7}" });
             addedDefsGrid.CellValueChanged += AddedDefsGrid_CellValueChanged;
 
             Controls.AddRange(new Control[] { openButton, previewButton, sizeLabel, offsetValueBox, headerLabelTextBox, addedDefsGrid });
