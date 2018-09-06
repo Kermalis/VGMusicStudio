@@ -68,6 +68,11 @@ A88P:
   VoiceTable: 0x21E2AC
   SampleTable: 0xA82088
   Copy: "A88E"
+AE7E:
+  Name: "Fire Emblem 7 (USA)"
+  Creator: "Intelligent Systems"
+  SongTable: 0x69D6E0
+  SampleTableSize: 1000
 AGFE:
   Name: "Golden Sun: The Lost Age (USA)"
   Creator: "Camelot"
