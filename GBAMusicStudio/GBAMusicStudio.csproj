@@ -37,6 +37,9 @@
     <ApplicationIcon>Properties\Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EndianBinaryIO">
+      <HintPath>Dependencies\EndianBinaryIO.dll</HintPath>
+    </Reference>
     <Reference Include="Humanizer, Version=2.4.0.0, Culture=neutral, PublicKeyToken=979442b78dfc278e, processorArchitecture=MSIL">
       <HintPath>..\packages\Humanizer.Core.2.4.2\lib\netstandard2.0\Humanizer.dll</HintPath>
     </Reference>
@@ -86,13 +89,13 @@
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\GBSamples.cs" />
+    <Compile Include="Core\Interfaces.cs" />
     <Compile Include="Core\MusicStructs.cs" />
     <Compile Include="Core\Reverb.cs" />
     <Compile Include="Core\SongEvent.cs" />
     <Compile Include="Core\SongTable.cs" />
     <Compile Include="Core\SongPlayer.cs" />
     <Compile Include="Core\ROM.cs" />
-    <Compile Include="Core\ROMReader.cs" />
     <Compile Include="Core\Song.cs" />
     <Compile Include="Core\SoundMixer.cs" />
     <Compile Include="Core\Types.cs" />

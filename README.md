@@ -25,12 +25,12 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Add Golden Sun 2 reverb effect
 * Add reverse playback
 * Add SquareWave sweeping
-* Add "note off with noise"
 * XCMD command
 * Repeat command
 * Nested PATT (3 is the maximum)
 * Support pret dissassembly projects
 * Running status in song disassembler
+* Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 
 ## Mario & Luigi: Superstar Saga Engine
 * Properly implement "free notes"
@@ -40,17 +40,15 @@ A tool that is designed to be a Sappy replacement as well as support different g
 
 ## General
 * Show tooltips in the VoiceTableEditor which provide a huge chunk of information
-* Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * Add playing playlist from Games.yaml and fading out after a configurable amount of loops
 * Maybe a nice waveform
 * Exception handling for invalid config
-* Let on-screen piano play notes or interact with MIDI keyboard
 * Remove "private set" in config and add saving of config
-* Default remap voice
+* Let the on-screen piano play notes or interact with a MIDI keyboard
 * Offset for the event you're editing
-* Put the event parameter as text in the parameter name label, so there is reference to the original value or in MODT/Note's cases, text representation
+* Put the event parameter as text in the parameter name label, so there is reference to the original value (or in MODT/Note's cases, text representation)
 * Buttons in the taskbar like with most music players
 * Tempo numerical (it fits)
 * Detachable piano
@@ -74,4 +72,5 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * [Sanford.Multimedia.Midi](https://github.com/tebjan/Sanford.Multimedia.Midi)
 * [YamlDotNet](https://github.com/aaubry/YamlDotNet/wiki)
 * [ImageComboBox](https://www.codeproject.com/Articles/10670/Image-ComboBox-Control)
+* [My EndianBinaryIO library](https://github.com/Kermalis/EndianBinaryIO)
 * [My SoundFont2 library](https://github.com/Kermalis/SoundFont2)

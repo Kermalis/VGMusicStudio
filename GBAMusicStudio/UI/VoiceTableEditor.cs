@@ -38,7 +38,7 @@ namespace GBAMusicStudio.UI
             OLVColumn c1, c2, c3;
             c1 = new OLVColumn("#", "");
             c2 = new OLVColumn("Type", "ToString");
-            c3 = new OLVColumn("Offset", "Offset") { AspectToStringFormat = "0x{0:X7}" };
+            c3 = new OLVColumn("Offset", "GetOffset") { AspectToStringFormat = "0x{0:X7}" };
             c1.Width = 45;
             c2.Width = c3.Width = 108;
             c1.Hideable = c2.Hideable = c3.Hideable = false;
@@ -62,7 +62,7 @@ namespace GBAMusicStudio.UI
             subVoicesListView.FormatRow += FormatRow;
             c1 = new OLVColumn("#", "");
             c2 = new OLVColumn("Type", "ToString");
-            c3 = new OLVColumn("Offset", "Offset") { AspectToStringFormat = "0x{0:X7}" };
+            c3 = new OLVColumn("Offset", "GetOffset") { AspectToStringFormat = "0x{0:X7}" };
             c1.Width = 45;
             c2.Width = c3.Width = 108;
             c1.Hideable = c2.Hideable = c3.Hideable = false;
@@ -136,7 +136,7 @@ namespace GBAMusicStudio.UI
         {
             voicesListView.SetObjects(table = SongPlayer.Instance.Song.VoiceTable);
             subVoicesListView.ClearObjects();
-            Text = $"GBA Music Studio ― VoiceTable Editor (0x{table.Offset:X7})";
+            Text = $"GBA Music Studio ― VoiceTable Editor (0x{table.GetOffset():X7})";
             voicesListView.SelectedIndex = 0;
         }
 
@@ -153,11 +153,10 @@ namespace GBAMusicStudio.UI
             WrappedVoice voice = table[mainIndex];
             var subs = voice.GetSubVoices().ToArray();
 
-            if (voice.Voice is M4AVoice m4a)
+            if (voice.Voice is M4AVoiceEntry m4aEntry)
             {
                 if (subIndex != -1)
-                    m4a = (M4AVoice)((WrappedVoice)subs[subIndex]).Voice;
-                var m4aEntry = m4a.Entry;
+                    m4aEntry = (M4AVoiceEntry)((WrappedVoice)subs[subIndex]).Voice;
                 entry = m4aEntry;
                 var flags = (M4AVoiceFlags)m4aEntry.Type;
                 var type = (M4AVoiceType)(m4aEntry.Type & 0x7);
@@ -199,7 +198,7 @@ namespace GBAMusicStudio.UI
                 {
                     if (subIndex == -1)
                         subIndex = 0;
-                    var mlssEntry = mlss.Entries[subIndex].Entry;
+                    var mlssEntry = mlss.Entries[subIndex];
                     entry = mlssEntry;
 
                     #region Last 4 values are probably ADSR

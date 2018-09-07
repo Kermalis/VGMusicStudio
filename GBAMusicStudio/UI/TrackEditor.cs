@@ -47,7 +47,7 @@ namespace GBAMusicStudio.UI
             OLVColumn c1, c2, c3, c4;
             c1 = new OLVColumn("Event", "Command.Name");
             c2 = new OLVColumn("Arguments", "Command.Arguments") { UseFiltering = false };
-            c3 = new OLVColumn("Offset", "Offset") { AspectToStringFormat = "0x{0:X7}", UseFiltering = false };
+            c3 = new OLVColumn("Offset", "GetOffset") { AspectToStringFormat = "0x{0:X7}", UseFiltering = false };
             c4 = new OLVColumn("Ticks", "AbsoluteTicks") { UseFiltering = false };
             c1.Width = c2.Width = c3.Width = 72;
             c4.Width = 45;

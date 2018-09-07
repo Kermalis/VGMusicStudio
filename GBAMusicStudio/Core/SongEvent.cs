@@ -2,23 +2,22 @@
 
 namespace GBAMusicStudio.Core
 {
-    interface ICommand
+    class SongEvent : IOffset
     {
-        string Name { get; }
-        string Arguments { get; }
-    }
-    class SongEvent
-    {
-        public uint Offset, AbsoluteTicks;
+        uint offset;
+        public uint AbsoluteTicks;
         public ICommand Command;
 
         public SongEvent(uint offset, ICommand command)
         {
-            Offset = offset;
+            SetOffset(offset);
             Command = command;
         }
 
-        public override string ToString() => $"{Command}\t-\t0x{Offset:X7}\t-\t{AbsoluteTicks}";
+        public uint GetOffset() => offset;
+        public void SetOffset(uint newOffset) => offset = newOffset;
+
+        public override string ToString() => $"{Command}\t-\t0x{offset:X7}\t-\t{AbsoluteTicks}";
 
         public static byte RestFromCMD(byte startCMD, byte cmd)
         {

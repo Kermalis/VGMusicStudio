@@ -1,10 +1,10 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.EndianBinaryIO;
 using System;
 using System.IO;
 
 namespace GBAMusicStudio.Core
 {
-    class ROM : ROMReader
+    class ROM
     {
         public const uint Pak = 0x8000000;
         public const uint Capacity = 0x2000000;
@@ -12,6 +12,9 @@ namespace GBAMusicStudio.Core
         public static ROM Instance { get; private set; }
 
         public readonly byte[] ROMFile;
+        public readonly EndianBinaryReader Reader;
+        public readonly EndianBinaryWriter Writer;
+
         public AGame Game { get; private set; }
         public SongTable[] SongTables { get; private set; }
 
@@ -20,13 +23,15 @@ namespace GBAMusicStudio.Core
             Instance = this;
             SongPlayer.Instance.Stop();
             ROMFile = File.ReadAllBytes(filePath);
-            InitReader();
+            var stream = Stream.Synchronized(new MemoryStream(ROMFile));
+            Reader = new EndianBinaryReader(stream);
+            Writer = new EndianBinaryWriter(stream);
             HandleConfigLoaded();
             SongPlayer.Instance.Reset();
         }
         public void HandleConfigLoaded()
         {
-            Game = Config.Instance.Games[System.Text.Encoding.Default.GetString(ReadBytes(4, 0xAC))];
+            Game = Config.Instance.Games[Reader.ReadString(4, 0xAC)];
             SongTables = new SongTable[Game.SongTables.Length];
             for (int i = 0; i < Game.SongTables.Length; i++)
             {
@@ -39,14 +44,12 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public T ReadStruct<T>(uint offset = 0xFFFFFFFF)
+        public static bool IsValidRomOffset(uint offset)
         {
-            if (offset != 0xFFFFFFFF)
-                Position = offset;
-            return Utils.ReadStruct<T>(ROMFile, Position);
+            return
+                (offset < Math.Min(Capacity, Instance.ROMFile.Length)) // 0 <= offset < min(0x2000000, ROMFile.Length)
+                || (offset >= Pak && offset < Math.Min(Capacity + Pak, Instance.ROMFile.Length + Pak)); // 0x8000000 <= offset < min(0xA000000, ROMFile.Length + 0x8000000)
         }
-
-        public static bool IsValidRomOffset(uint offset) => (offset < Capacity && offset < Instance.ROMFile.Length) || (offset >= Pak && offset < Pak + Capacity && offset < Instance.ROMFile.Length + Pak);
         public static uint SanitizeOffset(uint offset)
         {
             if (!IsValidRomOffset(offset))

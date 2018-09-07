@@ -48,8 +48,8 @@ namespace GBAMusicStudio.Core
             {
                 case EngineType.M4A: return 150;
                 case EngineType.MLSS: return 120;
+                default: throw BAD;
             }
-            throw BAD;
         }
         public static int GetTicksPerBar()
         {
@@ -57,8 +57,8 @@ namespace GBAMusicStudio.Core
             {
                 case EngineType.M4A: return 96;
                 case EngineType.MLSS: return 48;
+                default: throw BAD;
             }
-            throw BAD;
         }
         public static int GetTempoWait()
         {
@@ -72,8 +72,8 @@ namespace GBAMusicStudio.Core
             {
                 case EngineType.M4A: return 0x7F;
                 case EngineType.MLSS: return 0xFF;
+                default: throw BAD;
             }
-            throw BAD;
         }
         public static byte GetPanpotRange()
         {
@@ -81,8 +81,8 @@ namespace GBAMusicStudio.Core
             {
                 case EngineType.M4A: return 0x40;
                 case EngineType.MLSS: return 0x80;
+                default: throw BAD;
             }
-            throw BAD;
         }
         public static byte GetBendingRange()
         {
@@ -90,8 +90,8 @@ namespace GBAMusicStudio.Core
             {
                 case EngineType.M4A: return 0x40;
                 case EngineType.MLSS: return 0x80;
+                default: throw BAD;
             }
-            throw BAD;
         }
     }
 }

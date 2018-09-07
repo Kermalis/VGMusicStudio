@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Util;
+using Kermalis.EndianBinaryIO;
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
@@ -7,9 +8,9 @@ using System.Linq;
 
 namespace GBAMusicStudio.Core
 {
-    abstract class Song
+    abstract class Song : IOffset
     {
-        public uint Offset { get; protected set; }
+        uint offset;
         public VoiceTable VoiceTable;
         public List<SongEvent>[] Commands;
         public int NumTracks => Commands == null ? 0 : Commands.Length;
@@ -34,6 +35,9 @@ namespace GBAMusicStudio.Core
         }
 
         public virtual byte GetReverb() => 0;
+
+        public uint GetOffset() => offset;
+        public void SetOffset(uint newOffset) => offset = newOffset;
 
         public void CalculateTicks()
         {
@@ -66,7 +70,7 @@ namespace GBAMusicStudio.Core
                 }
                 if (e.Command is CallCommand call)
                 {
-                    int jumpCmd = track.FindIndex(c => c.Offset == call.Offset);
+                    int jumpCmd = track.FindIndex(c => c.GetOffset() == call.Offset);
                     endOfPattern = i;
                     i = jumpCmd - 1;
                 }
@@ -192,7 +196,7 @@ namespace GBAMusicStudio.Core
                     }
                     else if (e.Command is CallCommand patt)
                     {
-                        int callCmd = Commands[i].FindIndex(c => c.Offset == patt.Offset);
+                        int callCmd = Commands[i].FindIndex(c => c.GetOffset() == patt.Offset);
                         endOfPattern = j;
                         endOfPatternTicks = (int)e.AbsoluteTicks;
                         j = callCmd - 1; // -1 for incoming ++
@@ -209,7 +213,7 @@ namespace GBAMusicStudio.Core
                     else if (i == 0 && e.Command is GoToCommand goTo)
                     {
                         track.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
-                        int jumpCmd = Commands[i].FindIndex(c => c.Offset == goTo.Offset);
+                        int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
                         track.Insert((int)Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
                     }
                     else if (e.Command is FinishCommand fine)
@@ -282,8 +286,9 @@ namespace GBAMusicStudio.Core
                             file.WriteLine($"@ {ticks / 96:D3}\t----------------------------------------");
                             displayed = true;
                         }
-                        if (offsets.Contains(e.Offset))
-                            file.WriteLine($"{labels[e.Offset]}:");
+                        uint eOffset = e.GetOffset();
+                        if (offsets.Contains(eOffset))
+                            file.WriteLine($"{labels[eOffset]}:");
 
                         if (c == null)
                             continue;
@@ -398,31 +403,28 @@ namespace GBAMusicStudio.Core
 
         public override byte GetReverb() => Header.Reverb;
 
-        protected void Load(byte[] binary, M4ASongHeader head)
+        protected void Load(byte[] binary, EndianBinaryReader reader, uint headerOffset)
         {
             _binary = binary;
-            Header = head;
-            Array.Resize(ref Header.Tracks, Header.NumTracks); // Not really necessary yet
+            Header = reader.ReadObject<M4ASongHeader>(headerOffset);
+
+            VoiceTable = VoiceTable.LoadTable<M4AVoiceTable>(Header.VoiceTable - ROM.Pak);
+
+            if (Header.NumTracks == 0 || Header.NumTracks > 16) return;
+
             Commands = new List<SongEvent>[Header.NumTracks];
             for (int i = 0; i < Header.NumTracks; i++)
                 Commands[i] = new List<SongEvent>();
 
-            VoiceTable = VoiceTable.LoadTable<M4AVoiceTable>(Header.VoiceTable);
-
-            if (NumTracks == 0 || NumTracks > 16) return;
-
-            var reader = new ROMReader();
-            reader.InitReader(_binary);
-
             for (int i = 0; i < NumTracks; i++)
             {
-                reader.Position = Header.Tracks[i];
+                reader.BaseStream.Position = Header.Tracks[i] - ROM.Pak;
 
                 byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 127;
 
                 while (cmd != 0xB1 && cmd != 0xB6)
                 {
-                    uint off = reader.Position;
+                    uint off = (uint)reader.BaseStream.Position;
                     ICommand command = null;
 
                     cmd = reader.ReadByte();
@@ -483,10 +485,10 @@ namespace GBAMusicStudio.Core
                         {
                             case 0xB1: // FINE & PREV
                             case 0xB6: command = new M4AFinishCommand { Type = cmd }; break;
-                            case 0xB2: command = new GoToCommand { Offset = reader.ReadPointer() }; break;
-                            case 0xB3: command = new CallCommand { Offset = reader.ReadPointer() }; break;
+                            case 0xB2: command = new GoToCommand { Offset = reader.ReadUInt32() - ROM.Pak }; break;
+                            case 0xB3: command = new CallCommand { Offset = reader.ReadUInt32() - ROM.Pak }; break;
                             case 0xB4: command = new ReturnCommand(); break;
-                            case 0xB5: command = new RepeatCommand { Times = reader.ReadByte(), Offset = reader.ReadPointer() }; break;
+                            case 0xB5: command = new RepeatCommand { Times = reader.ReadByte(), Offset = reader.ReadUInt32() - ROM.Pak }; break;
                             case 0xB9: command = new MemoryAccessCommand { Arg1 = reader.ReadByte(), Arg2 = reader.ReadByte(), Arg3 = reader.ReadByte() }; break;
                             case 0xBA: command = new PriorityCommand { Priority = reader.ReadByte() }; break;
                             case 0xBB: command = new TempoCommand { Tempo = (ushort)(reader.ReadByte() * 2) }; break;
@@ -518,7 +520,7 @@ namespace GBAMusicStudio.Core
 
                                 command = new EndOfTieCommand { Note = note };
                                 break;
-                            default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", reader.Position, cmd); break;
+                            default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", off, cmd); break;
                         }
                     }
 
@@ -544,9 +546,8 @@ namespace GBAMusicStudio.Core
     {
         public M4AROMSong(uint offset)
         {
-            Offset = offset;
-            var header = ROM.Instance.ReadStruct<M4ASongHeader>(offset);
-            Load(ROM.Instance.ROMFile, header);
+            SetOffset(offset);
+            Load(ROM.Instance.ROMFile, ROM.Instance.Reader, offset);
         }
     }
 
@@ -554,9 +555,10 @@ namespace GBAMusicStudio.Core
     {
         public M4AASMSong(Assembler assembler, string headerLabel)
         {
-            Offset = assembler.BaseOffset;
+            SetOffset(assembler.BaseOffset);
             var binary = assembler.Binary;
-            Load(binary, Utils.ReadStruct<M4ASongHeader>(binary, (uint)assembler[headerLabel]));
+            var reader = new EndianBinaryReader(new MemoryStream(binary));
+            Load(binary, reader, (uint)assembler[headerLabel]);
         }
     }
 
@@ -564,41 +566,41 @@ namespace GBAMusicStudio.Core
     {
         public MLSSSong(uint offset)
         {
-            Offset = offset;
+            SetOffset(offset);
             VoiceTable = VoiceTable.LoadTable<MLSSVoiceTable>(0, true); // 0 won't be used in the Load method
 
-            int amt = GetTrackAmount(ROM.Instance.ReadUInt16(Offset));
+            int amt = GetTrackAmount(ROM.Instance.Reader.ReadUInt16(offset));
 
             Commands = new List<SongEvent>[amt];
             for (uint i = 0; i < amt; i++)
             {
                 Commands[i] = new List<SongEvent>();
-                uint track = Offset + ROM.Instance.ReadUInt16(Offset + 2 + (i * 2));
-                ROM.Instance.Position = track;
+                uint track = offset + ROM.Instance.Reader.ReadUInt16(offset + 2 + (i * 2));
+                ROM.Instance.Reader.BaseStream.Position = track;
 
                 byte cmd = 0;
                 while (cmd != 0xFF && cmd != 0xF8)
                 {
-                    uint off = ROM.Instance.Position;
+                    uint off = (uint)ROM.Instance.Reader.BaseStream.Position;
                     ICommand command = null;
 
-                    cmd = ROM.Instance.ReadByte();
+                    cmd = ROM.Instance.Reader.ReadByte();
                     switch (cmd)
                     {
-                        case 0: command = new FreeNoteCommand { Note = ROM.Instance.ReadByte(), Extension = ROM.Instance.ReadByte() }; break;
-                        case 0xF0: command = new VoiceCommand { Voice = ROM.Instance.ReadByte() }; break;
-                        case 0xF1: command = new VolumeCommand { Volume = ROM.Instance.ReadByte() }; break;
-                        case 0xF2: command = new PanpotCommand { Panpot = (sbyte)(ROM.Instance.ReadByte() - 0x80) }; break;
-                        case 0xF4: command = new BendRangeCommand { Range = ROM.Instance.ReadByte() }; break;
-                        case 0xF5: command = new BendCommand { Bend = ROM.Instance.ReadSByte() }; break;
-                        case 0xF6: command = new RestCommand { Rest = ROM.Instance.ReadByte() }; break;
+                        case 0: command = new FreeNoteCommand { Note = ROM.Instance.Reader.ReadByte(), Extension = ROM.Instance.Reader.ReadByte() }; break;
+                        case 0xF0: command = new VoiceCommand { Voice = ROM.Instance.Reader.ReadByte() }; break;
+                        case 0xF1: command = new VolumeCommand { Volume = ROM.Instance.Reader.ReadByte() }; break;
+                        case 0xF2: command = new PanpotCommand { Panpot = (sbyte)(ROM.Instance.Reader.ReadByte() - 0x80) }; break;
+                        case 0xF4: command = new BendRangeCommand { Range = ROM.Instance.Reader.ReadByte() }; break;
+                        case 0xF5: command = new BendCommand { Bend = ROM.Instance.Reader.ReadSByte() }; break;
+                        case 0xF6: command = new RestCommand { Rest = ROM.Instance.Reader.ReadByte() }; break;
                         case 0xF8:
-                            short offsetFromEnd = ROM.Instance.ReadInt16();
-                            command = new GoToCommand { Offset = (uint)(ROM.Instance.Position + offsetFromEnd) };
+                            short offsetFromEnd = ROM.Instance.Reader.ReadInt16();
+                            command = new GoToCommand { Offset = (uint)(ROM.Instance.Reader.BaseStream.Position + offsetFromEnd) };
                             break;
-                        case 0xF9: command = new TempoCommand { Tempo = ROM.Instance.ReadByte() }; break;
+                        case 0xF9: command = new TempoCommand { Tempo = ROM.Instance.Reader.ReadByte() }; break;
                         case 0xFF: command = new FinishCommand(); break;
-                        default: command = new MLSSNoteCommand { Duration = cmd, Note = ROM.Instance.ReadSByte() }; break;
+                        default: command = new MLSSNoteCommand { Duration = cmd, Note = ROM.Instance.Reader.ReadSByte() }; break;
                     }
                     Commands[i].Add(new SongEvent(off, command));
                 }

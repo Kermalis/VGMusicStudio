@@ -88,7 +88,7 @@ namespace GBAMusicStudio.Core
             this.bFixed = bFixed;
             bGoldenSun = (sample.bLoop && sample.LoopPoint == 0 && sample.Length == 0);
             if (bGoldenSun)
-                gsPSG = ROM.Instance.ReadStruct<GoldenSunPSG>(sample.Offset);
+                gsPSG = ROM.Instance.Reader.ReadObject<GoldenSunPSG>(sample.GetOffset());
 
             SetVolume(vol, pan);
             SetPitch(pitch);
@@ -243,8 +243,8 @@ namespace GBAMusicStudio.Core
         {
             float GetSample(uint position)
             {
-                position += sample.Offset;
-                return (sample.bUnsigned ? ROM.Instance.ReadByte(position) - 0x80 : ROM.Instance.ReadSByte(position)) / 128f;
+                position += sample.GetOffset();
+                return (sample.bUnsigned ? ROM.Instance.Reader.ReadByte(position) - 128 : ROM.Instance.Reader.ReadSByte(position)) / 128f;
             }
 
             int bufPos = 0;
@@ -751,7 +751,7 @@ namespace GBAMusicStudio.Core
     class NoiseChannel : GBChannel
     {
         BitArray pat;
-        
+
         public void Init(byte ownerIdx, Note note, ADSR env, NoisePattern pattern)
         {
             Init(ownerIdx, note, env);

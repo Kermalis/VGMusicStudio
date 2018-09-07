@@ -27,7 +27,7 @@ namespace GBAMusicStudio.Core
         int longestTrack;
 
         public Song Song { get; private set; }
-        public int NumTracks => Song == null ? 0 : Song.NumTracks.Clamp(0, 16);
+        public int NumTracks => Song == null ? 0 : Song.NumTracks;
 
         private SongPlayer()
         {
@@ -149,7 +149,7 @@ namespace GBAMusicStudio.Core
             info.Tempo = Tempo; info.Position = position;
             for (int i = 0; i < NumTracks; i++)
             {
-                info.Positions[i] = Song.Commands[i][tracks[i].CommandIndex].Offset;
+                info.Positions[i] = Song.Commands[i][tracks[i].CommandIndex].GetOffset();
                 info.Delays[i] = tracks[i].Delay;
                 info.Voices[i] = tracks[i].Voice;
                 info.Mods[i] = tracks[i].MODDepth;
@@ -178,33 +178,32 @@ namespace GBAMusicStudio.Core
 
             var owner = track.Index;
             var aNote = new Note { Duration = duration, Velocity = velocity, OriginalKey = note, Key = fromDrum ? voice.Voice.GetRootNote() : note };
-            if (voice.Voice is M4AVoice m4a)
+            if (voice.Voice is M4AVoiceEntry m4a)
             {
-                M4AVoiceEntry entry = m4a.Entry;
-                M4AVoiceType type = (M4AVoiceType)(entry.Type & 0x7);
+                M4AVoiceType type = (M4AVoiceType)(m4a.Type & 0x7);
                 switch (type)
                 {
                     case M4AVoiceType.Direct:
-                        bool bFixed = (entry.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
-                        SoundMixer.Instance.NewDSNote(owner, entry.ADSR, aNote,
+                        bool bFixed = (m4a.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
+                        SoundMixer.Instance.NewDSNote(owner, m4a.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
                             bFixed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
                         break;
                     case M4AVoiceType.Square1:
                     case M4AVoiceType.Square2:
-                        SoundMixer.Instance.NewGBNote(owner, entry.ADSR, aNote,
+                        SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                type, entry.SquarePattern);
+                                type, m4a.SquarePattern);
                         break;
                     case M4AVoiceType.Wave:
-                        SoundMixer.Instance.NewGBNote(owner, entry.ADSR, aNote,
+                        SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                type, entry.Address);
+                                type, m4a.Address - ROM.Pak);
                         break;
                     case M4AVoiceType.Noise:
-                        SoundMixer.Instance.NewGBNote(owner, entry.ADSR, aNote,
+                        SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                type, entry.NoisePattern);
+                                type, m4a.NoisePattern);
                         break;
                 }
             }
@@ -238,14 +237,14 @@ namespace GBAMusicStudio.Core
 
             if (e.Command is GoToCommand goTo)
             {
-                int gotoCmd = Song.Commands[i].FindIndex(c => c.Offset == goTo.Offset);
+                int gotoCmd = Song.Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
                 if (longestTrack == i)
                     position = Song.Commands[i][gotoCmd].AbsoluteTicks - 1;
                 track.CommandIndex = gotoCmd - 1; // -1 for incoming ++
             }
             else if (e.Command is CallCommand patt)
             {
-                int callCmd = Song.Commands[i].FindIndex(c => c.Offset == patt.Offset);
+                int callCmd = Song.Commands[i].FindIndex(c => c.GetOffset() == patt.Offset);
                 track.EndOfPattern = track.CommandIndex;
                 track.CommandIndex = callCmd - 1; // -1 for incoming ++
             }

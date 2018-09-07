@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace GBAMusicStudio.Util
 {
@@ -31,19 +29,6 @@ namespace GBAMusicStudio.Util
             if (long.TryParse(value, NumberStyles.HexNumber, provider, out long hex))
                 return hex;
             throw new ArgumentException("\"value\" was invalid.");
-        }
-
-        public static T ReadStruct<T>(byte[] binary, uint offset = 0)
-        {
-            using (var reader = new BinaryReader(new MemoryStream(binary)))
-            {
-                reader.BaseStream.Position = offset;
-                byte[] bytes = reader.ReadBytes(Marshal.SizeOf(typeof(T)));
-                GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-                T ret = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-                handle.Free();
-                return ret;
-            }
         }
 
         public static IEnumerable<T> UniteAll<T>(this IEnumerable<IEnumerable<T>> source)

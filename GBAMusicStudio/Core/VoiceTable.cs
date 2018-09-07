@@ -4,12 +4,11 @@ using System.Collections.Generic;
 
 namespace GBAMusicStudio.Core
 {
-    abstract class VoiceTable : IEnumerable<WrappedVoice>
+    abstract class VoiceTable : IEnumerable<WrappedVoice>, IOffset
     {
         static readonly Dictionary<uint, VoiceTable> cache = new Dictionary<uint, VoiceTable>();
         public static T LoadTable<T>(uint table, bool shouldCache = false) where T : VoiceTable
         {
-            table = ROM.SanitizeOffset(table);
             if (cache.ContainsKey(table))
             {
                 return (T)cache[table];
@@ -25,12 +24,15 @@ namespace GBAMusicStudio.Core
         }
         public static void ClearCache() => cache.Clear();
 
-        public uint Offset { get; protected set; }
+        protected uint offset;
         public uint Length { get; private set; }
         protected readonly WrappedVoice[] voices;
 
         public VoiceTable(uint capacity) => voices = new WrappedVoice[Length = capacity];
         protected abstract void Load(uint table);
+
+        public uint GetOffset() => offset;
+        public void SetOffset(uint newOffset) => offset = newOffset;
 
         public WrappedVoice this[int i]
         {
@@ -52,18 +54,19 @@ namespace GBAMusicStudio.Core
         public M4AVoiceTable() : base(Config.Instance.All256Voices ? 256u : 128u) { }
         protected override void Load(uint table)
         {
-            Offset = table;
+            SetOffset(table);
             for (uint i = 0; i < Length; i++)
             {
                 uint off = table + (i * 0xC);
                 if (!ROM.IsValidRomOffset(off))
                     break;
-                var voice = new M4AVoice(off);
-                if (voice.Entry.Type == (int)M4AVoiceFlags.KeySplit)
+                var voice = ROM.Instance.Reader.ReadObject<M4AVoiceEntry>(off);
+                voice.SetOffset(off);
+                if (voice.Type == (int)M4AVoiceFlags.KeySplit)
                     voices[i] = new M4AWrappedKeySplit(voice);
-                else if (voice.Entry.Type == (int)M4AVoiceFlags.Drum)
+                else if (voice.Type == (int)M4AVoiceFlags.Drum)
                     voices[i] = new M4AWrappedDrum(voice);
-                else if ((voice.Entry.Type & 0x7) == (int)M4AVoiceType.Direct)
+                else if ((voice.Type & 0x7) == (int)M4AVoiceType.Direct)
                     voices[i] = new M4AWrappedDirect(voice);
                 else
                     voices[i] = new WrappedVoice(voice);
@@ -76,12 +79,12 @@ namespace GBAMusicStudio.Core
 
             WrappedVoice sv = voices[voice];
             Read:
-            M4AVoiceEntry v = ((M4AVoice)sv.Voice).Entry;
+            M4AVoiceEntry v = (M4AVoiceEntry)sv.Voice;
             switch (v.Type)
             {
                 case (int)M4AVoiceFlags.KeySplit:
                     var keySplit = (M4AWrappedKeySplit)sv;
-                    byte inst = ROM.Instance.ReadByte((uint)(v.Keys + note));
+                    byte inst = ROM.Instance.Reader.ReadByte((uint)(v.Keys - ROM.Pak + note));
                     sv = keySplit.Table[inst];
                     fromDrum = false; // In case there is a multi within a drum
                     goto Read;
@@ -106,20 +109,20 @@ namespace GBAMusicStudio.Core
             uint sampleCount = ROM.Instance.Game.SampleTableSize;
 
             Samples = new MLSSWrappedSample[sampleCount];
-            Offset = ROM.Instance.Game.VoiceTable;
+            SetOffset(ROM.SanitizeOffset(ROM.Instance.Game.VoiceTable));
 
             for (uint i = 0; i < 256; i++)
             {
-                var off = ROM.Instance.ReadInt16(Offset + (i * 2));
-                var nextOff = ROM.Instance.ReadInt16(Offset + ((i + 1) * 2));
+                var off = ROM.Instance.Reader.ReadInt16(offset + (i * 2));
+                var nextOff = ROM.Instance.Reader.ReadInt16(offset + ((i + 1) * 2));
                 uint numEntries = (uint)(nextOff - off) / 8; // Each entry is 8 bytes
-                voices[i] = new MLSSWrappedVoice((uint)(Offset + off), numEntries);
+                voices[i] = new MLSSWrappedVoice((uint)(offset + off), numEntries);
             }
 
-            uint sOffset = ROM.Instance.Game.SampleTable;
+            uint sOffset = ROM.SanitizeOffset(ROM.Instance.Game.SampleTable);
             for (uint i = 0; i < sampleCount; i++)
             {
-                int off = ROM.Instance.ReadInt32(sOffset + (i * 4));
+                int off = ROM.Instance.Reader.ReadInt32(sOffset + (i * 4));
                 Samples[i] = (off == 0) ? null : new MLSSWrappedSample((uint)(sOffset + off));
             }
         }

@@ -15,7 +15,7 @@ namespace GBAMusicStudio.Core
         {
             var sample = new float[0x20];
 
-            byte[] data = ROM.Instance.ReadBytes(0x10, address);
+            byte[] data = ROM.Instance.Reader.ReadBytes(0x10, address);
             float sum = 0;
             for (int i = 0; i < 0x10; i++)
             {

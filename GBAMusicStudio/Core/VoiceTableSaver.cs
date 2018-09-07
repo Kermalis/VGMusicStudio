@@ -33,8 +33,8 @@ namespace GBAMusicStudio.Core
             {
                 case EngineType.M4A: new M4AVoiceTableSaver(fileName, false); return;
                 case EngineType.MLSS: new MLSSVoiceTableSaver(fileName); return;
+                default: throw new PlatformNotSupportedException("Exporting to SF2 from this game engine is not supported at this time.");
             }
-            throw new PlatformNotSupportedException("Exporting to SF2 from this game engine is not supported at this time.");
         }
         static void AddInfo(SF2 sf2)
         {
@@ -72,8 +72,8 @@ namespace GBAMusicStudio.Core
             List<uint> addedTables = new List<uint>();
             void AddTable(M4AVoiceTable table, bool saveAfter7F, bool fromDrum)
             {
-                if (addedTables.Contains(table.Offset)) return;
-                addedTables.Add(table.Offset);
+                if (addedTables.Contains(table.GetOffset())) return;
+                addedTables.Add(table.GetOffset());
 
                 int amt = saveAfter7F ? 0xFF : 0x7F;
 
@@ -121,7 +121,7 @@ namespace GBAMusicStudio.Core
                     }
                     else
                     {
-                        var m4 = ((M4AVoice)voice.Voice).Entry;
+                        var m4 = (M4AVoiceEntry)voice.Voice;
                         if (fromDrum)
                         {
                             if ((m4.Type & 0x7) == (int)M4AVoiceType.Noise)
@@ -147,7 +147,7 @@ namespace GBAMusicStudio.Core
                 if (type == M4AVoiceType.Square1 || type == M4AVoiceType.Square2)
                     sample = (uint)entry.SquarePattern;
                 else if (type == M4AVoiceType.Wave)
-                    sample = AddWave(entry.Address);
+                    sample = AddWave(entry.Address - ROM.Pak);
                 else if (type == M4AVoiceType.Noise)
                     sample = (uint)entry.NoisePattern + 4;
                 else
@@ -196,7 +196,7 @@ namespace GBAMusicStudio.Core
             }
             void AddDirect(M4AWrappedDirect direct, byte low = 0, byte high = 127)
             {
-                var entry = ((M4AVoice)direct.Voice).Entry;
+                var entry = (M4AVoiceEntry)direct.Voice;
 
                 var gSample = direct.Sample.GetSample();
                 if (gSample == null)
@@ -265,14 +265,15 @@ namespace GBAMusicStudio.Core
             }
             uint AddDirectSample(M4AWrappedSample sample)
             {
-                if (savedSamples.Contains(sample.Offset))
-                    return (uint)(6 + savedSamples.IndexOf(sample.Offset));
-                savedSamples.Add(sample.Offset);
+                uint sampleOffset = sample.GetOffset();
+                if (savedSamples.Contains(sampleOffset))
+                    return (uint)(6 + savedSamples.IndexOf(sampleOffset));
+                savedSamples.Add(sampleOffset);
 
                 var gSample = sample.GetSample();
-                byte[] pcm8 = ROM.Instance.ReadBytes(gSample.Length, gSample.Offset);
+                byte[] pcm8 = ROM.Instance.Reader.ReadBytes((int)gSample.Length, gSample.GetOffset());
                 short[] pcm16 = PCM8ToPCM16(pcm8);
-                return sf2.AddSample(pcm16, string.Format("Sample 0x{0:X7}", sample.Offset),
+                return sf2.AddSample(pcm16, string.Format("Sample 0x{0:X7}", sampleOffset),
                     gSample.bLoop, gSample.LoopPoint, (uint)gSample.Frequency, 60, 0);
             }
 
@@ -315,7 +316,7 @@ namespace GBAMusicStudio.Core
                         continue;
 
                     var gSample = sample.GetSample();
-                    byte[] pcmU8 = ROM.Instance.ReadBytes(gSample.Length, gSample.Offset);
+                    byte[] pcmU8 = ROM.Instance.Reader.ReadBytes((int)gSample.Length, gSample.GetOffset());
                     short[] pcm16 = PCMU8ToPCM16(pcmU8);
                     addedSamples.Add(sample,
                         sf2.AddSample(pcm16, string.Format("Sample {0}", i),
@@ -327,7 +328,7 @@ namespace GBAMusicStudio.Core
                 for (ushort i = 0; i < table.Length; i++)
                 {
                     var voice = (MLSSWrappedVoice)table[i];
-                    var entries = voice.GetSubVoices().Select(s => ((MLSSWrappedVoiceEntry)s).Entry);
+                    var entries = voice.GetSubVoices().Cast<MLSSVoiceEntry>();
                     if (entries.Count() == 0)
                         continue;
 

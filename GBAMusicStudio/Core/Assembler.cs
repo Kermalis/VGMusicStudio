@@ -15,7 +15,7 @@ namespace GBAMusicStudio.Core
         private class Pointer
         {
             public string Label;
-            public int Offset;
+            public int BinaryOffset;
         }
         readonly string fileErrorFormat = "{0}{3}{3}Error reading file included in line {1}:{3}{2}",
             mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
@@ -49,13 +49,13 @@ namespace GBAMusicStudio.Core
         {
             foreach (var p in lPointers)
             {
-                // Our example label is SEQ_STUFF at the binary offset 0x1000, curBase is 0x500, baseOffset is 0x1800
-                // There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DF4
-                uint old = BitConverter.ToUInt32(Binary, p.Offset); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DF4
-                var off = old - BaseOffset; // Then off is 0x1004 (SEQ_STUFF+4)
-                var b = BitConverter.GetBytes(baseOffset + off); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
+                // Our example label is SEQ_STUFF at the binary offset 0x1000, curBaseOffset is 0x500, baseOffset is 0x1800
+                // There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DFC
+                uint oldPointer = BitConverter.ToUInt32(Binary, p.BinaryOffset); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
+                var labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
+                var newPointerBytes = BitConverter.GetBytes(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
                 for (int i = 0; i < 4; i++)
-                    bytes[p.Offset + i] = b[i]; // Copy the new pointer to binary offset 0x1DF4
+                    bytes[p.BinaryOffset + i] = newPointerBytes[i]; // Copy the new pointer to binary offset 0x1DF4
             }
             BaseOffset = baseOffset;
         }
@@ -219,7 +219,7 @@ namespace GBAMusicStudio.Core
             if (defines.TryGetValue(value, out int def)) return def;
             if (labels.TryGetValue(value, out Pair pair))
             {
-                lPointers.Add(new Pointer { Label = value, Offset = bytes.Count });
+                lPointers.Add(new Pointer { Label = value, BinaryOffset = bytes.Count });
                 return pair.Offset;
             }
 
