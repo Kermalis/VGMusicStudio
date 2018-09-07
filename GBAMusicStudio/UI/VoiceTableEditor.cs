@@ -110,7 +110,7 @@ namespace GBAMusicStudio.UI
             // Auto-color
             if (e.ListView == voicesListView)
             {
-                var color = Config.Instance.Colors[e.RowIndex];
+                var color = Config.Instance.GetColor((byte)e.RowIndex, ROM.Instance.Game.Remap, true);
                 e.Item.BackColor = color;
                 if (color.Luminosity <= 100)
                     e.Item.ForeColor = Color.White;

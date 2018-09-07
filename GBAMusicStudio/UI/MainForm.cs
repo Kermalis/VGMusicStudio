@@ -474,7 +474,7 @@ namespace GBAMusicStudio.UI
                     foreach (var n in notes)
                         if (n >= piano.LowNoteID && n <= piano.HighNoteID)
                         {
-                            piano[n - piano.LowNoteID].NoteOnColor = Config.Instance.Colors[info.Voices[i]];
+                            piano[n - piano.LowNoteID].NoteOnColor = Config.Instance.GetColor(info.Voices[i], ROM.Instance.Game.Remap, true);
                             piano.PressPianoKey(n);
                         }
                 }

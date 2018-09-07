@@ -53,16 +53,17 @@ namespace GBAMusicStudio.Core
         public readonly AnEngine Engine;
         public readonly uint[] SongTables, SongTableSizes;
         public readonly List<APlaylist> Playlists;
+        public readonly string Remap;
 
         // MLSS only
         public readonly uint VoiceTable, SampleTable, SampleTableSize;
 
-        public AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists,
+        public AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists, string remap,
             uint voiceTable, uint sampleTable, uint sampleTableSize)
         {
             Code = code; Name = name; Creator = creator; Engine = engine;
             SongTables = tables; SongTableSizes = tableSizes;
-            Playlists = playlists;
+            Playlists = playlists; Remap = remap;
 
             VoiceTable = voiceTable; SampleTable = sampleTable; SampleTableSize = sampleTableSize;
         }
@@ -174,6 +175,7 @@ namespace GBAMusicStudio.Core
                 byte engineReverb = 0, engineVolume = 0xF; uint engineFrequency = 13379;
                 uint[] tables, tableSizes;
                 List<APlaylist> playlists;
+                string remap = string.Empty;
                 uint voiceTable = 0, sampleTable = 0, sampleTableSize = 0;
 
                 code = g.Key.ToString();
@@ -211,8 +213,12 @@ namespace GBAMusicStudio.Core
                         tableSizes[i] = (uint)Utils.ParseValue(sizes[i]);
                 }
 
-                // Creator name
+                // Creator name (required)
                 creator = game.Children["Creator"].ToString();
+
+                // Remap
+                if (game.Children.TryGetValue("Remap", out YamlNode rmap))
+                    remap = rmap.ToString();
 
                 // Engine
                 if (game.Children.TryGetValue("Engine", out YamlNode yeng))
@@ -255,11 +261,15 @@ namespace GBAMusicStudio.Core
                     if (playlists[i].Songs.Length == 0)
                         playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "Playlist is empty.") });
 
-                Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists,
+                Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists, remap,
                     voiceTable, sampleTable, sampleTableSize));
             }
         }
 
+        public HSLColor GetColor(byte voice, string key, bool from)
+        {
+            return Colors[GetRemap(voice, key, from)];
+        }
         public byte GetRemap(byte voice, string key, bool from)
         {
             if (InstrumentRemaps.TryGetValue(key, out ARemap remap))

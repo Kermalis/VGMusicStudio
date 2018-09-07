@@ -184,11 +184,11 @@ namespace GBAMusicStudio.UI
                 int by = (int)(r1y + ym); // Bar y
                 int pax = (int)(bx + (bw / 2) + (bw / 2 * (Info.Pans[i] / (float)Engine.GetPanpotRange()))); // Pan line x
 
-                Color color = Config.Instance.Colors[Info.Voices[i]];
+                Color color = Config.Instance.GetColor(Info.Voices[i], ROM.Instance.Game.Remap, true);
                 Pen pen = new Pen(color);
                 var brush = new SolidBrush(color);
                 byte velocity = (byte)((Info.Lefts[i] + Info.Rights[i]) * 0xFF);
-                var lBrush = new LinearGradientBrush(new Point(bx, by), new Point(bx + bw, by + bh), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 4, 0xFF), color));
+                var lBrush = new LinearGradientBrush(new Point(bx, by), new Point(bx + bw, by + bh), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 3, 0xFF), color));
 
                 mutes[i].Location = new Point(co, (int)r1y + co); // Checkboxes
                 pianos[i].Visible = mutes[i].Visible = true;
