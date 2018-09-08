@@ -22,7 +22,7 @@ namespace GBAMusicStudio.Core
         public readonly float SampleRateReciprocal, SamplesReciprocal;
         public readonly uint SamplesPerBuffer;
 
-        public float MasterVolume; public float DSMasterVolume { get; private set; }
+        public float MasterVolume = 1; public float DSMasterVolume { get; private set; }
 
         readonly WaveBuffer audio;
         readonly float[][] trackBuffers;
@@ -67,20 +67,24 @@ namespace GBAMusicStudio.Core
             @out.Init(buffer);
             @out.Play();
         }
-        public void Init(byte songReverb)
+        public void Init(byte reverbAmt)
         {
+            ReverbType reverbType = ROM.Instance.Game.Engine.ReverbType;
+            reverbType = ReverbType.None; // For now because of crashes
             DSMasterVolume = ROM.Instance.Game.Engine.Volume / (float)0xF;
 
             byte engineReverb = ROM.Instance.Game.Engine.Reverb;
-            byte reverb = (byte)(engineReverb >= 0x80 ? engineReverb & 0x7F : songReverb & 0x7F);
+            byte reverb = (byte)(engineReverb >= 0x80 ? engineReverb & 0x7F : reverbAmt & 0x7F);
             for (int i = 0; i < MAX_TRACKS; i++)
             {
                 byte numBuffers = (byte)(0x630 / (ROM.Instance.Game.Engine.Frequency / Engine.AGB_FPS));
-                switch (ROM.Instance.Game.Engine.ReverbType)
+                switch (reverbType)
                 {
                     default: reverbs[i] = new Reverb(reverb, numBuffers); break;
                     case ReverbType.Camelot1: reverbs[i] = new ReverbCamelot1(reverb, numBuffers); break;
-                    case ReverbType.None: reverbs[i] = new Reverb(0, numBuffers); break;
+                    case ReverbType.Camelot2: reverbs[i] = new ReverbCamelot2(reverb, numBuffers, 53 / 128f, -8 / 128f); break;
+                    case ReverbType.MGAT: reverbs[i] = new ReverbCamelot2(reverb, numBuffers, 32 / 128f, -6 / 128f); break;
+                    case ReverbType.None: reverbs[i] = null; break;
                 }
             }
         }
@@ -204,7 +208,7 @@ namespace GBAMusicStudio.Core
                     c.Process(trackBuffers[c.OwnerIdx]);
 
             // Reverb only applies to DirectSound
-            for (int i = 0; i < trackBuffers.Length; i++)
+            for (int i = 0; i < MAX_TRACKS; i++)
                 reverbs[i]?.Process(trackBuffers[i], (int)SamplesPerBuffer);
 
             foreach (var c in gbChannels)
