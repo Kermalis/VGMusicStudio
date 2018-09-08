@@ -55,7 +55,7 @@ namespace GBAMusicStudio.Core
         public byte Priority;
         public byte Reverb;
         public uint VoiceTable;
-        [BinaryFixedLength(16)]
+        [BinaryArrayVariableLength("NumTracks")]
         public uint[] Tracks;
     }
     struct M4AMLSSSample
