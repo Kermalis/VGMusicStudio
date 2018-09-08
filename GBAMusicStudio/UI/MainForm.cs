@@ -240,10 +240,18 @@ namespace GBAMusicStudio.UI
             }
             bool playing = SongPlayer.Instance.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.Instance.SetSong(ROM.Instance.SongTables[(uint)tableNumerical.Value][(uint)songNumerical.Value]);
-            UpdateTrackInfo(playing);
-
-            MIDIKeyboard.Start();
+            try
+            {
+                var loadedSong = ROM.Instance.SongTables[(uint)tableNumerical.Value][(uint)songNumerical.Value];
+                SongPlayer.Instance.SetSong(loadedSong);
+                UpdateTrackInfo(playing);
+                MIDIKeyboard.Instance.Start();
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(ex.Message, "Error Loading Song " + songNumerical.Value);
+                return;
+            }
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -263,13 +271,16 @@ namespace GBAMusicStudio.UI
             try
             {
                 new ROM(d.FileName);
-                UpdateMenuInfo();
-                LoadSong(null, null);
             }
             catch (Exception ex)
             {
                 FlexibleMessageBox.Show(ex.Message, "Error Loading ROM");
+                return;
             }
+
+            UpdateMenuInfo();
+            SongPlayer.Instance.Reset();
+            LoadSong(null, null);
         }
         void OpenMIDIConverter(object sender, EventArgs e)
         {
@@ -511,7 +522,7 @@ namespace GBAMusicStudio.UI
         {
             Stop(null, null);
             SongPlayer.Instance.ShutDown();
-            MIDIKeyboard.Stop();
+            MIDIKeyboard.Instance.Stop();
             base.OnFormClosing(e);
         }
         void OnResize(object sender, EventArgs e)
