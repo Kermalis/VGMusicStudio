@@ -58,7 +58,7 @@ namespace GBAMusicStudio.Core
         [BinaryArrayVariableLength("NumTracks")]
         public uint[] Tracks;
     }
-    struct M4AMLSSSample
+    class M4AMLSSSample
     {
         public uint DoesLoop; // Will be 0x40000000 if true
         public uint Frequency; // Right shift 10 for value
@@ -126,7 +126,7 @@ namespace GBAMusicStudio.Core
                     switch (type)
                     {
                         case M4AVoiceType.Direct:
-                            name = IsGoldenSunPSG() ? $"GS {ROM.Instance.Reader.ReadObject<GoldenSunPSG>(Address + 0x10).Type}" : "Direct Sound";
+                            name = IsGoldenSunPSG() ? $"GS {ROM.Instance.Reader.ReadObject<GoldenSunPSG>(Address - ROM.Pak + 0x10).Type}" : "Direct Sound";
                             break;
                         default: name = type.Humanize(); break;
                     }

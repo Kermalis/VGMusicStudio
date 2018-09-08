@@ -21,13 +21,11 @@ namespace GBAMusicStudio.Core
         public ROM(string filePath)
         {
             Instance = this;
-            SongPlayer.Instance.Stop();
             ROMFile = File.ReadAllBytes(filePath);
             var stream = Stream.Synchronized(new MemoryStream(ROMFile));
             Reader = new EndianBinaryReader(stream);
             Writer = new EndianBinaryWriter(stream);
             HandleConfigLoaded();
-            SongPlayer.Instance.Reset();
         }
         public void HandleConfigLoaded()
         {
