@@ -410,11 +410,12 @@ namespace GBAMusicStudio.Core
 
             VoiceTable = VoiceTable.LoadTable<M4AVoiceTable>(Header.VoiceTable - ROM.Pak);
 
-            if (Header.NumTracks == 0 || Header.NumTracks > 16) return;
-
             Commands = new List<SongEvent>[Header.NumTracks];
             for (int i = 0; i < Header.NumTracks; i++)
                 Commands[i] = new List<SongEvent>();
+
+            if (Header.NumTracks > 16)
+                throw new InvalidDataException("Song has too many tracks.");
 
             for (int i = 0; i < NumTracks; i++)
             {
