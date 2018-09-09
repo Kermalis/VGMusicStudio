@@ -239,11 +239,18 @@ namespace GBAMusicStudio.UI
                 songsComboBox.SelectedIndex = 0;
             }
             bool playing = SongPlayer.Instance.State == PlayerState.Playing; // Play new song if one is already playing
+            bool paused = SongPlayer.Instance.State == PlayerState.Paused;
             Stop(null, null);
             try
             {
+                // Pause which stops the thread inside from processing during loading, which would increase the stream latency
+                if (!paused)
+                    SongPlayer.Instance.Pause();
                 var loadedSong = ROM.Instance.SongTables[(uint)tableNumerical.Value][(uint)songNumerical.Value];
                 SongPlayer.Instance.SetSong(loadedSong);
+                // Then "un pause" it, setting it to the stopped state
+                if (!paused)
+                    SongPlayer.Instance.Stop();
                 UpdateTrackInfo(playing);
                 MIDIKeyboard.Instance.Start();
             }
