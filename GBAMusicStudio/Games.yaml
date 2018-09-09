@@ -81,6 +81,8 @@ AGFE:
   Engine:
     ReverbType: "Camelot2"
     Frequency: 31536
+    GoldenSunSynths: True
+    TrackLimit: 10
 AGSE:
   Name: "Golden Sun (USA)"
   Creator: "Camelot"
@@ -89,6 +91,8 @@ AGSE:
   Engine:
     ReverbType: "Camelot1"
     Frequency: 21024
+    GoldenSunSynths: True
+    TrackLimit: 10
 AMKE:
   Name: "Mario Kart: Super Circuit (USA)"
   Creator: "Nintendo"
@@ -166,6 +170,7 @@ AXVE:
   SongTableSize: 468
   Engine:
     Volume: 12
+    TrackLimit: 10
   Music:
     Disc_1:
       414: "Opening Movie: Setting out on a Journey in the Hoenn Region"
@@ -398,6 +403,7 @@ BPEE:
   SongTableSize: 610
   Engine:
     Volume: 12
+    TrackLimit: 10
   Music:
     Music:
       350: "Unused - TETSUJI"
@@ -620,6 +626,7 @@ BPRE:
   SongTableSize: 347
   Engine:
     Volume: 12
+    TrackLimit: 10
   Music:
     Disc_1:
       321: "Game Freak Logo"

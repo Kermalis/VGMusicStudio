@@ -41,8 +41,9 @@ namespace GBAMusicStudio.Core
         {
             if (ROM.Instance == null) return;
 
-            tracks = new Track[16];
-            for (byte i = 0; i < 16; i++)
+            byte amt = ROM.Instance.Game.Engine.TrackLimit;
+            tracks = new Track[amt];
+            for (byte i = 0; i < amt; i++)
             {
                 switch (ROM.Instance.Game.Engine.Type)
                 {

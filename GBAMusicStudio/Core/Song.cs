@@ -414,14 +414,14 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < Header.NumTracks; i++)
                 Commands[i] = new List<SongEvent>();
 
-            if (Header.NumTracks > 16)
-                throw new InvalidDataException("Song has too many tracks.");
+            if (Header.NumTracks > ROM.Instance.Game.Engine.TrackLimit)
+                throw new InvalidDataException($"Song has too many tracks ({Header.NumTracks}).");
 
             for (int i = 0; i < NumTracks; i++)
             {
                 reader.BaseStream.Position = Header.Tracks[i] - ROM.Pak;
 
-                byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 127;
+                byte cmd = 0, runCmd = 0, prevNote = 0, prevVelocity = 0x7F;
 
                 while (cmd != 0xB1 && cmd != 0xB6)
                 {
@@ -437,15 +437,15 @@ namespace GBAMusicStudio.Core
                     if (runCmd >= 0xCF && cmd < 0x80) // Within running status
                     {
                         var peek = reader.PeekBytes(2);
-                        if (peek[0] >= 128) command = AddNoteEvent(cmd, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        if (peek[0] >= 0x80) command = AddNoteEvent(cmd, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
                         else if (peek[1] > 3 || peek[1] < 1) command = AddNoteEvent(cmd, reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
                         else command = AddNoteEvent(cmd, reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
                     }
                     else if (cmd >= 0xCF)
                     {
                         var peek = reader.PeekBytes(3);
-                        if (peek[0] >= 128) command = AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
-                        else if (peek[1] >= 128) command = AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        if (peek[0] >= 0x80) command = AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        else if (peek[1] >= 0x80) command = AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
                         // TIE cannot have an added duration so it needs to stop here
                         else if (cmd == 0xCF || peek[2] > 3 || peek[2] < 1) command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
                         else command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
@@ -509,7 +509,7 @@ namespace GBAMusicStudio.Core
                             case 0xCE: // EOT
                                 sbyte note;
 
-                                if (reader.PeekByte() < 128)
+                                if (reader.PeekByte() < 0x80)
                                 {
                                     note = reader.ReadSByte();
                                     prevNote = (byte)note;

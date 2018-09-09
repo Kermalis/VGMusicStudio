@@ -86,7 +86,7 @@ namespace GBAMusicStudio.Core
             this.adsr = adsr;
             this.sample = sample;
             this.bFixed = bFixed;
-            bGoldenSun = (sample.bLoop && sample.LoopPoint == 0 && sample.Length == 0);
+            bGoldenSun = (ROM.Instance.Game.Engine.HasGoldenSunSynths && sample.bLoop && sample.LoopPoint == 0 && sample.Length == 0);
             if (bGoldenSun)
                 gsPSG = ROM.Instance.Reader.ReadObject<GoldenSunPSG>(sample.GetOffset());
 
@@ -244,7 +244,7 @@ namespace GBAMusicStudio.Core
             float GetSample(uint position)
             {
                 position += sample.GetOffset();
-                return (sample.bUnsigned ? ROM.Instance.Reader.ReadByte(position) - 128 : ROM.Instance.Reader.ReadSByte(position)) / 128f;
+                return (sample.bUnsigned ? ROM.Instance.Reader.ReadByte(position) - 0x80 : ROM.Instance.Reader.ReadSByte(position)) / (float)0x80;
             }
 
             int bufPos = 0;
@@ -477,8 +477,8 @@ namespace GBAMusicStudio.Core
                     curPan = GBPan.Right;
                 else
                     curPan = GBPan.Center;
-                peakVelocity = (byte)((Note.Velocity * vol) >> 10).Clamp(0, 15);
-                sustainVelocity = (byte)((peakVelocity * adsr.S + 15) >> 4).Clamp(0, 15);
+                peakVelocity = (byte)((Note.Velocity * vol) >> 10).Clamp(0, 0xF);
+                sustainVelocity = (byte)((peakVelocity * adsr.S + 0xF) >> 4).Clamp(0, 0xF);
                 if (State == ADSRState.Playing)
                     curVelocity = sustainVelocity;
             }
@@ -497,7 +497,7 @@ namespace GBAMusicStudio.Core
                 }
                 else
                 {
-                    curVelocity = (byte)(curVelocity - 1).Clamp(0, 15);
+                    curVelocity = (byte)(curVelocity - 1).Clamp(0, 0xF);
                 }
             }
             void sus()
@@ -546,7 +546,7 @@ namespace GBAMusicStudio.Core
                     {
                         State = ADSRState.Decaying;
                         prevVelocity = peakVelocity;
-                        curVelocity = (byte)(peakVelocity - 1).Clamp(0, 15);
+                        curVelocity = (byte)(peakVelocity - 1).Clamp(0, 0xF);
                         if (curVelocity < sustainVelocity) curVelocity = sustainVelocity;
                         return;
                     }

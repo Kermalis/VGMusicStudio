@@ -38,11 +38,13 @@ namespace GBAMusicStudio.Core
         public readonly ReverbType ReverbType;
         public readonly byte Reverb;
         public readonly byte Volume; // 0-F
+        public readonly byte TrackLimit;
         public readonly uint Frequency;
+        public readonly bool HasGoldenSunSynths;
 
-        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, uint frequency)
+        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, byte trackLimit, uint frequency, bool hasGoldenSunSynths)
         {
-            Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; Frequency = frequency;
+            Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; TrackLimit = trackLimit; Frequency = frequency; HasGoldenSunSynths = hasGoldenSunSynths;
         }
 
         public override string ToString() => Type.ToString();
@@ -172,7 +174,8 @@ namespace GBAMusicStudio.Core
             {
                 string code, name, creator;
                 EngineType engineType = EngineType.M4A; ReverbType reverbType = ReverbType.Normal;
-                byte engineReverb = 0, engineVolume = 0xF; uint engineFrequency = 13379;
+                byte engineReverb = 0, engineVolume = 0xF, engineTrackLimit = 0x10;
+                uint engineFrequency = 13379; bool engineHasGoldenSunSynths = false;
                 uint[] tables, tableSizes;
                 List<APlaylist> playlists;
                 string remap = string.Empty;
@@ -232,11 +235,15 @@ namespace GBAMusicStudio.Core
                         engineReverb = (byte)Utils.ParseValue(reverb.ToString());
                     if (eng.Children.TryGetValue("Volume", out YamlNode volume))
                         engineVolume = (byte)Utils.ParseValue(volume.ToString());
+                    if (eng.Children.TryGetValue("TrackLimit", out YamlNode trackLim))
+                        engineTrackLimit = (byte)Utils.ParseValue(trackLim.ToString());
                     if (eng.Children.TryGetValue("Frequency", out YamlNode frequency))
                         engineFrequency = (uint)Utils.ParseValue(frequency.ToString());
+                    if (eng.Children.TryGetValue("GoldenSunSynths", out YamlNode synths))
+                        engineHasGoldenSunSynths = bool.Parse(synths.ToString());
 
                 }
-                var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineFrequency);
+                var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineTrackLimit, engineFrequency, engineHasGoldenSunSynths);
 
                 // Load playlists
                 playlists = new List<APlaylist>();

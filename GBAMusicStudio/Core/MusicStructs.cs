@@ -103,13 +103,18 @@ namespace GBAMusicStudio.Core
 
         public bool IsGoldenSunPSG()
         {
-            if ((Type & 0x7) != (int)M4AVoiceType.Direct) return false;
+            if (!ROM.Instance.Game.Engine.HasGoldenSunSynths || (Type & 0x7) != (int)M4AVoiceType.Direct
+                || Type == (int)M4AVoiceFlags.KeySplit || Type == (int)M4AVoiceFlags.Drum)
+                return false;
             var gSample = new M4AWrappedSample(Address - ROM.Pak).GetSample();
-            if (gSample == null) return false;
+            if (gSample == null)
+                return false;
             return (gSample.bLoop && gSample.LoopPoint == 0 && gSample.Length == 0);
         }
         public bool IsGBInstrument()
         {
+            if (Type == (int)M4AVoiceFlags.KeySplit || Type == (int)M4AVoiceFlags.Drum)
+                return false;
             M4AVoiceType vType = (M4AVoiceType)(Type & 0x7);
             return vType >= M4AVoiceType.Square1 && vType <= M4AVoiceType.Noise;
         }
@@ -147,7 +152,7 @@ namespace GBAMusicStudio.Core
             var flags = (M4AVoiceFlags)Type;
             if (flags != M4AVoiceFlags.KeySplit && flags != M4AVoiceFlags.Drum)
             {
-                if((Type & 0x7) == (int)M4AVoiceType.Direct)
+                if ((Type & 0x7) == (int)M4AVoiceType.Direct)
                 {
                     bool bFixed = (flags & M4AVoiceFlags.Fixed) == M4AVoiceFlags.Fixed,
                         bReversed = (flags & M4AVoiceFlags.Reversed) == M4AVoiceFlags.Reversed,
