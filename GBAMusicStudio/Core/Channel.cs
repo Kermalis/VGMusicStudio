@@ -97,7 +97,7 @@ namespace GBAMusicStudio.Core
         public override ChannelVolume GetVolume()
         {
             float baseVel = prevVelocity;
-            float deltaVel = (curVelocity - baseVel) / Engine.INTERFRAMES;
+            float deltaVel = (curVelocity - baseVel) / Config.Instance.InterFrames;
             float fromVel = baseVel + deltaVel * processStep;
             float toVel = baseVel + deltaVel * (processStep + 1);
             return new ChannelVolume
@@ -136,7 +136,7 @@ namespace GBAMusicStudio.Core
                     State = ADSRState.Rising;
                     break;
                 case ADSRState.Rising:
-                    if (++processStep >= Engine.INTERFRAMES)
+                    if (++processStep >= Config.Instance.InterFrames)
                     {
                         prevVelocity = curVelocity;
                         processStep = 0;
@@ -151,7 +151,7 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Decaying:
-                    if (++processStep >= Engine.INTERFRAMES)
+                    if (++processStep >= Config.Instance.InterFrames)
                     {
                         prevVelocity = curVelocity;
                         processStep = 0;
@@ -166,14 +166,14 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Playing:
-                    if (++processStep >= Engine.INTERFRAMES)
+                    if (++processStep >= Config.Instance.InterFrames)
                     {
                         prevVelocity = curVelocity;
                         processStep = 0;
                     }
                     break;
                 case ADSRState.Releasing:
-                    if (++processStep >= Engine.INTERFRAMES)
+                    if (++processStep >= Config.Instance.InterFrames)
                     {
                         prevVelocity = curVelocity;
                         processStep = 0;
@@ -190,7 +190,7 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Dying:
-                    if (++processStep >= Engine.INTERFRAMES)
+                    if (++processStep >= Config.Instance.InterFrames)
                     {
                         prevVelocity = curVelocity;
                         Stop();
@@ -298,8 +298,8 @@ namespace GBAMusicStudio.Core
             float curThresh = CalcThresh(curPos), nextThresh = CalcThresh(nextPos);
 
             float deltaThresh = nextThresh - curThresh;
-            float baseThresh = curThresh + (deltaThresh * (processStep / (float)Engine.INTERFRAMES));
-            float threshStep = deltaThresh / Engine.INTERFRAMES * SoundMixer.Instance.SamplesReciprocal;
+            float baseThresh = curThresh + (deltaThresh * (processStep / (float)Config.Instance.InterFrames));
+            float threshStep = deltaThresh / Config.Instance.InterFrames * SoundMixer.Instance.SamplesReciprocal;
             float fThreshold = baseThresh;
 
             int bufPos = 0;
@@ -455,7 +455,7 @@ namespace GBAMusicStudio.Core
                     step = 1;
                     break;
             }
-            float deltaVel = (curVelocity - baseVel) / (Engine.INTERFRAMES * step);
+            float deltaVel = (curVelocity - baseVel) / (Config.Instance.InterFrames * step);
             float fromVel = baseVel + deltaVel * processStep;
             float toVel = baseVel + deltaVel * (processStep + 1);
             return new ChannelVolume
@@ -565,7 +565,7 @@ namespace GBAMusicStudio.Core
                         return;
                     }
                 case ADSRState.Rising:
-                    if (++processStep >= Engine.INTERFRAMES * adsr.A)
+                    if (++processStep >= Config.Instance.InterFrames * adsr.A)
                     {
                         if (nextState == ADSRState.Decaying)
                         {
@@ -604,7 +604,7 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Decaying:
-                    if (++processStep >= Engine.INTERFRAMES * adsr.D)
+                    if (++processStep >= Config.Instance.InterFrames * adsr.D)
                     {
                         if (nextState == ADSRState.Playing)
                         {
@@ -620,7 +620,7 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Playing:
-                    if (++processStep >= Engine.INTERFRAMES)
+                    if (++processStep >= Config.Instance.InterFrames)
                     {
                         if (nextState == ADSRState.Releasing)
                         {
@@ -631,7 +631,7 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Releasing:
-                    if (++processStep >= Engine.INTERFRAMES * adsr.R)
+                    if (++processStep >= Config.Instance.InterFrames * adsr.R)
                     {
                         if (nextState == ADSRState.Dying)
                         {

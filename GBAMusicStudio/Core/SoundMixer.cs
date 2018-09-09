@@ -35,11 +35,11 @@ namespace GBAMusicStudio.Core
         readonly Channel[] gbChannels;
 
         readonly BufferedWaveProvider buffer;
-        readonly WasapiOut @out;
+        readonly IWavePlayer @out;
 
         private SoundMixer()
         {
-            SamplesPerBuffer = Config.Instance.SampleRate / (Engine.AGB_FPS * Engine.INTERFRAMES);
+            SamplesPerBuffer = (uint)(Config.Instance.SampleRate / (Engine.AGB_FPS * Config.Instance.InterFrames));
             SampleRateReciprocal = 1f / Config.Instance.SampleRate; SamplesReciprocal = 1f / SamplesPerBuffer;
 
             dsChannels = new DirectSoundChannel[Config.Instance.DirectCount];
