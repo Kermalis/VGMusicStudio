@@ -49,7 +49,7 @@ namespace GBAMusicStudio.Core
             gbChannels = new GBChannel[] { sq1 = new SquareChannel(), sq2 = new SquareChannel(), wave = new WaveChannel(), noise = new NoiseChannel() };
             allChannels = dsChannels.Union(gbChannels).ToArray();
 
-            mutes = new bool[16];
+            mutes = new bool[17]; // 0-15 for tracks, 16 for the program
 
             int amt = (int)(SamplesPerBuffer * 2);
             audio = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
