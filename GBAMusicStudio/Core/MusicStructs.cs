@@ -16,8 +16,8 @@ namespace GBAMusicStudio.Core
 
         public WrappedVoice(IVoice i) { Voice = i; }
 
-        public uint GetOffset() => Voice.GetOffset();
-        public void SetOffset(uint newOffset) => Voice.SetOffset(newOffset);
+        public int GetOffset() => Voice.GetOffset();
+        public void SetOffset(int newOffset) => Voice.SetOffset(newOffset);
 
         public virtual IEnumerable<IVoiceTableInfo> GetSubVoices() => Enumerable.Empty<IVoiceTableInfo>();
 
@@ -26,27 +26,27 @@ namespace GBAMusicStudio.Core
     }
     class WrappedSample : IOffset
     {
-        uint offset; // Offset of the PCM buffer, not of the header
+        int offset; // Offset of the PCM buffer, not of the header
         public readonly bool bLoop, bUnsigned;
-        public readonly uint LoopPoint, Length;
+        public readonly int LoopPoint, Length;
         public readonly float Frequency;
 
-        public WrappedSample(bool loop, uint loopPoint, uint length, float frequency, bool unsigned)
+        public WrappedSample(bool loop, int loopPoint, int length, float frequency, bool unsigned)
         {
             bLoop = loop; LoopPoint = loopPoint; Length = length; Frequency = frequency; bUnsigned = unsigned;
         }
 
-        public uint GetOffset() => offset;
-        public void SetOffset(uint newOffset) => offset = newOffset;
+        public int GetOffset() => offset;
+        public void SetOffset(int newOffset) => offset = newOffset;
     }
 
     #region M4A
 
     class M4ASongEntry
     {
-        public uint Header;
-        public ushort Player;
-        public ushort Unknown;
+        public int Header;
+        public short Player;
+        public short Unknown;
     }
     class M4ASongHeader
     {
@@ -54,16 +54,16 @@ namespace GBAMusicStudio.Core
         public byte NumBlocks;
         public byte Priority;
         public byte Reverb;
-        public uint VoiceTable;
+        public int VoiceTable;
         [BinaryArrayVariableLength("NumTracks")]
-        public uint[] Tracks;
+        public int[] Tracks;
     }
     class M4AMLSSSample
     {
-        public uint DoesLoop; // Will be 0x40000000 if true
-        public uint Frequency; // Right shift 10 for value
-        public uint LoopPoint;
-        public uint Length;
+        public int DoesLoop; // Will be 0x40000000 if true
+        public int Frequency; // Right shift 10 for value
+        public int LoopPoint;
+        public int Length;
         // 0x10 - byte[Length] of PCM8 data (Signed for M4A, Unsigned for MLSS)
     }
 
@@ -87,16 +87,16 @@ namespace GBAMusicStudio.Core
         [FieldOffset(4)]
         public NoisePattern NoisePattern; // Noise
         [FieldOffset(4)]
-        public uint Address; // Direct, Wave, KeySplit, Drum
+        public int Address; // Direct, Wave, KeySplit, Drum
 
         [FieldOffset(8)]
         public ADSR ADSR; // Direct, Square1, Square2, Wave, Noise
         [FieldOffset(8)]
-        public uint Keys; // KeySplit
+        public int Keys; // KeySplit
 
         [BinaryIgnore]
         [FieldOffset(12)]
-        uint offset;
+        int offset;
         [BinaryIgnore]
         [FieldOffset(16)]
         string name = string.Empty; // Cache the name
@@ -123,8 +123,8 @@ namespace GBAMusicStudio.Core
             return (Type & 0x7) >= (int)M4AVoiceType.Invalid5;
         }
 
-        public uint GetOffset() => offset;
-        public void SetOffset(uint newOffset) => offset = newOffset;
+        public int GetOffset() => offset;
+        public void SetOffset(int newOffset) => offset = newOffset;
 
         public string GetName()
         {
@@ -240,11 +240,11 @@ namespace GBAMusicStudio.Core
     }
     class M4AWrappedSample : IWrappedSample, IOffset
     {
-        uint offset;
+        int offset;
         readonly M4AMLSSSample sample;
         readonly WrappedSample gSample;
 
-        public M4AWrappedSample(uint offset)
+        public M4AWrappedSample(int offset)
         {
             this.offset = offset;
 
@@ -266,8 +266,8 @@ namespace GBAMusicStudio.Core
             Console.WriteLine("Error loading instrument at 0x{0:X}.", offset);
         }
 
-        public uint GetOffset() => offset;
-        public void SetOffset(uint newOffset)
+        public int GetOffset() => offset;
+        public void SetOffset(int newOffset)
         {
             offset = newOffset;
             // Yes there will be errors if you set the offset of a bad sample, but only for now
@@ -293,22 +293,22 @@ namespace GBAMusicStudio.Core
 
     class MLSSWrappedVoice : WrappedVoice
     {
-        public MLSSWrappedVoice(uint offset, uint numEntries) : base(new MLSSVoice(offset, numEntries)) { }
+        public MLSSWrappedVoice(int offset, int numEntries) : base(new MLSSVoice(offset, numEntries)) { }
 
         public override IEnumerable<IVoiceTableInfo> GetSubVoices() => ((MLSSVoice)Voice).Entries;
     }
     class MLSSVoice : IVoice
     {
-        uint offset;
+        int offset;
         public readonly MLSSVoiceEntry[] Entries;
 
-        public MLSSVoice(uint offset, uint numEntries)
+        public MLSSVoice(int offset, int numEntries)
         {
             SetOffset(offset);
             Entries = new MLSSVoiceEntry[numEntries];
-            for (uint i = 0; i < numEntries; i++)
+            for (int i = 0; i < numEntries; i++)
             {
-                uint off = offset + (i * 8);
+                int off = offset + (i * 8);
                 Entries[i] = ROM.Instance.Reader.ReadObject<MLSSVoiceEntry>(off);
                 Entries[i].SetOffset(off);
             }
@@ -320,8 +320,8 @@ namespace GBAMusicStudio.Core
             return Entries.Single(e => e.MinKey <= note && note <= e.MaxKey);
         }
 
-        public uint GetOffset() => offset;
-        public void SetOffset(uint newOffset) => offset = newOffset;
+        public int GetOffset() => offset;
+        public void SetOffset(int newOffset) => offset = newOffset;
 
         public sbyte GetRootNote() => 60;
         public string GetName() => "MLSS";
@@ -329,19 +329,19 @@ namespace GBAMusicStudio.Core
     }
     class MLSSWrappedSample : IWrappedSample
     {
-        uint offset;
+        int offset;
         readonly M4AMLSSSample sample;
         readonly WrappedSample gSample;
 
-        public MLSSWrappedSample(uint offset)
+        public MLSSWrappedSample(int offset)
         {
             sample = ROM.Instance.Reader.ReadObject<M4AMLSSSample>(offset);
             gSample = new WrappedSample(sample.DoesLoop == 0x40000000, sample.LoopPoint, sample.Length, sample.Frequency >> 10, true);
             SetOffset(offset);
         }
 
-        public uint GetOffset() => offset;
-        public void SetOffset(uint newOffset)
+        public int GetOffset() => offset;
+        public void SetOffset(int newOffset)
         {
             offset = newOffset;
             gSample.SetOffset(offset + 0x10);
@@ -358,10 +358,10 @@ namespace GBAMusicStudio.Core
             Unknown1, Unknown2, Unknown3, Unknown4; // Could be ADSR
 
         [BinaryIgnore]
-        uint offset;
+        int offset;
 
-        public uint GetOffset() => offset;
-        public void SetOffset(uint newOffset) => offset = newOffset;
+        public int GetOffset() => offset;
+        public void SetOffset(int newOffset) => offset = newOffset;
 
         public string GetName() => "Voice Entry";
         public override string ToString() => GetName();

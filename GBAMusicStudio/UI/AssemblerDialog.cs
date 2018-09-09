@@ -105,7 +105,7 @@ namespace GBAMusicStudio.UI
                         continue;
                     s.Add(r.Cells[0].Value.ToString(), (int)Utils.ParseValue(r.Cells[1].Value.ToString()));
                 }
-                assembler = new Assembler(d.FileName, (uint)(ROM.Pak + offsetValueBox.Value), s);
+                assembler = new Assembler(d.FileName, (int)(ROM.Pak + offsetValueBox.Value), s);
                 headerLabelTextBox.Text = Assembler.FixLabel(Path.GetFileNameWithoutExtension(d.FileName));
                 sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
                 previewButton.Enabled = true;

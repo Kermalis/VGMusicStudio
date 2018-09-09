@@ -7,8 +7,8 @@ namespace GBAMusicStudio.Core
     {
         protected readonly float[] reverbBuffer;
         protected readonly float intensity;
-        protected readonly uint bufferLen;
-        protected uint bufferPos1, bufferPos2;
+        protected readonly int bufferLen;
+        protected int bufferPos1, bufferPos2;
 
         public Reverb(byte intensity, byte numBuffers)
         {
@@ -33,7 +33,7 @@ namespace GBAMusicStudio.Core
         {
             int rSamplesPerBuffer = reverbBuffer.Length / 2;
 
-            var count = (int)Math.Min(
+            var count = Math.Min(
                 Math.Min(rSamplesPerBuffer - bufferPos1, rSamplesPerBuffer - bufferPos2),
                 samplesPerBuffer
                 );
@@ -67,7 +67,7 @@ namespace GBAMusicStudio.Core
         {
             int rSamplesPerBuffer = reverbBuffer.Length / 2;
             int cSamplesPerBuffer = cBuffer.Length / 2;
-            int count = (int)Math.Min(
+            int count = Math.Min(
                 Math.Min(rSamplesPerBuffer - bufferPos1, cSamplesPerBuffer - bufferPos2),
                 samplesPerBuffer
                 );
@@ -107,14 +107,14 @@ namespace GBAMusicStudio.Core
         internal ReverbCamelot2(byte intensity, byte numBuffers, float primary, float secondary) : base(intensity, numBuffers)
         {
             cBuffer = new float[bufferLen * 2];
-            bufferPos2 = (uint)(reverbBuffer.Length / 2 - (cBuffer.Length / 2 / 3));
+            bufferPos2 = reverbBuffer.Length / 2 - (cBuffer.Length / 2 / 3);
             this.primary = primary; this.secondary = secondary;
         }
 
         protected override int Process(float[] buffer, int samplesPerBuffer, ref int index)
         {
             int rSamplesPerBuffer = reverbBuffer.Length / 2;
-            int count = (int)Math.Min(
+            int count = Math.Min(
                     Math.Min(rSamplesPerBuffer - bufferPos1, rSamplesPerBuffer - bufferPos2),
                     Math.Min(samplesPerBuffer, cBuffer.Length / 2 - cPos)
                     );

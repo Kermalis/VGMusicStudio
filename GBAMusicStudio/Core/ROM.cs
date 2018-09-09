@@ -6,8 +6,8 @@ namespace GBAMusicStudio.Core
 {
     class ROM
     {
-        public const uint Pak = 0x8000000;
-        public const uint Capacity = 0x2000000;
+        public const int Pak = 0x8000000;
+        public const int Capacity = 0x2000000;
 
         public static ROM Instance { get; private set; }
 
@@ -33,7 +33,7 @@ namespace GBAMusicStudio.Core
             SongTables = new SongTable[Game.SongTables.Length];
             for (int i = 0; i < Game.SongTables.Length; i++)
             {
-                uint o = Game.SongTables[i], s = Game.SongTableSizes[i];
+                int o = Game.SongTables[i], s = Game.SongTableSizes[i];
                 switch (Game.Engine.Type)
                 {
                     case EngineType.M4A: SongTables[i] = new M4ASongTable(o, s); break;
@@ -42,13 +42,13 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public static bool IsValidRomOffset(uint offset)
+        public static bool IsValidRomOffset(int offset)
         {
             return
-                (offset < Math.Min(Capacity, Instance.ROMFile.Length)) // 0 <= offset < min(0x2000000, ROMFile.Length)
+                (offset >= 0 && offset < Math.Min(Capacity, Instance.ROMFile.Length)) // 0 <= offset < min(0x2000000, ROMFile.Length)
                 || (offset >= Pak && offset < Math.Min(Capacity + Pak, Instance.ROMFile.Length + Pak)); // 0x8000000 <= offset < min(0xA000000, ROMFile.Length + 0x8000000)
         }
-        public static uint SanitizeOffset(uint offset)
+        public static int SanitizeOffset(int offset)
         {
             if (!IsValidRomOffset(offset))
                 throw new ArgumentOutOfRangeException("\"offset\" was invalid.");

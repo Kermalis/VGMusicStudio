@@ -14,7 +14,7 @@ namespace GBAMusicStudio.Core
         protected ADSR adsr;
 
         protected byte processStep;
-        protected uint pos;
+        protected int pos;
         protected float interPos;
         protected float frequency;
 
@@ -239,9 +239,9 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        void ProcessNormal(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
+        void ProcessNormal(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
-            float GetSample(uint position)
+            float GetSample(int position)
             {
                 position += sample.GetOffset();
                 return (sample.bUnsigned ? ROM.Instance.Reader.ReadByte(position) - 0x80 : ROM.Instance.Reader.ReadSByte(position)) / (float)0x80;
@@ -265,7 +265,7 @@ namespace GBAMusicStudio.Core
                 pargs.RightVol += pargs.RightVolStep;
 
                 interPos += pargs.InterStep;
-                uint posDelta = (uint)interPos;
+                int posDelta = (int)interPos;
                 interPos -= posDelta;
                 pos += posDelta;
                 if (pos >= sample.Length)
@@ -282,18 +282,18 @@ namespace GBAMusicStudio.Core
                 }
             } while (--samplesPerBuffer > 0);
         }
-        void ProcessSquare(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
+        void ProcessSquare(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
-            float CalcThresh(uint val)
+            float CalcThresh(int val)
             {
-                uint iThreshold = (uint)(gsPSG.MinimumCycle << 24) + val;
-                iThreshold = ((int)iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
-                iThreshold = iThreshold * gsPSG.CycleAmplitude + (uint)(gsPSG.InitialCycle << 24);
+                int iThreshold = (gsPSG.MinimumCycle << 24) + val;
+                iThreshold = (iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
+                iThreshold = iThreshold * gsPSG.CycleAmplitude + (gsPSG.InitialCycle << 24);
                 return iThreshold / (float)0x100000000;
             }
 
-            uint curPos = pos += (uint)(processStep == 0 ? gsPSG.CycleSpeed << 24 : 0);
-            uint nextPos = curPos + (uint)(gsPSG.CycleSpeed << 24);
+            int curPos = pos += (processStep == 0 ? gsPSG.CycleSpeed << 24 : 0);
+            int nextPos = curPos + (gsPSG.CycleSpeed << 24);
 
             float curThresh = CalcThresh(curPos), nextThresh = CalcThresh(nextPos);
 
@@ -318,21 +318,21 @@ namespace GBAMusicStudio.Core
                 if (interPos >= 1) interPos--;
             } while (--samplesPerBuffer > 0);
         }
-        void ProcessSaw(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
+        void ProcessSaw(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
-            const uint fix = 0x70;
+            const int fix = 0x70;
 
             int bufPos = 0;
             do
             {
                 interPos += pargs.InterStep;
                 if (interPos >= 1) interPos--;
-                uint var1 = (uint)(interPos * 0x100) - fix;
-                uint var2 = (uint)(interPos * 0x10000) << 17;
-                uint var3 = var1 - (var2 >> 27);
-                pos = var3 + (uint)((int)pos >> 1);
+                int var1 = (int)(interPos * 0x100) - fix;
+                int var2 = (int)(interPos * 0x10000) << 17;
+                int var3 = var1 - (var2 >> 27);
+                pos = var3 + (pos >> 1);
 
-                float baseSamp = (float)(int)pos / 0x100;
+                float baseSamp = (float)pos / 0x100;
 
                 buffer[bufPos++] += baseSamp * pargs.LeftVol;
                 buffer[bufPos++] += baseSamp * pargs.RightVol;
@@ -341,22 +341,15 @@ namespace GBAMusicStudio.Core
                 pargs.RightVol += pargs.RightVolStep;
             } while (--samplesPerBuffer > 0);
         }
-        void ProcessTri(float[] buffer, uint samplesPerBuffer, ProcArgs pargs)
+        void ProcessTri(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
             int bufPos = 0;
             do
             {
                 interPos += pargs.InterStep;
-                if (interPos >= 1) interPos--;
-                float baseSamp;
-                if (interPos < 0.5f)
-                {
-                    baseSamp = interPos * 4 - 1;
-                }
-                else
-                {
-                    baseSamp = 3 - (interPos * 4);
-                }
+                if (interPos >= 1)
+                    interPos--;
+                float baseSamp = interPos < 0.5f ? interPos * 4 - 1 : 3 - (interPos * 4);
 
                 buffer[bufPos++] += baseSamp * pargs.LeftVol;
                 buffer[bufPos++] += baseSamp * pargs.RightVol;
@@ -438,7 +431,7 @@ namespace GBAMusicStudio.Core
         public override ChannelVolume GetVolume()
         {
             float baseVel = prevVelocity;
-            uint step;
+            int step;
             switch (State)
             {
                 case ADSRState.Rising:
@@ -681,7 +674,7 @@ namespace GBAMusicStudio.Core
             float rightVol = vol.FromRightVol;
             float interStep = frequency * SoundMixer.Instance.SampleRateReciprocal;
 
-            int bufPos = 0; uint samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
+            int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
             do
             {
                 float samp = pat[pos];
@@ -693,7 +686,7 @@ namespace GBAMusicStudio.Core
                 rightVol += rightVolStep;
 
                 interPos += interStep;
-                uint posDelta = (uint)interPos;
+                int posDelta = (int)interPos;
                 interPos -= posDelta;
                 pos = (pos + posDelta) & 0x7;
             } while (--samplesPerBuffer > 0);
@@ -704,7 +697,7 @@ namespace GBAMusicStudio.Core
         float[] sample;
 
         public WaveChannel() : base() { }
-        public void Init(byte ownerIdx, Note note, ADSR env, uint address)
+        public void Init(byte ownerIdx, Note note, ADSR env, int address)
         {
             Init(ownerIdx, note, env);
 
@@ -730,7 +723,7 @@ namespace GBAMusicStudio.Core
             float rightVol = vol.FromRightVol;
             float interStep = frequency * SoundMixer.Instance.SampleRateReciprocal;
 
-            int bufPos = 0; uint samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
+            int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
             do
             {
                 float samp = sample[pos];
@@ -742,7 +735,7 @@ namespace GBAMusicStudio.Core
                 rightVol += rightVolStep;
 
                 interPos += interStep;
-                uint posDelta = (uint)interPos;
+                int posDelta = (int)interPos;
                 interPos -= posDelta;
                 pos = (pos + posDelta) & 0x1F;
             } while (--samplesPerBuffer > 0);
@@ -777,10 +770,10 @@ namespace GBAMusicStudio.Core
             float rightVol = vol.FromRightVol;
             float interStep = frequency * SoundMixer.Instance.SampleRateReciprocal;
 
-            int bufPos = 0; uint samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
+            int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
             do
             {
-                float samp = pat[(int)pos & (pat.Length - 1)] ? 0.5f : -0.5f;
+                float samp = pat[pos & (pat.Length - 1)] ? 0.5f : -0.5f;
 
                 buffer[bufPos++] += samp * leftVol;
                 buffer[bufPos++] += samp * rightVol;
@@ -789,9 +782,9 @@ namespace GBAMusicStudio.Core
                 rightVol += rightVolStep;
 
                 interPos += interStep;
-                uint posDelta = (uint)interPos;
+                int posDelta = (int)interPos;
                 interPos -= posDelta;
-                pos = (uint)((pos + posDelta) & (pat.Length - 1));
+                pos = (pos + posDelta) & (pat.Length - 1);
             } while (--samplesPerBuffer > 0);
         }
     }

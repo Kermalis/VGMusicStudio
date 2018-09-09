@@ -3,8 +3,8 @@
     // Used everywhere
     interface IOffset
     {
-        uint GetOffset();
-        void SetOffset(uint newOffset);
+        int GetOffset();
+        void SetOffset(int newOffset);
     }
 
     // Used in the VoiceTableEditor. GetName() is also used for the UI

@@ -20,9 +20,9 @@ namespace GBAMusicStudio.Core
         readonly TimeBarrier time;
         Thread thread;
 
-        public ushort Tempo;
+        public short Tempo;
         int tempoStack;
-        uint position;
+        int position;
         Track[] tracks;
         int longestTrack;
 
@@ -65,7 +65,7 @@ namespace GBAMusicStudio.Core
             VoiceTable.ClearCache();
             SoundMixer.Instance.Init(song.GetReverb());
         }
-        public void SetPosition(uint p)
+        public void SetPosition(int p)
         {
             bool pause = State == PlayerState.Playing;
             if (pause) Pause();
@@ -74,7 +74,7 @@ namespace GBAMusicStudio.Core
             {
                 var track = tracks[i];
                 track.Init();
-                uint elapsed = 0;
+                int elapsed = 0;
                 while (!track.Stopped)
                 {
                     ExecuteNext(i);

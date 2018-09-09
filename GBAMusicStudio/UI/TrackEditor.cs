@@ -182,7 +182,7 @@ namespace GBAMusicStudio.UI
         void AddEvent(object sender, EventArgs e)
         {
             var cmd = (ICommand)Activator.CreateInstance(Engine.GetCommands()[commandsBox.SelectedIndex].GetType());
-            var ev = new SongEvent(0xFFFFFFFF, cmd);
+            var ev = new SongEvent(int.MaxValue, cmd);
             int index = listView.SelectedIndex + 1;
             SongPlayer.Instance.Song.InsertEvent(ev, currentTrack, index);
             SongPlayer.Instance.RefreshSong();

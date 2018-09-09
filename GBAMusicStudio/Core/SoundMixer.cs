@@ -18,7 +18,7 @@ namespace GBAMusicStudio.Core
         }
 
         public readonly float SampleRateReciprocal, SamplesReciprocal;
-        public readonly uint SamplesPerBuffer;
+        public readonly int SamplesPerBuffer;
 
         public float MasterVolume = 1; public float DSMasterVolume { get; private set; }
         int numTracks; // 1 will be for program use
@@ -39,7 +39,7 @@ namespace GBAMusicStudio.Core
 
         private SoundMixer()
         {
-            SamplesPerBuffer = (uint)(Config.Instance.SampleRate / (Engine.AGB_FPS * Config.Instance.InterFrames));
+            SamplesPerBuffer = Config.Instance.SampleRate / (Engine.AGB_FPS * Config.Instance.InterFrames);
             SampleRateReciprocal = 1f / Config.Instance.SampleRate; SamplesReciprocal = 1f / SamplesPerBuffer;
 
             dsChannels = new DirectSoundChannel[Config.Instance.DirectCount];
@@ -51,10 +51,10 @@ namespace GBAMusicStudio.Core
 
             mutes = new bool[17]; // 0-15 for tracks, 16 for the program
 
-            int amt = (int)(SamplesPerBuffer * 2);
+            int amt = SamplesPerBuffer * 2;
             audio = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
 
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat((int)Config.Instance.SampleRate, 2))
+            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(Config.Instance.SampleRate, 2))
             {
                 DiscardOnBufferOverflow = true
             };
@@ -70,7 +70,7 @@ namespace GBAMusicStudio.Core
             trackBuffers = new float[numTracks][];
             reverbs = new Reverb[numTracks];
 
-            int amt = (int)(SamplesPerBuffer * 2);
+            int amt = SamplesPerBuffer * 2;
             for (int i = 0; i < numTracks; i++)
                 trackBuffers[i] = new float[amt];
 
@@ -149,7 +149,7 @@ namespace GBAMusicStudio.Core
                     nChn = wave;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
                         return;
-                    wave.Init(owner, note, env, (uint)arg);
+                    wave.Init(owner, note, env, (int)arg);
                     break;
                 case M4AVoiceType.Noise:
                     nChn = noise;
@@ -217,7 +217,7 @@ namespace GBAMusicStudio.Core
 
             // Reverb only applies to DirectSound
             for (int i = 0; i < numTracks; i++)
-                reverbs[i]?.Process(trackBuffers[i], (int)SamplesPerBuffer);
+                reverbs[i]?.Process(trackBuffers[i], SamplesPerBuffer);
 
             foreach (var c in gbChannels)
                 if (c.OwnerIdx != 0xFF)

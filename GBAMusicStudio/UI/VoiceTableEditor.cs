@@ -230,7 +230,7 @@ namespace GBAMusicStudio.UI
             {
                 if (addressValue.Visible)
                 {
-                    m4aEntry.Address = (uint)addressValue.Value + ROM.Pak;
+                    m4aEntry.Address = (int)addressValue.Value + ROM.Pak;
                 }
                 if (voiceAValue.Visible)
                 {

@@ -400,7 +400,7 @@ namespace GBAMusicStudio.UI
             }
         }
 
-        private uint _smallChange = 1;
+        private int _smallChange = 1;
         /// <summary>
         /// Gets or sets trackbar's small change. It affects how to behave when directional keys are pressed
         /// </summary>
@@ -408,13 +408,13 @@ namespace GBAMusicStudio.UI
         [Description("Set trackbar's small change")]
         [Category("ColorSlider")]
         [DefaultValue(1)]
-        public uint SmallChange
+        public int SmallChange
         {
             get { return _smallChange; }
             set { _smallChange = value; }
         }
 
-        private uint _largeChange = 5;
+        private int _largeChange = 5;
         /// <summary>
         /// Gets or sets trackbar's large change. It affects how to behave when PageUp/PageDown keys are pressed
         /// </summary>
@@ -422,7 +422,7 @@ namespace GBAMusicStudio.UI
         [Description("Set trackbar's large change")]
         [Category("ColorSlider")]
         [DefaultValue(5)]
-        public uint LargeChange
+        public int LargeChange
         {
             get { return _largeChange; }
             set { _largeChange = value; }

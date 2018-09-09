@@ -11,7 +11,7 @@ namespace GBAMusicStudio.Core
         public static float[] SquareD75 = new float[] { 0.25f, 0.25f, 0.25f, 0.25f, 0.25f, 0.25f, -0.75f, -0.75f };
 
         // Waves
-        public static float[] PCM4ToFloat(uint address)
+        public static float[] PCM4ToFloat(int address)
         {
             var sample = new float[0x20];
 

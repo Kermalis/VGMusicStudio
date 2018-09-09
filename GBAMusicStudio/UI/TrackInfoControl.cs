@@ -10,8 +10,8 @@ namespace GBAMusicStudio.UI
 {
     class TrackInfo
     {
-        public ushort Tempo; public uint Position;
-        public uint[] Positions = new uint[16];
+        public short Tempo; public int Position;
+        public int[] Positions = new int[16];
         public byte[] Voices = new byte[16], Volumes = new byte[16],
             Delays = new byte[16], Mods = new byte[16];
         public sbyte[] Pans = new sbyte[16];

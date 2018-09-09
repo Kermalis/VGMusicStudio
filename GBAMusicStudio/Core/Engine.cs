@@ -42,7 +42,7 @@ namespace GBAMusicStudio.Core
             return allowedCommands[ROM.Instance.Game.Engine.Type];
         }
 
-        public static ushort GetDefaultTempo()
+        public static short GetDefaultTempo()
         {
             switch (ROM.Instance.Game.Engine.Type)
             {

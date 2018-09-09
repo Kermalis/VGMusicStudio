@@ -205,10 +205,10 @@ namespace GBAMusicStudio.UI
 
         void SetPosition(object sender, EventArgs e)
         {
-            SongPlayer.Instance.SetPosition((uint)positionBar.Value);
+            SongPlayer.Instance.SetPosition(positionBar.Value);
             drag = false;
         }
-        void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(uint)tableNumerical.Value] - 1;
+        void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(int)tableNumerical.Value] - 1;
         void TableIndexChanged(object sender, EventArgs e)
         {
             SetSongMaximum();
@@ -246,7 +246,7 @@ namespace GBAMusicStudio.UI
                 // Pause which stops the thread inside from processing during loading, which would increase the stream latency
                 if (!paused)
                     SongPlayer.Instance.Pause();
-                var loadedSong = ROM.Instance.SongTables[(uint)tableNumerical.Value][(uint)songNumerical.Value];
+                var loadedSong = ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value];
                 SongPlayer.Instance.SetSong(loadedSong);
                 // Then "un pause" it, setting it to the stopped state
                 if (!paused)
@@ -397,7 +397,7 @@ namespace GBAMusicStudio.UI
             UpdateSongPosition(0);
             UpdateTaskbarState();
             positionBar.Maximum = SongPlayer.Instance.Song.NumTicks;
-            positionBar.LargeChange = (uint)(positionBar.Maximum / 10);
+            positionBar.LargeChange = positionBar.Maximum / 10;
             positionBar.SmallChange = positionBar.LargeChange / 4;
             trackEditor?.UpdateTracks();
             voiceTableEditor?.UpdateTable();
@@ -498,7 +498,7 @@ namespace GBAMusicStudio.UI
                 }
                 if (!drag)
                 {
-                    UpdateSongPosition((int)info.Position);
+                    UpdateSongPosition(info.Position);
                 }
                 trackInfo.Invalidate();
             }

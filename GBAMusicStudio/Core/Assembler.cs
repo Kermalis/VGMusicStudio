@@ -21,7 +21,7 @@ namespace GBAMusicStudio.Core
             mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
             cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
 
-        public uint BaseOffset { get; private set; }
+        public int BaseOffset { get; private set; }
         List<string> loaded = new List<string>();
         Dictionary<string, int> defines;
 
@@ -37,7 +37,7 @@ namespace GBAMusicStudio.Core
         public byte[] Binary => bytes.ToArray();
         public int BinaryLength => bytes.Count;
 
-        public Assembler(string fileName, uint baseOffset = ROM.Pak, Dictionary<string, int> initialDefines = null)
+        public Assembler(string fileName, int baseOffset = ROM.Pak, Dictionary<string, int> initialDefines = null)
         {
             FileName = fileName;
             defines = initialDefines ?? new Dictionary<string, int>();
@@ -45,14 +45,14 @@ namespace GBAMusicStudio.Core
             SetBaseOffset(baseOffset);
         }
 
-        public void SetBaseOffset(uint baseOffset)
+        public void SetBaseOffset(int baseOffset)
         {
             foreach (var p in lPointers)
             {
                 // Our example label is SEQ_STUFF at the binary offset 0x1000, curBaseOffset is 0x500, baseOffset is 0x1800
                 // There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DFC
-                uint oldPointer = BitConverter.ToUInt32(Binary, p.BinaryOffset); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
-                var labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
+                int oldPointer = BitConverter.ToInt32(Binary, p.BinaryOffset); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
+                int labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
                 var newPointerBytes = BitConverter.GetBytes(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
                 for (int i = 0; i < 4; i++)
                     bytes[p.BinaryOffset + i] = newPointerBytes[i]; // Copy the new pointer to binary offset 0x1DF4

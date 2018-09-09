@@ -10,10 +10,10 @@ namespace GBAMusicStudio.Core
 {
     class ASong
     {
-        public readonly ushort Index;
+        public readonly short Index;
         public readonly string Name;
 
-        public ASong(ushort index, string name)
+        public ASong(short index, string name)
         {
             Index = index; Name = name;
         }
@@ -39,10 +39,10 @@ namespace GBAMusicStudio.Core
         public readonly byte Reverb;
         public readonly byte Volume; // 0-F
         public readonly byte TrackLimit;
-        public readonly uint Frequency;
+        public readonly int Frequency;
         public readonly bool HasGoldenSunSynths;
 
-        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, byte trackLimit, uint frequency, bool hasGoldenSunSynths)
+        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, byte trackLimit, int frequency, bool hasGoldenSunSynths)
         {
             Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; TrackLimit = trackLimit; Frequency = frequency; HasGoldenSunSynths = hasGoldenSunSynths;
         }
@@ -53,15 +53,15 @@ namespace GBAMusicStudio.Core
     {
         public readonly string Code, Name, Creator;
         public readonly AnEngine Engine;
-        public readonly uint[] SongTables, SongTableSizes;
+        public readonly int[] SongTables, SongTableSizes;
         public readonly List<APlaylist> Playlists;
         public readonly string Remap;
 
         // MLSS only
-        public readonly uint VoiceTable, SampleTable, SampleTableSize;
+        public readonly int VoiceTable, SampleTable, SampleTableSize;
 
-        public AGame(string code, string name, string creator, AnEngine engine, uint[] tables, uint[] tableSizes, List<APlaylist> playlists, string remap,
-            uint voiceTable, uint sampleTable, uint sampleTableSize)
+        public AGame(string code, string name, string creator, AnEngine engine, int[] tables, int[] tableSizes, List<APlaylist> playlists, string remap,
+            int voiceTable, int sampleTable, int sampleTableSize)
         {
             Code = code; Name = name; Creator = creator; Engine = engine;
             SongTables = tables; SongTableSizes = tableSizes;
@@ -95,11 +95,11 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        readonly uint DefaultTableSize = 1000;
+        readonly int DefaultTableSize = 1000;
 
         public byte DirectCount { get; private set; }
         public int InterFrames { get; private set; }
-        public uint SampleRate { get; private set; }
+        public int SampleRate { get; private set; }
         public bool All256Voices { get; private set; }
         public bool MIDIKeyboardFixedVelocity { get; private set; }
         public bool TaskbarProgress { get; private set; }
@@ -122,7 +122,7 @@ namespace GBAMusicStudio.Core
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseValue(mapping.Children["DirectCount"].ToString());
             InterFrames = (int)Utils.ParseValue(mapping.Children["InterFrames"].ToString());
-            SampleRate = (uint)Utils.ParseValue(mapping.Children["SampleRate"].ToString());
+            SampleRate = (int)Utils.ParseValue(mapping.Children["SampleRate"].ToString());
             All256Voices = bool.Parse(mapping.Children["All256Voices"].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children["MIDIKeyboardFixedVelocity"].ToString());
             TaskbarProgress = bool.Parse(mapping.Children["TaskbarProgress"].ToString());
@@ -135,7 +135,7 @@ namespace GBAMusicStudio.Core
             Colors = new HSLColor[256];
             foreach (var c in cmap)
             {
-                uint i = (uint)Utils.ParseValue(c.Key.ToString());
+                int i = (int)Utils.ParseValue(c.Key.ToString());
                 var children = ((YamlMappingNode)c.Value).Children;
                 double h = 0, s = 0, l = 0;
                 foreach (var v in children)
@@ -177,11 +177,11 @@ namespace GBAMusicStudio.Core
                 string code, name, creator;
                 EngineType engineType = EngineType.M4A; ReverbType reverbType = ReverbType.Normal;
                 byte engineReverb = 0, engineVolume = 0xF, engineTrackLimit = 0x10;
-                uint engineFrequency = 13379; bool engineHasGoldenSunSynths = false;
-                uint[] tables, tableSizes;
+                int engineFrequency = 13379; bool engineHasGoldenSunSynths = false;
+                int[] tables, tableSizes;
                 List<APlaylist> playlists;
                 string remap = string.Empty;
-                uint voiceTable = 0, sampleTable = 0, sampleTableSize = 0;
+                int voiceTable = 0, sampleTable = 0, sampleTableSize = 0;
 
                 code = g.Key.ToString();
                 var game = (YamlMappingNode)g.Value;
@@ -191,17 +191,17 @@ namespace GBAMusicStudio.Core
 
                 // SongTables
                 var songTables = game.Children["SongTable"].ToString().Split(' ');
-                tables = new uint[songTables.Length]; tableSizes = new uint[songTables.Length];
+                tables = new int[songTables.Length]; tableSizes = new int[songTables.Length];
                 for (int i = 0; i < songTables.Length; i++)
-                    tables[i] = (uint)Utils.ParseValue(songTables[i]);
+                    tables[i] = (int)Utils.ParseValue(songTables[i]);
 
                 // MLSS info
                 if (game.Children.TryGetValue("VoiceTable", out YamlNode vTable))
-                    voiceTable = (uint)Utils.ParseValue(vTable.ToString());
+                    voiceTable = (int)Utils.ParseValue(vTable.ToString());
                 if (game.Children.TryGetValue("SampleTable", out YamlNode sTable))
-                    sampleTable = (uint)Utils.ParseValue(sTable.ToString());
+                    sampleTable = (int)Utils.ParseValue(sTable.ToString());
                 if (game.Children.TryGetValue("SampleTableSize", out YamlNode saTableSize))
-                    sampleTableSize = (uint)Utils.ParseValue(saTableSize.ToString());
+                    sampleTableSize = (int)Utils.ParseValue(saTableSize.ToString());
 
                 // If we are to copy another game's config
                 if (game.Children.TryGetValue("Copy", out YamlNode copy))
@@ -215,7 +215,7 @@ namespace GBAMusicStudio.Core
                 {
                     tableSizes[i] = DefaultTableSize;
                     if (i < sizes.Length)
-                        tableSizes[i] = (uint)Utils.ParseValue(sizes[i]);
+                        tableSizes[i] = (int)Utils.ParseValue(sizes[i]);
                 }
 
                 // Creator name (required)
@@ -240,7 +240,7 @@ namespace GBAMusicStudio.Core
                     if (eng.Children.TryGetValue("TrackLimit", out YamlNode trackLim))
                         engineTrackLimit = (byte)Utils.ParseValue(trackLim.ToString());
                     if (eng.Children.TryGetValue("Frequency", out YamlNode frequency))
-                        engineFrequency = (uint)Utils.ParseValue(frequency.ToString());
+                        engineFrequency = (int)Utils.ParseValue(frequency.ToString());
                     if (eng.Children.TryGetValue("GoldenSunSynths", out YamlNode synths))
                         engineHasGoldenSunSynths = bool.Parse(synths.ToString());
 
@@ -256,7 +256,7 @@ namespace GBAMusicStudio.Core
                     {
                         var songs = new List<ASong>();
                         foreach (var song in (YamlMappingNode)kvp.Value)
-                            songs.Add(new ASong(ushort.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
+                            songs.Add(new ASong(short.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
                         playlists.Add(new APlaylist(kvp.Key.ToString(), songs.ToArray()));
                     }
                 }
