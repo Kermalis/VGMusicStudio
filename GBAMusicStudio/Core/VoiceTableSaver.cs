@@ -72,14 +72,17 @@ namespace GBAMusicStudio.Core
             List<uint> addedTables = new List<uint>();
             void AddTable(M4AVoiceTable table, bool saveAfter7F, bool fromDrum)
             {
-                if (addedTables.Contains(table.GetOffset())) return;
-                addedTables.Add(table.GetOffset());
+                uint tableOffset = table.GetOffset();
+                if (addedTables.Contains(tableOffset))
+                    return;
+                addedTables.Add(tableOffset);
 
                 int amt = saveAfter7F ? 0xFF : 0x7F;
 
                 for (ushort i = 0; i <= amt; i++)
                 {
                     var voice = table[i];
+                    //Console.WriteLine("{0} {1} {2}", i, fromDrum, voice);
 
                     if (!fromDrum)
                     {
@@ -100,36 +103,67 @@ namespace GBAMusicStudio.Core
                                 new SF2GeneratorAmount { UAmount = (ushort)(i - (direct.Voice.GetRootNote() - 60)) });
                         }
                         else
+                        {
                             AddDirect(direct);
+                        }
                     }
-                    else if (!fromDrum && voice is M4AWrappedKeySplit keySplit)
+                    else if (voice is M4AWrappedKeySplit keySplit)
                     {
+                        if (fromDrum)
+                        {
+                            Console.WriteLine("Skipping nested key split within a drum at table 0x{0:X7} index {1}.", tableOffset, i);
+                            continue;
+                        }
                         foreach (var key in keySplit.Keys)
                         {
-                            if (key.Item1 > amt || key.Item2 > amt) continue;
+                            if (key.Item1 > amt || key.Item2 >= 0x80) continue;
                             var subvoice = keySplit.Table[key.Item1];
 
+                            var m4 = (M4AVoiceEntry)voice.Voice;
                             if (subvoice is M4AWrappedDirect subdirect)
                             {
                                 AddDirect(subdirect, key.Item2, key.Item3);
+                            }
+                            else if (m4.Type == (int)M4AVoiceFlags.KeySplit)
+                            {
+                                Console.WriteLine("Skipping nested key split within a key split at table 0x{0:X7} index {1}.", tableOffset, i);
+                            }
+                            else if (m4.Type == (int)M4AVoiceFlags.Drum)
+                            {
+                                Console.WriteLine("Skipping nested drum within a key split at table 0x{0:X7} index {1}.", tableOffset, i);
+                            }
+                            else if (m4.IsGBInstrument())
+                            {
+                                AddPSG(m4);
+                            }
+                            else // Invalid
+                            {
+                                Console.WriteLine("Skipping invalid instrument within a key split at table 0x{0:X7} index {1}.", tableOffset, i);
                             }
                         }
                     }
                     else if (voice is M4AWrappedDrum drum)
                     {
+                        if (fromDrum)
+                        {
+                            Console.WriteLine("Skipping nested drum within a drum at table 0x{0:X7} index {1}.", tableOffset, i);
+                            continue;
+                        }
                         AddTable(drum.Table, saveAfter7F, true);
                     }
                     else
                     {
                         var m4 = (M4AVoiceEntry)voice.Voice;
+                        if (m4.IsInvalid())
+                        {
+                            Console.WriteLine("Skipping invalid instrument at table 0x{0:X7} index {1}.", tableOffset, i);
+                            continue;
+                        }
                         if (fromDrum)
                         {
-                            if ((m4.Type & 0x7) == (int)M4AVoiceType.Noise)
-                            {
-                                AddPSG(m4, (byte)i, (byte)i);
-                                sf2.AddInstrumentGenerator(SF2Generator.OverridingRootKey,
-                                    new SF2GeneratorAmount { UAmount = (ushort)(i - (m4.RootNote - 60)) });
-                            }
+                            AddPSG(m4, (byte)i, (byte)i);
+                            sf2.AddInstrumentGenerator(SF2Generator.OverridingRootKey,
+                                new SF2GeneratorAmount { UAmount = (ushort)(i - (m4.GetRootNote() - 60)) });
                         }
                         else
                         {
@@ -139,7 +173,7 @@ namespace GBAMusicStudio.Core
                 }
             }
 
-            void AddPSG(M4AVoiceEntry entry, byte low = 0, byte high = 127)
+            void AddPSG(M4AVoiceEntry entry, byte low = 0, byte high = 0x7F)
             {
                 uint sample;
 
@@ -155,8 +189,8 @@ namespace GBAMusicStudio.Core
 
                 sf2.AddInstrumentBag();
 
-                high = Math.Min((byte)127, high);
-                if (!(low == 0 && high == 127))
+                high = Math.Min((byte)0x7F, high);
+                if (!(low == 0 && high == 0x7F))
                     sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
 
                 // ADSR
@@ -189,12 +223,12 @@ namespace GBAMusicStudio.Core
                     sf2.AddInstrumentGenerator(SF2Generator.ReleaseVolEnv, new SF2GeneratorAmount { UAmount = (ushort)rel });
                 }
 
-                if ((entry.Type & 0x7) == (int)M4AVoiceType.Noise && entry.Panpot != 0)
+                if (type == M4AVoiceType.Noise && entry.Panpot != 0)
                     sf2.AddInstrumentGenerator(SF2Generator.Pan, new SF2GeneratorAmount { UAmount = (ushort)((entry.Panpot - 0xC0) * (500d / 0x80)) });
                 sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { Amount = 1 });
                 sf2.AddInstrumentGenerator(SF2Generator.SampleID, new SF2GeneratorAmount { UAmount = (ushort)sample });
             }
-            void AddDirect(M4AWrappedDirect direct, byte low = 0, byte high = 127)
+            void AddDirect(M4AWrappedDirect direct, byte low = 0, byte high = 0x7F)
             {
                 var entry = (M4AVoiceEntry)direct.Voice;
 
@@ -206,8 +240,8 @@ namespace GBAMusicStudio.Core
 
                 sf2.AddInstrumentBag();
 
-                high = Math.Min((byte)127, high);
-                if (!(low == 0 && high == 127))
+                high = Math.Min((byte)0x7F, high);
+                if (!(low == 0 && high == 0x7F))
                     sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
 
                 // Fixed frequency
@@ -340,7 +374,7 @@ namespace GBAMusicStudio.Core
                     foreach (var entry in entries)
                     {
                         sf2.AddInstrumentBag();
-                        if (!(entry.MinKey == 0 && entry.MaxKey == 127))
+                        if (!(entry.MinKey == 0 && entry.MaxKey == 0x7F))
                             sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = entry.MinKey, HighByte = entry.MaxKey });
                         if (entry.IsFixedFrequency == 0x80)
                             sf2.AddInstrumentGenerator(SF2Generator.ScaleTuning, new SF2GeneratorAmount { Amount = 0 });

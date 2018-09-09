@@ -108,6 +108,15 @@ namespace GBAMusicStudio.Core
             if (gSample == null) return false;
             return (gSample.bLoop && gSample.LoopPoint == 0 && gSample.Length == 0);
         }
+        public bool IsGBInstrument()
+        {
+            M4AVoiceType vType = (M4AVoiceType)(Type & 0x7);
+            return vType >= M4AVoiceType.Square1 && vType <= M4AVoiceType.Noise;
+        }
+        public bool IsInvalid()
+        {
+            return (Type & 0x7) >= (int)M4AVoiceType.Invalid5;
+        }
 
         public uint GetOffset() => offset;
         public void SetOffset(uint newOffset) => offset = newOffset;
@@ -123,13 +132,10 @@ namespace GBAMusicStudio.Core
                 else
                 {
                     var type = (M4AVoiceType)(Type & 0x7);
-                    switch (type)
-                    {
-                        case M4AVoiceType.Direct:
-                            name = IsGoldenSunPSG() ? $"GS {ROM.Instance.Reader.ReadObject<GoldenSunPSG>(Address - ROM.Pak + 0x10).Type}" : "Direct Sound";
-                            break;
-                        default: name = type.Humanize(); break;
-                    }
+                    if (type == M4AVoiceType.Direct)
+                        name = IsGoldenSunPSG() ? $"GS {ROM.Instance.Reader.ReadObject<GoldenSunPSG>(Address - ROM.Pak + 0x10).Type}" : "Direct Sound";
+                    else
+                        name = type.Humanize();
                 }
             }
             return name;
@@ -138,29 +144,27 @@ namespace GBAMusicStudio.Core
         public override string ToString()
         {
             string str = GetName();
-            if (Type != (int)M4AVoiceFlags.KeySplit && Type != (int)M4AVoiceFlags.Drum)
+            var flags = (M4AVoiceFlags)Type;
+            if (flags != M4AVoiceFlags.KeySplit && flags != M4AVoiceFlags.Drum)
             {
-                switch ((M4AVoiceType)(Type & 0x7))
+                if((Type & 0x7) == (int)M4AVoiceType.Direct)
                 {
-                    case M4AVoiceType.Direct:
-                        var flags = (M4AVoiceFlags)Type;
-                        bool bFixed = (flags & M4AVoiceFlags.Fixed) == M4AVoiceFlags.Fixed,
-                            bReversed = (flags & M4AVoiceFlags.Reversed) == M4AVoiceFlags.Reversed,
-                            bCompressed = (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
-                        if (bFixed || bReversed || bCompressed)
-                        {
-                            str += " [ ";
-                            if (bFixed) str += "Fixed ";
-                            if (bReversed) str += "Reversed ";
-                            if (bCompressed) str += "Compressed ";
-                            str += ']';
-                        }
-                        break;
-                    default:
-                        flags = (M4AVoiceFlags)Type;
-                        bool bOFN = (flags & M4AVoiceFlags.OffWithNoise) == M4AVoiceFlags.OffWithNoise;
-                        if (bOFN) str += " [ OWN ]";
-                        break;
+                    bool bFixed = (flags & M4AVoiceFlags.Fixed) == M4AVoiceFlags.Fixed,
+                        bReversed = (flags & M4AVoiceFlags.Reversed) == M4AVoiceFlags.Reversed,
+                        bCompressed = (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
+                    if (bFixed || bReversed || bCompressed)
+                    {
+                        str += " [ ";
+                        if (bFixed) str += "Fixed ";
+                        if (bReversed) str += "Reversed ";
+                        if (bCompressed) str += "Compressed ";
+                        str += ']';
+                    }
+                }
+                else
+                {
+                    bool bOFN = (flags & M4AVoiceFlags.OffWithNoise) == M4AVoiceFlags.OffWithNoise;
+                    if (bOFN) str += " [ OWN ]";
                 }
             }
             return str;

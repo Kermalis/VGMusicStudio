@@ -175,9 +175,9 @@ namespace GBAMusicStudio.UI
 
                 #region ADSR (everything except Key Split, Drum and invalids)
 
-                if (flags != M4AVoiceFlags.KeySplit && flags != M4AVoiceFlags.Drum && type < M4AVoiceType.Invalid5)
+                if (flags != M4AVoiceFlags.KeySplit && flags != M4AVoiceFlags.Drum && !m4aEntry.IsInvalid())
                 {
-                    bool bDirect = type == M4AVoiceType.Direct;
+                    bool bDirect = !m4aEntry.IsGBInstrument();
                     voiceAValue.Hexadecimal = voiceDValue.Hexadecimal = voiceSValue.Hexadecimal = voiceRValue.Hexadecimal = false;
                     voiceAValue.Maximum = voiceDValue.Maximum = voiceRValue.Maximum = bDirect ? byte.MaxValue : 0x7;
                     voiceSValue.Maximum = bDirect ? byte.MaxValue : 0xF;
