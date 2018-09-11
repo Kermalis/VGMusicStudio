@@ -104,12 +104,15 @@ namespace GBAMusicStudio.Core
                 throw new InvalidDataException("This song has no tracks.");
 
             CalculateTicks();
-            var midi = new Sequence(Engine.GetTicksPerBar() / 4) { Format = 0 };
-            var track = new Sanford.Multimedia.Midi.Track();
-            midi.Add(track);
+            var midi = new Sequence(Engine.GetTicksPerBar() / 4) { Format = 1 };
+            var metaTrack = new Sanford.Multimedia.Midi.Track();
+            midi.Add(metaTrack);
 
             for (int i = 0; i < NumTracks; i++)
             {
+                var track = new Sanford.Multimedia.Midi.Track();
+                midi.Add(track);
+
                 int endOfPattern = 0, startOfPatternTicks = 0, endOfPatternTicks = 0, shift = 0;
                 var playing = new List<M4ANoteCommand>();
 
@@ -191,7 +194,7 @@ namespace GBAMusicStudio.Core
                     {
                         var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
                         change.Build();
-                        track.Insert(ticks, change.Result);
+                        metaTrack.Insert(ticks, change.Result);
                     }
                     else if (e.Command is CallCommand patt)
                     {
@@ -211,13 +214,14 @@ namespace GBAMusicStudio.Core
                     }
                     else if (i == 0 && e.Command is GoToCommand goTo)
                     {
-                        track.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
                         int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
-                        track.Insert(Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                        metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                        metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
                     }
                     else if (e.Command is FinishCommand fine)
                     {
-                        track.Insert(ticks, new MetaMessage(MetaType.EndOfTrack, new byte[0]));
+                        // TODO: Fix ticks before end of track event
+                        // Library automatically is updating track.EndOfTrackOffset for us
                         break;
                     }
                 }
