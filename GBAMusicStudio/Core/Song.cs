@@ -98,19 +98,18 @@ namespace GBAMusicStudio.Core
 
         public void SaveAsMIDI(string fileName)
         {
-            if (NumTracks == 0)
-                throw new InvalidDataException("This song has no tracks.");
             if (ROM.Instance.Game.Engine.Type != EngineType.M4A)
                 throw new PlatformNotSupportedException("Exporting to MIDI from this game engine is not supported at this time.");
+            if (NumTracks == 0)
+                throw new InvalidDataException("This song has no tracks.");
 
             CalculateTicks();
-            var midi = new Sequence(Engine.GetTicksPerBar() / 4) { Format = 2 };
+            var midi = new Sequence(Engine.GetTicksPerBar() / 4) { Format = 0 };
+            var track = new Sanford.Multimedia.Midi.Track();
+            midi.Add(track);
 
             for (int i = 0; i < NumTracks; i++)
             {
-                var track = new Sanford.Multimedia.Midi.Track();
-                midi.Add(track);
-
                 int endOfPattern = 0, startOfPatternTicks = 0, endOfPatternTicks = 0, shift = 0;
                 var playing = new List<M4ANoteCommand>();
 
