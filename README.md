@@ -33,7 +33,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 
 ## Mario & Luigi: Superstar Saga Engine
-* Properly implement "free notes"
 * Voice table - Find out the last 4 bytes in voice entry struct
 * Voice table - Figure out squares (190s activate when in bottom 2/1 tracks... but only for some songs)
 * Find channel and track limits

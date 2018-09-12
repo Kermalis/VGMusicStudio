@@ -167,13 +167,14 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public void PlayNote(Track track, sbyte note, byte velocity, int duration)
+        public Channel PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
             int shift = note + track.KeyShift;
             note = (sbyte)(shift.Clamp(0, 0x7F));
             track.PrevNote = note;
 
-            if (!track.Ready) return;
+            if (!track.Ready)
+                return null;
 
             var owner = track.Index;
             WrappedVoice voice = null;
@@ -185,7 +186,7 @@ namespace GBAMusicStudio.Core
             catch
             {
                 System.Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
-                return;
+                return null;
             }
 
             var aNote = new Note { Duration = duration, Velocity = velocity, OriginalKey = note, Key = fromDrum ? voice.Voice.GetRootNote() : note };
@@ -196,26 +197,22 @@ namespace GBAMusicStudio.Core
                 {
                     case M4AVoiceType.Direct:
                         bool bFixed = (m4a.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
-                        SoundMixer.Instance.NewDSNote(owner, m4a.ADSR, aNote,
+                        return SoundMixer.Instance.NewDSNote(owner, m4a.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
                             bFixed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
-                        break;
                     case M4AVoiceType.Square1:
                     case M4AVoiceType.Square2:
-                        SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
+                        return SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 type, m4a.SquarePattern);
-                        break;
                     case M4AVoiceType.Wave:
-                        SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
+                        return SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 type, m4a.Address - ROM.Pak);
-                        break;
                     case M4AVoiceType.Noise:
-                        SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
+                        return SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 type, m4a.NoisePattern);
-                        break;
                 }
             }
             else if (voice.Voice is MLSSVoice mlssvoice)
@@ -230,15 +227,15 @@ namespace GBAMusicStudio.Core
                 catch
                 {
                     System.Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
+                    return null;
                 }
-                finally
-                {
-                    if (sample != null)
-                        SoundMixer.Instance.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
-                                track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                bFixed, sample, tracks);
-                }
+                if (sample != null)
+                    return SoundMixer.Instance.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
+                            track.GetVolume(), track.GetPan(), track.GetPitch(),
+                            bFixed, sample, tracks);
             }
+
+            return null;
         }
 
         // Returns a bool which indicates whether the track needs to update volume, pan, or pitch
@@ -247,88 +244,136 @@ namespace GBAMusicStudio.Core
             bool update = false;
 
             var track = tracks[i];
+            var mlTrack = track as MLSSTrack;
             var e = Song.Commands[i][track.CommandIndex];
 
+            // MLSS
+            // If a note is extending and the moment passed
+            if (mlTrack != null && mlTrack.FreeChannel != null
+                && mlTrack.FreeNoteEnd < e.AbsoluteTicks)
+            {
+                mlTrack.FreeChannel = null;
+            }
+
+            // Do these and calculate nextE if necessary
             if (e.Command is GoToCommand goTo)
             {
                 int gotoCmd = Song.Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
                 if (longestTrack == i)
                     position = Song.Commands[i][gotoCmd].AbsoluteTicks - 1;
                 track.CommandIndex = gotoCmd - 1; // -1 for incoming ++
+                track.NextCommandIndex = track.CommandIndex + 1;
             }
             else if (e.Command is CallCommand patt)
             {
                 int callCmd = Song.Commands[i].FindIndex(c => c.GetOffset() == patt.Offset);
                 track.EndOfPattern = track.CommandIndex;
                 track.CommandIndex = callCmd - 1; // -1 for incoming ++
+                track.NextCommandIndex = track.CommandIndex + 1;
             }
             else if (e.Command is ReturnCommand)
             {
                 if (track.EndOfPattern != 0)
                 {
                     track.CommandIndex = track.EndOfPattern;
+                    track.NextCommandIndex = track.CommandIndex + 1;
                     track.EndOfPattern = 0;
                 }
             }
-            else if (e.Command is FinishCommand)
+            else
             {
-                track.Stopped = true;
-                SoundMixer.Instance.ReleaseChannels(i, -1);
-            }
-            else if (e.Command is PriorityCommand prio) { track.Priority = prio.Priority; } // TODO: Update channel priorities
-            else if (e.Command is TempoCommand tempo) { Tempo = tempo.Tempo; }
-            else if (e.Command is KeyShiftCommand keysh) { track.KeyShift = keysh.Shift; }
-            else if (e.Command is RestCommand w) { track.Delay = w.Rest; }
-            else if (e.Command is VoiceCommand voice) { track.Voice = voice.Voice; track.Ready = true; }
-            else if (e.Command is VolumeCommand vol) { track.Volume = vol.Volume; update = true; }
-            else if (e.Command is PanpotCommand pan) { track.Pan = pan.Panpot; update = true; }
-            else if (e.Command is BendCommand bend) { track.Bend = bend.Bend; update = true; }
-            else if (e.Command is BendRangeCommand bendr) { track.BendRange = bendr.Range; update = true; }
-            else if (e.Command is LFOSpeedCommand lfos) { track.LFOSpeed = lfos.Speed; track.LFOPhase = track.LFODelayCount = 0; update = true; }
-            else if (e.Command is LFODelayCommand lfodl) { track.LFODelay = lfodl.Delay; track.LFOPhase = track.LFODelayCount = 0; update = true; }
-            else if (e.Command is ModDepthCommand mod) { track.MODDepth = mod.Depth; update = true; }
-            else if (e.Command is ModTypeCommand modt) { track.MODType = (MODType)modt.Type; update = true; }
-            else if (e.Command is TuneCommand tune) { track.Tune = tune.Tune; update = true; }
-            else if (e.Command is LibraryCommand xcmd)
-            {
-                if (xcmd.Command == 8)
-                    track.EchoVolume = xcmd.Argument;
-                else if (xcmd.Command == 9)
-                    track.EchoLength = xcmd.Argument;
-            }
-            else if (e.Command is EndOfTieCommand eot)
-            {
-                if (eot.Note == -1)
-                    SoundMixer.Instance.ReleaseChannels(i, track.PrevNote);
-                else
+                if (e.Command is FinishCommand)
                 {
-                    sbyte note = (sbyte)(eot.Note + track.KeyShift).Clamp(0, 127);
-                    SoundMixer.Instance.ReleaseChannels(i, note);
+                    track.Stopped = true;
+                    SoundMixer.Instance.ReleaseChannels(i, -1);
                 }
-            }
-            else if (e.Command is NoteCommand n)
-            {
-                if (e.Command is MLSSNoteCommand mln)
+                else if (e.Command is PriorityCommand prio) { track.Priority = prio.Priority; } // TODO: Update channel priorities
+                else if (e.Command is TempoCommand tempo) { Tempo = tempo.Tempo; }
+                else if (e.Command is KeyShiftCommand keysh) { track.KeyShift = keysh.Shift; }
+                else if (e.Command is RestCommand w) { track.Delay = w.Rest; }
+                else if (e.Command is VoiceCommand voice) { track.Voice = voice.Voice; track.Ready = true; }
+                else if (e.Command is VolumeCommand vol) { track.Volume = vol.Volume; update = true; }
+                else if (e.Command is PanpotCommand pan) { track.Pan = pan.Panpot; update = true; }
+                else if (e.Command is BendCommand bend) { track.Bend = bend.Bend; update = true; }
+                else if (e.Command is BendRangeCommand bendr) { track.BendRange = bendr.Range; update = true; }
+                else if (e.Command is LFOSpeedCommand lfos) { track.LFOSpeed = lfos.Speed; track.LFOPhase = track.LFODelayCount = 0; update = true; }
+                else if (e.Command is LFODelayCommand lfodl) { track.LFODelay = lfodl.Delay; track.LFOPhase = track.LFODelayCount = 0; update = true; }
+                else if (e.Command is ModDepthCommand mod) { track.MODDepth = mod.Depth; update = true; }
+                else if (e.Command is ModTypeCommand modt) { track.MODType = (MODType)modt.Type; update = true; }
+                else if (e.Command is TuneCommand tune) { track.Tune = tune.Tune; update = true; }
+                else if (e.Command is LibraryCommand xcmd)
                 {
-                    var mlTrack = (MLSSTrack)track;
-                    mlTrack.Delay += (byte)mln.Duration;
-                    PlayNote(track, mln.Note, 0x7F, mln.Duration);
+                    if (xcmd.Command == 8)
+                        track.EchoVolume = xcmd.Argument;
+                    else if (xcmd.Command == 9)
+                        track.EchoLength = xcmd.Argument;
                 }
-                else if (e.Command is M4ANoteCommand m4an)
+                else if (e.Command is EndOfTieCommand eot)
                 {
-                    PlayNote(track, m4an.Note, m4an.Velocity, m4an.Duration);
+                    if (eot.Note == -1)
+                        SoundMixer.Instance.ReleaseChannels(i, track.PrevNote);
+                    else
+                    {
+                        sbyte note = (sbyte)(eot.Note + track.KeyShift).Clamp(0, 127);
+                        SoundMixer.Instance.ReleaseChannels(i, note);
+                    }
                 }
-            }
-            else if (e.Command is FreeNoteCommand ext)
-            {
-                var mlTrack = (MLSSTrack)track;
-                mlTrack.Delay += ext.Extension;
-                sbyte note = (sbyte)(ext.Note - 0x80);
-                PlayNote(mlTrack, note, 0x7F, ext.Extension);
+                else if (e.Command is NoteCommand n)
+                {
+                    if (e.Command is MLSSNoteCommand mln)
+                    {
+                        mlTrack.Delay += (byte)mln.Duration;
+                        if (mlTrack.FreeChannel == null || mlTrack.FreeChannel.Note.OriginalKey != mln.Note)
+                        {
+                            PlayNote(track, mln.Note, 0x7F, mln.Duration);
+                            mlTrack.FreeChannel = null;
+                        }
+                    }
+                    else if (e.Command is M4ANoteCommand m4an)
+                    {
+                        PlayNote(track, m4an.Note, m4an.Velocity, m4an.Duration);
+                    }
+                }
+                else if (e.Command is FreeNoteCommand free)
+                {
+                    mlTrack.Delay += free.Duration;
+                    sbyte note = (sbyte)(free.Note - 0x80);
+                    if (mlTrack.FreeChannel == null || mlTrack.FreeChannel.Note.OriginalKey != note)
+                    {
+                        mlTrack.FreeChannel = PlayNote(track, note, 0x7F, free.Duration);
+                        mlTrack.FreeNoteEnd = e.AbsoluteTicks + free.Duration;
+                    }
+                }
             }
 
+            // MLSS
+            // If a note is extending and the next tick it ends but has the chance of extending
+            var nextE = Song.Commands[i][track.NextCommandIndex];
+            if (mlTrack != null && mlTrack.FreeChannel != null
+                && mlTrack.FreeNoteEnd == nextE.AbsoluteTicks)
+            {
+                // Find note/extension next tick
+                var nextNoteEvent = Song.Commands[i].Where(c => c.AbsoluteTicks == nextE.AbsoluteTicks)
+                    .SingleOrDefault(c => c.Command is MLSSNoteCommand || c.Command is FreeNoteCommand);
+                if (nextNoteEvent != null)
+                {
+                    dynamic nextNote = nextNoteEvent.Command;
+                    int note = nextNote is FreeNoteCommand ? nextNote.Note - 0x80 : nextNote.Note;
+                    if (mlTrack.FreeChannel.Note.OriginalKey == note)
+                    {
+                        int extension = nextNote.Duration;
+                        mlTrack.FreeChannel.Note.Duration += extension;
+                        mlTrack.FreeNoteEnd += extension;
+                    }
+                }
+            }
+
+            // Increment command index
             if (!track.Stopped)
+            {
                 track.CommandIndex++;
+                track.NextCommandIndex++;
+            }
 
             return update;
         }

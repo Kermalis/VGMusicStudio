@@ -95,7 +95,7 @@ namespace GBAMusicStudio.Core
 
         public void SetMute(int owner, bool m) => mutes[owner] = m;
 
-        public void NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
+        public DirectSoundChannel NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
         {
             DirectSoundChannel nChn = null;
             var byOwner = dsChannels.OrderByDescending(c => c.OwnerIdx);
@@ -127,8 +127,9 @@ namespace GBAMusicStudio.Core
             }
             if (nChn != null) // Could still be null from the above if
                 nChn.Init(owner, note, env, sample, vol, pan, pitch, bFixed);
+            return nChn;
         }
-        public void NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
+        public GBChannel NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
         {
             GBChannel nChn;
             switch (type)
@@ -136,31 +137,32 @@ namespace GBAMusicStudio.Core
                 case M4AVoiceType.Square1:
                     nChn = sq1;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
-                        return;
+                        return null;
                     sq1.Init(owner, note, env, (SquarePattern)arg);
                     break;
                 case M4AVoiceType.Square2:
                     nChn = sq2;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
-                        return;
+                        return null;
                     sq2.Init(owner, note, env, (SquarePattern)arg);
                     break;
                 case M4AVoiceType.Wave:
                     nChn = wave;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
-                        return;
+                        return null;
                     wave.Init(owner, note, env, (int)arg);
                     break;
                 case M4AVoiceType.Noise:
                     nChn = noise;
                     if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
-                        return;
+                        return null;
                     noise.Init(owner, note, env, (NoisePattern)arg);
                     break;
-                default: return;
+                default: return null;
             }
             nChn.SetVolume(vol, pan);
             nChn.SetPitch(pitch);
+            return nChn;
         }
 
         // Returns number of active notes

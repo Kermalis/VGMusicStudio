@@ -328,9 +328,9 @@ namespace GBAMusicStudio.Core
         byte note = 0x80;
         byte ext;
         public byte Note { get => note; set => note = value.Clamp((byte)0x80, (byte)0xFF); }
-        public byte Extension { get => ext; set => ext = value.Clamp((byte)0, (byte)0xC0); }
+        public byte Duration { get => ext; set => ext = value.Clamp((byte)0, (byte)0xC0); }
 
-        public string Arguments => $"{SongEvent.NoteName((sbyte)(note - 0x80))}, {Extension}";
+        public string Arguments => $"{SongEvent.NoteName((sbyte)(note - 0x80))}, {Duration}";
     }
     class MLSSNoteCommand : NoteCommand
     {

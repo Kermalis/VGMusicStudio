@@ -12,7 +12,7 @@ namespace GBAMusicStudio.Core
             EchoVolume, EchoLength; // Unused for now
         public MODType MODType;
         public sbyte Bend, Tune, Pan, KeyShift, PrevNote;
-        public int CommandIndex, EndOfPattern;
+        public int CommandIndex, NextCommandIndex, EndOfPattern;
         public bool Ready, Stopped;
 
         int Tri(int index)
@@ -21,13 +21,10 @@ namespace GBAMusicStudio.Core
             return (index < 128) ? index * 12 - 768 : 2304 - index * 12;
         }
 
-        public int GetPitch()
+        public virtual int GetPitch()
         {
             int mod = MODType == MODType.Vibrate ? (Tri(LFOPhase) * MODDepth) >> 8 : 0;
-            byte range = BendRange;
-            if (ROM.Instance.Game.Engine.Type == EngineType.MLSS)
-                range /= 2;
-            return Bend * range + Tune + mod;
+            return Bend * BendRange + Tune + mod;
         }
         public byte GetVolume()
         {
@@ -47,6 +44,7 @@ namespace GBAMusicStudio.Core
             Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = EchoVolume = EchoLength = BendRange = 0;
             Bend = Tune = Pan = KeyShift = 0;
             CommandIndex = EndOfPattern = 0;
+            NextCommandIndex = 1;
             MODType = MODType.Vibrate;
             Ready = true;
             Stopped = false;
@@ -95,6 +93,21 @@ namespace GBAMusicStudio.Core
 
     class MLSSTrack : Track
     {
+        public Channel FreeChannel = null;
+        public int FreeNoteEnd;
+
         public MLSSTrack(byte i) : base(i) { }
+
+        public override int GetPitch()
+        {
+            return Bend * (BendRange / 2);
+        }
+
+        public override void Init()
+        {
+            base.Init();
+            
+            FreeChannel = null;
+        }
     }
 }

@@ -63,7 +63,7 @@ namespace GBAMusicStudio.Core
                     else if (this is MLSSSong)
                     {
                         if (e.Command is FreeNoteCommand ext)
-                            length += ext.Extension;
+                            length += ext.Duration;
                         else if (e.Command is MLSSNoteCommand mlnote)
                             length += mlnote.Duration;
                     }
@@ -595,7 +595,7 @@ namespace GBAMusicStudio.Core
                     cmd = ROM.Instance.Reader.ReadByte();
                     switch (cmd)
                     {
-                        case 0: command = new FreeNoteCommand { Note = ROM.Instance.Reader.ReadByte(), Extension = ROM.Instance.Reader.ReadByte() }; break;
+                        case 0: command = new FreeNoteCommand { Note = ROM.Instance.Reader.ReadByte(), Duration = ROM.Instance.Reader.ReadByte() }; break;
                         case 0xF0: command = new VoiceCommand { Voice = ROM.Instance.Reader.ReadByte() }; break;
                         case 0xF1: command = new VolumeCommand { Volume = ROM.Instance.Reader.ReadByte() }; break;
                         case 0xF2: command = new PanpotCommand { Panpot = (sbyte)(ROM.Instance.Reader.ReadByte() - 0x80) }; break;
@@ -702,14 +702,14 @@ namespace GBAMusicStudio.Core
                         if (freeNote != null && freeNote.Note == free.Note)
                         {
                             // Move the note off command
-                            track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + free.Extension * 2);
+                            track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + free.Duration * 2);
                         }
                         // Extended note is playing but this note is different OR there is no extended note playing
                         // Either way we play a new note and forget that one
                         else
                         {
                             track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, free.Note - 0x80, 0x7F));
-                            track.Insert(e.AbsoluteTicks * 2 + free.Extension * 2, new ChannelMessage(ChannelCommand.NoteOff, i, free.Note - 0x80));
+                            track.Insert(e.AbsoluteTicks * 2 + free.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, free.Note - 0x80));
                             freeNote = free;
                             freeNoteOff = track.GetMidiEvent(track.Count - 2); // -1 would be the end of track event
                         }
