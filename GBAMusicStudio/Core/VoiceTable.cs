@@ -83,15 +83,15 @@ namespace GBAMusicStudio.Core
             switch (v.Type)
             {
                 case (int)M4AVoiceFlags.KeySplit:
+                    fromDrum = false; // In case there is a multi within a drum
                     var keySplit = (M4AWrappedKeySplit)sv;
                     byte inst = ROM.Instance.Reader.ReadByte(v.Keys - ROM.Pak + note);
                     sv = keySplit.Table[inst];
-                    fromDrum = false; // In case there is a multi within a drum
                     goto Read;
                 case (int)M4AVoiceFlags.Drum:
+                    fromDrum = true;
                     var drum = (M4AWrappedDrum)sv;
                     sv = drum.Table[note];
-                    fromDrum = true;
                     goto Read;
                 default:
                     return sv;

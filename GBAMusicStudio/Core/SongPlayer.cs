@@ -170,14 +170,24 @@ namespace GBAMusicStudio.Core
         public void PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
             int shift = note + track.KeyShift;
-            note = (sbyte)(shift.Clamp(0, 127));
+            note = (sbyte)(shift.Clamp(0, 0x7F));
             track.PrevNote = note;
 
             if (!track.Ready) return;
 
-            WrappedVoice voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out bool fromDrum);
-
             var owner = track.Index;
+            WrappedVoice voice = null;
+            bool fromDrum = false;
+            try
+            {
+                voice = Song.VoiceTable.GetVoiceFromNote(track.Voice, note, out fromDrum);
+            }
+            catch
+            {
+                System.Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
+                return;
+            }
+
             var aNote = new Note { Duration = duration, Velocity = velocity, OriginalKey = note, Key = fromDrum ? voice.Voice.GetRootNote() : note };
             if (voice.Voice is M4AVoiceEntry m4a)
             {
@@ -217,7 +227,10 @@ namespace GBAMusicStudio.Core
                     bFixed = entry.IsFixedFrequency == 0x80;
                     sample = ((MLSSVoiceTable)Song.VoiceTable).Samples[entry.Sample].GetSample();
                 }
-                catch { System.Console.WriteLine("Track {0} tried to play a bad note: {1}", owner + 1, note); }
+                catch
+                {
+                    System.Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
+                }
                 finally
                 {
                     if (sample != null)
