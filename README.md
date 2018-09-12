@@ -37,7 +37,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Voice table - Find out the last 4 bytes in voice entry struct
 * Voice table - Figure out squares (190s activate when in bottom 2/1 tracks... but only for some songs)
 * Find channel and track limits
-* MIDI saving
 
 ## General
 * Show tooltips in the VoiceTableEditor which provide a huge chunk of information
