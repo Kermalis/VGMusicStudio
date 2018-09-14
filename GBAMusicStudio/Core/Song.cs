@@ -471,8 +471,7 @@ namespace GBAMusicStudio.Core
                     }
                     else if (e.Command is VoiceCommand voice)
                     {
-                        // TODO: Fork and remove restriction
-                        track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice & 0x7F));
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
                     }
                     else if (e.Command is VolumeCommand vol)
                     {
@@ -540,8 +539,6 @@ namespace GBAMusicStudio.Core
                     }
                     else if (e.Command is FinishCommand fine)
                     {
-                        // TODO: Fix ticks before end of track event
-                        // Library automatically is updating track.EndOfTrackOffset for us
                         break;
                     }
                 }
@@ -663,8 +660,7 @@ namespace GBAMusicStudio.Core
                     }
                     else if (e.Command is VoiceCommand voice)
                     {
-                        // TODO: Fork and remove restriction
-                        track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice & 0x7F));
+                        track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
                     }
                     else if (e.Command is PanpotCommand pan)
                     {
@@ -728,8 +724,6 @@ namespace GBAMusicStudio.Core
                     }
                     else if (e.Command is FinishCommand fine)
                     {
-                        // TODO: Fix ticks before end of track event
-                        // Library automatically is updating track.EndOfTrackOffset for us
                         break;
                     }
                 }
