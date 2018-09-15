@@ -468,6 +468,9 @@ namespace GBAMusicStudio.Core
                                 playing.Remove(nc);
                             }
                             break;
+                        case PriorityCommand prio:
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.VolumeFine, prio.Priority));
+                            break;
                         case VoiceCommand voice:
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
                             break;
