@@ -498,6 +498,10 @@ namespace GBAMusicStudio.Core
                         case TuneCommand tune:
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
                             break;
+                        case LibraryCommand xcmd:
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 30, xcmd.Command));
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 29, xcmd.Argument));
+                            break;
                         case TempoCommand tempo:
                             var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
                             change.Build();
