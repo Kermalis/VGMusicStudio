@@ -49,26 +49,22 @@ namespace GBAMusicStudio.Core
             var track = Commands[trackIndex];
 
             int length = 0, endOfPattern = 0;
-            bool ended = false;
             for (int i = 0; i < track.Count; i++)
             {
                 var e = track[i];
                 if (endOfPattern == 0)
                     e.AbsoluteTicks = length;
 
-                if (!ended)
+                if (e.Command is RestCommand rest)
+                    length += rest.Rest;
+                else if (this is MLSSSong)
                 {
-                    if (e.Command is RestCommand rest)
-                        length += rest.Rest;
-                    else if (this is MLSSSong)
-                    {
-                        if (e.Command is FreeNoteCommand ext)
-                            length += ext.Duration;
-                        else if (e.Command is MLSSNoteCommand mlnote)
-                            length += mlnote.Duration;
-                    }
+                    if (e.Command is FreeNoteCommand ext)
+                        length += ext.Duration;
+                    else if (e.Command is MLSSNoteCommand mlnote)
+                        length += mlnote.Duration;
                 }
-                if (e.Command is CallCommand call)
+                else if (e.Command is CallCommand call)
                 {
                     int jumpCmd = track.FindIndex(c => c.GetOffset() == call.Offset);
                     endOfPattern = i;
@@ -79,8 +75,6 @@ namespace GBAMusicStudio.Core
                     i = endOfPattern;
                     endOfPattern = 0;
                 }
-                else if (e.Command is GoToCommand)
-                    ended = true;
             }
 
             ticks = -1; // Trigger recount of NumTicks
@@ -533,6 +527,10 @@ namespace GBAMusicStudio.Core
                             }
                             break;
                         case FinishCommand _:
+                            // TODO: FINE vs PREV
+                            // If the track is not only the finish command, place the finish command at the correct tick
+                            if (track.Count > 1)
+                                track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
                             goto endOfTrack;
                     }
                 }
@@ -718,6 +716,9 @@ namespace GBAMusicStudio.Core
                             }
                             break;
                         case FinishCommand _:
+                            // If the track is not only the finish command, place the finish command at the correct tick
+                            if (track.Count > 1)
+                                track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
                             goto endOfTrack;
                     }
                 }
