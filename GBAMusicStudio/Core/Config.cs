@@ -27,10 +27,15 @@ namespace GBAMusicStudio.Core
 
         public APlaylist(string name, ASong[] songs)
         {
-            Name = name.Humanize(); Songs = songs;
+            Name = name; Songs = songs;
         }
+         
 
-        public override string ToString() => string.Format("{0} - ({1})", Name, "Song".ToQuantity(Songs.Where(s => s.Name != "Playlist is empty.").Count()));
+        public override string ToString()
+        {
+            return string.Format("{0} - ({1})", Name, Songs.Where(s => s.Name != "La Playlist è vuota").Count() + " Canzoni");
+            
+        }
     }
     class AnEngine
     {
@@ -254,6 +259,7 @@ namespace GBAMusicStudio.Core
                     var music = (YamlMappingNode)ymusic;
                     foreach (var kvp in music)
                     {
+                        
                         var songs = new List<ASong>();
                         foreach (var song in (YamlMappingNode)kvp.Value)
                             songs.Add(new ASong(short.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
@@ -268,7 +274,7 @@ namespace GBAMusicStudio.Core
                 // If playlist is empty, add an empty entry
                 for (int i = 0; i < playlists.Count; i++)
                     if (playlists[i].Songs.Length == 0)
-                        playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "Playlist is empty.") });
+                        playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "La Playlist è vuota.") });
 
                 Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists, remap,
                     voiceTable, sampleTable, sampleTableSize));

@@ -25,14 +25,15 @@ namespace GBAMusicStudio.UI
             var openButton = new ThemedButton
             {
                 Location = new Point(150, 0),
-                Text = "Open File"
+                Text = "Apri File"
             };
             openButton.Click += OpenASM;
             previewButton = new ThemedButton
             {
                 Enabled = false,
                 Location = new Point(150, 50),
-                Text = "Preview Song"
+                Size = new Size(120, 23),
+                Text = "Anteprima Canzone"
             };
             previewButton.Click += PreviewASM;
             sizeLabel = new ThemedLabel
@@ -52,8 +53,8 @@ namespace GBAMusicStudio.UI
                 Location = new Point(0, 150),
                 MultiSelect = false
             };
-            addedDefsGrid.Columns[0].Name = "Definition";
-            addedDefsGrid.Columns[1].Name = "Value";
+            addedDefsGrid.Columns[0].Name = "Definizione";
+            addedDefsGrid.Columns[1].Name = "Valore";
             addedDefsGrid.Columns[1].DefaultCellStyle.NullValue = "0";
             addedDefsGrid.Rows.Add(new string[] { "voicegroup000", $"0x{SongPlayer.Instance.Song.VoiceTable.GetOffset() + ROM.Pak:X7}" });
             addedDefsGrid.CellValueChanged += AddedDefsGrid_CellValueChanged;
@@ -74,7 +75,7 @@ namespace GBAMusicStudio.UI
             {
                 if (char.IsDigit(cell.Value.ToString()[0]))
                 {
-                    FlexibleMessageBox.Show("Definitions cannot start with a digit.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    FlexibleMessageBox.Show("Le definizioni non possono iniziare con un valore.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     cell.Value = cell.Value.ToString().Substring(1);
                 }
             }
@@ -82,7 +83,7 @@ namespace GBAMusicStudio.UI
             {
                 if (!Utils.TryParseValue(cell.Value.ToString(), out long val))
                 {
-                    FlexibleMessageBox.Show("Invalid value: " + cell.Value.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    FlexibleMessageBox.Show("Valore Invalido: " + cell.Value.ToString(), "Errore", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     cell.Value = null;
                 }
             }
@@ -93,7 +94,7 @@ namespace GBAMusicStudio.UI
         }
         void OpenASM(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open Assembly", Filter = "Assembly files|*.s" };
+            var d = new OpenFileDialog { Title = "Apri File Assembly", Filter = "File Assembly|*.s" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             try
@@ -107,12 +108,12 @@ namespace GBAMusicStudio.UI
                 }
                 assembler = new Assembler(d.FileName, (int)(ROM.Pak + offsetValueBox.Value), s);
                 headerLabelTextBox.Text = Assembler.FixLabel(Path.GetFileNameWithoutExtension(d.FileName));
-                sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
+                sizeLabel.Text = $"Peso in bytes: {assembler.BinaryLength}";
                 previewButton.Enabled = true;
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Assembling File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                FlexibleMessageBox.Show(ex.Message, "Errore nel Assemblaggio del file.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
