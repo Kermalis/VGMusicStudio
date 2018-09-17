@@ -39,7 +39,7 @@ namespace GBAMusicStudio.Core
         };
 
         static readonly string[] m4aNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
-        static readonly string[] notes = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+        static readonly string[] notes = { "Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si" };
         public static string NoteName(sbyte note, bool m4aStyle = false)
         {
             if (note < 0)

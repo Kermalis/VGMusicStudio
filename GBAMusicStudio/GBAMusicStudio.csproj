@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>GBAMusicStudio</RootNamespace>
     <AssemblyName>GBAMusicStudio</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -64,8 +64,7 @@
     </Reference>
     <Reference Include="PresentationFramework" />
     <Reference Include="Sanford.Multimedia.Midi, Version=6.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dependencies\Sanford.Multimedia.Midi.dll</HintPath>
+      <HintPath>..\packages\Sanford.Multimedia.Midi.6.6.0\lib\net20\Sanford.Multimedia.Midi.dll</HintPath>
     </Reference>
     <Reference Include="SoundFont2, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -151,6 +150,7 @@
     <EmbeddedResource Include="UI\ColorSlider.resx">
       <DependentUpon>ColorSlider.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="mid2agb.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

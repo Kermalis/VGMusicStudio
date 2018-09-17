@@ -74,7 +74,7 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public override string ToString() => $"Track {Index}; Voice {Voice}";
+        public override string ToString() => $"Traccia {Index}; Voice {Voice}";
     }
 
     class M4ATrack : Track

@@ -145,11 +145,11 @@ namespace GBAMusicStudio.UI
             float px = checkboxSize * 2 + co * 2; // Position x
             int FWidth = Width - (int)px; // Fake width
             float dex = px + FWidth / 5.75f; // Del x
-            float dx = dex - e.Graphics.MeasureString("Delay", Font).Width + e.Graphics.MeasureString("99", Font).Width; // "Delay" x
+            float dx = dex - e.Graphics.MeasureString("Ritardo", Font).Width + e.Graphics.MeasureString("105", Font).Width; // "Delay" x
             float nx = px + FWidth / 4.4f; // Notes x
             float td = FWidth / 100f; // Voice type difference
             float ix = px + FWidth - td;
-            float itx = ix - e.Graphics.MeasureString("Type", Font).Width; // "Type" x
+            float itx = ix - e.Graphics.MeasureString("Tipo", Font).Width; // "Type" x
             float vox = px + FWidth / 25f; // Voices x
             float r2d = FWidth / 15f; // Row 2's addition per element
 
@@ -168,13 +168,13 @@ namespace GBAMusicStudio.UI
 
             mutes[16].Location = new Point(co, (int)iy + co);
             pianos[16].Location = new Point(checkboxSize + co * 2, (int)iy + co);
-            e.Graphics.DrawString("Position", Font, Brushes.Lime, px, iy);
-            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, dx, iy);
-            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, nx, iy);
+            e.Graphics.DrawString("Posizione", Font, Brushes.Lime, px, iy);
+            e.Graphics.DrawString("Ritardo", Font, Brushes.Crimson, dx, iy);
+            e.Graphics.DrawString("Note", Font, Brushes.Turquoise, nx, iy);
             e.Graphics.DrawString("L", Font, Brushes.GreenYellow, bx - 5, iy);
             e.Graphics.DrawString(tempoStr, Font, Brushes.Cyan, tx, iy);
             e.Graphics.DrawString("R", Font, Brushes.GreenYellow, brx - 5, iy);
-            e.Graphics.DrawString("Type", Font, Brushes.DeepPink, itx, iy);
+            e.Graphics.DrawString("Tipo", Font, Brushes.DeepPink, itx, iy);
             e.Graphics.DrawLine(Pens.Gold, 0, ih, Width, ih);
 
             for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)

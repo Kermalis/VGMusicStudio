@@ -49,22 +49,26 @@ namespace GBAMusicStudio.Core
             var track = Commands[trackIndex];
 
             int length = 0, endOfPattern = 0;
+            bool ended = false;
             for (int i = 0; i < track.Count; i++)
             {
                 var e = track[i];
                 if (endOfPattern == 0)
                     e.AbsoluteTicks = length;
 
-                if (e.Command is RestCommand rest)
-                    length += rest.Rest;
-                else if (this is MLSSSong)
+                if (!ended)
                 {
-                    if (e.Command is FreeNoteCommand ext)
-                        length += ext.Duration;
-                    else if (e.Command is MLSSNoteCommand mlnote)
-                        length += mlnote.Duration;
+                    if (e.Command is RestCommand rest)
+                        length += rest.Rest;
+                    else if (this is MLSSSong)
+                    {
+                        if (e.Command is FreeNoteCommand ext)
+                            length += ext.Duration;
+                        else if (e.Command is MLSSNoteCommand mlnote)
+                            length += mlnote.Duration;
+                    }
                 }
-                else if (e.Command is CallCommand call)
+                if (e.Command is CallCommand call)
                 {
                     int jumpCmd = track.FindIndex(c => c.GetOffset() == call.Offset);
                     endOfPattern = i;
@@ -75,6 +79,8 @@ namespace GBAMusicStudio.Core
                     i = endOfPattern;
                     endOfPattern = 0;
                 }
+                else if (e.Command is GoToCommand)
+                    ended = true;
             }
 
             ticks = -1; // Trigger recount of NumTicks
@@ -92,14 +98,14 @@ namespace GBAMusicStudio.Core
 
         public virtual void SaveAsMIDI(string fileName)
         {
-            throw new PlatformNotSupportedException("Exporting to MIDI from this game engine is not supported at this time.");
+            throw new PlatformNotSupportedException("L'esportazione in MIDI da questo motore di gioco non è supportata in questo momento.");
         }
         public void SaveAsASM(string fileName)
         {
             if (NumTracks == 0)
-                throw new InvalidDataException("This song has no tracks.");
+                throw new InvalidDataException("Questa canzone non ha tracce.");
             if (ROM.Instance.Game.Engine.Type != EngineType.M4A)
-                throw new PlatformNotSupportedException("Exporting to ASM from this game engine is not supported at this time.");
+                throw new PlatformNotSupportedException("L'esportazione in ASM da questo motore di gioco non è supportata in questo momento.");
 
             using (var file = new StreamWriter(fileName))
             {
@@ -284,7 +290,7 @@ namespace GBAMusicStudio.Core
                 Commands[i] = new List<SongEvent>();
 
             if (Header.NumTracks > ROM.Instance.Game.Engine.TrackLimit)
-                throw new InvalidDataException($"Song has too many tracks ({Header.NumTracks}).");
+                throw new InvalidDataException($"La canzone ha troppe tracce ({Header.NumTracks}).");
 
             for (int i = 0; i < NumTracks; i++)
             {
@@ -390,7 +396,7 @@ namespace GBAMusicStudio.Core
 
                                 command = new EndOfTieCommand { Note = note };
                                 break;
-                            default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", off, cmd); break;
+                            default: Console.WriteLine("Comando invalido: 0x{0:X} = {1}", off, cmd); break;
                         }
                     }
 
@@ -414,7 +420,7 @@ namespace GBAMusicStudio.Core
         public override void SaveAsMIDI(string fileName)
         {
             if (NumTracks == 0)
-                throw new InvalidDataException("This song has no tracks.");
+                throw new InvalidDataException("Questa canzone non ha tracce.");
 
             CalculateTicks();
             var midi = new Sequence(24) { Format = 1 };
@@ -434,108 +440,111 @@ namespace GBAMusicStudio.Core
                     var e = Commands[i][j];
                     int ticks = e.AbsoluteTicks + (endOfPatternTicks - startOfPatternTicks);
 
-                    switch (e.Command)
+                    if (e.Command is KeyShiftCommand keysh)
                     {
-                        case KeyShiftCommand keysh:
-                            shift = keysh.Shift;
-                            break;
-                        case M4ANoteCommand note:
-                            int n = (note.Note + shift).Clamp(0, 0x7F);
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
-                            if (note.Duration != -1)
-                                track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
-                            else
-                                playing.Add(note);
-                            break;
-                        case EndOfTieCommand eot:
-                            M4ANoteCommand nc = null;
+                        shift = keysh.Shift;
+                    }
+                    else if (e.Command is M4ANoteCommand note)
+                    {
+                        int n = (note.Note + shift).Clamp(0, 0x7F);
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
+                        if (note.Duration != -1)
+                            track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                        else
+                            playing.Add(note);
+                    }
+                    else if (e.Command is EndOfTieCommand eot)
+                    {
+                        M4ANoteCommand nc = null;
 
-                            if (eot.Note == -1)
-                                nc = playing.LastOrDefault();
-                            else
-                                nc = playing.LastOrDefault(no => no.Note == eot.Note);
+                        if (eot.Note == -1)
+                            nc = playing.LastOrDefault();
+                        else
+                            nc = playing.LastOrDefault(n => n.Note == eot.Note);
 
-                            if (nc != null)
-                            {
-                                n = (nc.Note + shift).Clamp(0, 0x7F);
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, n));
-                                playing.Remove(nc);
-                            }
-                            break;
-                        case PriorityCommand prio:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.VolumeFine, prio.Priority));
-                            break;
-                        case VoiceCommand voice:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
-                            break;
-                        case VolumeCommand vol:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume));
-                            break;
-                        case PanpotCommand pan:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
-                            break;
-                        case BendCommand bend:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend + 0x40));
-                            break;
-                        case BendRangeCommand bendr:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range));
-                            break;
-                        case LFOSpeedCommand lfos:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 21, lfos.Speed));
-                            break;
-                        case LFODelayCommand lfodl:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 26, lfodl.Delay));
-                            break;
-                        case ModDepthCommand mod:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.ModulationWheel, mod.Depth));
-                            break;
-                        case ModTypeCommand modt:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 22, modt.Type));
-                            break;
-                        case TuneCommand tune:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
-                            break;
-                        case LibraryCommand xcmd:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 30, xcmd.Command));
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 29, xcmd.Argument));
-                            break;
-                        case TempoCommand tempo:
-                            var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
-                            change.Build();
-                            metaTrack.Insert(ticks, change.Result);
-                            break;
-                        case CallCommand patt:
-                            int callCmd = Commands[i].FindIndex(c => c.GetOffset() == patt.Offset);
-                            endOfPattern = j;
-                            endOfPatternTicks = e.AbsoluteTicks;
-                            j = callCmd - 1; // -1 for incoming ++
-                            startOfPatternTicks = Commands[i][j + 1].AbsoluteTicks;
-                            break;
-                        case ReturnCommand _:
-                            if (endOfPattern != 0)
-                            {
-                                j = endOfPattern;
-                                endOfPattern = startOfPatternTicks = endOfPatternTicks = 0;
-                            }
-                            break;
-                        case GoToCommand goTo:
-                            if (i == 0)
-                            {
-                                int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
-                                metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
-                                metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
-                            }
-                            break;
-                        case FinishCommand _:
-                            // TODO: FINE vs PREV
-                            // If the track is not only the finish command, place the finish command at the correct tick
-                            if (track.Count > 1)
-                                track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
-                            goto endOfTrack;
+                        if (nc != null)
+                        {
+                            int no = (nc.Note + shift).Clamp(0, 0x7F);
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, no));
+                            playing.Remove(nc);
+                        }
+                    }
+                    else if (e.Command is VoiceCommand voice)
+                    {
+                        // TODO: Fork and remove restriction
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice & 0x7F));
+                    }
+                    else if (e.Command is VolumeCommand vol)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume));
+                    }
+                    else if (e.Command is PanpotCommand pan)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
+                    }
+                    else if (e.Command is BendCommand bend)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend + 0x40));
+                    }
+                    else if (e.Command is BendRangeCommand bendr)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range));
+                    }
+                    else if (e.Command is LFOSpeedCommand lfos)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 21, lfos.Speed));
+                    }
+                    else if (e.Command is LFODelayCommand lfodl)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 26, lfodl.Delay));
+                    }
+                    else if (e.Command is ModDepthCommand mod)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.ModulationWheel, mod.Depth));
+                    }
+                    else if (e.Command is ModTypeCommand modt)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 22, modt.Type));
+                    }
+                    else if (e.Command is TuneCommand tune)
+                    {
+                        track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
+                    }
+                    else if (e.Command is TempoCommand tempo)
+                    {
+                        var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
+                        change.Build();
+                        metaTrack.Insert(ticks, change.Result);
+                    }
+                    else if (e.Command is CallCommand patt)
+                    {
+                        int callCmd = Commands[i].FindIndex(c => c.GetOffset() == patt.Offset);
+                        endOfPattern = j;
+                        endOfPatternTicks = e.AbsoluteTicks;
+                        j = callCmd - 1; // -1 for incoming ++
+                        startOfPatternTicks = Commands[i][j + 1].AbsoluteTicks;
+                    }
+                    else if (e.Command is ReturnCommand)
+                    {
+                        if (endOfPattern != 0)
+                        {
+                            j = endOfPattern;
+                            endOfPattern = startOfPatternTicks = endOfPatternTicks = 0;
+                        }
+                    }
+                    else if (i == 0 && e.Command is GoToCommand goTo)
+                    {
+                        int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
+                        metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                        metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                    }
+                    else if (e.Command is FinishCommand fine)
+                    {
+                        // TODO: Fix ticks before end of track event
+                        // Library automatically is updating track.EndOfTrackOffset for us
+                        break;
                     }
                 }
-
-                endOfTrack:;
             }
             midi.Save(fileName);
         }
@@ -622,7 +631,7 @@ namespace GBAMusicStudio.Core
         public override void SaveAsMIDI(string fileName)
         {
             if (NumTracks == 0)
-                throw new InvalidDataException("This song has no tracks.");
+                throw new InvalidDataException("Questa canzone non ha tracce.");
 
             CalculateTicks();
             var midi = new Sequence(96) { Format = 1 };
@@ -648,82 +657,82 @@ namespace GBAMusicStudio.Core
                         freeNoteOff = null;
                     }
 
-                    switch (e.Command)
+                    if (e.Command is VolumeCommand vol)
                     {
-                        case VolumeCommand vol:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume / 2));
-                            break;
-                        case VoiceCommand voice:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
-                            break;
-                        case PanpotCommand pan:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot / 2 + 0x40));
-                            break;
-                        case BendCommand bend:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend / 2 + 0x40));
-                            break;
-                        case BendRangeCommand bendr:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range / 2));
-                            break;
-                        case MLSSNoteCommand note:
-                            // Extended note is playing and it should be extended by this note
-                            if (freeNote != null && freeNote.Note - 0x80 == note.Note)
-                            {
-                                // Move the note off command
-                                track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + note.Duration * 2);
-                            }
-                            // Extended note is playing but this note is different OR there is no extended note playing
-                            // Either way we play a new note and forget that one
-                            else
-                            {
-                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, note.Note, 0x7F));
-                                track.Insert(e.AbsoluteTicks * 2 + note.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, note.Note));
-                                freeNote = null;
-                                freeNoteOff = null;
-                            }
-                            break;
-                        case FreeNoteCommand free:
-                            // Extended note is playing and it should be extended
-                            if (freeNote != null && freeNote.Note == free.Note)
-                            {
-                                // Move the note off command
-                                track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + free.Duration * 2);
-                            }
-                            // Extended note is playing but this note is different OR there is no extended note playing
-                            // Either way we play a new note and forget that one
-                            else
-                            {
-                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, free.Note - 0x80, 0x7F));
-                                track.Insert(e.AbsoluteTicks * 2 + free.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, free.Note - 0x80));
-                                freeNote = free;
-                                freeNoteOff = track.GetMidiEvent(track.Count - 2); // -1 would be the end of track event
-                            }
-                            break;
-                        case TempoCommand tempo:
-                            if (i == 0)
-                            {
-                                var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
-                                change.Build();
-                                metaTrack.Insert(e.AbsoluteTicks * 2, change.Result);
-                            }
-                            break;
-                        case GoToCommand goTo:
-                            if (i == 0)
-                            {
-                                int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
-                                metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
-                                metaTrack.Insert(e.AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
-                            }
-                            break;
-                        case FinishCommand _:
-                            // If the track is not only the finish command, place the finish command at the correct tick
-                            if (track.Count > 1)
-                                track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
-                            goto endOfTrack;
+                        track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume / 2));
+                    }
+                    else if (e.Command is VoiceCommand voice)
+                    {
+                        // TODO: Fork and remove restriction
+                        track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice & 0x7F));
+                    }
+                    else if (e.Command is PanpotCommand pan)
+                    {
+                        track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot / 2 + 0x40));
+                    }
+                    else if (e.Command is BendCommand bend)
+                    {
+                        track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend / 2 + 0x40));
+                    }
+                    else if (e.Command is BendRangeCommand bendr)
+                    {
+                        track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range / 2));
+                    }
+                    else if (e.Command is MLSSNoteCommand note)
+                    {
+                        // Extended note is playing and it should be extended by this note
+                        if (freeNote != null && freeNote.Note - 0x80 == note.Note)
+                        {
+                            // Move the note off command
+                            track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + note.Duration * 2);
+                        }
+                        // Extended note is playing but this note is different OR there is no extended note playing
+                        // Either way we play a new note and forget that one
+                        else
+                        {
+                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, note.Note, 0x7F));
+                            track.Insert(e.AbsoluteTicks * 2 + note.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, note.Note));
+                            freeNote = null;
+                            freeNoteOff = null;
+                        }
+                    }
+                    else if (e.Command is FreeNoteCommand free)
+                    {
+                        // Extended note is playing and it should be extended
+                        if (freeNote != null && freeNote.Note == free.Note)
+                        {
+                            // Move the note off command
+                            track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + free.Duration * 2);
+                        }
+                        // Extended note is playing but this note is different OR there is no extended note playing
+                        // Either way we play a new note and forget that one
+                        else
+                        {
+                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, free.Note - 0x80, 0x7F));
+                            track.Insert(e.AbsoluteTicks * 2 + free.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, free.Note - 0x80));
+                            freeNote = free;
+                            freeNoteOff = track.GetMidiEvent(track.Count - 2); // -1 would be the end of track event
+                        }
+                    }
+                    else if (i == 0 && e.Command is TempoCommand tempo)
+                    {
+                        var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
+                        change.Build();
+                        metaTrack.Insert(e.AbsoluteTicks * 2, change.Result);
+                    }
+                    else if (i == 0 && e.Command is GoToCommand goTo)
+                    {
+                        int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
+                        metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                        metaTrack.Insert(e.AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                    }
+                    else if (e.Command is FinishCommand fine)
+                    {
+                        // TODO: Fix ticks before end of track event
+                        // Library automatically is updating track.EndOfTrackOffset for us
+                        break;
                     }
                 }
-
-                endOfTrack:;
             }
             midi.Save(fileName);
         }

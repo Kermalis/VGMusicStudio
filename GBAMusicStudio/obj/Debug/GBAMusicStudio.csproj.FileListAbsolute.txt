@@ -1,0 +1,17 @@
+G:\svizzxro\GBAMusicStudio-master\Build\Config.yaml
+G:\svizzxro\GBAMusicStudio-master\Build\Games.yaml
+G:\svizzxro\GBAMusicStudio-master\Build\MPlayDef.s
+G:\svizzxro\GBAMusicStudio-master\Build\mid2agb.exe
+G:\svizzxro\GBAMusicStudio-master\Build\midi2agb.exe
+G:\svizzxro\GBAMusicStudio-master\Build\GBAMusicStudio.exe.config
+G:\svizzxro\GBAMusicStudio-master\Build\GBAMusicStudio.exe
+G:\svizzxro\GBAMusicStudio-master\Build\GBAMusicStudio.pdb
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.csprojAssemblyReference.cache
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.exe.config
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.Properties.Resources.resources
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.UI.ColorSlider.resources
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.csproj.GenerateResource.cache
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.csproj.CoreCompileInputs.cache
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.csproj.CopyComplete
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.exe
+G:\svizzxro\GBAMusicStudio-master\GBAMusicStudio\obj\Debug\GBAMusicStudio.pdb
