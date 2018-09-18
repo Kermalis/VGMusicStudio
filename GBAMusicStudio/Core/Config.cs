@@ -1,4 +1,5 @@
-﻿using GBAMusicStudio.Util;
+﻿using GBAMusicStudio.Properties;
+using GBAMusicStudio.Util;
 using Humanizer;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,23 @@ namespace GBAMusicStudio.Core
             Name = name.Humanize(); Songs = songs;
         }
 
-        public override string ToString() => string.Format("{0} - ({1})", Name, "Song".ToQuantity(Songs.Where(s => s.Name != "Playlist is empty.").Count()));
+        public override string ToString()
+        {
+            var cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            var songCount = Songs.Where(s => s.Name != Strings.PlaylistEmpty).Count();
+            if (cul == System.Globalization.CultureInfo.GetCultureInfo("it-it"))
+            {
+                // PlaylistName - (1 Canzoni)
+                // PlaylistName - (2 Canzoni)
+                return $"{Name} - ({songCount} Canzoni)";
+            }
+            else // Fallback to en-US
+            {
+                // PlaylistName - (1 Song)
+                // PlaylistName - (2 Songs)
+                return $"{Name} - ({songCount} {(songCount == 1 ? "Song" : "Songs")})";
+            }
+        }
     }
     class AnEngine
     {
@@ -268,7 +285,7 @@ namespace GBAMusicStudio.Core
                 // If playlist is empty, add an empty entry
                 for (int i = 0; i < playlists.Count; i++)
                     if (playlists[i].Songs.Length == 0)
-                        playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, "Playlist is empty.") });
+                        playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, Strings.PlaylistEmpty) });
 
                 Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists, remap,
                     voiceTable, sampleTable, sampleTableSize));

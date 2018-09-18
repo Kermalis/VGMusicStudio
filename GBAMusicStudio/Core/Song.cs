@@ -1,4 +1,5 @@
-﻿using GBAMusicStudio.Util;
+﻿using GBAMusicStudio.Properties;
+using GBAMusicStudio.Util;
 using Kermalis.EndianBinaryIO;
 using Sanford.Multimedia.Midi;
 using System;
@@ -113,7 +114,7 @@ namespace GBAMusicStudio.Core
                 Commands[i] = new List<SongEvent>();
 
             if (Header.NumTracks > ROM.Instance.Game.Engine.TrackLimit)
-                throw new InvalidDataException($"Song has too many tracks ({Header.NumTracks}).");
+                throw new InvalidDataException(string.Format(Strings.ErrorTooManyTracks, Header.NumTracks));
 
             for (int i = 0; i < NumTracks; i++)
             {
@@ -219,7 +220,7 @@ namespace GBAMusicStudio.Core
 
                                 command = new EndOfTieCommand { Note = note };
                                 break;
-                            default: Console.WriteLine("Invalid command: 0x{0:X} = {1}", off, cmd); break;
+                            default: Console.WriteLine("Invalid command: 0x{0:X7} = {1}", off, cmd); break;
                         }
                     }
 
@@ -243,7 +244,7 @@ namespace GBAMusicStudio.Core
         public override void SaveAsASM(string fileName)
         {
             if (NumTracks == 0)
-                throw new InvalidDataException("This song has no tracks.");
+                throw new InvalidDataException(Strings.ErrorNoTracks);
 
             using (var file = new StreamWriter(fileName))
             {
@@ -410,7 +411,7 @@ namespace GBAMusicStudio.Core
         public override void SaveAsMIDI(string fileName)
         {
             if (NumTracks == 0)
-                throw new InvalidDataException("This song has no tracks.");
+                throw new InvalidDataException(Strings.ErrorNoTracks);
 
             CalculateTicks();
             var midi = new Sequence(24) { Format = 1 };
@@ -561,12 +562,12 @@ namespace GBAMusicStudio.Core
     {
         public override void SaveAsASM(string fileName)
         {
-            throw new PlatformNotSupportedException("Exporting to ASM from this game engine is not supported at this time.");
+            throw new PlatformNotSupportedException(Strings.ErrorEngineSaveASM);
         }
         public override void SaveAsMIDI(string fileName)
         {
             if (NumTracks == 0)
-                throw new InvalidDataException("This song has no tracks.");
+                throw new InvalidDataException(Strings.ErrorNoTracks);
 
             CalculateTicks();
             var midi = new Sequence(96) { Format = 1 };
@@ -736,7 +737,7 @@ namespace GBAMusicStudio.Core
     {
         public MLSSMIDISong(string fileName)
         {
-            throw new PlatformNotSupportedException("Converting MIDI files to this game engine is not supported at this time.");
+            throw new PlatformNotSupportedException(Strings.ErrorEngineOpenMIDI);
         }
     }
 }

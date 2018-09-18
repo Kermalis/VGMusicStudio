@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Core;
+using GBAMusicStudio.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,14 +23,15 @@ namespace GBAMusicStudio.UI
             var openButton = new ThemedButton
             {
                 Location = new Point(150, 0),
-                Text = "Open MIDI"
+                Text = Strings.MIDIConverterOpenFile
             };
             openButton.Click += OpenMIDI;
             previewButton = new ThemedButton
             {
                 Enabled = false,
                 Location = new Point(150, 50),
-                Text = "Preview Song"
+                Size = new Size(120, 23),
+                Text = Strings.MIDIConverterPreviewSong
             };
             previewButton.Click += PreviewSong;
             offsetValueBox = new ValueTextBox
@@ -43,7 +45,7 @@ namespace GBAMusicStudio.UI
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             Size = new Size(600, 400);
-            Text = "GBA Music Studio ― MIDI Converter";
+            Text = $"GBA Music Studio ― {Strings.MIDIConverterTitle}";
         }
 
         void PreviewSong(object sender, EventArgs e)
@@ -52,7 +54,7 @@ namespace GBAMusicStudio.UI
         }
         void OpenMIDI(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open MIDI", Filter = "MIDI files|*.mid" };
+            var d = new OpenFileDialog { Title = Strings.TitleOpenMIDI, Filter = $"{Strings.FilterOpenMIDI}|*.mid" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             try
@@ -83,7 +85,7 @@ namespace GBAMusicStudio.UI
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show($"There was an error converting the MIDI file:{Environment.NewLine + ex.Message}", "Error Converting MIDI", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                FlexibleMessageBox.Show(string.Format(Strings.MIDIConverterError, Environment.NewLine + ex.Message), Strings.MIDIConverterTitleError, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

@@ -11,6 +11,7 @@ namespace GBAMusicStudio
         [STAThread]
         static void Main()
         {
+            //System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("it-it");
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new UI.MainForm());

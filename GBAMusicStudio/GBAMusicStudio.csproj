@@ -105,6 +105,11 @@
     <Compile Include="Core\VoiceTable.cs" />
     <Compile Include="Core\VoiceTableSaver.cs" />
     <Compile Include="MIDI\MIDIKeyboard.cs" />
+    <Compile Include="Properties\Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
     <Compile Include="UI\AssemblerDialog.cs" />
     <Compile Include="UI\ColorSlider.cs">
       <SubType>Component</SubType>
@@ -151,6 +156,11 @@
     <Content Include="MPlayDef.s">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="Properties\Strings.it.resx" />
+    <EmbeddedResource Include="Properties\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\ColorSlider.resx">
       <DependentUpon>ColorSlider.cs</DependentUpon>
     </EmbeddedResource>

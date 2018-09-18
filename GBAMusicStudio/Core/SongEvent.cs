@@ -1,4 +1,5 @@
-﻿using GBAMusicStudio.Util;
+﻿using GBAMusicStudio.Properties;
+using GBAMusicStudio.Util;
 
 namespace GBAMusicStudio.Core
 {
@@ -39,9 +40,11 @@ namespace GBAMusicStudio.Core
         };
 
         static readonly string[] m4aNotes = { "Cn", "Cs", "Dn", "Ds", "En", "Fn", "Fs", "Gn", "Gs", "An", "As", "Bn" };
-        static readonly string[] notes = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+        static string[] notes = null;
         public static string NoteName(sbyte note, bool m4aStyle = false)
         {
+            if (notes == null)
+                notes = Strings.Notes.Split(';');
             if (note < 0)
                 return note.ToString();
             var style = m4aStyle ? m4aNotes : notes;

@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Core;
+using GBAMusicStudio.Properties;
 using GBAMusicStudio.Util;
 using System;
 using System.Collections.Generic;
@@ -26,14 +27,15 @@ namespace GBAMusicStudio.UI
             var openButton = new ThemedButton
             {
                 Location = new Point(150, 0),
-                Text = "Open File"
+                Text = Strings.AssemblerOpenFile
             };
             openButton.Click += OpenASM;
             previewButton = new ThemedButton
             {
                 Enabled = false,
                 Location = new Point(150, 50),
-                Text = "Preview Song"
+                Size = new Size(120, 23),
+                Text = Strings.AssemblerPreviewSong
             };
             previewButton.Click += PreviewSong;
             sizeLabel = new ThemedLabel
@@ -53,8 +55,8 @@ namespace GBAMusicStudio.UI
                 Location = new Point(0, 150),
                 MultiSelect = false
             };
-            addedDefsGrid.Columns[0].Name = "Definition";
-            addedDefsGrid.Columns[1].Name = "Value";
+            addedDefsGrid.Columns[0].Name = Strings.AssemblerDefinition;
+            addedDefsGrid.Columns[1].Name = Strings.AssemblerValue;
             addedDefsGrid.Columns[1].DefaultCellStyle.NullValue = "0";
             addedDefsGrid.Rows.Add(new string[] { "voicegroup000", $"0x{SongPlayer.Instance.Song.VoiceTable.GetOffset() + ROM.Pak:X7}" });
             addedDefsGrid.CellValueChanged += AddedDefsGrid_CellValueChanged;
@@ -63,7 +65,7 @@ namespace GBAMusicStudio.UI
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             Size = new Size(600, 400);
-            Text = "GBA Music Studio ― Assembler";
+            Text = $"GBA Music Studio ― {Strings.AssemblerTitle}";
         }
 
         void AddedDefsGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -75,7 +77,7 @@ namespace GBAMusicStudio.UI
             {
                 if (char.IsDigit(cell.Value.ToString()[0]))
                 {
-                    FlexibleMessageBox.Show("Definitions cannot start with a digit.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    FlexibleMessageBox.Show(Strings.AssemblerErrorDefinitionDigit, Strings.TitleError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     cell.Value = cell.Value.ToString().Substring(1);
                 }
             }
@@ -83,7 +85,7 @@ namespace GBAMusicStudio.UI
             {
                 if (!Utils.TryParseValue(cell.Value.ToString(), out long val))
                 {
-                    FlexibleMessageBox.Show("Invalid value: " + cell.Value.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    FlexibleMessageBox.Show(string.Format(Strings.AssemblerErrorInvalidValue, cell.Value), Strings.TitleError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     cell.Value = null;
                 }
             }
@@ -94,7 +96,7 @@ namespace GBAMusicStudio.UI
         }
         void OpenASM(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open Assembly", Filter = "Assembly files|*.s" };
+            var d = new OpenFileDialog { Title = Strings.TitleOpenASM, Filter = $"{Strings.FilterOpenASM}|*.s" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             try
@@ -108,12 +110,12 @@ namespace GBAMusicStudio.UI
                 }
                 song = new M4AASMSong(assembler = new Assembler(d.FileName, (int)(ROM.Pak + offsetValueBox.Value), s),
                     headerLabelTextBox.Text = Assembler.FixLabel(Path.GetFileNameWithoutExtension(d.FileName)));
-                sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
+                sizeLabel.Text = string.Format(Strings.AssemblerSizeInBytes, assembler.BinaryLength);
                 previewButton.Enabled = true;
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Assembling File", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                FlexibleMessageBox.Show(ex.Message, Strings.TitleAssemblerError, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

@@ -53,38 +53,38 @@ namespace GBAMusicStudio.UI
             components = new Container();
 
             // Main Menu
-            openROMToolStripMenuItem = new ToolStripMenuItem { Text = "Open ROM", ShortcutKeys = Keys.Control | Keys.O };
+            openROMToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuOpenROM, ShortcutKeys = Keys.Control | Keys.O };
             openROMToolStripMenuItem.Click += OpenROM;
 
-            openMIDIToolStripMenuItem = new ToolStripMenuItem { Text = "Open MIDI", Enabled = false, ShortcutKeys = Keys.Control | Keys.M };
+            openMIDIToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuOpenMIDI, Enabled = false, ShortcutKeys = Keys.Control | Keys.M };
             openMIDIToolStripMenuItem.Click += OpenMIDIConverter;
 
-            openASMToolStripMenuItem = new ToolStripMenuItem { Text = "Open ASM", Enabled = false, ShortcutKeys = Keys.Control | Keys.Shift | Keys.M };
+            openASMToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuOpenASM, Enabled = false, ShortcutKeys = Keys.Control | Keys.Shift | Keys.M };
             openASMToolStripMenuItem.Click += OpenAssembler;
 
-            configToolStripMenuItem = new ToolStripMenuItem { Text = "Refresh Config", ShortcutKeys = Keys.Control | Keys.R };
+            configToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuRefreshConfig, ShortcutKeys = Keys.Control | Keys.R };
             configToolStripMenuItem.Click += ReloadConfig;
 
-            fileToolStripMenuItem = new ToolStripMenuItem { Text = "File" };
+            fileToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuFile };
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem });
 
 
-            teToolStripMenuItem = new ToolStripMenuItem { Text = "Track Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
+            teToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuTrackEditor, Enabled = false, ShortcutKeys = Keys.Control | Keys.T };
             teToolStripMenuItem.Click += OpenTrackEditor;
 
-            vteToolStripMenuItem = new ToolStripMenuItem { Text = "VoiceTable Editor", Enabled = false, ShortcutKeys = Keys.Control | Keys.V };
+            vteToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuVoiceTableEditor, Enabled = false, ShortcutKeys = Keys.Control | Keys.V };
             vteToolStripMenuItem.Click += OpenVoiceTableEditor;
 
-            eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = "Export Voicetable To SF2", Enabled = false };
+            eSf2ToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuSaveSF2, Enabled = false };
             eSf2ToolStripMenuItem.Click += ExportSF2;
 
-            eASMToolStripMenuItem = new ToolStripMenuItem { Text = "Export Song To ASM", Enabled = false };
+            eASMToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuSaveASM, Enabled = false };
             eASMToolStripMenuItem.Click += ExportASM;
 
-            eMIDIToolStripMenuItem = new ToolStripMenuItem { Text = "Export Song To MIDI", Enabled = false };
+            eMIDIToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuSaveMIDI, Enabled = false };
             eMIDIToolStripMenuItem.Click += ExportMIDI;
 
-            dataToolStripMenuItem = new ToolStripMenuItem { Text = "Data" };
+            dataToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuData };
             dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { teToolStripMenuItem, vteToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem });
 
 
@@ -92,11 +92,11 @@ namespace GBAMusicStudio.UI
             mainMenu.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, dataToolStripMenuItem });
 
             // Buttons
-            playButton = new ThemedButton { ForeColor = Color.MediumSpringGreen, Location = new Point(5, 3), Text = "Play" };
+            playButton = new ThemedButton { ForeColor = Color.MediumSpringGreen, Location = new Point(5, 3), Text = Strings.PlayerPlay };
             playButton.Click += Play;
-            pauseButton = new ThemedButton { ForeColor = Color.DeepSkyBlue, Location = new Point(85, 3), Text = "Pause" };
+            pauseButton = new ThemedButton { ForeColor = Color.DeepSkyBlue, Location = new Point(85, 3), Text = Strings.PlayerPause };
             pauseButton.Click += Pause;
-            stopButton = new ThemedButton { ForeColor = Color.MediumVioletRed, Location = new Point(166, 3), Text = "Stop" };
+            stopButton = new ThemedButton { ForeColor = Color.MediumVioletRed, Location = new Point(166, 3), Text = Strings.PlayerStop };
             stopButton.Click += Stop;
 
             playButton.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
@@ -209,7 +209,10 @@ namespace GBAMusicStudio.UI
             SongPlayer.Instance.SetPosition(positionBar.Value);
             drag = false;
         }
-        void SetSongMaximum() => songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(int)tableNumerical.Value] - 1;
+        void SetSongMaximum()
+        {
+            songNumerical.Maximum = ROM.Instance.Game.SongTableSizes[(int)tableNumerical.Value] - 1;
+        }
         void TableIndexChanged(object sender, EventArgs e)
         {
             SetSongMaximum();
@@ -257,7 +260,7 @@ namespace GBAMusicStudio.UI
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Loading Song " + songNumerical.Value);
+                FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, songNumerical.Value));
                 return;
             }
         }
@@ -271,7 +274,7 @@ namespace GBAMusicStudio.UI
 
         void OpenROM(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open GBA ROM", Filter = "GBA files|*.gba" };
+            var d = new OpenFileDialog { Title = Strings.TitleOpenGBA, Filter = $"{Strings.FilterOpenGBA}|*.gba" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             Stop(null, null);
@@ -282,7 +285,7 @@ namespace GBAMusicStudio.UI
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Loading ROM");
+                FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenGBA);
                 return;
             }
 
@@ -345,47 +348,47 @@ namespace GBAMusicStudio.UI
         }
         void ExportSF2(object sender, EventArgs e)
         {
-            var d = new SaveFileDialog { Title = "Export SF2 File", Filter = "SF2 file|*.sf2" };
+            var d = new SaveFileDialog { Title = Strings.TitleSaveSF2, Filter = $"{Strings.FilterSaveSF2}|*.sf2" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             try
             {
                 VoiceTableSaver.Save(d.FileName);
-                FlexibleMessageBox.Show($"Voice table saved to {d.FileName}.", Text);
+                FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveSF2, d.FileName), Text);
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Exporting SF2 File");
+                FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveSF2);
             }
         }
         void ExportASM(object sender, EventArgs e)
         {
-            var d = new SaveFileDialog { Title = "Export ASM File", Filter = "ASM file|*.s" };
+            var d = new SaveFileDialog { Title = Strings.TitleSaveASM, Filter = $"{Strings.FilterSaveASM}|*.s" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             try
             {
                 SongPlayer.Instance.Song.SaveAsASM(d.FileName);
-                FlexibleMessageBox.Show($"Song saved to {d.FileName}.", Text);
+                FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveASM, d.FileName), Text);
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Exporting Song");
+                FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveASM);
             }
         }
         void ExportMIDI(object sender, EventArgs e)
         {
-            var d = new SaveFileDialog { Title = "Export MIDI File", Filter = "MIDI file|*.mid" };
+            var d = new SaveFileDialog { Title = Strings.TitleSaveMIDI, Filter = $"{Strings.FilterSaveMIDI}|*.mid" };
             if (d.ShowDialog() != DialogResult.OK) return;
 
             try
             {
                 SongPlayer.Instance.Song.SaveAsMIDI(d.FileName);
-                FlexibleMessageBox.Show($"Song saved to {d.FileName}.", Text);
+                FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDI, d.FileName), Text);
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Exporting Song");
+                FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveMIDI);
             }
         }
 
@@ -423,7 +426,7 @@ namespace GBAMusicStudio.UI
             if (play)
                 Play(null, null);
             else
-                pauseButton.Text = "Pause";
+                pauseButton.Text = Strings.PlayerPause;
             teToolStripMenuItem.Enabled = true;
         }
         void PopulatePlaylists(List<APlaylist> playlists)
@@ -442,7 +445,7 @@ namespace GBAMusicStudio.UI
         {
             SongPlayer.Instance.Play();
             positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = true;
-            pauseButton.Text = "Pause";
+            pauseButton.Text = Strings.PlayerPause;
             timer.Interval = (int)(1000f / Config.Instance.RefreshRate);
             timer.Start();
             UpdateTaskbarState();
@@ -453,13 +456,13 @@ namespace GBAMusicStudio.UI
             if (SongPlayer.Instance.State != PlayerState.Paused)
             {
                 stopButton.Enabled = true;
-                pauseButton.Text = "Pause";
+                pauseButton.Text = Strings.PlayerPause;
                 timer.Start();
             }
             else
             {
                 stopButton.Enabled = false;
-                pauseButton.Text = "Unpause";
+                pauseButton.Text = Strings.PlayerUnpause;
                 timer.Stop();
                 System.Threading.Monitor.Enter(timerLock);
                 ClearPianoNotes();

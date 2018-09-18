@@ -1,5 +1,6 @@
 ﻿using BrightIdeasSoftware;
 using GBAMusicStudio.Core;
+using GBAMusicStudio.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -45,10 +46,10 @@ namespace GBAMusicStudio.UI
                 UseFilterIndicator = true
             };
             OLVColumn c1, c2, c3, c4;
-            c1 = new OLVColumn("Event", "Command.Name");
-            c2 = new OLVColumn("Arguments", "Command.Arguments") { UseFiltering = false };
-            c3 = new OLVColumn("Offset", "GetOffset") { AspectToStringFormat = "0x{0:X7}", UseFiltering = false };
-            c4 = new OLVColumn("Ticks", "AbsoluteTicks") { UseFiltering = false };
+            c1 = new OLVColumn(Strings.TrackEditorEvent, "Command.Name");
+            c2 = new OLVColumn(Strings.TrackEditorArguments, "Command.Arguments") { UseFiltering = false };
+            c3 = new OLVColumn(Strings.TrackEditorOffset, "GetOffset") { AspectToStringFormat = "0x{0:X7}", UseFiltering = false };
+            c4 = new OLVColumn(Strings.TrackEditorTicks, "AbsoluteTicks") { UseFiltering = false };
             c1.Width = c2.Width = c3.Width = 72;
             c4.Width = 45;
             c1.Hideable = c2.Hideable = c3.Hideable = c4.Hideable = false;
@@ -71,7 +72,7 @@ namespace GBAMusicStudio.UI
                 {
                     AutoSize = true,
                     Location = new Point(52, y + 3),
-                    Text = "Arg. " + (i + 1).ToString(),
+                    Text = string.Format(Strings.TrackEditorArgX, i + 1),
                     Visible = false,
                 };
                 argNumerics[i] = new ThemedNumeric
@@ -96,13 +97,14 @@ namespace GBAMusicStudio.UI
             trackChangeVoicesButton = new ThemedButton
             {
                 Location = new Point(13, 30),
-                Text = "Change Voices"
+                Text = Strings.TrackEditorChangeVoices
             };
             trackChangeVoicesButton.Click += ChangeEvents;
             trackAddEventButton = new ThemedButton
             {
                 Location = new Point(13, 30 + 25 + 5),
-                Text = "Add Event"
+                Size = new Size(100, 25),
+                Text = Strings.TrackEditorAddEvent
             };
             trackAddEventButton.Click += AddEvent;
             commandsBox = new ComboBox
@@ -113,14 +115,14 @@ namespace GBAMusicStudio.UI
             trackRemoveEventButton = new ThemedButton
             {
                 Location = new Point(13, 30 + 25 + 5 + 25 + 5),
-                Text = "Remove Event"
+                Text = Strings.TrackEditorRemoveEvent
             };
             trackRemoveEventButton.Click += RemoveEvent;
             tracksBox.Enabled = trackChangeVoicesButton.Enabled = trackAddEventButton.Enabled = trackRemoveEventButton.Enabled = commandsBox.Enabled = false;
             trackChangeVoicesButton.Size = trackAddEventButton.Size = trackRemoveEventButton.Size = new Size(95, 25);
-            var trackFromVoiceButton = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
+            var trackFromVoiceButton = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = Strings.TrackEditorFrom };
             trackVoiceArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
-            var trackToVoiceButton = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
+            var trackToVoiceButton = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = Strings.TrackEditorTo };
             trackVoiceArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
             trackVoiceArgs[0].Maximum = trackVoiceArgs[1].Maximum = 0xFF;
             trackVoiceArgs[0].Size = trackVoiceArgs[1].Size = new Size(45, 23);
@@ -138,25 +140,25 @@ namespace GBAMusicStudio.UI
             remapFromButton = new ThemedButton
             {
                 Location = new Point(116, 3),
-                Text = "From"
+                Text = Strings.TrackEditorFrom
             };
             remapFromButton.Click += (s, e) => ApplyRemap(true);
             remapToButton = new ThemedButton
             {
                 Location = new Point(203, 3),
-                Text = "To"
+                Text = Strings.TrackEditorTo
             };
             remapToButton.Click += (s, e) => ApplyRemap(false);
             globalChangeVoicesButton = new ThemedButton
             {
                 Location = new Point(13, 30),
                 Size = new Size(95, 25),
-                Text = "Change Voices"
+                Text = Strings.TrackEditorChangeVoices
             };
             globalChangeVoicesButton.Click += ChangeAllEvents;
-            var globalFromVoiceButton = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = "From" };
+            var globalFromVoiceButton = new ThemedLabel { Location = new Point(115, 30 + 2 + 3), Text = Strings.TrackEditorFrom };
             globalVoiceArgs[0] = new ThemedNumeric { Location = new Point(149, 30 + 2) };
-            var globalToVoiceButton = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = "To" };
+            var globalToVoiceButton = new ThemedLabel { Location = new Point(204, 30 + 2 + 3), Text = Strings.TrackEditorTo };
             globalVoiceArgs[1] = new ThemedNumeric { Location = new Point(224, 30 + 2) };
             globalVoiceArgs[0].Maximum = globalVoiceArgs[1].Maximum = 0xFF;
             globalVoiceArgs[0].Size = globalVoiceArgs[1].Size = new Size(45, 23);
@@ -169,7 +171,7 @@ namespace GBAMusicStudio.UI
             Controls.AddRange(new Control[] { listView, panel1, panel2, panel3 });
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
-            Text = "GBA Music Studio ― Track Editor";
+            Text = $"GBA Music Studio ― {Strings.TrackEditorTitle}";
 
             UpdateTracks();
         }
@@ -283,7 +285,8 @@ namespace GBAMusicStudio.UI
             bool tracks = SongPlayer.Instance.NumTracks > 0;
             tracksBox.Enabled = trackChangeVoicesButton.Enabled = trackAddEventButton.Enabled = trackRemoveEventButton.Enabled = commandsBox.Enabled = globalChangeVoicesButton.Enabled = tracks;
 
-            tracksBox.DataSource = Enumerable.Range(1, SongPlayer.Instance.NumTracks).Select(i => $"Track {i}").ToList();
+            // Track 1, Track 2, ...
+            tracksBox.DataSource = Enumerable.Range(1, SongPlayer.Instance.NumTracks).Select(i => string.Format(Strings.TrackEditorTrackX, i)).ToList();
             remapsBox.Enabled = remapFromButton.Enabled = remapToButton.Enabled = tracks && remapsBox.Items.Count > 0;
 
             commandsBox.DataSource = Engine.GetCommands().Select(c => c.Name).ToList();

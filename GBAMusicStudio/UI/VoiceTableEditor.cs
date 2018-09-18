@@ -1,5 +1,6 @@
 ﻿using BrightIdeasSoftware;
 using GBAMusicStudio.Core;
+using GBAMusicStudio.Properties;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -37,8 +38,8 @@ namespace GBAMusicStudio.UI
             voicesListView.FormatRow += FormatRow;
             OLVColumn c1, c2, c3;
             c1 = new OLVColumn("#", "");
-            c2 = new OLVColumn("Type", "ToString");
-            c3 = new OLVColumn("Offset", "GetOffset") { AspectToStringFormat = "0x{0:X7}" };
+            c2 = new OLVColumn(Strings.PlayerType, "ToString");
+            c3 = new OLVColumn(Strings.TrackEditorOffset, "GetOffset") { AspectToStringFormat = "0x{0:X7}" };
             c1.Width = 45;
             c2.Width = c3.Width = 108;
             c1.Hideable = c2.Hideable = c3.Hideable = false;
@@ -61,8 +62,8 @@ namespace GBAMusicStudio.UI
             };
             subVoicesListView.FormatRow += FormatRow;
             c1 = new OLVColumn("#", "");
-            c2 = new OLVColumn("Type", "ToString");
-            c3 = new OLVColumn("Offset", "GetOffset") { AspectToStringFormat = "0x{0:X7}" };
+            c2 = new OLVColumn(Strings.PlayerType, "ToString");
+            c3 = new OLVColumn(Strings.TrackEditorOffset, "GetOffset") { AspectToStringFormat = "0x{0:X7}" };
             c1.Width = 45;
             c2.Width = c3.Width = 108;
             c1.Hideable = c2.Hideable = c3.Hideable = false;
@@ -75,7 +76,7 @@ namespace GBAMusicStudio.UI
             voicePanel = new ThemedPanel { Location = new Point(306, 206), Size = new Size(w, h2) };
 
             // Panel controls
-            addressLabel = new ThemedLabel { Location = new Point(2, 130), Text = "Address:" };
+            addressLabel = new ThemedLabel { Location = new Point(2, 130), Text = $"{Strings.VoiceTableEditorAddress}:" };
             voiceALabel = new ThemedLabel { Location = new Point(0 * w / 4 + 2, 160), Text = "A:" };
             voiceDLabel = new ThemedLabel { Location = new Point(1 * w / 4 + 2, 160), Text = "D:" };
             voiceSLabel = new ThemedLabel { Location = new Point(2 * w / 4 + 2, 160), Text = "S:" };
@@ -136,7 +137,7 @@ namespace GBAMusicStudio.UI
         {
             voicesListView.SetObjects(table = SongPlayer.Instance.Song.VoiceTable);
             subVoicesListView.ClearObjects();
-            Text = $"GBA Music Studio ― VoiceTable Editor (0x{table.GetOffset():X7})";
+            Text = $"GBA Music Studio ― {Strings.VoiceTableEditorTitle} (0x{table.GetOffset():X7})";
             voicesListView.SelectedIndex = 0;
         }
 
