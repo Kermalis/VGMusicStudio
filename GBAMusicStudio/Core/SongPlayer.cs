@@ -348,22 +348,25 @@ namespace GBAMusicStudio.Core
 
             // MLSS
             // If a note is extending and the next tick it ends but has the chance of extending
-            var nextE = Song.Commands[i][track.NextCommandIndex];
-            if (mlTrack != null && mlTrack.FreeChannel != null
-                && mlTrack.FreeNoteEnd == nextE.AbsoluteTicks)
+            if (track.NextCommandIndex < Song.Commands[i].Count)
             {
-                // Find note/extension next tick
-                var nextNoteEvent = Song.Commands[i].Where(c => c.AbsoluteTicks == nextE.AbsoluteTicks)
-                    .SingleOrDefault(c => c.Command is MLSSNoteCommand || c.Command is FreeNoteCommand);
-                if (nextNoteEvent != null)
+                var nextE = Song.Commands[i][track.NextCommandIndex];
+                if (mlTrack != null && mlTrack.FreeChannel != null
+                    && mlTrack.FreeNoteEnd == nextE.AbsoluteTicks)
                 {
-                    dynamic nextNote = nextNoteEvent.Command;
-                    int note = nextNote is FreeNoteCommand ? nextNote.Note - 0x80 : nextNote.Note;
-                    if (mlTrack.FreeChannel.Note.OriginalKey == note)
+                    // Find note/extension next tick
+                    var nextNoteEvent = Song.Commands[i].Where(c => c.AbsoluteTicks == nextE.AbsoluteTicks)
+                        .SingleOrDefault(c => c.Command is MLSSNoteCommand || c.Command is FreeNoteCommand);
+                    if (nextNoteEvent != null)
                     {
-                        int extension = nextNote.Duration;
-                        mlTrack.FreeChannel.Note.Duration += extension;
-                        mlTrack.FreeNoteEnd += extension;
+                        dynamic nextNote = nextNoteEvent.Command;
+                        int note = nextNote is FreeNoteCommand ? nextNote.Note - 0x80 : nextNote.Note;
+                        if (mlTrack.FreeChannel.Note.OriginalKey == note)
+                        {
+                            int extension = nextNote.Duration;
+                            mlTrack.FreeChannel.Note.Duration += extension;
+                            mlTrack.FreeNoteEnd += extension;
+                        }
                     }
                 }
             }
