@@ -14,6 +14,7 @@ namespace GBAMusicStudio.UI
     class AssemblerDialog : ThemedForm
     {
         Assembler assembler;
+        Song song;
         readonly ThemedButton previewButton;
         readonly ValueTextBox offsetValueBox;
         readonly ThemedLabel sizeLabel;
@@ -34,7 +35,7 @@ namespace GBAMusicStudio.UI
                 Location = new Point(150, 50),
                 Text = "Preview Song"
             };
-            previewButton.Click += PreviewASM;
+            previewButton.Click += PreviewSong;
             sizeLabel = new ThemedLabel
             {
                 Location = new Point(0, 100),
@@ -87,9 +88,9 @@ namespace GBAMusicStudio.UI
                 }
             }
         }
-        void PreviewASM(object sender, EventArgs e)
+        void PreviewSong(object sender, EventArgs e)
         {
-            ((MainForm)Owner).PreviewASM(assembler, headerLabelTextBox.Text, Path.GetFileName(assembler.FileName));
+            ((MainForm)Owner).PreviewSong(song, Path.GetFileName(assembler.FileName));
         }
         void OpenASM(object sender, EventArgs e)
         {
@@ -105,8 +106,8 @@ namespace GBAMusicStudio.UI
                         continue;
                     s.Add(r.Cells[0].Value.ToString(), (int)Utils.ParseValue(r.Cells[1].Value.ToString()));
                 }
-                assembler = new Assembler(d.FileName, (int)(ROM.Pak + offsetValueBox.Value), s);
-                headerLabelTextBox.Text = Assembler.FixLabel(Path.GetFileNameWithoutExtension(d.FileName));
+                song = new M4AASMSong(assembler = new Assembler(d.FileName, (int)(ROM.Pak + offsetValueBox.Value), s),
+                    headerLabelTextBox.Text = Assembler.FixLabel(Path.GetFileNameWithoutExtension(d.FileName)));
                 sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
                 previewButton.Enabled = true;
             }

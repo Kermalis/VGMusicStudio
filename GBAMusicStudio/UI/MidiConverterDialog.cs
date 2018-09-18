@@ -12,11 +12,10 @@ namespace GBAMusicStudio.UI
     [DesignerCategory("")]
     class MIDIConverterDialog : ThemedForm
     {
-        Assembler assembler;
+        Song song;
         string midiFileName;
         readonly ThemedButton previewButton;
         readonly ValueTextBox offsetValueBox;
-        readonly ThemedLabel sizeLabel;
 
         public MIDIConverterDialog()
         {
@@ -32,12 +31,7 @@ namespace GBAMusicStudio.UI
                 Location = new Point(150, 50),
                 Text = "Preview Song"
             };
-            previewButton.Click += PreviewASM;
-            sizeLabel = new ThemedLabel
-            {
-                Location = new Point(0, 100),
-                Size = new Size(150, 23)
-            };
+            previewButton.Click += PreviewSong;
             offsetValueBox = new ValueTextBox
             {
                 Hexadecimal = true,
@@ -45,16 +39,16 @@ namespace GBAMusicStudio.UI
                 Value = SongPlayer.Instance.Song.VoiceTable.GetOffset()
             };
 
-            Controls.AddRange(new Control[] { openButton, previewButton, sizeLabel, offsetValueBox });
+            Controls.AddRange(new Control[] { openButton, previewButton, offsetValueBox });
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             Size = new Size(600, 400);
             Text = "GBA Music Studio ― MIDI Converter";
         }
 
-        void PreviewASM(object sender, EventArgs e)
+        void PreviewSong(object sender, EventArgs e)
         {
-            ((MainForm)Owner).PreviewASM(assembler, "temp", Path.GetFileName(midiFileName));
+            ((MainForm)Owner).PreviewSong(song, Path.GetFileName(midiFileName));
         }
         void OpenMIDI(object sender, EventArgs e)
         {
@@ -64,24 +58,32 @@ namespace GBAMusicStudio.UI
             try
             {
                 midiFileName = d.FileName;
-                var process = new Process
+                switch (ROM.Instance.Game.Engine.Type)
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "mid2agb.exe",
-                        Arguments = string.Format("\"{0}\" \"{1}\"", d.FileName, "temp.s")
-                    }
-                };
-                process.Start();
-                process.WaitForExit();
-                assembler = new Assembler("temp.s", ROM.Pak, new Dictionary<string, int> { { "voicegroup000", (int)(ROM.Pak + offsetValueBox.Value) } });
-                File.Delete("temp.s");
-                sizeLabel.Text = $"Size in bytes: {assembler.BinaryLength}";
+                    case EngineType.M4A:
+                        var process = new Process
+                        {
+                            StartInfo = new ProcessStartInfo
+                            {
+                                FileName = "midi2agb.exe",
+                                Arguments = string.Format("\"{0}\" \"{1}\"", midiFileName, "temp.s")
+                            }
+                        };
+                        process.Start();
+                        process.WaitForExit();
+                        var ass = new Assembler("temp.s", ROM.Pak, new Dictionary<string, int> { { "voicegroup000", (int)(ROM.Pak + offsetValueBox.Value) } });
+                        File.Delete("temp.s");
+                        song = new M4AASMSong(ass, "temp");
+                        break;
+                    case EngineType.MLSS:
+                        song = new MLSSMIDISong(midiFileName);
+                        break;
+                }
                 previewButton.Enabled = true;
             }
-            catch
+            catch (Exception ex)
             {
-                FlexibleMessageBox.Show("There was an error converting the MIDI file.", "Error Converting MIDI", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                FlexibleMessageBox.Show($"There was an error converting the MIDI file:{Environment.NewLine + ex.Message}", "Error Converting MIDI", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

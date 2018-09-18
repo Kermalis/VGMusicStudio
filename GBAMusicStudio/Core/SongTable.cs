@@ -36,7 +36,7 @@
 
         protected override Song LoadSong(int i)
         {
-            return new MLSSSong(ROM.Instance.Reader.ReadInt32(offset + (i * 4)) - ROM.Pak);
+            return new MLSSROMSong(ROM.Instance.Reader.ReadInt32(offset + (i * 4)) - ROM.Pak);
         }
     }
 }

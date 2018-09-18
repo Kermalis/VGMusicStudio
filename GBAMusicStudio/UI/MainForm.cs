@@ -16,6 +16,7 @@ namespace GBAMusicStudio.UI
     class MainForm : Form
     {
         bool stopUI = false, drag = false;
+        AssemblerDialog assemblerDialog; MIDIConverterDialog midiConverterDialog;
         TrackEditor trackEditor; VoiceTableEditor voiceTableEditor;
         List<sbyte> pianoNotes = new List<sbyte>();
         public readonly bool[] PianoTracks = new bool[16];
@@ -215,12 +216,12 @@ namespace GBAMusicStudio.UI
             LoadSong(sender, e);
         }
 
-        public void PreviewASM(Assembler asm, string headerLabel, string caption)
+        public void PreviewSong(Song song, string caption)
         {
             Text = "GBA Music Studio - " + caption;
             bool playing = SongPlayer.Instance.State == PlayerState.Playing; // Play new song if one is already playing
             Stop(null, null);
-            SongPlayer.Instance.SetSong(new M4AASMSong(asm, headerLabel));
+            SongPlayer.Instance.SetSong(song);
             UpdateTrackInfo(playing);
         }
         void LoadSong(object sender, EventArgs e)
@@ -291,11 +292,25 @@ namespace GBAMusicStudio.UI
         }
         void OpenMIDIConverter(object sender, EventArgs e)
         {
-            new MIDIConverterDialog { Owner = this }.Show();
+            if (midiConverterDialog != null)
+            {
+                midiConverterDialog.Focus();
+                return;
+            }
+            midiConverterDialog = new MIDIConverterDialog { Owner = this };
+            midiConverterDialog.FormClosed += (o, s) => midiConverterDialog = null;
+            midiConverterDialog.Show();
         }
         void OpenAssembler(object sender, EventArgs e)
         {
-            new AssemblerDialog { Owner = this }.Show();
+            if (assemblerDialog != null)
+            {
+                assemblerDialog.Focus();
+                return;
+            }
+            assemblerDialog = new AssemblerDialog { Owner = this };
+            assemblerDialog.FormClosed += (o, s) => assemblerDialog = null;
+            assemblerDialog.Show();
         }
         void OpenTrackEditor(object sender, EventArgs e)
         {
@@ -387,9 +402,13 @@ namespace GBAMusicStudio.UI
             SetSongMaximum();
             PopulatePlaylists(game.Playlists);
 
-            openMIDIToolStripMenuItem.Enabled = openASMToolStripMenuItem.Enabled =
+            openMIDIToolStripMenuItem.Enabled =
                 teToolStripMenuItem.Enabled = vteToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
                 songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
+
+            openASMToolStripMenuItem.Enabled = ROM.Instance.Game.Engine.Type == EngineType.M4A;
+
+            assemblerDialog?.Close(); midiConverterDialog?.Close();
         }
         void UpdateTrackInfo(bool play)
         {
