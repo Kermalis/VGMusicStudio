@@ -62,6 +62,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * mimi
 * Jesse (jelle)
 * SomeShrug
+* Stich991
 
 ----
 # GBA Music Studio Uses:

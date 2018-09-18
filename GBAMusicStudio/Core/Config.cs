@@ -33,9 +33,11 @@ namespace GBAMusicStudio.Core
 
         public override string ToString()
         {
-            var cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
             var songCount = Songs.Where(s => s.Name != Strings.PlaylistEmpty).Count();
-            if (cul == System.Globalization.CultureInfo.GetCultureInfo("it-it"))
+            var cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
+
+            if (cul == System.Globalization.CultureInfo.GetCultureInfo("it") // Italian
+                || cul == System.Globalization.CultureInfo.GetCultureInfo("it-it")) // Italian (Italy)
             {
                 // PlaylistName - (1 Canzoni)
                 // PlaylistName - (2 Canzoni)
