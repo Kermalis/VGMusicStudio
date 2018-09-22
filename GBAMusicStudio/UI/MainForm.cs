@@ -16,14 +16,21 @@ namespace GBAMusicStudio.UI
     class MainForm : Form
     {
         bool stopUI = false, drag = false;
-        AssemblerDialog assemblerDialog; MIDIConverterDialog midiConverterDialog;
-        TrackEditor trackEditor; VoiceTableEditor voiceTableEditor;
         List<sbyte> pianoNotes = new List<sbyte>();
         public readonly bool[] PianoTracks = new bool[16];
+
+        readonly Random rand = new Random();
+        APlaylist curPlaylist;
+        List<ASong> remainingSongs;
 
         readonly int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)
         readonly float sfWidth = 2.35f; // Song combobox and volumebar width
         readonly float spfHeight = 5.5f; // Split panel 1 height
+
+        AssemblerDialog assemblerDialog; MIDIConverterDialog midiConverterDialog;
+        TrackEditor trackEditor; VoiceTableEditor voiceTableEditor;
+
+        #region Controls
 
         IContainer components;
         MenuStrip mainMenu;
@@ -39,6 +46,8 @@ namespace GBAMusicStudio.UI
         ColorSlider positionBar, volumeBar;
         TrackInfoControl trackInfo;
         ImageComboBox.ImageComboBox songsComboBox;
+
+        #endregion
 
         protected override void Dispose(bool disposing)
         {
@@ -137,7 +146,7 @@ namespace GBAMusicStudio.UI
                 Maximum = 0,
                 Size = new Size(sWidth, 27)
             };
-            positionBar.MouseUp += SetPosition;
+            positionBar.MouseUp += SetSongPosition;
             positionBar.MouseDown += (o, e) => drag = true;
             volumeBar = new ColorSlider()
             {
@@ -199,14 +208,14 @@ namespace GBAMusicStudio.UI
             Icon = Resources.Icon;
             MainMenuStrip = mainMenu;
             MinimumSize = new Size(8 + iWidth + 8, 30 + iHeight + 8); // Borders
-            SongPlayer.Instance.SongEnded += () => stopUI = true;
+            SongPlayer.Instance.SongEnded += SongEnded;
             Resize += OnResize;
             Text = "GBA Music Studio";
         }
 
-        void SetPosition(object sender, EventArgs e)
+        void SetSongPosition(object sender, EventArgs e)
         {
-            SongPlayer.Instance.SetPosition(positionBar.Value);
+            SongPlayer.Instance.SetSongPosition(positionBar.Value);
             drag = false;
         }
         void SetSongMaximum()
@@ -219,16 +228,10 @@ namespace GBAMusicStudio.UI
             LoadSong(sender, e);
         }
 
-        public void PreviewSong(Song song, string caption)
-        {
-            Text = "GBA Music Studio - " + caption;
-            bool playing = SongPlayer.Instance.State == PlayerState.Playing; // Play new song if one is already playing
-            Stop(null, null);
-            SongPlayer.Instance.SetSong(song);
-            UpdateTrackInfo(playing);
-        }
         void LoadSong(object sender, EventArgs e)
         {
+            songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
+
             APlaylist mainPlaylist = ROM.Instance.Game.Playlists[0];
             List<ASong> songs = mainPlaylist.Songs.ToList();
             ASong song = songs.SingleOrDefault(s => s.Index == songNumerical.Value);
@@ -261,15 +264,74 @@ namespace GBAMusicStudio.UI
             catch (Exception ex)
             {
                 FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, songNumerical.Value));
-                return;
             }
+
+            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!((songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item is ASong song)) return; // A playlist was selected
-            songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
-            songNumerical.Value = song.Index;
-            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
+            var item = (songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item;
+            if (item is APlaylist playlist)
+            {
+                if (playlist.Songs.Length > 0
+                    && FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.PlayPlaylistTitle, MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    curPlaylist = playlist;
+                    remainingSongs = null;
+                    SongPlayer.Instance.PlaylistPlaying = true;
+                    DetermineNextSong();
+                }
+            }
+            else // Song was selected
+            {
+                songNumerical.Value = ((ASong)item).Index; // Calls LoadSong because of the numerical's event
+            }
+        }
+        void SongEnded() => stopUI = true; // Allow MainForm's thread to do the next work in UpdateUI()
+        public void PreviewSong(Song song, string caption)
+        {
+            Text = "GBA Music Studio - " + caption;
+            bool playing = SongPlayer.Instance.State == PlayerState.Playing; // Play new song if one is already playing
+            Stop(null, null);
+            SongPlayer.Instance.SetSong(song);
+            UpdateTrackInfo(playing);
+        }
+        void PopulatePlaylists(List<APlaylist> playlists)
+        {
+            songsComboBox.ComboBoxClear();
+            foreach (var playlist in playlists)
+            {
+                // Add playlist to combobox
+                songsComboBox.ComboBoxAddItem(new ImageComboBox.ImageComboBoxItem(playlist) { ImageIndex = 0 });
+                // Add songs to combobox
+                songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBox.ImageComboBoxItem(s) { ImageIndex = 1, IndentLevel = 1 }).ToArray());
+            }
+            // Load first song of complete playlist if there is one, otherwise load song 0
+            if (playlists[0].Songs.Length == 0)
+                songNumerical.Value = 0;
+            else
+                songNumerical.Value = playlists[0].Songs[0].Index;
+        }
+        void DetermineNextSong()
+        {
+            if (SongPlayer.Instance.PlaylistPlaying)
+            {
+                // If the playlist has played all songs or is just starting, queue all songs
+                if (remainingSongs == null || remainingSongs.Count == 0)
+                    remainingSongs = curPlaylist.Songs.ToList();
+
+                // Decide which song to play
+                ASong newSong;
+                if (Config.Instance.PlaylistMode == PlaylistMode.Random)
+                    newSong = remainingSongs[rand.Next(0, remainingSongs.Count)];
+                else // Sequential
+                    newSong = remainingSongs[0];
+
+                // Remove song from remaining songs so it isn't picked again
+                remainingSongs.Remove(newSong);
+                songNumerical.Value = newSong.Index; // Calls Loadsong because of the numerical's event
+                Play(null, null);
+            }
         }
 
         void OpenROM(object sender, EventArgs e)
@@ -429,17 +491,6 @@ namespace GBAMusicStudio.UI
                 pauseButton.Text = Strings.PlayerPause;
             teToolStripMenuItem.Enabled = true;
         }
-        void PopulatePlaylists(List<APlaylist> playlists)
-        {
-            songsComboBox.ComboBoxClear();
-            foreach (var playlist in playlists)
-            {
-                songsComboBox.ComboBoxAddItem(new ImageComboBox.ImageComboBoxItem(playlist) { ImageIndex = 0 });
-                songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBox.ImageComboBoxItem(s) { ImageIndex = 1, IndentLevel = 1 }).ToArray());
-            }
-            songNumerical.Value = playlists[0].Songs[0].Index;
-            songsComboBox.SelectedIndex = 0; // Select main playlist
-        }
 
         void Play(object sender, EventArgs e)
         {
@@ -496,33 +547,45 @@ namespace GBAMusicStudio.UI
             if (!System.Threading.Monitor.TryEnter(timerLock)) return;
             try
             {
+                // Song ended in SongPlayer
                 if (stopUI)
                 {
-                    Stop(null, null);
                     stopUI = false;
-                    return;
+                    // Stop if no playlist is playing
+                    if (curPlaylist == null)
+                        Stop(null, null);
+                    else
+                        DetermineNextSong();
                 }
-                ClearPianoNotes();
-                var info = trackInfo.Info;
-                SongPlayer.Instance.GetSongState(info);
-                for (int i = SongPlayer.Instance.NumTracks - 1; i >= 0; i--)
+                // Draw
+                else
                 {
-                    if (!PianoTracks[i]) continue;
+                    // Draw piano notes
+                    ClearPianoNotes();
+                    var info = trackInfo.Info;
+                    SongPlayer.Instance.GetSongState(info);
+                    for (int i = SongPlayer.Instance.NumTracks - 1; i >= 0; i--)
+                    {
+                        if (!PianoTracks[i])
+                            continue;
 
-                    var notes = info.Notes[i];
-                    pianoNotes.AddRange(notes);
-                    foreach (var n in notes)
-                        if (n >= piano.LowNoteID && n <= piano.HighNoteID)
+                        var notes = info.Notes[i];
+                        pianoNotes.AddRange(notes);
+                        foreach (var n in notes)
                         {
-                            piano[n - piano.LowNoteID].NoteOnColor = Config.Instance.GetColor(info.Voices[i], ROM.Instance.Game.Remap, true);
-                            piano.PressPianoKey(n);
+                            if (n >= piano.LowNoteID && n <= piano.HighNoteID)
+                            {
+                                piano[n - piano.LowNoteID].NoteOnColor = Config.Instance.GetColor(info.Voices[i], ROM.Instance.Game.Remap, true);
+                                piano.PressPianoKey(n);
+                            }
                         }
+                    }
+                    // If the user is not dragging the position bar
+                    if (!drag)
+                        UpdateSongPosition(info.Position);
+                    // Draw trackinfo
+                    trackInfo.Invalidate();
                 }
-                if (!drag)
-                {
-                    UpdateSongPosition(info.Position);
-                }
-                trackInfo.Invalidate();
             }
             finally
             {
@@ -583,7 +646,7 @@ namespace GBAMusicStudio.UI
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (playButton.Enabled && keyData == (Keys.Space))
+            if (playButton.Enabled && keyData == Keys.Space)
             {
                 if (SongPlayer.Instance.State == PlayerState.Stopped)
                     Play(null, null);

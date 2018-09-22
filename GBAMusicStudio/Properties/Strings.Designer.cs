@@ -511,20 +511,20 @@ namespace GBAMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Playlist is empty..
+        ///   Looks up a localized string similar to Would you like to play the following playlist?{0}.
         /// </summary>
-        internal static string PlaylistEmpty {
+        internal static string PlayPlaylistBody {
             get {
-                return ResourceManager.GetString("PlaylistEmpty", resourceCulture);
+                return ResourceManager.GetString("PlayPlaylistBody", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Song.
+        ///   Looks up a localized string similar to Play Playlist.
         /// </summary>
-        internal static string PlaylistSongs {
+        internal static string PlayPlaylistTitle {
             get {
-                return ResourceManager.GetString("PlaylistSongs", resourceCulture);
+                return ResourceManager.GetString("PlayPlaylistTitle", resourceCulture);
             }
         }
         

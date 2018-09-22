@@ -178,7 +178,7 @@ namespace GBAMusicStudio.UI
 
         void ListView_ItemActivate(object sender, EventArgs e)
         {
-            SongPlayer.Instance.SetPosition(((SongEvent)listView.SelectedItem.RowObject).AbsoluteTicks);
+            SongPlayer.Instance.SetSongPosition(((SongEvent)listView.SelectedItem.RowObject).AbsoluteTicks);
         }
 
         void AddEvent(object sender, EventArgs e)

@@ -272,12 +272,6 @@
   <data name="PlayerUnpause" xml:space="preserve">
     <value>Unpause</value>
   </data>
-  <data name="PlaylistEmpty" xml:space="preserve">
-    <value>Playlist is empty.</value>
-  </data>
-  <data name="PlaylistSongs" xml:space="preserve">
-    <value>Song</value>
-  </data>
   <data name="SuccessSaveASM" xml:space="preserve">
     <value>ASM saved to {0}.</value>
     <comment>{0} is the file name.</comment>
@@ -357,5 +351,12 @@
   </data>
   <data name="VoiceTableEditorTitle" xml:space="preserve">
     <value>VoiceTable Editor</value>
+  </data>
+  <data name="PlayPlaylistBody" xml:space="preserve">
+    <value>Would you like to play the following playlist?{0}</value>
+    <comment>{0} is newline follow by the playlist.</comment>
+  </data>
+  <data name="PlayPlaylistTitle" xml:space="preserve">
+    <value>Play Playlist</value>
   </data>
 </root>

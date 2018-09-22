@@ -33,7 +33,7 @@ namespace GBAMusicStudio.Core
 
         public override string ToString()
         {
-            var songCount = Songs.Where(s => s.Name != Strings.PlaylistEmpty).Count();
+            int songCount = Songs.Length;
             var cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
 
             if (cul == System.Globalization.CultureInfo.GetCultureInfo("it") // Italian
@@ -125,6 +125,8 @@ namespace GBAMusicStudio.Core
         public byte RefreshRate { get; private set; }
         public bool CenterIndicators { get; private set; }
         public bool PanpotIndicators { get; private set; }
+        public byte PlaylistSongLoops { get; private set; }
+        public PlaylistMode PlaylistMode { get; private set; }
         public byte Volume { get; private set; }
         public HSLColor[] Colors { get; private set; }
         public Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
@@ -148,6 +150,8 @@ namespace GBAMusicStudio.Core
             RefreshRate = (byte)Utils.ParseValue(mapping.Children["RefreshRate"].ToString());
             CenterIndicators = bool.Parse(mapping.Children["CenterIndicators"].ToString());
             PanpotIndicators = bool.Parse(mapping.Children["PanpotIndicators"].ToString());
+            PlaylistSongLoops = (byte)Utils.ParseValue(mapping.Children["PlaylistSongLoops"].ToString());
+            PlaylistMode = (PlaylistMode)Enum.Parse(typeof(PlaylistMode), mapping.Children["PlaylistMode"].ToString());
             Volume = (byte)Utils.ParseValue(mapping.Children["Volume"].ToString());
 
             var cmap = (YamlMappingNode)mapping.Children["Colors"];
@@ -280,14 +284,9 @@ namespace GBAMusicStudio.Core
                     }
                 }
 
-                // Full playlist
+                // The complete playlist
                 if (!playlists.Any(p => p.Name == "Music"))
                     playlists.Insert(0, new APlaylist("Music", playlists.Select(p => p.Songs).UniteAll().OrderBy(s => s.Index).ToArray()));
-
-                // If playlist is empty, add an empty entry
-                for (int i = 0; i < playlists.Count; i++)
-                    if (playlists[i].Songs.Length == 0)
-                        playlists[i] = new APlaylist(playlists[i].Name, new ASong[] { new ASong(0, Strings.PlaylistEmpty) });
 
                 Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists, remap,
                     voiceTable, sampleTable, sampleTableSize));

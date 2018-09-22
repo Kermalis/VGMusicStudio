@@ -22,6 +22,10 @@ namespace GBAMusicStudio.Core
 
         public short Tempo;
         int tempoStack;
+        public bool PlaylistPlaying = false;
+        // Number of loops that have passed
+        int loops;
+        // Song position in ticks
         int position;
         Track[] tracks;
         int longestTrack;
@@ -65,7 +69,7 @@ namespace GBAMusicStudio.Core
             VoiceTable.ClearCache();
             SoundMixer.Instance.Init(song.GetReverb());
         }
-        public void SetPosition(int p)
+        public void SetSongPosition(int p)
         {
             bool pause = State == PlayerState.Playing;
             if (pause) Pause();
@@ -77,7 +81,8 @@ namespace GBAMusicStudio.Core
                 int elapsed = 0;
                 while (!track.Stopped)
                 {
-                    ExecuteNext(i);
+                    bool u = false, l = false;
+                    ExecuteNext(i, ref u, ref l);
                     // elapsed == 400, delay == 4, p == 402
                     if (elapsed <= p && elapsed + track.Delay > p)
                     {
@@ -95,7 +100,7 @@ namespace GBAMusicStudio.Core
         public void RefreshSong()
         {
             DetermineLongestTrack();
-            SetPosition(position);
+            SetSongPosition(position);
         }
         void DetermineLongestTrack()
         {
@@ -123,7 +128,7 @@ namespace GBAMusicStudio.Core
                 tracks[i].Init();
             DetermineLongestTrack();
 
-            position = 0; tempoStack = 0;
+            position = tempoStack = loops = 0;
             Tempo = Engine.GetDefaultTempo();
 
             State = PlayerState.Playing;
@@ -238,11 +243,10 @@ namespace GBAMusicStudio.Core
             return null;
         }
 
-        // Returns a bool which indicates whether the track needs to update volume, pan, or pitch
-        bool ExecuteNext(int i)
+        // "update" signals if the track needs to update volume, pan, or pitch
+        // "loop" signals if the track just looped
+        void ExecuteNext(int i, ref bool update, ref bool loop)
         {
-            bool update = false;
-
             var track = tracks[i];
             var mlTrack = track as MLSSTrack;
             var e = Song.Commands[i][track.CommandIndex];
@@ -263,6 +267,7 @@ namespace GBAMusicStudio.Core
                     position = Song.Commands[i][gotoCmd].AbsoluteTicks - 1;
                 track.CommandIndex = gotoCmd - 1; // -1 for incoming ++
                 track.NextCommandIndex = track.CommandIndex + 1;
+                loop = true;
             }
             else if (e.Command is CallCommand patt)
             {
@@ -377,8 +382,6 @@ namespace GBAMusicStudio.Core
                 track.CommandIndex++;
                 track.NextCommandIndex++;
             }
-
-            return update;
         }
         void Tick()
         {
@@ -393,7 +396,7 @@ namespace GBAMusicStudio.Core
                     while (tempoStack >= wait)
                     {
                         tempoStack -= wait;
-                        bool allDone = true;
+                        bool allDone = true, loop = false;
                         for (int i = 0; i < NumTracks; i++)
                         {
                             Track track = tracks[i];
@@ -402,12 +405,15 @@ namespace GBAMusicStudio.Core
                             track.Tick();
                             bool update = false;
                             while (track.Delay == 0 && !track.Stopped)
-                                if (ExecuteNext(i))
-                                    update = true;
+                                ExecuteNext(i, ref update, ref loop);
                             if (update || track.MODDepth > 0)
                                 SoundMixer.Instance.UpdateChannels(i, track.GetVolume(), track.GetPan(), track.GetPitch());
                         }
                         position++;
+                        if (loop)
+                            loops++;
+                        if (PlaylistPlaying && loops > Config.Instance.PlaylistSongLoops)
+                            allDone = true;
                         if (allDone)
                         {
                             Stop();

@@ -252,12 +252,6 @@
   <data name="PlayerUnpause" xml:space="preserve">
     <value>Riprendere</value>
   </data>
-  <data name="PlaylistEmpty" xml:space="preserve">
-    <value>La Playlist è vuota.</value>
-  </data>
-  <data name="PlaylistSongs" xml:space="preserve">
-    <value>Canzoni</value>
-  </data>
   <data name="SuccessSaveASM" xml:space="preserve">
     <value>ASM salvata in {0}.</value>
   </data>

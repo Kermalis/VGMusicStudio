@@ -6,6 +6,7 @@ namespace GBAMusicStudio.Core
 
     enum ADSRState { Initializing, Rising, Decaying, Playing, Releasing, Dying, Dead }
     enum PlayerState { Stopped, Playing, Paused, ShutDown }
+    enum PlaylistMode { Random, Sequential }
 
     enum M4AVoiceType { Direct, Square1, Square2, Wave, Noise, Invalid5, Invalid6, Invalid7 }
     [Flags]

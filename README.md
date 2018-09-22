@@ -41,7 +41,8 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Show tooltips in the VoiceTableEditor which provide a huge chunk of information
 * MIDI saving - preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
-* Add playing playlist from Games.yaml and fading out after a configurable amount of loops
+* Songs should fade out in playlist mode
+* Exiting playlist mode with the stop button
 * Maybe a nice waveform
 * Exception handling for invalid config
 * Remove "private set" in config and add saving of config
