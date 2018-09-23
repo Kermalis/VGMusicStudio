@@ -333,6 +333,12 @@ namespace GBAMusicStudio.UI
                 Play(null, null);
             }
         }
+        void EndCurrentPlaylist()
+        {
+            curPlaylist = null;
+            remainingSongs = null;
+            SongPlayer.Instance.PlaylistPlaying = false;
+        }
 
         void OpenROM(object sender, EventArgs e)
         {
@@ -344,6 +350,7 @@ namespace GBAMusicStudio.UI
             try
             {
                 new ROM(d.FileName);
+                EndCurrentPlaylist();
             }
             catch (Exception ex)
             {

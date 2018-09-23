@@ -12,6 +12,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * You can import MIDI files without having to convert them yourself
 * You can save the voice tables to SF2 SoundFont files
 * You can save songs to ASM S files
+* You can play songs in a playlist like other music players
 * The UI scales to the desired window size
 * You can see representation of notes being played
 * It is not intimidating to use
@@ -31,6 +32,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Support pret dissassembly projects
 * Running status in song disassembler
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
+* Add Pokémon compressed samples
 
 ## Mario & Luigi: Superstar Saga Engine
 * Voice table - Find out the last 4 bytes in voice entry struct
