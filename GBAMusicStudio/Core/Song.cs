@@ -189,7 +189,7 @@ namespace GBAMusicStudio.Core
                             case 0xB3: command = new CallCommand { Offset = reader.ReadInt32() - ROM.Pak }; break;
                             case 0xB4: command = new ReturnCommand(); break;
                             case 0xB5: command = new RepeatCommand { Times = reader.ReadByte(), Offset = reader.ReadInt32() - ROM.Pak }; break;
-                            case 0xB9: command = new MemoryAccessCommand { Arg1 = reader.ReadByte(), Arg2 = reader.ReadByte(), Arg3 = reader.ReadByte() }; break;
+                            case 0xB9: command = new MemoryAccessCommand { Operator = reader.ReadByte(), Address = reader.ReadByte(), Data = reader.ReadByte() }; break;
                             case 0xBA: command = new PriorityCommand { Priority = reader.ReadByte() }; break;
                             case 0xBB: command = new TempoCommand { Tempo = (short)(reader.ReadByte() * 2) }; break;
                             case 0xBC: command = new KeyShiftCommand { Shift = reader.ReadSByte() }; break;
@@ -384,7 +384,7 @@ namespace GBAMusicStudio.Core
                         else if (c is ReturnCommand pend)
                             file.WriteLine("\t.byte\tPEND");
                         else if (c is MemoryAccessCommand memacc)
-                            file.WriteLine($"\t.byte\t\tMEMACC, {memacc.Arg1,4}, {memacc.Arg2,4}, {memacc.Arg3}");
+                            file.WriteLine($"\t.byte\t\tMEMACC, {memacc.Operator,4}, {memacc.Address,4}, {memacc.Data}");
                         else if (c is LibraryCommand xcmd)
                             file.WriteLine($"\t.byte\t\tXCMD  , {xcmd.Command,4}, {xcmd.Argument}");
                     }
@@ -495,6 +495,11 @@ namespace GBAMusicStudio.Core
                         case LibraryCommand xcmd:
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 30, xcmd.Command));
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 29, xcmd.Argument));
+                            break;
+                        case MemoryAccessCommand memacc:
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 13, memacc.Operator));
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 14, memacc.Address));
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 12, memacc.Data));
                             break;
                         case TempoCommand tempo:
                             var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };

@@ -307,9 +307,9 @@ namespace GBAMusicStudio.Core
     {
         public string Name => "Memory Access";
 
-        public byte Arg1, Arg2, Arg3;
+        public byte Operator, Address, Data;
 
-        public string Arguments => $"{Arg1}, {Arg2}, {Arg3}";
+        public string Arguments => $"{Operator}, {Address}, {Data}";
     }
     class LibraryCommand : ICommand
     {
