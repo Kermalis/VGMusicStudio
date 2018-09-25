@@ -63,7 +63,7 @@ A88E:
       49: "Ghostly Encounter"
       50: "Bean Time!"
 A88P:
-  Name: "Mario & Luigi - Superstar Saga (P)"
+  Name: "Mario & Luigi - Superstar Saga (Europe)"
   SongTable: 0x21DC50
   VoiceTable: 0x21E2AC
   SampleTable: 0xA82088
@@ -94,7 +94,7 @@ AGSE:
     GoldenSunSynths: True
     TrackLimit: 10
 AINJ:
-  Name: "Initial D: Another Stage (J)"
+  Name: "Initial D: Another Stage (Japan)"
   Creator: "Sammy Corporation"
   SongTable: 0x648B38
   SongTableSize: 88
@@ -307,7 +307,7 @@ AZLE:
   Creator: "Nintendo, Capcom"
   SongTable: 0x3C3BBC
   SongTableSize: 545
-B24P:
+B24E:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   Creator: "Chunsoft"
   SongTable: 0x1E866BC
@@ -396,6 +396,10 @@ B24P:
       41: "41"
       51: "Exploration Failed"
       52: "Exploration Complete!"
+B24P:
+  Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
+  SongTable: 0x1E866BC
+  Copy: "B24E"
 BMXE:
   Name: "Metroid: Zero Mission (USA)"
   Creator: "Nintendo"
