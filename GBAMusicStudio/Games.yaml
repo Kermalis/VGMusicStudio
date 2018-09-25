@@ -93,6 +93,15 @@ AGSE:
     Frequency: 21024
     GoldenSunSynths: True
     TrackLimit: 10
+AINJ:
+  Name: "Initial D: Another Stage (J)"
+  Creator: "Sammy Corporation"
+  SongTable: 0x648B38
+  SongTableSize: 88
+  Engine:
+    Frequency: 10512
+    TrackLimit: 10
+    Volume: 13
 AMKE:
   Name: "Mario Kart: Super Circuit (USA)"
   Creator: "Nintendo"
@@ -294,7 +303,7 @@ AXVE:
       396: "Pokémon Contest! (Multiplayer - Player 4)"
       467: "Unused - Team Rocket Appears!"
 AZLE:
-  Name: "The Legend of Zelda: A Link to the Past and Four Swords"
+  Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
   Creator: "Nintendo, Capcom"
   SongTable: 0x3C3BBC
   SongTableSize: 545
@@ -388,7 +397,7 @@ B24P:
       51: "Exploration Failed"
       52: "Exploration Complete!"
 BMXE:
-  Name: "Metroid: Zero Mission"
+  Name: "Metroid: Zero Mission (USA)"
   Creator: "Nintendo"
   SongTable: 0x8F2C0
   SongTableSize: 708
@@ -723,7 +732,7 @@ BPRE:
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
 BZME:
-  Name: "The Legend of Zelda: The Minish Cap"
+  Name: "The Legend of Zelda: The Minish Cap (USA)"
   Creator: "Capcom, Flagship"
   SongTable: 0xA11DBC
   SongTableSize: 546
