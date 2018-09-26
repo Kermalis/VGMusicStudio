@@ -452,7 +452,18 @@ namespace GBAMusicStudio.UI
 
             try
             {
-                SongPlayer.Instance.Song.SaveAsMIDI(d.FileName);
+                var args = new MIDISaveArgs
+                {
+                    SaveBeforeKeysh = false,
+                    //BaseVolume = 80,
+                    TimeSignatures = new List<Pair<int, Pair<byte, byte>>>
+                    {
+                        new Pair<int, Pair<byte, byte>>(0, new Pair<byte, byte>(4, 4)),
+                        //new Pair<int, Pair<byte, byte>>(12, new Pair<byte, byte>(4, 4)),
+                        //new Pair<int, Pair<byte, byte>>(84, new Pair<byte, byte>(4, 4)),
+                    }
+                };
+                SongPlayer.Instance.Song.SaveAsMIDI(d.FileName, args);
                 FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDI, d.FileName), Text);
             }
             catch (Exception ex)

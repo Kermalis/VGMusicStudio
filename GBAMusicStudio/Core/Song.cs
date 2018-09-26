@@ -92,7 +92,20 @@ namespace GBAMusicStudio.Core
         }
 
         public abstract void SaveAsASM(string fileName);
-        public abstract void SaveAsMIDI(string fileName);
+        public abstract void SaveAsMIDI(string fileName, MIDISaveArgs args);
+        protected void AddTimeSignaturesToTrack(MIDISaveArgs args, Sanford.Multimedia.Midi.Track track)
+        {
+            var ts = new TimeSignatureBuilder();
+            foreach (var e in args.TimeSignatures)
+            {
+                ts.Numerator = e.Item2.Item1;
+                ts.Denominator = e.Item2.Item2;
+                ts.ClocksPerMetronomeClick = 24;
+                ts.ThirtySecondNotesPerQuarterNote = 8;
+                ts.Build();
+                track.Insert(e.Item1, ts.Result);
+            }
+        }
     }
 
     abstract class M4ASong : Song
@@ -408,7 +421,7 @@ namespace GBAMusicStudio.Core
                 file.WriteLine("\t.end");
             }
         }
-        public override void SaveAsMIDI(string fileName)
+        public override void SaveAsMIDI(string fileName, MIDISaveArgs args)
         {
             if (NumTracks == 0)
                 throw new InvalidDataException(Strings.ErrorNoTracks);
@@ -417,12 +430,14 @@ namespace GBAMusicStudio.Core
             var midi = new Sequence(24) { Format = 1 };
             var metaTrack = new Sanford.Multimedia.Midi.Track();
             midi.Add(metaTrack);
+            AddTimeSignaturesToTrack(args, metaTrack);
 
             for (int i = 0; i < NumTracks; i++)
             {
                 var track = new Sanford.Multimedia.Midi.Track();
                 midi.Add(track);
 
+                bool foundKeysh = false;
                 int endOfPattern = 0, startOfPatternTicks = 0, endOfPatternTicks = 0, shift = 0;
                 var playing = new List<M4ANoteCommand>();
 
@@ -431,6 +446,17 @@ namespace GBAMusicStudio.Core
                     var e = Commands[i][j];
                     int ticks = e.AbsoluteTicks + (endOfPatternTicks - startOfPatternTicks);
 
+                    // Preliminary check for saving events before keysh
+                    switch (e.Command)
+                    {
+                        case KeyShiftCommand keysh: foundKeysh = true; break;
+                        default:
+                            // If we should not save before keysh then skip this event
+                            if (!args.SaveBeforeKeysh && !foundKeysh)
+                                continue;
+                            break;
+                    }
+                    // Now do the event magic...
                     switch (e.Command)
                     {
                         case KeyShiftCommand keysh:
@@ -466,7 +492,13 @@ namespace GBAMusicStudio.Core
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
                             break;
                         case VolumeCommand vol:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume));
+                            // If we want to match a BaseVolume then we need to reverse calculate
+                            double d = args.BaseVolume / (double)0x7F;
+                            int volume = (int)(vol.Volume / d);
+                            // If there are rounding errors, fix them (happens if BaseVolume is not 127 and BaseVolume is not vol.Volume)
+                            if (volume * args.BaseVolume / 0x7F == vol.Volume - 1)
+                                volume++;
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, volume));
                             break;
                         case PanpotCommand pan:
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
@@ -569,15 +601,17 @@ namespace GBAMusicStudio.Core
         {
             throw new PlatformNotSupportedException(Strings.ErrorEngineSaveASM);
         }
-        public override void SaveAsMIDI(string fileName)
+        public override void SaveAsMIDI(string fileName, MIDISaveArgs args)
         {
             if (NumTracks == 0)
                 throw new InvalidDataException(Strings.ErrorNoTracks);
 
             CalculateTicks();
-            var midi = new Sequence(96) { Format = 1 };
+            var midi = new Sequence(48 * 2) { Format = 1 };
             var metaTrack = new Sanford.Multimedia.Midi.Track();
             midi.Add(metaTrack);
+            // TOOD: Check if this is valid
+            //AddTimeSignaturesToTrack(args, metaTrack);
 
             for (int i = 0; i < NumTracks; i++)
             {

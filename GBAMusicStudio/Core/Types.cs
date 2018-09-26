@@ -1,4 +1,6 @@
-﻿using System;
+﻿using GBAMusicStudio.Util;
+using System;
+using System.Collections.Generic;
 
 namespace GBAMusicStudio.Core
 {
@@ -16,7 +18,7 @@ namespace GBAMusicStudio.Core
         Fixed = 0x08, // Direct
         OffWithNoise = 0x08, // Applies to the others
         Reversed = 0x10, // Direct
-        Compressed = 0x20, // Direct
+        Compressed = 0x20, // Direct (Only in Pokémon main series games)
 
         // These are flags that cancel out every other bit after them if set
         // Therefore you should check with equality only
@@ -39,9 +41,15 @@ namespace GBAMusicStudio.Core
     struct ADSR { public byte A, D, S, R; }
     struct Note
     {
-        public sbyte Key;
-        public sbyte OriginalKey;
+        public sbyte Key, OriginalKey;
         public byte Velocity;
         public int Duration; // -1 = forever
+    }
+
+    class MIDISaveArgs
+    {
+        public bool SaveBeforeKeysh; // M4A
+        public int BaseVolume = 127;
+        public List<Pair<int, Pair<byte, byte>>> TimeSignatures; // {AbsoluteTick, {Numerator, Denominator}}
     }
 }
