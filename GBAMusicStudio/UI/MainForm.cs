@@ -455,7 +455,7 @@ namespace GBAMusicStudio.UI
                 var args = new MIDISaveArgs
                 {
                     SaveBeforeKeysh = false,
-                    //BaseVolume = 80,
+                    ReverseVolume = false,
                     TimeSignatures = new List<Pair<int, Pair<byte, byte>>>
                     {
                         new Pair<int, Pair<byte, byte>>(0, new Pair<byte, byte>(4, 4)),

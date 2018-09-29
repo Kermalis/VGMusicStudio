@@ -49,7 +49,7 @@ namespace GBAMusicStudio.Core
     class MIDISaveArgs
     {
         public bool SaveBeforeKeysh; // M4A
-        public int BaseVolume = 127;
+        public bool ReverseVolume = false;
         public List<Pair<int, Pair<byte, byte>>> TimeSignatures; // {AbsoluteTick, {Numerator, Denominator}}
     }
 }

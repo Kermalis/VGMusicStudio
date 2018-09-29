@@ -426,6 +426,14 @@ namespace GBAMusicStudio.Core
             if (NumTracks == 0)
                 throw new InvalidDataException(Strings.ErrorNoTracks);
 
+            int baseVolume = 0x7F;
+            // Find highest volume
+            if (args.ReverseVolume)
+            {
+                baseVolume = Commands.UniteAll().Where(e => e.Command is VolumeCommand).Select(e => ((VolumeCommand)e.Command).Volume).Max();
+                Console.WriteLine("Reversing volume back to {0}.", baseVolume);
+            }
+
             CalculateTicks();
             var midi = new Sequence(24) { Format = 1 };
             var metaTrack = new Sanford.Multimedia.Midi.Track();
@@ -492,11 +500,10 @@ namespace GBAMusicStudio.Core
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
                             break;
                         case VolumeCommand vol:
-                            // If we want to match a BaseVolume then we need to reverse calculate
-                            double d = args.BaseVolume / (double)0x7F;
+                            double d = baseVolume / (double)0x7F;
                             int volume = (int)(vol.Volume / d);
-                            // If there are rounding errors, fix them (happens if BaseVolume is not 127 and BaseVolume is not vol.Volume)
-                            if (volume * args.BaseVolume / 0x7F == vol.Volume - 1)
+                            // If there are rounding errors, fix them (happens if baseVolume is not 127 and baseVolume is not vol.Volume)
+                            if (volume * baseVolume / 0x7F == vol.Volume - 1)
                                 volume++;
                             track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, volume));
                             break;
