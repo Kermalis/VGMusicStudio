@@ -431,7 +431,7 @@ namespace GBAMusicStudio.Core
             if (args.ReverseVolume)
             {
                 baseVolume = Commands.UniteAll().Where(e => e.Command is VolumeCommand).Select(e => ((VolumeCommand)e.Command).Volume).Max();
-                Console.WriteLine("Reversing volume back to {0}.", baseVolume);
+                Console.WriteLine("Reversing volume back from {0}.", baseVolume);
             }
 
             CalculateTicks();
