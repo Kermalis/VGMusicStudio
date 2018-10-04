@@ -1,8 +1,8 @@
-﻿using GBAMusicStudio.Properties;
-using GBAMusicStudio.Util;
+﻿using GBAMusicStudio.Util;
 using Humanizer;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using YamlDotNet.RepresentationModel;
@@ -36,12 +36,12 @@ namespace GBAMusicStudio.Core
             int songCount = Songs.Length;
             var cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
 
-            if (cul == System.Globalization.CultureInfo.GetCultureInfo("it") // Italian
-                || cul == System.Globalization.CultureInfo.GetCultureInfo("it-it")) // Italian (Italy)
+            if (cul.Equals(CultureInfo.CreateSpecificCulture("it")) // Italian
+                || cul.Equals(CultureInfo.CreateSpecificCulture("it-it"))) // Italian (Italy)
             {
                 // PlaylistName - (1 Canzoni)
                 // PlaylistName - (2 Canzoni)
-                return $"{Name} - ({songCount} Canzoni)";
+                return $"{Name} - ({songCount} {(songCount == 1 ? "Canzone" : "Canzoni")})";
             }
             else // Fallback to en-US
             {
