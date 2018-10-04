@@ -315,4 +315,10 @@
   <data name="VoiceTableEditorTitle" xml:space="preserve">
     <value>Editor VoiceTable</value>
   </data>
+  <data name="PlayPlaylistBody" xml:space="preserve">
+    <value>Desideri riprodurre la seguente Playlist?</value>
+  </data>
+  <data name="PlayPlaylistTitle" xml:space="preserve">
+    <value>Riproduci Playlist</value>
+  </data>
 </root>
