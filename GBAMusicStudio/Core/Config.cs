@@ -11,14 +11,20 @@ namespace GBAMusicStudio.Core
 {
     class ASong
     {
-        public readonly short Index;
+        public readonly int Index;
         public readonly string Name;
 
-        public ASong(short index, string name)
+        public ASong(int index, string name)
         {
             Index = index; Name = name;
         }
 
+        public override bool Equals(object obj)
+        {
+            if (!(obj is ASong other)) return false;
+            return other.Index == Index && other.Name == Name;
+        }
+        public override int GetHashCode() => unchecked(Index.GetHashCode() ^ Name.GetHashCode());
         public override string ToString() => Name;
     }
     class APlaylist
@@ -279,7 +285,7 @@ namespace GBAMusicStudio.Core
                     {
                         var songs = new List<ASong>();
                         foreach (var song in (YamlMappingNode)kvp.Value)
-                            songs.Add(new ASong(short.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
+                            songs.Add(new ASong(int.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
                         playlists.Add(new APlaylist(kvp.Key.ToString(), songs.ToArray()));
                     }
                 }
