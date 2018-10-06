@@ -484,7 +484,7 @@ namespace GBAMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PreviousSong.
+        ///   Looks up a localized string similar to Previous Song.
         /// </summary>
         internal static string PlayerPreviousSong {
             get {

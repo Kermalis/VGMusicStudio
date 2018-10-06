@@ -698,9 +698,15 @@ namespace GBAMusicStudio.UI
             if (TaskbarManager.IsPlatformSupported)
             {
                 if (SongPlayer.Instance.PlaylistPlaying)
+                {
                     prevTButton.Enabled = playedSongs.Count > 0;
+                    nextTButton.Enabled = true;
+                }
                 else
-                    prevTButton.Enabled = songNumerical.Value > 0;
+                {
+                    prevTButton.Enabled = curSong > 0;
+                    nextTButton.Enabled = curSong < songNumerical.Maximum;
+                }
 
                 switch (SongPlayer.Instance.State)
                 {
@@ -709,11 +715,6 @@ namespace GBAMusicStudio.UI
                     case PlayerState.Paused: toggleTButton.Icon = Resources.IconPlay; toggleTButton.Tooltip = Strings.PlayerUnpause; break;
                 }
                 toggleTButton.Enabled = true;
-
-                if (SongPlayer.Instance.PlaylistPlaying)
-                    nextTButton.Enabled = true;
-                else
-                    nextTButton.Enabled = songNumerical.Value < songNumerical.Maximum;
             }
         }
 

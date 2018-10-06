@@ -363,6 +363,6 @@
     <value>Next Song</value>
   </data>
   <data name="PlayerPreviousSong" xml:space="preserve">
-    <value>PreviousSong</value>
+    <value>Previous Song</value>
   </data>
 </root>
