@@ -439,6 +439,15 @@ namespace GBAMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Next Song.
+        /// </summary>
+        internal static string PlayerNextSong {
+            get {
+                return ResourceManager.GetString("PlayerNextSong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notes.
         /// </summary>
         internal static string PlayerNotes {
@@ -471,6 +480,15 @@ namespace GBAMusicStudio.Properties {
         internal static string PlayerPosition {
             get {
                 return ResourceManager.GetString("PlayerPosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PreviousSong.
+        /// </summary>
+        internal static string PlayerPreviousSong {
+            get {
+                return ResourceManager.GetString("PlayerPreviousSong", resourceCulture);
             }
         }
         

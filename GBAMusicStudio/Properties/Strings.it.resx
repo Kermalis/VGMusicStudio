@@ -321,4 +321,10 @@
   <data name="PlayPlaylistTitle" xml:space="preserve">
     <value>Riproduci Playlist</value>
   </data>
+  <data name="PlayerNextSong" xml:space="preserve">
+    <value>Brano Successivo</value>
+  </data>
+  <data name="PlayerPreviousSong" xml:space="preserve">
+    <value>Brano Precedente</value>
+  </data>
 </root>

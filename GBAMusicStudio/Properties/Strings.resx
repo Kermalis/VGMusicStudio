@@ -359,4 +359,10 @@
   <data name="PlayPlaylistTitle" xml:space="preserve">
     <value>Play Playlist</value>
   </data>
+  <data name="PlayerNextSong" xml:space="preserve">
+    <value>Next Song</value>
+  </data>
+  <data name="PlayerPreviousSong" xml:space="preserve">
+    <value>PreviousSong</value>
+  </data>
 </root>

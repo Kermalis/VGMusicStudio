@@ -7,6 +7,8 @@ namespace GBAMusicStudio.Util
 {
     static class Utils
     {
+        static readonly Random rng = new Random();
+
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
         {
             if (val.CompareTo(min) < 0) return min;
@@ -38,12 +40,23 @@ namespace GBAMusicStudio.Util
                 output = output.Union(i);
             return output;
         }
-        public static string Print<T>(this IEnumerable<T> arr, bool parenthesis = true)
+        public static string Print<T>(this IEnumerable<T> source, bool parenthesis = true)
         {
             string str = parenthesis ? "( " : "";
-            str += string.Join(", ", arr);
+            str += string.Join(", ", source);
             str += parenthesis ? " )" : "";
             return str;
+        }
+        // Fisher-Yates Shuffle
+        public static void Shuffle<T>(this IList<T> source)
+        {
+            for (int a = 0; a < source.Count - 1; a++)
+            {
+                int b = rng.Next(a, source.Count);
+                T value = source[a];
+                source[a] = source[b];
+                source[b] = value;
+            }
         }
     }
 }

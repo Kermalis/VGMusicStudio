@@ -51,7 +51,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Let the on-screen piano play notes or interact with a MIDI keyboard
 * Offset for the event you're editing
 * Put the event parameter as text in the parameter name label, so there is reference to the original value (or in MODT/Note's cases, text representation)
-* Buttons in the taskbar like with most music players
 * Tempo numerical (it fits)
 * Detachable piano
 * Help dialog that explains the commands for each engine and config options

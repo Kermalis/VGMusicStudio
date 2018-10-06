@@ -62,6 +62,7 @@
     <Reference Include="ObjectListView, Version=2.9.1.1072, Culture=neutral, PublicKeyToken=b1c5bf581481bcd4, processorArchitecture=MSIL">
       <HintPath>..\packages\ObjectListView.Official.2.9.1\lib\net20\ObjectListView.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Sanford.Multimedia.Midi, Version=6.6.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -134,6 +135,10 @@
     <Compile Include="Util\TimeBarrier.cs" />
     <Compile Include="Util\Tuple.cs" />
     <Compile Include="Util\Utils.cs" />
+    <None Include="Properties\Previous.ico" />
+    <None Include="Properties\Play.ico" />
+    <None Include="Properties\Pause.ico" />
+    <None Include="Properties\Next.ico" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
