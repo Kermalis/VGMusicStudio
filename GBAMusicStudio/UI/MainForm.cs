@@ -754,7 +754,7 @@ namespace GBAMusicStudio.UI
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (playButton.Enabled && keyData == Keys.Space)
+            if (playButton.Enabled && !songsComboBox.Focused && keyData == Keys.Space)
             {
                 if (SongPlayer.Instance.State == PlayerState.Stopped)
                     Play();
