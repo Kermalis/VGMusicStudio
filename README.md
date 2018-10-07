@@ -2,7 +2,7 @@
 
 A tool that is designed to be a Sappy replacement as well as support different game engines.
 
-![Preview](https://i.imgur.com/ohBwyF0.gif)
+![Preview](https://i.imgur.com/BJI8GU3.gif)
 
 ----
 # Some Advantages Over Sappy:
@@ -40,19 +40,20 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Find channel and track limits
 
 ## General
-* Show tooltips in the VoiceTableEditor which provide a huge chunk of information
-* MIDI saving - preview the MIDI with the Sequencer class
+* MIDI saving - Preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
-* Songs should fade out in playlist mode
-* Exiting playlist mode with the stop button
+* MIDI saving - Make errors more clear
+* Playlist mode - Songs should fade out
+* Playlist mode - A way to exiting playlist mode
+* Config - Exception handling
+* Config - Saving
+* Voice table editor - Tooltips which provide a huge chunk of information
+* Track editor - Offset for the event you're editing
+* Track editor - Put the event parameter as text in the parameter name label, so there is reference to the original value (or in MODT/Note's cases, text representation)
 * Maybe a nice waveform
-* Exception handling for invalid config
-* Remove "private set" in config and add saving of config
 * Let the on-screen piano play notes or interact with a MIDI keyboard
-* Offset for the event you're editing
-* Put the event parameter as text in the parameter name label, so there is reference to the original value (or in MODT/Note's cases, text representation)
-* Tempo numerical (it fits)
 * Detachable piano
+* Tempo numerical (it fits)
 * Help dialog that explains the commands for each engine and config options
 * If I go insane I'll support the MOD music format
 
