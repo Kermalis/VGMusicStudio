@@ -21,7 +21,8 @@ namespace GBAMusicStudio.Core
         public readonly int SamplesPerBuffer;
 
         public float MasterVolume = 1; public float DSMasterVolume { get; private set; }
-        int numTracks; // 1 will be for program use
+        int fadeMicroFramesLeft; float fadePos, fadeStepPerMicroframe;
+        int numTracks; // Last will be for program use
 
         readonly WaveBuffer audio;
         float[][] trackBuffers;
@@ -94,6 +95,19 @@ namespace GBAMusicStudio.Core
         }
 
         public void SetMute(int owner, bool m) => mutes[owner] = m;
+        public void FadeIn()
+        {
+            fadePos = 0;
+            fadeMicroFramesLeft = (int)(Config.Instance.PlaylistFadeOutLength / 1000f * (Engine.AGB_FPS * Config.Instance.InterFrames));
+            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+        }
+        public void FadeOut()
+        {
+            fadePos = 1;
+            fadeMicroFramesLeft = (int)(Config.Instance.PlaylistFadeOutLength / 1000f * (Engine.AGB_FPS * Config.Instance.InterFrames));
+            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+        }
+        public bool IsFadeDone() => fadeMicroFramesLeft == 0;
 
         public DirectSoundChannel NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
         {
@@ -225,15 +239,28 @@ namespace GBAMusicStudio.Core
                 if (c.OwnerIdx != 0xFF)
                     c.Process(trackBuffers[c.OwnerIdx]);
 
+            float fromMaster = MasterVolume, toMaster = MasterVolume;
+            if (fadeMicroFramesLeft > 0)
+            {
+                const float scale = 10f / 6f;
+                fromMaster *= (fadePos < 0) ? 0 : (float)Math.Pow(fadePos, scale);
+                fadePos += fadeStepPerMicroframe;
+                toMaster *= (fadePos < 0) ? 0 : (float)Math.Pow(fadePos, scale);
+                fadeMicroFramesLeft--;
+            }
+            float masterStep = (toMaster - fromMaster) * SamplesReciprocal;
             for (int i = 0; i < numTracks; i++)
             {
                 if (mutes[i]) continue;
 
+                float masterLevel = fromMaster;
                 var buf = trackBuffers[i];
                 for (int j = 0; j < SamplesPerBuffer; j++)
                 {
-                    audio.FloatBuffer[j * 2] += buf[j * 2] * MasterVolume;
-                    audio.FloatBuffer[j * 2 + 1] += buf[j * 2 + 1] * MasterVolume;
+                    audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
+                    audio.FloatBuffer[j * 2 + 1] += buf[j * 2 + 1] * masterLevel;
+
+                    masterLevel += masterStep;
                 }
             }
 

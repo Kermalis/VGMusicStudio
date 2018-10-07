@@ -411,8 +411,12 @@ namespace GBAMusicStudio.Core
                         }
                         position++;
                         if (loop)
+                        {
                             loops++;
-                        if (PlaylistPlaying && loops > Config.Instance.PlaylistSongLoops)
+                            if (PlaylistPlaying && loops > Config.Instance.PlaylistSongLoops && SoundMixer.Instance.IsFadeDone())
+                                SoundMixer.Instance.FadeOut();
+                        }
+                        if (PlaylistPlaying && loops > Config.Instance.PlaylistSongLoops && SoundMixer.Instance.IsFadeDone())
                             allDone = true;
                         if (allDone)
                         {

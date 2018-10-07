@@ -38,13 +38,13 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Voice table - Find out the last 4 bytes in voice entry struct
 * Voice table - Figure out squares (190s activate when in bottom 2/1 tracks... but only for some songs)
 * Find channel and track limits
+* Fix popping/crackling
 
 ## General
 * MIDI saving - Preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * MIDI saving - Make errors more clear
-* Playlist mode - Songs should fade out
-* Playlist mode - A way to exiting playlist mode
+* Playlist mode - A way to exit playlist mode
 * Config - Exception handling
 * Config - Saving
 * Voice table editor - Tooltips which provide a huge chunk of information

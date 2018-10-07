@@ -131,8 +131,9 @@ namespace GBAMusicStudio.Core
         public byte RefreshRate { get; private set; }
         public bool CenterIndicators { get; private set; }
         public bool PanpotIndicators { get; private set; }
-        public byte PlaylistSongLoops { get; private set; }
         public PlaylistMode PlaylistMode { get; private set; }
+        public byte PlaylistSongLoops { get; private set; }
+        public int PlaylistFadeOutLength { get; private set; }
         public byte Volume { get; private set; }
         public HSLColor[] Colors { get; private set; }
         public Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
@@ -156,8 +157,9 @@ namespace GBAMusicStudio.Core
             RefreshRate = (byte)Utils.ParseValue(mapping.Children["RefreshRate"].ToString());
             CenterIndicators = bool.Parse(mapping.Children["CenterIndicators"].ToString());
             PanpotIndicators = bool.Parse(mapping.Children["PanpotIndicators"].ToString());
-            PlaylistSongLoops = (byte)Utils.ParseValue(mapping.Children["PlaylistSongLoops"].ToString());
             PlaylistMode = (PlaylistMode)Enum.Parse(typeof(PlaylistMode), mapping.Children["PlaylistMode"].ToString());
+            PlaylistSongLoops = (byte)Utils.ParseValue(mapping.Children["PlaylistSongLoops"].ToString());
+            PlaylistFadeOutLength = (int)Utils.ParseValue(mapping.Children["PlaylistFadeOutLength"].ToString());
             Volume = (byte)Utils.ParseValue(mapping.Children["Volume"].ToString());
 
             var cmap = (YamlMappingNode)mapping.Children["Colors"];

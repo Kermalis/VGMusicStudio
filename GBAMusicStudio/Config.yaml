@@ -13,8 +13,9 @@ TaskbarProgress: True # True or False.
 RefreshRate: 30 # Value over 0. # Requires a song state change to update.
 CenterIndicators: False # True or False.
 PanpotIndicators: False # True or False.
-PlaylistSongLoops: 0 # 0 or above.
 PlaylistMode: "Random" # "Random" or "Sequential"
+PlaylistSongLoops: 0 # 0 or above.
+PlaylistFadeOutLength: 10000 # 0 or above. Amount of milliseconds it takes for a song to fade out in playlist mode.
 Colors:
   0: {H: 185, S: 240, L: 180}
   1: {H: 183, S: 240, L: 170}
