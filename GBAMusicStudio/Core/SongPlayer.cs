@@ -25,6 +25,7 @@ namespace GBAMusicStudio.Core
         public bool PlaylistPlaying = false;
         // Number of loops that have passed
         int loops;
+        bool fadeOutBegan;
         // Song position in ticks
         int position;
         Track[] tracks;
@@ -129,6 +130,7 @@ namespace GBAMusicStudio.Core
             DetermineLongestTrack();
 
             position = tempoStack = loops = 0;
+            fadeOutBegan = false;
             Tempo = Engine.GetDefaultTempo();
 
             State = PlayerState.Playing;
@@ -413,10 +415,13 @@ namespace GBAMusicStudio.Core
                         if (loop)
                         {
                             loops++;
-                            if (PlaylistPlaying && loops > Config.Instance.PlaylistSongLoops && SoundMixer.Instance.IsFadeDone())
+                            if (PlaylistPlaying && loops > Config.Instance.PlaylistSongLoops && !fadeOutBegan)
+                            {
                                 SoundMixer.Instance.FadeOut();
+                                fadeOutBegan = true;
+                            }
                         }
-                        if (PlaylistPlaying && loops > Config.Instance.PlaylistSongLoops && SoundMixer.Instance.IsFadeDone())
+                        if (fadeOutBegan && SoundMixer.Instance.IsFadeDone())
                             allDone = true;
                         if (allDone)
                         {
