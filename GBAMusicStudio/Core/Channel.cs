@@ -471,7 +471,7 @@ namespace GBAMusicStudio.Core
                 else
                     curPan = GBPan.Center;
                 peakVelocity = (byte)((Note.Velocity * vol) >> 10).Clamp(0, 0xF);
-                sustainVelocity = (byte)((peakVelocity * adsr.S + 0xF) >> 4).Clamp(0, 0xF);
+                sustainVelocity = (byte)((peakVelocity * adsr.S + 0x10) >> 4).Clamp(0, 0xF);
                 if (State == ADSRState.Playing)
                     curVelocity = sustainVelocity;
             }
