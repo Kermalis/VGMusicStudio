@@ -35,8 +35,7 @@ namespace GBAMusicStudio.Core
 
     struct ChannelVolume
     {
-        public float FromLeftVol, FromRightVol,
-            ToLeftVol, ToRightVol;
+        public float LeftVol, RightVol;
     }
     struct ADSR { public byte A, D, S, R; }
     struct Note

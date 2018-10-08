@@ -4,7 +4,6 @@ using System.Collections;
 
 namespace GBAMusicStudio.Core
 {
-    // All channels have very basic interpolation
     abstract class Channel
     {
         public ADSRState State { get; protected set; } = ADSRState.Dead;
@@ -13,12 +12,10 @@ namespace GBAMusicStudio.Core
         public Note Note;
         protected ADSR adsr;
 
-        protected byte processStep;
+        protected byte velocity;
         protected int pos;
         protected float interPos;
         protected float frequency;
-
-        protected byte curVelocity, prevVelocity;
 
         public abstract ChannelVolume GetVolume();
         public abstract void SetVolume(byte vol, sbyte pan);
@@ -58,7 +55,6 @@ namespace GBAMusicStudio.Core
         {
             State = ADSRState.Dead;
             OwnerIdx = 0xFF;
-            processStep = 0;
         }
     }
     class DirectSoundChannel : Channel
@@ -67,20 +63,18 @@ namespace GBAMusicStudio.Core
         {
             public float LeftVol;
             public float RightVol;
-            public float LeftVolStep;
-            public float RightVolStep;
             public float InterStep;
         }
 
         WrappedSample sample; GoldenSunPSG gsPSG;
 
         bool bFixed, bGoldenSun;
-        byte curLeftVol, curRightVol, prevLeftVol, prevRightVol;
+        byte leftVol, rightVol;
 
         public void Init(byte ownerIdx, Note note, ADSR adsr, WrappedSample sample, byte vol, sbyte pan, int pitch, bool bFixed)
         {
             State = ADSRState.Initializing;
-            pos = 0; processStep = 0; interPos = 0;
+            pos = 0; interPos = 0;
             OwnerIdx = ownerIdx;
             Note = note;
             this.adsr = adsr;
@@ -96,16 +90,11 @@ namespace GBAMusicStudio.Core
 
         public override ChannelVolume GetVolume()
         {
-            float baseVel = prevVelocity;
-            float deltaVel = (curVelocity - baseVel) / Config.Instance.InterFrames;
-            float fromVel = baseVel + deltaVel * processStep;
-            float toVel = baseVel + deltaVel * (processStep + 1);
+            const float max = 0x10000; // 0x100 * 0x100
             return new ChannelVolume
             {
-                FromLeftVol = prevLeftVol * fromVel / 0x10000,
-                FromRightVol = prevRightVol * fromVel / 0x10000,
-                ToLeftVol = curLeftVol * toVel / 0x10000,
-                ToRightVol = curRightVol * toVel / 0x10000
+                LeftVol = leftVol * velocity / max,
+                RightVol = rightVol * velocity / max
             };
         }
         public override void SetVolume(byte vol, sbyte pan)
@@ -113,9 +102,9 @@ namespace GBAMusicStudio.Core
             if (State < ADSRState.Releasing)
             {
                 var range = Engine.GetPanpotRange();
-                var fix = ((Engine.GetMaxVolume() + 1) * range);
-                curLeftVol = (byte)(Note.Velocity * vol * (-pan + range) / fix);
-                curRightVol = (byte)(Note.Velocity * vol * (pan + range) / fix);
+                var fix = (Engine.GetMaxVolume() + 1) * range;
+                leftVol = (byte)(Note.Velocity * vol * (-pan + range) / fix);
+                rightVol = (byte)(Note.Velocity * vol * (pan + range) / fix);
             }
         }
         public override void SetPitch(int pitch)
@@ -128,73 +117,45 @@ namespace GBAMusicStudio.Core
             switch (State)
             {
                 case ADSRState.Initializing:
-                    prevLeftVol = curLeftVol;
-                    prevRightVol = curRightVol;
-                    prevVelocity = (byte)(adsr.A == 0xFF ? 0xFF : 0);
-                    curVelocity = adsr.A;
-                    processStep = 0;
+                    velocity = adsr.A;
                     State = ADSRState.Rising;
                     break;
                 case ADSRState.Rising:
-                    if (++processStep >= Config.Instance.InterFrames)
+                    int nextVel = velocity + adsr.A;
+                    if (nextVel >= 0xFF)
                     {
-                        prevVelocity = curVelocity;
-                        processStep = 0;
-                        int nextVel = curVelocity + adsr.A;
-                        if (nextVel >= 0xFF)
-                        {
-                            State = ADSRState.Decaying;
-                            curVelocity = 0xFF;
-                        }
-                        else
-                            curVelocity = (byte)nextVel;
+                        State = ADSRState.Decaying;
+                        velocity = 0xFF;
                     }
+                    else
+                        velocity = (byte)nextVel;
                     break;
                 case ADSRState.Decaying:
-                    if (++processStep >= Config.Instance.InterFrames)
+                    nextVel = (velocity * adsr.D) >> 8;
+                    if (nextVel <= adsr.S)
                     {
-                        prevVelocity = curVelocity;
-                        processStep = 0;
-                        int nextVel = (curVelocity * adsr.D) >> 8;
-                        if (nextVel <= adsr.S)
-                        {
-                            State = ADSRState.Playing;
-                            curVelocity = adsr.S;
-                        }
-                        else
-                            curVelocity = (byte)nextVel;
+                        State = ADSRState.Playing;
+                        velocity = adsr.S;
                     }
+                    else
+                        velocity = (byte)nextVel;
                     break;
                 case ADSRState.Playing:
-                    if (++processStep >= Config.Instance.InterFrames)
-                    {
-                        prevVelocity = curVelocity;
-                        processStep = 0;
-                    }
                     break;
                 case ADSRState.Releasing:
-                    if (++processStep >= Config.Instance.InterFrames)
+                    nextVel = (velocity * adsr.R) >> 8;
+                    if (nextVel <= 0)
                     {
-                        prevVelocity = curVelocity;
-                        processStep = 0;
-                        int nextVel = (curVelocity * adsr.R) >> 8;
-                        if (nextVel <= 0)
-                        {
-                            State = ADSRState.Dying;
-                            curVelocity = 0;
-                        }
-                        else
-                        {
-                            curVelocity = (byte)nextVel;
-                        }
+                        State = ADSRState.Dying;
+                        velocity = 0;
+                    }
+                    else
+                    {
+                        velocity = (byte)nextVel;
                     }
                     break;
                 case ADSRState.Dying:
-                    if (++processStep >= Config.Instance.InterFrames)
-                    {
-                        prevVelocity = curVelocity;
-                        Stop();
-                    }
+                    Stop();
                     break;
             }
         }
@@ -202,21 +163,16 @@ namespace GBAMusicStudio.Core
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            prevLeftVol = curLeftVol; prevRightVol = curRightVol;
 
             if (State == ADSRState.Dead) return;
 
             ChannelVolume vol = GetVolume();
-            vol.FromLeftVol *= SoundMixer.Instance.DSMasterVolume;
-            vol.FromRightVol *= SoundMixer.Instance.DSMasterVolume;
-            vol.ToLeftVol *= SoundMixer.Instance.DSMasterVolume;
-            vol.ToRightVol *= SoundMixer.Instance.DSMasterVolume;
+            vol.LeftVol *= SoundMixer.Instance.DSMasterVolume;
+            vol.RightVol *= SoundMixer.Instance.DSMasterVolume;
 
             ProcArgs pargs;
-            pargs.LeftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.Instance.SamplesReciprocal;
-            pargs.RightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.Instance.SamplesReciprocal;
-            pargs.LeftVol = vol.FromLeftVol;
-            pargs.RightVol = vol.FromRightVol;
+            pargs.LeftVol = vol.LeftVol;
+            pargs.RightVol = vol.RightVol;
 
             if (bFixed && !bGoldenSun)
                 pargs.InterStep = (ROM.Instance.Game.Engine.Type == EngineType.M4A ? ROM.Instance.Game.Engine.Frequency : sample.Frequency) * SoundMixer.Instance.SampleRateReciprocal;
@@ -250,19 +206,10 @@ namespace GBAMusicStudio.Core
             int bufPos = 0;
             do
             {
-                float baseSamp = GetSample(pos);
-                float deltaSamp;
-                if (pos + 1 >= sample.Length)
-                    deltaSamp = sample.bLoop ? GetSample(sample.LoopPoint) - baseSamp : 0;
-                else
-                    deltaSamp = GetSample(pos + 1) - baseSamp;
-                float finalSamp = baseSamp + deltaSamp * interPos;
+                float samp = GetSample(pos);
 
-                buffer[bufPos++] += finalSamp * pargs.LeftVol;
-                buffer[bufPos++] += finalSamp * pargs.RightVol;
-
-                pargs.LeftVol += pargs.LeftVolStep;
-                pargs.RightVol += pargs.RightVolStep;
+                buffer[bufPos++] += samp * pargs.LeftVol;
+                buffer[bufPos++] += samp * pargs.RightVol;
 
                 interPos += pargs.InterStep;
                 int posDelta = (int)interPos;
@@ -301,18 +248,20 @@ namespace GBAMusicStudio.Core
             float baseThresh = curThresh + (deltaThresh * (processStep / (float)Config.Instance.InterFrames));
             float threshStep = deltaThresh / Config.Instance.InterFrames * SoundMixer.Instance.SamplesReciprocal;
             float fThreshold = baseThresh;
+        {
+            pos += gsPSG.CycleSpeed << 24;
+            int iThreshold = (gsPSG.MinimumCycle << 24) + pos;
+            iThreshold = (iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
+            iThreshold = iThreshold * gsPSG.CycleAmplitude + (gsPSG.InitialCycle << 24);
+            float threshold = iThreshold / (float)0x100000000;
 
             int bufPos = 0;
             do
             {
-                float baseSamp = interPos < fThreshold ? 0.5f : -0.5f;
-                baseSamp += 0.5f - fThreshold;
-                fThreshold += threshStep;
-                buffer[bufPos++] += baseSamp * pargs.LeftVol;
-                buffer[bufPos++] += baseSamp * pargs.RightVol;
-
-                pargs.LeftVol += pargs.LeftVolStep;
-                pargs.RightVol += pargs.RightVolStep;
+                float samp = interPos < threshold ? 0.5f : -0.5f;
+                samp += 0.5f - threshold;
+                buffer[bufPos++] += samp * pargs.LeftVol;
+                buffer[bufPos++] += samp * pargs.RightVol;
 
                 interPos += pargs.InterStep;
                 if (interPos >= 1) interPos--;
@@ -332,13 +281,10 @@ namespace GBAMusicStudio.Core
                 int var3 = var1 - (var2 >> 27);
                 pos = var3 + (pos >> 1);
 
-                float baseSamp = (float)pos / 0x100;
+                float samp = (float)pos / 0x100;
 
-                buffer[bufPos++] += baseSamp * pargs.LeftVol;
-                buffer[bufPos++] += baseSamp * pargs.RightVol;
-
-                pargs.LeftVol += pargs.LeftVolStep;
-                pargs.RightVol += pargs.RightVolStep;
+                buffer[bufPos++] += samp * pargs.LeftVol;
+                buffer[bufPos++] += samp * pargs.RightVol;
             } while (--samplesPerBuffer > 0);
         }
         void ProcessTri(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
@@ -349,13 +295,10 @@ namespace GBAMusicStudio.Core
                 interPos += pargs.InterStep;
                 if (interPos >= 1)
                     interPos--;
-                float baseSamp = interPos < 0.5f ? interPos * 4 - 1 : 3 - (interPos * 4);
+                float samp = interPos < 0.5f ? interPos * 4 - 1 : 3 - (interPos * 4);
 
-                buffer[bufPos++] += baseSamp * pargs.LeftVol;
-                buffer[bufPos++] += baseSamp * pargs.RightVol;
-
-                pargs.LeftVol += pargs.LeftVolStep;
-                pargs.RightVol += pargs.RightVolStep;
+                buffer[bufPos++] += samp * pargs.LeftVol;
+                buffer[bufPos++] += samp * pargs.RightVol;
             } while (--samplesPerBuffer > 0);
         }
     }
@@ -368,9 +311,10 @@ namespace GBAMusicStudio.Core
             Right
         }
 
+        byte processStep;
         ADSRState nextState;
         byte peakVelocity, sustainVelocity;
-        protected GBPan curPan = GBPan.Center, prevPan = GBPan.Center;
+        protected GBPan panpot = GBPan.Center;
 
         protected void Init(byte ownerIdx, Note note, ADSR env)
         {
@@ -389,10 +333,10 @@ namespace GBAMusicStudio.Core
             {
                 if (adsr.R == 0)
                 {
-                    curVelocity = 0;
+                    velocity = 0;
                     Stop();
                 }
-                else if (curVelocity == 0 && prevVelocity == 0)
+                else if (velocity == 0)
                 {
                     Stop();
                 }
@@ -411,7 +355,7 @@ namespace GBAMusicStudio.Core
                     Note.Duration--;
                     if (Note.Duration == 0)
                     {
-                        if (curVelocity == 0)
+                        if (velocity == 0)
                             Stop();
                         else
                             State = ADSRState.Releasing;
@@ -430,33 +374,11 @@ namespace GBAMusicStudio.Core
 
         public override ChannelVolume GetVolume()
         {
-            float baseVel = prevVelocity;
-            int step;
-            switch (State)
-            {
-                case ADSRState.Rising:
-                    step = adsr.A;
-                    break;
-                case ADSRState.Decaying:
-                    step = adsr.D;
-                    break;
-                case ADSRState.Releasing:
-                case ADSRState.Dying:
-                    step = adsr.R;
-                    break;
-                default:
-                    step = 1;
-                    break;
-            }
-            float deltaVel = (curVelocity - baseVel) / (Config.Instance.InterFrames * step);
-            float fromVel = baseVel + deltaVel * processStep;
-            float toVel = baseVel + deltaVel * (processStep + 1);
+            const float max = 0x20;
             return new ChannelVolume
             {
-                FromLeftVol = prevPan == GBPan.Right ? 0 : fromVel / 0x20,
-                FromRightVol = prevPan == GBPan.Left ? 0 : fromVel / 0x20,
-                ToLeftVol = prevPan == GBPan.Right ? 0 : toVel / 0x20,
-                ToRightVol = prevPan == GBPan.Left ? 0 : toVel / 0x20
+                LeftVol = panpot == GBPan.Right ? 0 : velocity / max,
+                RightVol = panpot == GBPan.Left ? 0 : velocity / max
             };
         }
         public override void SetVolume(byte vol, sbyte pan)
@@ -465,15 +387,15 @@ namespace GBAMusicStudio.Core
             {
                 var range = Engine.GetPanpotRange() / 2;
                 if (pan < -range)
-                    curPan = GBPan.Left;
+                    panpot = GBPan.Left;
                 else if (pan > range)
-                    curPan = GBPan.Right;
+                    panpot = GBPan.Right;
                 else
-                    curPan = GBPan.Center;
+                    panpot = GBPan.Center;
                 peakVelocity = (byte)((Note.Velocity * vol) >> 10).Clamp(0, 0xF);
                 sustainVelocity = (byte)((peakVelocity * adsr.S + 0x10) >> 4).Clamp(0, 0xF);
                 if (State == ADSRState.Playing)
-                    curVelocity = sustainVelocity;
+                    velocity = sustainVelocity;
             }
         }
 
@@ -481,43 +403,39 @@ namespace GBAMusicStudio.Core
         {
             void dec()
             {
-                prevVelocity = curVelocity;
                 processStep = 0;
-                if (curVelocity - 1 <= sustainVelocity)
+                if (velocity - 1 <= sustainVelocity)
                 {
-                    curVelocity = sustainVelocity;
+                    velocity = sustainVelocity;
                     nextState = ADSRState.Playing;
                 }
                 else
                 {
-                    curVelocity = (byte)(curVelocity - 1).Clamp(0, 0xF);
+                    velocity = (byte)(velocity - 1).Clamp(0, 0xF);
                 }
             }
             void sus()
             {
-                prevVelocity = curVelocity;
                 processStep = 0;
             }
             void rel()
             {
                 if (adsr.R == 0)
                 {
-                    prevVelocity = 0;
-                    curVelocity = 0;
+                    velocity = 0;
                     Stop();
                 }
                 else
                 {
-                    prevVelocity = curVelocity;
                     processStep = 0;
-                    if (curVelocity - 1 <= 0)
+                    if (velocity - 1 <= 0)
                     {
                         nextState = ADSRState.Dying;
-                        curVelocity = 0;
+                        velocity = 0;
                     }
                     else
                     {
-                        curVelocity--;
+                        velocity--;
                     }
                 }
             }
@@ -526,39 +444,34 @@ namespace GBAMusicStudio.Core
             {
                 case ADSRState.Initializing:
                     nextState = ADSRState.Rising;
-                    prevPan = curPan;
                     processStep = 0;
                     if ((adsr.A | adsr.D) == 0 || (sustainVelocity == 0 && peakVelocity == 0))
                     {
                         State = ADSRState.Playing;
-                        prevVelocity = sustainVelocity;
-                        curVelocity = sustainVelocity;
+                        velocity = sustainVelocity;
                         return;
                     }
                     else if (adsr.A == 0 && adsr.S < 0xF)
                     {
                         State = ADSRState.Decaying;
-                        prevVelocity = peakVelocity;
-                        curVelocity = (byte)(peakVelocity - 1).Clamp(0, 0xF);
-                        if (curVelocity < sustainVelocity) curVelocity = sustainVelocity;
+                        velocity = (byte)(peakVelocity - 1).Clamp(0, 0xF);
+                        if (velocity < sustainVelocity) velocity = sustainVelocity;
                         return;
                     }
                     else if (adsr.A == 0)
                     {
                         State = ADSRState.Playing;
-                        prevVelocity = sustainVelocity;
-                        curVelocity = sustainVelocity;
+                        velocity = sustainVelocity;
                         return;
                     }
                     else
                     {
                         State = ADSRState.Rising;
-                        prevVelocity = 0;
-                        curVelocity = 1;
+                        velocity = 1;
                         return;
                     }
                 case ADSRState.Rising:
-                    if (++processStep >= Config.Instance.InterFrames * adsr.A)
+                    if (++processStep >= adsr.A)
                     {
                         if (nextState == ADSRState.Decaying)
                         {
@@ -575,9 +488,8 @@ namespace GBAMusicStudio.Core
                             State = ADSRState.Releasing;
                             rel(); return;
                         }
-                        prevVelocity = curVelocity;
                         processStep = 0;
-                        if (++curVelocity >= peakVelocity)
+                        if (++velocity >= peakVelocity)
                         {
                             if (adsr.D == 0)
                             {
@@ -586,18 +498,18 @@ namespace GBAMusicStudio.Core
                             else if (peakVelocity == sustainVelocity)
                             {
                                 nextState = ADSRState.Playing;
-                                curVelocity = peakVelocity;
+                                velocity = peakVelocity;
                             }
                             else
                             {
-                                curVelocity = peakVelocity;
+                                velocity = peakVelocity;
                                 nextState = ADSRState.Decaying;
                             }
                         }
                     }
                     break;
                 case ADSRState.Decaying:
-                    if (++processStep >= Config.Instance.InterFrames * adsr.D)
+                    if (++processStep >= adsr.D)
                     {
                         if (nextState == ADSRState.Playing)
                         {
@@ -613,7 +525,7 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Playing:
-                    if (++processStep >= Config.Instance.InterFrames)
+                    if (++processStep >= 1)
                     {
                         if (nextState == ADSRState.Releasing)
                         {
@@ -624,7 +536,7 @@ namespace GBAMusicStudio.Core
                     }
                     break;
                 case ADSRState.Releasing:
-                    if (++processStep >= Config.Instance.InterFrames * adsr.R)
+                    if (++processStep >= adsr.R)
                     {
                         if (nextState == ADSRState.Dying)
                         {
@@ -663,15 +575,10 @@ namespace GBAMusicStudio.Core
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            prevPan = curPan;
             if (State == ADSRState.Dead)
                 return;
 
             ChannelVolume vol = GetVolume();
-            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.Instance.SamplesReciprocal;
-            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.Instance.SamplesReciprocal;
-            float leftVol = vol.FromLeftVol;
-            float rightVol = vol.FromRightVol;
             float interStep = frequency * SoundMixer.Instance.SampleRateReciprocal;
 
             int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
@@ -679,11 +586,8 @@ namespace GBAMusicStudio.Core
             {
                 float samp = pat[pos];
 
-                buffer[bufPos++] += samp * leftVol;
-                buffer[bufPos++] += samp * rightVol;
-
-                leftVol += leftVolStep;
-                rightVol += rightVolStep;
+                buffer[bufPos++] += samp * vol.LeftVol;
+                buffer[bufPos++] += samp * vol.RightVol;
 
                 interPos += interStep;
                 int posDelta = (int)interPos;
@@ -712,15 +616,10 @@ namespace GBAMusicStudio.Core
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            prevPan = curPan;
             if (State == ADSRState.Dead)
                 return;
 
             ChannelVolume vol = GetVolume();
-            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.Instance.SamplesReciprocal;
-            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.Instance.SamplesReciprocal;
-            float leftVol = vol.FromLeftVol;
-            float rightVol = vol.FromRightVol;
             float interStep = frequency * SoundMixer.Instance.SampleRateReciprocal;
 
             int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
@@ -728,11 +627,8 @@ namespace GBAMusicStudio.Core
             {
                 float samp = sample[pos];
 
-                buffer[bufPos++] += samp * leftVol;
-                buffer[bufPos++] += samp * rightVol;
-
-                leftVol += leftVolStep;
-                rightVol += rightVolStep;
+                buffer[bufPos++] += samp * vol.LeftVol;
+                buffer[bufPos++] += samp * vol.RightVol;
 
                 interPos += interStep;
                 int posDelta = (int)interPos;
@@ -759,15 +655,10 @@ namespace GBAMusicStudio.Core
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            prevPan = curPan;
             if (State == ADSRState.Dead)
                 return;
 
             ChannelVolume vol = GetVolume();
-            float leftVolStep = (vol.ToLeftVol - vol.FromLeftVol) * SoundMixer.Instance.SamplesReciprocal;
-            float rightVolStep = (vol.ToRightVol - vol.FromRightVol) * SoundMixer.Instance.SamplesReciprocal;
-            float leftVol = vol.FromLeftVol;
-            float rightVol = vol.FromRightVol;
             float interStep = frequency * SoundMixer.Instance.SampleRateReciprocal;
 
             int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
@@ -775,11 +666,8 @@ namespace GBAMusicStudio.Core
             {
                 float samp = pat[pos & (pat.Length - 1)] ? 0.5f : -0.5f;
 
-                buffer[bufPos++] += samp * leftVol;
-                buffer[bufPos++] += samp * rightVol;
-
-                leftVol += leftVolStep;
-                rightVol += rightVolStep;
+                buffer[bufPos++] += samp * vol.LeftVol;
+                buffer[bufPos++] += samp * vol.RightVol;
 
                 interPos += interStep;
                 int posDelta = (int)interPos;

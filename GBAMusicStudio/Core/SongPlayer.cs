@@ -168,8 +168,8 @@ namespace GBAMusicStudio.Core
 
                 var channels = SoundMixer.Instance.GetChannels(i);
                 bool none = channels.Length == 0;
-                info.Lefts[i] = none ? 0 : channels.Select(c => c.GetVolume().FromLeftVol).Max();
-                info.Rights[i] = none ? 0 : channels.Select(c => c.GetVolume().FromRightVol).Max();
+                info.Lefts[i] = none ? 0 : channels.Select(c => c.GetVolume().LeftVol).Max();
+                info.Rights[i] = none ? 0 : channels.Select(c => c.GetVolume().RightVol).Max();
                 info.Notes[i] = none ? new sbyte[0] : channels.Where(c => c.State < ADSRState.Releasing).Select(c => c.Note.OriginalKey).Distinct().ToArray();
             }
         }

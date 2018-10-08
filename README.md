@@ -32,13 +32,12 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Support pret dissassembly projects
 * Running status in song disassembler
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
-* Add Pokémon compressed samples
+* Add Pokémon compressed samples (https://www.pokecommunity.com/showthread.php?t=321868)
 
 ## Mario & Luigi: Superstar Saga Engine
 * Voice table - Find out the last 4 bytes in voice entry struct
 * Voice table - Figure out squares (190s activate when in bottom 2/1 tracks... but only for some songs)
 * Find channel and track limits
-* Fix popping/crackling
 
 ## General
 * MIDI saving - Preview the MIDI with the Sequencer class

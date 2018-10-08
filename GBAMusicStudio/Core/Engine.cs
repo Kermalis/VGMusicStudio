@@ -62,8 +62,7 @@ namespace GBAMusicStudio.Core
         }
         public static int GetTempoWait()
         {
-            int baseWait = BPM_PER_FRAME * Config.Instance.InterFrames;
-            return baseWait / (96 / GetTicksPerBar());
+            return BPM_PER_FRAME / (96 / GetTicksPerBar());
         }
 
         public static byte GetMaxVolume()

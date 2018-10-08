@@ -40,7 +40,7 @@ namespace GBAMusicStudio.Core
 
         private SoundMixer()
         {
-            SamplesPerBuffer = Config.Instance.SampleRate / (Engine.AGB_FPS * Config.Instance.InterFrames);
+            SamplesPerBuffer = Config.Instance.SampleRate / Engine.AGB_FPS;
             SampleRateReciprocal = 1f / Config.Instance.SampleRate; SamplesReciprocal = 1f / SamplesPerBuffer;
 
             dsChannels = new DirectSoundChannel[Config.Instance.DirectCount];
@@ -98,13 +98,13 @@ namespace GBAMusicStudio.Core
         public void FadeIn()
         {
             fadePos = 0;
-            fadeMicroFramesLeft = (int)(Config.Instance.PlaylistFadeOutLength / 1000f * (Engine.AGB_FPS * Config.Instance.InterFrames));
+            fadeMicroFramesLeft = (int)(Config.Instance.PlaylistFadeOutLength / 1000f * Engine.AGB_FPS);
             fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
         }
         public void FadeOut()
         {
             fadePos = 1;
-            fadeMicroFramesLeft = (int)(Config.Instance.PlaylistFadeOutLength / 1000f * (Engine.AGB_FPS * Config.Instance.InterFrames));
+            fadeMicroFramesLeft = (int)(Config.Instance.PlaylistFadeOutLength / 1000f * Engine.AGB_FPS);
             fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
         }
         public bool IsFadeDone() => fadeMicroFramesLeft == 0;

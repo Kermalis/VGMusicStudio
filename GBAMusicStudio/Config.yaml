@@ -2,7 +2,6 @@
 
 DirectCount: 24 # 5 or above.
 Volume: 50 # 0 to 100.
-InterFrames: 4 # 1 or above. Improves quality and MIDIKeyboard response time at the cost of CPU usage. Increasing too much can have adverse effects on quality with diminishing returns.
 SampleRate: 48000 # Must be a multiple of (60 * InterFrames) or else you will get bad audio.
 
 # These can be refreshed in the program:

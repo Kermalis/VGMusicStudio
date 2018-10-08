@@ -123,7 +123,6 @@ namespace GBAMusicStudio.Core
         readonly int DefaultTableSize = 1000;
 
         public byte DirectCount { get; private set; }
-        public int InterFrames { get; private set; }
         public int SampleRate { get; private set; }
         public bool All256Voices { get; private set; }
         public bool MIDIKeyboardFixedVelocity { get; private set; }
@@ -149,7 +148,6 @@ namespace GBAMusicStudio.Core
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseValue(mapping.Children["DirectCount"].ToString());
-            InterFrames = (int)Utils.ParseValue(mapping.Children["InterFrames"].ToString());
             SampleRate = (int)Utils.ParseValue(mapping.Children["SampleRate"].ToString());
             All256Voices = bool.Parse(mapping.Children["All256Voices"].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children["MIDIKeyboardFixedVelocity"].ToString());
