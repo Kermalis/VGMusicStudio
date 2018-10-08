@@ -66,7 +66,7 @@ namespace GBAMusicStudio.Core
         public void Init(byte reverbAmt)
         {
             DSMasterVolume = ROM.Instance.Game.Engine.Volume / (float)0xF;
-            numTracks = ROM.Instance.Game.Engine.TrackLimit + 1; // 1 for program use
+            numTracks = 16 + 1; // 1 for program use
 
             trackBuffers = new float[numTracks][];
             reverbs = new Reverb[numTracks];
