@@ -231,24 +231,6 @@ namespace GBAMusicStudio.Core
         }
         void ProcessSquare(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
-            float CalcThresh(int val)
-            {
-                int iThreshold = (gsPSG.MinimumCycle << 24) + val;
-                iThreshold = (iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
-                iThreshold = iThreshold * gsPSG.CycleAmplitude + (gsPSG.InitialCycle << 24);
-                return iThreshold / (float)0x100000000;
-            }
-
-            int curPos = pos += (processStep == 0 ? gsPSG.CycleSpeed << 24 : 0);
-            int nextPos = curPos + (gsPSG.CycleSpeed << 24);
-
-            float curThresh = CalcThresh(curPos), nextThresh = CalcThresh(nextPos);
-
-            float deltaThresh = nextThresh - curThresh;
-            float baseThresh = curThresh + (deltaThresh * (processStep / (float)Config.Instance.InterFrames));
-            float threshStep = deltaThresh / Config.Instance.InterFrames * SoundMixer.Instance.SamplesReciprocal;
-            float fThreshold = baseThresh;
-        {
             pos += gsPSG.CycleSpeed << 24;
             int iThreshold = (gsPSG.MinimumCycle << 24) + pos;
             iThreshold = (iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
