@@ -156,7 +156,7 @@ namespace GBAMusicStudio.Core
                 {
                     bool bFixed = (flags & M4AVoiceFlags.Fixed) == M4AVoiceFlags.Fixed,
                         bReversed = (flags & M4AVoiceFlags.Reversed) == M4AVoiceFlags.Reversed,
-                        bCompressed = (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
+                        bCompressed = ROM.Instance.Game.Engine.HasPokemonCompression && (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
                     if (bFixed || bReversed || bCompressed)
                     {
                         str += " [";

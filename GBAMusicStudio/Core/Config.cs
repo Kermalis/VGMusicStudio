@@ -65,11 +65,14 @@ namespace GBAMusicStudio.Core
         public readonly byte Volume; // 0-F
         public readonly byte TrackLimit;
         public readonly int Frequency;
-        public readonly bool HasGoldenSunSynths;
 
-        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, byte trackLimit, int frequency, bool hasGoldenSunSynths)
+        public readonly bool HasGoldenSunSynths;
+        public readonly bool HasPokemonCompression;
+
+        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, byte trackLimit, int frequency, bool hasGoldenSunSynths, bool hasPokemonCompression)
         {
-            Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; TrackLimit = trackLimit; Frequency = frequency; HasGoldenSunSynths = hasGoldenSunSynths;
+            Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; TrackLimit = trackLimit; Frequency = frequency;
+            HasGoldenSunSynths = hasGoldenSunSynths; HasPokemonCompression = hasPokemonCompression;
         }
 
         public override string ToString() => Type.ToString();
@@ -206,7 +209,8 @@ namespace GBAMusicStudio.Core
                 string code, name, creator;
                 EngineType engineType = EngineType.M4A; ReverbType reverbType = ReverbType.Normal;
                 byte engineReverb = 0, engineVolume = 0xF, engineTrackLimit = 0x10;
-                int engineFrequency = 13379; bool engineHasGoldenSunSynths = false;
+                int engineFrequency = 13379;
+                bool engineHasGoldenSunSynths = false, engineHasPokemonCompression = false;
                 int[] tables, tableSizes;
                 List<APlaylist> playlists;
                 string remap = string.Empty;
@@ -272,9 +276,11 @@ namespace GBAMusicStudio.Core
                         engineFrequency = (int)Utils.ParseValue(frequency.ToString());
                     if (eng.Children.TryGetValue("GoldenSunSynths", out YamlNode synths))
                         engineHasGoldenSunSynths = bool.Parse(synths.ToString());
+                    if (eng.Children.TryGetValue("PokemonCompression", out YamlNode compression))
+                        engineHasPokemonCompression = bool.Parse(compression.ToString());
 
                 }
-                var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineTrackLimit, engineFrequency, engineHasGoldenSunSynths);
+                var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineTrackLimit, engineFrequency, engineHasGoldenSunSynths, engineHasPokemonCompression);
 
                 // Load playlists
                 playlists = new List<APlaylist>();

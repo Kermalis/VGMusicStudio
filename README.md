@@ -33,7 +33,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Running status in song disassembler
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 * Voice Table Saver - Add Pokémon compressed samples (https://www.pokecommunity.com/showthread.php?t=321868)
-* Add config option for compression
 
 ## Mario & Luigi: Superstar Saga Engine
 * Voice table - Find out the last 4 bytes in voice entry struct

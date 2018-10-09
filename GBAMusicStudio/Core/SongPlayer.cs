@@ -204,7 +204,7 @@ namespace GBAMusicStudio.Core
                 {
                     case M4AVoiceType.Direct:
                         bool bFixed = (m4a.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
-                        bool bCompressed = (m4a.Type & (int)M4AVoiceFlags.Compressed) == (int)M4AVoiceFlags.Compressed;
+                        bool bCompressed = ROM.Instance.Game.Engine.HasPokemonCompression && (m4a.Type & (int)M4AVoiceFlags.Compressed) == (int)M4AVoiceFlags.Compressed;
                         return SoundMixer.Instance.NewDSNote(owner, m4a.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
                             bFixed, bCompressed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
