@@ -238,7 +238,6 @@ namespace GBAMusicStudio.Core
                 }
             } while (--samplesPerBuffer > 0);
         }
-        static readonly byte[] compressionLookup = { 0x0, 0x1, 0x4, 0x9, 0x10, 0x19, 0x24, 0x31, 0xC0, 0xCF, 0xDC, 0xE7, 0xF0, 0xF7, 0xFC, 0xFF };
         void ProcessCompressed(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
             int bufPos = 0;
@@ -289,14 +288,14 @@ namespace GBAMusicStudio.Core
                     {
                         if (compressionByte < 0x20 && interPosLessThanPointFive)
                         {
-                            compressionLevel += (sbyte)compressionLookup[ROM.Instance.Reader.ReadByte(sample.GetOffset() + pos) >> 4];
+                            compressionLevel += Samples.CompressionLookup[ROM.Instance.Reader.ReadByte(sample.GetOffset() + pos) >> 4];
                             if (AddSamp(true))
                                 return;
                         }
                         else if (!interPosLessThanPointFive)
                         {
                             compressionByte--;
-                            compressionLevel += (sbyte)compressionLookup[ROM.Instance.Reader.ReadByte(sample.GetOffset() + pos) & 0xF];
+                            compressionLevel += Samples.CompressionLookup[ROM.Instance.Reader.ReadByte(sample.GetOffset() + pos) & 0xF];
                             pos++;
                             if (AddSamp(true))
                                 return;
@@ -617,10 +616,10 @@ namespace GBAMusicStudio.Core
             Init(ownerIdx, note, env);
             switch (pattern)
             {
-                default: pat = GBSamples.SquareD12; break;
-                case SquarePattern.D12: pat = GBSamples.SquareD25; break;
-                case SquarePattern.D25: pat = GBSamples.SquareD50; break;
-                case SquarePattern.D75: pat = GBSamples.SquareD75; break;
+                default: pat = Samples.SquareD12; break;
+                case SquarePattern.D12: pat = Samples.SquareD25; break;
+                case SquarePattern.D25: pat = Samples.SquareD50; break;
+                case SquarePattern.D75: pat = Samples.SquareD75; break;
             }
         }
 
@@ -662,7 +661,7 @@ namespace GBAMusicStudio.Core
         {
             Init(ownerIdx, note, env);
 
-            sample = GBSamples.PCM4ToFloat(address);
+            sample = Samples.PCM4ToFloat(address);
         }
 
         public override void SetPitch(int pitch)
@@ -701,7 +700,7 @@ namespace GBAMusicStudio.Core
         public void Init(byte ownerIdx, Note note, ADSR env, NoisePattern pattern)
         {
             Init(ownerIdx, note, env);
-            pat = (pattern == NoisePattern.Fine ? GBSamples.NoiseFine : GBSamples.NoiseRough);
+            pat = (pattern == NoisePattern.Fine ? Samples.NoiseFine : Samples.NoiseRough);
         }
 
         public override void SetPitch(int pitch)

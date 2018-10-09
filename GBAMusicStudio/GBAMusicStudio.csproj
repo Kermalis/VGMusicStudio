@@ -91,7 +91,7 @@
     <Compile Include="Core\Channel.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Engine.cs" />
-    <Compile Include="Core\GBSamples.cs" />
+    <Compile Include="Core\Samples.cs" />
     <Compile Include="Core\Interfaces.cs" />
     <Compile Include="Core\MusicStructs.cs" />
     <Compile Include="Core\Reverb.cs" />

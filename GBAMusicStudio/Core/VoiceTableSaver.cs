@@ -43,17 +43,6 @@ namespace GBAMusicStudio.Core
             sf2.InfoChunk.Tools = "GBA Music Studio by Kermalis";
         }
 
-        static short[] PCM8ToPCM16(byte[] pcm8) => pcm8.Select(i => (short)(i << 8)).ToArray();
-        static short[] PCMU8ToPCM16(byte[] pcm8) => pcm8.Select(i => (short)((i - 0x80) << 8)).ToArray();
-        static short[] FloatToPCM16(float[] ieee) => ieee.Select(i => (short)(i * short.MaxValue)).ToArray();
-        static short[] BitArrayToPCM16(BitArray bitArray)
-        {
-            short[] ret = new short[bitArray.Length];
-            for (int i = 0; i < bitArray.Length; i++)
-                ret[i] = (short)((bitArray[i] ? short.MaxValue : short.MinValue) / 2);
-            return ret;
-        }
-
         private class M4AVoiceTableSaver
         {
             SF2 sf2;
@@ -236,7 +225,9 @@ namespace GBAMusicStudio.Core
                 if (gSample == null)
                     return;
 
-                int sample = AddDirectSample(direct.Sample);
+                var flags = (M4AVoiceFlags)entry.Type;
+                bool bCompressed = ROM.Instance.Game.Engine.HasPokemonCompression && (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
+                int sample = AddDirectSample(direct.Sample, bCompressed);
 
                 sf2.AddInstrumentBag();
 
@@ -293,11 +284,11 @@ namespace GBAMusicStudio.Core
                     return 6 + savedSamples.IndexOf(address);
                 savedSamples.Add(address);
 
-                float[] ieee = GBSamples.PCM4ToFloat(address);
-                short[] pcm16 = FloatToPCM16(ieee);
+                float[] ieee = Samples.PCM4ToFloat(address);
+                short[] pcm16 = Samples.FloatToPCM16(ieee);
                 return (int)sf2.AddSample(pcm16, string.Format("Wave 0x{0:X7}", address), true, 0, 7040, 69, 0);
             }
-            int AddDirectSample(M4AWrappedSample sample)
+            int AddDirectSample(M4AWrappedSample sample, bool bCompressed)
             {
                 int sampleOffset = sample.GetOffset();
                 if (savedSamples.Contains(sampleOffset))
@@ -305,21 +296,32 @@ namespace GBAMusicStudio.Core
                 savedSamples.Add(sampleOffset);
 
                 var gSample = sample.GetSample();
-                byte[] pcm8 = ROM.Instance.Reader.ReadBytes(gSample.Length, gSample.GetOffset());
-                short[] pcm16 = PCM8ToPCM16(pcm8);
-                return (int)sf2.AddSample(pcm16, string.Format("Sample 0x{0:X7}", sampleOffset),
+                byte[] pcm8;
+                string name;
+                if (bCompressed)
+                {
+                    name = "Cmp. Sample 0x{0:X7}";
+                    pcm8 = Samples.Decompress(gSample).Select(i => (byte)i).ToArray();
+                }
+                else
+                {
+                    name = "Sample 0x{0:X7}";
+                    pcm8 = ROM.Instance.Reader.ReadBytes(gSample.Length, gSample.GetOffset());
+                }
+                short[] pcm16 = Samples.PCM8ToPCM16(pcm8);
+                return (int)sf2.AddSample(pcm16, string.Format(name, sampleOffset),
                     gSample.bLoop, (uint)gSample.LoopPoint, (uint)gSample.Frequency, 60, 0);
             }
 
             void AddSquaresAndNoises()
             {
-                sf2.AddSample(FloatToPCM16(GBSamples.SquareD12), "Square Wave D12", true, 0, 3520, 69, 0);
-                sf2.AddSample(FloatToPCM16(GBSamples.SquareD25), "Square Wave D25", true, 0, 3520, 69, 0);
-                sf2.AddSample(FloatToPCM16(GBSamples.SquareD50), "Square Wave D50", true, 0, 3520, 69, 0);
-                sf2.AddSample(FloatToPCM16(GBSamples.SquareD75), "Square Wave D75", true, 0, 3520, 69, 0);
+                sf2.AddSample(Samples.FloatToPCM16(Samples.SquareD12), "Square Wave D12", true, 0, 3520, 69, 0);
+                sf2.AddSample(Samples.FloatToPCM16(Samples.SquareD25), "Square Wave D25", true, 0, 3520, 69, 0);
+                sf2.AddSample(Samples.FloatToPCM16(Samples.SquareD50), "Square Wave D50", true, 0, 3520, 69, 0);
+                sf2.AddSample(Samples.FloatToPCM16(Samples.SquareD75), "Square Wave D75", true, 0, 3520, 69, 0);
 
-                sf2.AddSample(BitArrayToPCM16(GBSamples.NoiseFine), "Noise Fine", true, 0, 4096, 60, 0);
-                sf2.AddSample(BitArrayToPCM16(GBSamples.NoiseRough), "Noise Rough", true, 0, 4096, 60, 0);
+                sf2.AddSample(Samples.BitArrayToPCM16(Samples.NoiseFine), "Noise Fine", true, 0, 4096, 60, 0);
+                sf2.AddSample(Samples.BitArrayToPCM16(Samples.NoiseRough), "Noise Rough", true, 0, 4096, 60, 0);
             }
         }
 
@@ -351,7 +353,7 @@ namespace GBAMusicStudio.Core
 
                     var gSample = sample.GetSample();
                     byte[] pcmU8 = ROM.Instance.Reader.ReadBytes(gSample.Length, gSample.GetOffset());
-                    short[] pcm16 = PCMU8ToPCM16(pcmU8);
+                    short[] pcm16 = Samples.PCMU8ToPCM16(pcmU8);
                     addedSamples.Add(sample,
                         (int)sf2.AddSample(pcm16, string.Format("Sample {0}", i),
                         gSample.bLoop, (uint)gSample.LoopPoint, (uint)gSample.Frequency, 60, 0));
