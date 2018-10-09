@@ -109,7 +109,7 @@ namespace GBAMusicStudio.Core
         }
         public bool IsFadeDone() => fadeMicroFramesLeft == 0;
 
-        public DirectSoundChannel NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, WrappedSample sample, Track[] tracks)
+        public DirectSoundChannel NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, WrappedSample sample, Track[] tracks)
         {
             DirectSoundChannel nChn = null;
             var byOwner = dsChannels.OrderByDescending(c => c.OwnerIdx);
@@ -140,7 +140,7 @@ namespace GBAMusicStudio.Core
                     nChn = lowest;
             }
             if (nChn != null) // Could still be null from the above if
-                nChn.Init(owner, note, env, sample, vol, pan, pitch, bFixed);
+                nChn.Init(owner, note, env, sample, vol, pan, pitch, bFixed, bCompressed);
             return nChn;
         }
         public GBChannel NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)

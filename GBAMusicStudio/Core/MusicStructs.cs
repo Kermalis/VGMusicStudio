@@ -159,17 +159,17 @@ namespace GBAMusicStudio.Core
                         bCompressed = (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
                     if (bFixed || bReversed || bCompressed)
                     {
-                        str += " [ ";
-                        if (bFixed) str += "Fixed ";
-                        if (bReversed) str += "Reversed ";
-                        if (bCompressed) str += "Compressed ";
+                        str += " [";
+                        if (bFixed) str += "F";
+                        if (bReversed) str += "R";
+                        if (bCompressed) str += "C";
                         str += ']';
                     }
                 }
                 else
                 {
                     bool bOFN = (flags & M4AVoiceFlags.OffWithNoise) == M4AVoiceFlags.OffWithNoise;
-                    if (bOFN) str += " [ OWN ]";
+                    if (bOFN) str += " [O]";
                 }
             }
             return str;

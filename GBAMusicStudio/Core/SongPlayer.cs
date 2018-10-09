@@ -204,9 +204,10 @@ namespace GBAMusicStudio.Core
                 {
                     case M4AVoiceType.Direct:
                         bool bFixed = (m4a.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
+                        bool bCompressed = (m4a.Type & (int)M4AVoiceFlags.Compressed) == (int)M4AVoiceFlags.Compressed;
                         return SoundMixer.Instance.NewDSNote(owner, m4a.ADSR, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
-                            bFixed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
+                            bFixed, bCompressed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
                     case M4AVoiceType.Square1:
                     case M4AVoiceType.Square2:
                         return SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
@@ -239,7 +240,7 @@ namespace GBAMusicStudio.Core
                 if (sample != null)
                     return SoundMixer.Instance.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
-                            bFixed, sample, tracks);
+                            bFixed, false, sample, tracks);
             }
 
             return null;
