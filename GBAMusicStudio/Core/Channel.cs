@@ -70,21 +70,20 @@ namespace GBAMusicStudio.Core
 
         bool bFixed, bGoldenSun, bCompressed;
         byte leftVol, rightVol;
-        float prevInterPos;
-        int compressionIdx, compressionByte; sbyte compressionLevel;
+        sbyte[] decompressedSample;
 
         public void Init(byte ownerIdx, Note note, ADSR adsr, WrappedSample sample, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed)
         {
             State = ADSRState.Initializing;
-            pos = 0; interPos = 0; prevInterPos = 0;
-            compressionIdx = 0; compressionByte = 0; compressionLevel = 0;
+            pos = 0; interPos = 0;
             OwnerIdx = ownerIdx;
             Note = note;
             this.adsr = adsr;
             this.sample = sample;
             this.bFixed = bFixed;
             this.bCompressed = bCompressed;
-            bGoldenSun = (ROM.Instance.Game.Engine.HasGoldenSunSynths && sample.bLoop && sample.LoopPoint == 0 && sample.Length == 0);
+            decompressedSample = bCompressed ? Samples.Decompress(sample) : null;
+            bGoldenSun = ROM.Instance.Game.Engine.HasGoldenSunSynths && sample.bLoop && sample.LoopPoint == 0 && sample.Length == 0;
             if (bGoldenSun)
                 gsPSG = ROM.Instance.Reader.ReadObject<GoldenSunPSG>(sample.GetOffset());
 
@@ -195,7 +194,6 @@ namespace GBAMusicStudio.Core
             }
             else if (bCompressed)
             {
-                pargs.InterStep /= 0x2;
                 ProcessCompressed(buffer, SoundMixer.Instance.SamplesPerBuffer, pargs);
             }
             else
@@ -241,68 +239,23 @@ namespace GBAMusicStudio.Core
         void ProcessCompressed(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
             int bufPos = 0;
-            while (true)
+            do
             {
-                // Returns true if should exit the loop
-                bool AddSamp(bool incrementIdx)
-                {
-                    float samp = compressionLevel / (float)0x80;
-                    buffer[bufPos++] += samp * pargs.LeftVol;
-                    buffer[bufPos++] += samp * pargs.RightVol;
+                float samp = decompressedSample[pos] / (float)0x80;
 
-                    if (incrementIdx)
-                    {
-                        prevInterPos = interPos;
-                        if (++compressionIdx >= sample.Length)
-                        {
-                            Stop();
-                            return true;
-                        }
-                    }
-                    if (--samplesPerBuffer <= 0)
-                        return true;
+                buffer[bufPos++] += samp * pargs.LeftVol;
+                buffer[bufPos++] += samp * pargs.RightVol;
 
-                    interPos += pargs.InterStep;
-
-                    return false;
-                }
-                
-                bool interPosLessThanPointFive = (int)(interPos / 0.5f) % 2 == 0;
-                bool prevInterPosLessThanPointFive = (int)(prevInterPos / 0.5f) % 2 == 0;
-                if ((interPosLessThanPointFive == prevInterPosLessThanPointFive) && !(pos == 0 && compressionByte == 0))
+                interPos += pargs.InterStep;
+                int posDelta = (int)interPos;
+                interPos -= posDelta;
+                pos += posDelta;
+                if (pos >= decompressedSample.Length)
                 {
-                    if (AddSamp(false))
-                        return;
+                    Stop();
+                    break;
                 }
-                else
-                {
-                    if (compressionByte == 0)
-                    {
-                        compressionByte = 0x20;
-                        compressionLevel = ROM.Instance.Reader.ReadSByte(sample.GetOffset() + pos);
-                        pos++;
-                        if (AddSamp(true))
-                            return;
-                    }
-                    else
-                    {
-                        if (compressionByte < 0x20 && interPosLessThanPointFive)
-                        {
-                            compressionLevel += Samples.CompressionLookup[ROM.Instance.Reader.ReadByte(sample.GetOffset() + pos) >> 4];
-                            if (AddSamp(true))
-                                return;
-                        }
-                        else if (!interPosLessThanPointFive)
-                        {
-                            compressionByte--;
-                            compressionLevel += Samples.CompressionLookup[ROM.Instance.Reader.ReadByte(sample.GetOffset() + pos) & 0xF];
-                            pos++;
-                            if (AddSamp(true))
-                                return;
-                        }
-                    }
-                }
-            }
+            } while (--samplesPerBuffer > 0);
         }
         void ProcessSquare(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
