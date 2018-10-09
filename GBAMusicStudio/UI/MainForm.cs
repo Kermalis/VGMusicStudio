@@ -466,6 +466,7 @@ namespace GBAMusicStudio.UI
                         //new Pair<int, Pair<byte, byte>>(84, new Pair<byte, byte>(4, 4)),
                     }
                 };
+                //Test.MIDIThing(@"D:\Development\GitHub\pokeemerald\sound\songs\midi\mus_kachi2.mid", @"D:\Development\GitHub\pokeemerald\sound\songs\midi\mus_rg_win_yasei.mid");
                 SongPlayer.Instance.Song.SaveAsMIDI(d.FileName, args);
                 FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDI, d.FileName), Text);
             }

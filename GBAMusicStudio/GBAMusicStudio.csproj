@@ -101,6 +101,7 @@
     <Compile Include="Core\ROM.cs" />
     <Compile Include="Core\Song.cs" />
     <Compile Include="Core\SoundMixer.cs" />
+    <Compile Include="Core\Test.cs" />
     <Compile Include="Core\Types.cs" />
     <Compile Include="Core\Track.cs" />
     <Compile Include="Core\VoiceTable.cs" />
