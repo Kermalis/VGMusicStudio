@@ -35,8 +35,8 @@ A tool that is designed to be a Sappy replacement as well as support different g
 
 ## Mario & Luigi: Superstar Saga Engine
 * Voice table - Find out the last 4 bytes in voice entry struct
-* Voice table - Figure out squares (190s activate when in bottom 2/1 tracks... but only for some songs)
-* Find channel and track limits
+* Squares - Songs above index 50 will have squares in tracks 0 and 1
+* Find channel and track limits (most tracks is 9 in credits)
 
 ## General
 * MIDI saving - Preview the MIDI with the Sequencer class

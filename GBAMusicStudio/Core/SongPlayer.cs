@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using GBAMusicStudio.Util;
 using System.Threading;
+using System;
 
 namespace GBAMusicStudio.Core
 {
@@ -225,22 +226,42 @@ namespace GBAMusicStudio.Core
             }
             else if (voice.Voice is MLSSVoice mlssvoice)
             {
-                MLSSVoiceEntry entry; bool bFixed = false; WrappedSample sample = null;
+                MLSSVoiceEntry entry;
+                bool bSquare = false;
+                bool bFixed = false; WrappedSample sample = null;
                 try
                 {
                     entry = mlssvoice.GetEntryFromNote(note);
-                    bFixed = entry.IsFixedFrequency == 0x80;
-                    sample = ((MLSSVoiceTable)Song.VoiceTable).Samples[entry.Sample].GetSample();
+                    bSquare = track.Voice >= 190 && track.Voice < 200;
+                    if (!bSquare)
+                    {
+                        bFixed = entry.IsFixedFrequency == 0x80;
+                        sample = ((MLSSVoiceTable)Song.VoiceTable).Samples[entry.Sample].GetSample();
+                    }
                 }
                 catch
                 {
-                    System.Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
+                    Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
                     return null;
                 }
-                if (sample != null)
+                if (bSquare)
+                {
+                    int val = Math.Max(NumTracks, 8);
+                    bool sq1 = owner == val - 2;
+                    bool sq2 = owner == val - 1;
+                    if (!sq1 && !sq2) // Tried to play a square in a bad track
+                        return null;
+                    M4AVoiceType type = sq1 ? M4AVoiceType.Square1 : sq2 ? M4AVoiceType.Square2 : M4AVoiceType.Invalid5; // Invalid5 wouldn't happen
+                    return SoundMixer.Instance.NewGBNote(owner, new ADSR { S = 0x7 }, aNote,
+                        track.GetVolume(), track.GetPan(), track.GetPitch(),
+                        type, (SquarePattern)entry.Sample);
+                }
+                else if (sample != null)
+                {
                     return SoundMixer.Instance.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
                             bFixed, false, sample, tracks);
+                }
             }
 
             return null;
