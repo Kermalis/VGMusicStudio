@@ -14,7 +14,7 @@ namespace GBAMusicStudio.UI
     {
         readonly ObjectListView voicesListView, subVoicesListView;
         readonly ThemedPanel voicePanel;
-        readonly ThemedLabel addressLabel,
+        readonly ThemedLabel bytesLabel, addressLabel,
             voiceALabel, voiceDLabel, voiceSLabel, voiceRLabel;
         readonly ValueTextBox addressValue,
             voiceAValue, voiceDValue, voiceSValue, voiceRValue;
@@ -76,12 +76,13 @@ namespace GBAMusicStudio.UI
             voicePanel = new ThemedPanel { Location = new Point(306, 206), Size = new Size(w, h2) };
 
             // Panel controls
+            bytesLabel = new ThemedLabel { Location = new Point(2, 2) };
             addressLabel = new ThemedLabel { Location = new Point(2, 130), Text = $"{Strings.VoiceTableEditorAddress}:" };
             voiceALabel = new ThemedLabel { Location = new Point(0 * w / 4 + 2, 160), Text = "A:" };
             voiceDLabel = new ThemedLabel { Location = new Point(1 * w / 4 + 2, 160), Text = "D:" };
             voiceSLabel = new ThemedLabel { Location = new Point(2 * w / 4 + 2, 160), Text = "S:" };
             voiceRLabel = new ThemedLabel { Location = new Point(3 * w / 4 + 2, 160), Text = "R:" };
-            addressLabel.AutoSize =
+            bytesLabel.AutoSize = addressLabel.AutoSize =
                 voiceALabel.AutoSize = voiceDLabel.AutoSize = voiceSLabel.AutoSize = voiceRLabel.AutoSize = true;
 
             addressValue = new ValueTextBox { Location = new Point(w / 5, 127), Size = new Size(78, 24) };
@@ -92,7 +93,7 @@ namespace GBAMusicStudio.UI
             voiceAValue.Size = voiceDValue.Size = voiceSValue.Size = voiceRValue.Size = new Size(44, 22);
             voiceAValue.ValueChanged += ArgumentChanged; voiceDValue.ValueChanged += ArgumentChanged; voiceSValue.ValueChanged += ArgumentChanged; voiceRValue.ValueChanged += ArgumentChanged;
 
-            voicePanel.Controls.AddRange(new Control[] { addressLabel, addressValue,
+            voicePanel.Controls.AddRange(new Control[] { bytesLabel, addressLabel, addressValue,
                 voiceALabel, voiceDLabel, voiceSLabel, voiceRLabel,
                 voiceAValue, voiceDValue, voiceSValue, voiceRValue });
 
@@ -159,6 +160,9 @@ namespace GBAMusicStudio.UI
                 if (subIndex != -1)
                     m4aEntry = (M4AVoiceEntry)((WrappedVoice)subs[subIndex]).Voice;
                 entry = m4aEntry;
+                
+                bytesLabel.Text = m4aEntry.GetBytesString();
+
                 var flags = (M4AVoiceFlags)m4aEntry.Type;
                 var type = (M4AVoiceType)(m4aEntry.Type & 0x7);
 
@@ -202,6 +206,8 @@ namespace GBAMusicStudio.UI
                     var mlssEntry = mlss.Entries[subIndex];
                     entry = mlssEntry;
 
+                    bytesLabel.Text = mlssEntry.GetBytesString();
+
                     #region Last 4 values are probably ADSR
 
                     voiceAValue.Hexadecimal = voiceDValue.Hexadecimal = voiceSValue.Hexadecimal = voiceRValue.Hexadecimal = true;
@@ -240,6 +246,8 @@ namespace GBAMusicStudio.UI
                     m4aEntry.ADSR.S = (byte)voiceSValue.Value;
                     m4aEntry.ADSR.R = (byte)voiceRValue.Value;
                 }
+
+                bytesLabel.Text = m4aEntry.GetBytesString();
             }
             else if (entry is MLSSVoiceEntry mlssEntry)
             {
@@ -247,6 +255,8 @@ namespace GBAMusicStudio.UI
                 mlssEntry.Unknown2 = (byte)voiceDValue.Value;
                 mlssEntry.Unknown3 = (byte)voiceSValue.Value;
                 mlssEntry.Unknown4 = (byte)voiceRValue.Value;
+
+                bytesLabel.Text = mlssEntry.GetBytesString();
             }
         }
     }

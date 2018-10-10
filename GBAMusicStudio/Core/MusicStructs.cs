@@ -126,6 +126,10 @@ namespace GBAMusicStudio.Core
         public int GetOffset() => offset;
         public void SetOffset(int newOffset) => offset = newOffset;
 
+        public string GetBytesString()
+        {
+            return $"{Type:X2} {RootNote:X2} {Unknown:X2} {Panpot:X2} {(byte)(Address):X2} {(byte)(Address >> 8):X2} {(byte)(Address >> 16):X2} {(byte)(Address >> 24):X2} {ADSR.A:X2} {ADSR.D:X2} {ADSR.S:X2} {ADSR.R:X2}";
+        }
         public string GetName()
         {
             if (name == string.Empty)
@@ -363,6 +367,10 @@ namespace GBAMusicStudio.Core
         public int GetOffset() => offset;
         public void SetOffset(int newOffset) => offset = newOffset;
 
+        public string GetBytesString()
+        {
+            return $"{MinKey:X2} {MaxKey:X2} {Sample:X2} {IsFixedFrequency:X2} {Unknown1:X2} {Unknown2:X2} {Unknown3:X2} {Unknown4:X2}";
+        }
         public string GetName() => "Voice Entry";
         public override string ToString() => GetName();
     }
