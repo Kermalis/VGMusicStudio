@@ -1,6 +1,8 @@
 ﻿using GBAMusicStudio.Properties;
 using GBAMusicStudio.Util;
 
+#pragma warning disable CS0649
+
 namespace GBAMusicStudio.Core
 {
     class SongEvent : IOffset
