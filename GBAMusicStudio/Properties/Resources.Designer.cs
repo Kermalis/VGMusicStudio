@@ -101,6 +101,16 @@ namespace GBAMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap IconPlaylist {
+            get {
+                object obj = ResourceManager.GetObject("IconPlaylist", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon IconPrevious {
@@ -113,19 +123,9 @@ namespace GBAMusicStudio.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap PlaylistIcon {
+        internal static System.Drawing.Bitmap IconSong {
             get {
-                object obj = ResourceManager.GetObject("PlaylistIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SongIcon {
-            get {
-                object obj = ResourceManager.GetObject("SongIcon", resourceCulture);
+                object obj = ResourceManager.GetObject("IconSong", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

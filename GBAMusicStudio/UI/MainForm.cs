@@ -45,7 +45,7 @@ namespace GBAMusicStudio.UI
         PianoControl piano;
         ColorSlider positionBar, volumeBar;
         TrackInfoControl trackInfo;
-        ImageComboBox.ImageComboBox songsComboBox;
+        ImageComboBox songsComboBox;
 
         ThumbnailToolBarButton prevTButton, toggleTButton, nextTButton;
 
@@ -162,19 +162,10 @@ namespace GBAMusicStudio.UI
             volumeBar.Value = Config.Instance.Volume; // Update MusicPlayer volume
 
             // Playlist box
-            ImageList il = new ImageList(components)
-            {
-                ColorDepth = ColorDepth.Depth16Bit,
-                ImageSize = new Size(64, 64),
-                TransparentColor = Color.Transparent
-            };
-            il.Images.AddRange(new Image[] { Resources.PlaylistIcon, Resources.SongIcon });
-            songsComboBox = new ImageComboBox.ImageComboBox()
+            songsComboBox = new ImageComboBox()
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Enabled = false,
-                ImageList = il,
-                Indent = 15,
                 Location = new Point(sX, 4),
                 Size = new Size(sWidth, 23)
             };
@@ -291,7 +282,7 @@ namespace GBAMusicStudio.UI
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var item = (songsComboBox.SelectedItem as ImageComboBox.ImageComboBoxItem).Item;
+            var item = ((ImageComboBoxItem)songsComboBox.SelectedItem).Item;
             if (item is APlaylist playlist)
             {
                 if (playlist.Songs.Length > 0
@@ -321,13 +312,13 @@ namespace GBAMusicStudio.UI
         }
         void PopulatePlaylists(List<APlaylist> playlists)
         {
-            songsComboBox.ComboBoxClear();
+            songsComboBox.Items.Clear();
             foreach (var playlist in playlists)
             {
                 // Add playlist to combobox
-                songsComboBox.ComboBoxAddItem(new ImageComboBox.ImageComboBoxItem(playlist) { ImageIndex = 0 });
+                songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
                 // Add songs to combobox
-                songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBox.ImageComboBoxItem(s) { ImageIndex = 1, IndentLevel = 1 }).ToArray());
+                songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBoxItem(s, Resources.IconSong, 1)).ToArray());
             }
             // Load first song of complete playlist if there is one, otherwise load song 0
             if (playlists[0].Songs.Length == 0)

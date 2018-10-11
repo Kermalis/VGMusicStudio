@@ -33,7 +33,6 @@ using System.Windows.Forms;
 
 namespace GBAMusicStudio.UI
 {
-    [DesignerCategory("")]
     public partial class PianoControl : Control
     {
         public class PianoKey : Control

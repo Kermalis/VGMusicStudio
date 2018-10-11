@@ -44,9 +44,6 @@
     <Reference Include="Humanizer, Version=2.4.0.0, Culture=neutral, PublicKeyToken=979442b78dfc278e, processorArchitecture=MSIL">
       <HintPath>..\packages\Humanizer.Core.2.4.2\lib\netstandard2.0\Humanizer.dll</HintPath>
     </Reference>
-    <Reference Include="ImageComboBox">
-      <HintPath>Dependencies\ImageComboBox.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -119,6 +116,9 @@
     <Compile Include="UI\ColorSlider.designer.cs">
       <DependentUpon>ColorSlider.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\ImageComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\MIDIConverterDialog.cs" />
     <Compile Include="UI\FlexibleMessageBox.cs" />
     <Compile Include="UI\Theme.cs" />
@@ -128,7 +128,9 @@
     <Compile Include="UI\MainForm.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\PianoControl.cs" />
+    <Compile Include="UI\PianoControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\TrackInfoControl.cs" />
     <Compile Include="UI\TrackEditor.cs" />
     <Compile Include="UI\VoiceTableEditor.cs" />
