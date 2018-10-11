@@ -1,5 +1,4 @@
 ﻿using GBAMusicStudio.Util;
-using Humanizer;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -34,7 +33,7 @@ namespace GBAMusicStudio.Core
 
         public APlaylist(string name, ASong[] songs)
         {
-            Name = name.Humanize(); Songs = songs;
+            Name = name; Songs = songs;
         }
 
         public override string ToString()

@@ -68,7 +68,6 @@ A tool that is designed to be a Sappy replacement as well as support different g
 ----
 # GBA Music Studio Uses:
 * [NAudio](https://github.com/naudio/NAudio)
-* [Humanizer](https://github.com/Humanizr/Humanizer)
 * [ObjectListView](http://objectlistview.sourceforge.net)
 * [YamlDotNet](https://github.com/aaubry/YamlDotNet/wiki)
 * [My EndianBinaryIO library](https://github.com/Kermalis/EndianBinaryIO)

@@ -182,7 +182,7 @@ AXVE:
     TrackLimit: 10
     PokemonCompression: True
   Music:
-    Disc_1:
+    Disc 1:
       414: "Opening Movie: Setting out on a Journey in the Hoenn Region"
       442: "Opening Movie: Double Battles"
       413: "Title Screen"
@@ -237,7 +237,7 @@ AXVE:
       369: "Obtained a Badge!"
       372: "Obtained a TM!"
       365: "Surf"
-    Disc_2:
+    Disc 2:
       402: "Route 119"
       382: "Fortree City"
       361: "Route 120"
@@ -291,7 +291,7 @@ AXVE:
       436: "The Hall of Fame"
       455: "Ending Theme"
       456: "The End"
-    Other:
+    Other Music:
       350: "Unused - TETSUJI"
       351: "Unused - Route 38"
       352: "Victory! (Wild Pokémon) (No Intro)"
@@ -317,7 +317,7 @@ B24E:
     Volume: 14
     Frequency: 18157
   Music:
-    Disc_1:
+    Disc 1:
       40: "Intro"
       43: "Title"
       8: "File Select"
@@ -350,7 +350,7 @@ B24E:
       20: "Great Canyon"
       6: "The Legend of Ninetales"
       24: "Run Away"
-    Disc_2:
+    Disc 2:
       102: "Lapis Cave"
       38: "The Mountain of Fire"
       25: "Mt. Blaze"
@@ -393,7 +393,7 @@ B24E:
       119: "Friend Area ~ Enclosed Island"
       100: "Unused 1"
       109: "Unused 2"
-    Other:
+    Other Music:
       41: "41"
       51: "Exploration Failed"
       52: "Exploration Complete!"
@@ -688,7 +688,7 @@ BPRE:
     TrackLimit: 10
     PokemonCompression: True
   Music:
-    Disc_1:
+    Disc 1:
       321: "Game Freak Logo"
       277: "Opening Movie"
       278: "Title Screen"
@@ -765,10 +765,10 @@ BPRE:
       345: "Epilogue"
       286: "Hall of Fame"
       290: "Ending Theme"
-    Disc_2:
+    Disc 2:
       343: "Deoxys Appears"
       339: "Battle! (Deoxys)"
-    Other:
+    Other Music:
       261: "Unused - Obtained a TM! (RS)"
       262: "Unused - Obtained a Berry! (RS)"
       265: "Battle! (Link Battle) (1)"

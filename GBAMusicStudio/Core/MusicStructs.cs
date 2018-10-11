@@ -1,5 +1,4 @@
 ﻿using GBAMusicStudio.Util;
-using Humanizer;
 using Kermalis.EndianBinaryIO;
 using System;
 using System.Collections.Generic;
@@ -140,11 +139,17 @@ namespace GBAMusicStudio.Core
                     name = "Drum";
                 else
                 {
-                    var type = (M4AVoiceType)(Type & 0x7);
-                    if (type == M4AVoiceType.Direct)
-                        name = IsGoldenSunPSG() ? $"GS {ROM.Instance.Reader.ReadObject<GoldenSunPSG>(Address - ROM.Pak + 0x10).Type}" : "Direct Sound";
-                    else
-                        name = type.Humanize();
+                    switch ((M4AVoiceType)(Type & 0x7))
+                    {
+                        case M4AVoiceType.Direct: name = IsGoldenSunPSG() ? $"GS {ROM.Instance.Reader.ReadObject<GoldenSunPSG>(Address - ROM.Pak + 0x10).Type}" : "Direct Sound"; break;
+                        case M4AVoiceType.Square1: name = "Square 1"; break;
+                        case M4AVoiceType.Square2: name = "Square 2"; break;
+                        case M4AVoiceType.Wave: name = "Wave"; break;
+                        case M4AVoiceType.Noise: name = "Noise"; break;
+                        case M4AVoiceType.Invalid5: name = "Invalid 5"; break;
+                        case M4AVoiceType.Invalid6: name = "Invalid 6"; break;
+                        case M4AVoiceType.Invalid7: name = "Invalid 7"; break;
+                    }
                 }
             }
             return name;
