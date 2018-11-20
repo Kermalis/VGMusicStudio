@@ -1,3 +1,11 @@
+A3UJ:
+  Name: "Mother 3 (Japan)"
+  Creator: "Brownie Brown, HAL Laboratory"
+  SongTable: 0x120E94
+  SongTableSize: 1968
+  Engine:
+    Frequency: 15768
+    TrackLimit: 10
 A88E:
   Name: "Mario & Luigi - Superstar Saga (USA)"
   Creator: "AlphaDream"
@@ -72,7 +80,7 @@ AE7E:
   Name: "Fire Emblem 7 (USA)"
   Creator: "Intelligent Systems"
   SongTable: 0x69D6E0
-  SampleTableSize: 1000
+  SongTableSize: 1000
 AGFE:
   Name: "Golden Sun: The Lost Age (USA)"
   Creator: "Camelot"
