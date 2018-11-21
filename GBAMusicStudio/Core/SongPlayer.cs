@@ -7,16 +7,7 @@ namespace GBAMusicStudio.Core
 {
     class SongPlayer
     {
-        static SongPlayer instance;
-        public static SongPlayer Instance
-        {
-            get
-            {
-                if (instance == null)
-                    instance = new SongPlayer();
-                return instance;
-            }
-        }
+        public static SongPlayer Instance { get; } = new SongPlayer();
 
         readonly TimeBarrier time;
         Thread thread;
@@ -132,6 +123,7 @@ namespace GBAMusicStudio.Core
 
             position = tempoStack = loops = 0;
             fadeOutBegan = false;
+            SoundMixer.Instance.ResetFade();
             Tempo = Engine.GetDefaultTempo();
 
             State = PlayerState.Playing;

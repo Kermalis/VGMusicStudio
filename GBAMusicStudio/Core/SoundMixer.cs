@@ -6,16 +6,7 @@ namespace GBAMusicStudio.Core
 {
     class SoundMixer
     {
-        static SoundMixer instance;
-        public static SoundMixer Instance
-        {
-            get
-            {
-                if (instance == null)
-                    instance = new SoundMixer();
-                return instance;
-            }
-        }
+        public static SoundMixer Instance { get; } = new SoundMixer();
 
         public readonly float SampleRateReciprocal, SamplesReciprocal;
         public readonly int SamplesPerBuffer;
@@ -108,6 +99,10 @@ namespace GBAMusicStudio.Core
             fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
         }
         public bool IsFadeDone() => fadeMicroFramesLeft == 0;
+        public void ResetFade()
+        {
+            fadeMicroFramesLeft = 0;
+        }
 
         public DirectSoundChannel NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, WrappedSample sample, Track[] tracks)
         {
