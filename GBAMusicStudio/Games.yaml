@@ -1,6 +1,14 @@
+A2UJ:
+  Name: "Mother 1 + 2 (Japan)"
+  Creator: "Ape Inc., Nintendo Tokyo R&D Products, HAL Laboratory"
+  SongTable: 0x10B530
+  SongTableSize: 451
+  Engine:
+    Frequency: 10512
+    TrackLimit: 10
 A3UJ:
   Name: "Mother 3 (Japan)"
-  Creator: "Brownie Brown, HAL Laboratory"
+  Creator: "Brownie Brown, Nintendo, HAL Laboratory"
   SongTable: 0x120E94
   SongTableSize: 1968
   Engine:
