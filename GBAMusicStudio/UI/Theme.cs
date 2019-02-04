@@ -41,14 +41,12 @@ namespace GBAMusicStudio.UI
         protected override void OnEnabledChanged(EventArgs e)
         {
             base.OnEnabledChanged(e);
-
             BackColor = Enabled ? Theme.BackColor : Theme.BackColorDisabled;
             FlatAppearance.BorderColor = Enabled ? Theme.BorderColor : Theme.BorderColorDisabled;
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-
             if (!Enabled)
             {
                 TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, Theme.DrainColor(ForeColor), BackColor);
@@ -90,6 +88,15 @@ namespace GBAMusicStudio.UI
             {
                 e.Graphics.DrawRectangle(p, e.ClipRectangle);
             }
+        }
+        const int WM_PAINT = 0xF;
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_PAINT)
+            {
+                Invalidate();
+            }
+            base.WndProc(ref m);
         }
     }
     class ThemedTextBox : TextBox
@@ -152,7 +159,6 @@ namespace GBAMusicStudio.UI
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-
             ControlPaint.DrawBorder(e.Graphics, ClientRectangle, Enabled ? Theme.BorderColor : Theme.BorderColorDisabled, ButtonBorderStyle.Solid);
         }
     }
