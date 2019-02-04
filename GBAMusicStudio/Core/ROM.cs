@@ -22,7 +22,7 @@ namespace GBAMusicStudio.Core
         {
             Instance = this;
             ROMFile = File.ReadAllBytes(filePath);
-            var stream = Stream.Synchronized(new MemoryStream(ROMFile));
+            Stream stream = Stream.Synchronized(new MemoryStream(ROMFile));
             Reader = new EndianBinaryReader(stream);
             Writer = new EndianBinaryWriter(stream);
             HandleConfigLoaded();
@@ -51,9 +51,13 @@ namespace GBAMusicStudio.Core
         public static int SanitizeOffset(int offset)
         {
             if (!IsValidRomOffset(offset))
+            {
                 throw new ArgumentOutOfRangeException("\"offset\" was invalid.");
+            }
             if (offset >= Pak)
+            {
                 return offset - Pak;
+            }
             return offset;
         }
     }

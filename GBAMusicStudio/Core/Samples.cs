@@ -66,7 +66,6 @@ namespace GBAMusicStudio.Core
                 return noiseRough;
             }
         }
-        
 
         public static float[] PCM4ToFloat(int address)
         {
@@ -84,7 +83,9 @@ namespace GBAMusicStudio.Core
             }
             float dcCorrection = sum / 0x20;
             for (int i = 0; i < 0x20; i++)
+            {
                 sample[i] -= dcCorrection;
+            }
 
             return sample;
         }
@@ -95,7 +96,9 @@ namespace GBAMusicStudio.Core
         {
             short[] ret = new short[bitArray.Length];
             for (int i = 0; i < bitArray.Length; i++)
+            {
                 ret[i] = (short)((bitArray[i] ? short.MaxValue : short.MinValue) / 2);
+            }
             return ret;
         }
 
@@ -116,22 +119,28 @@ namespace GBAMusicStudio.Core
                     compressionLevel = (sbyte)b;
                     samples.Add(compressionLevel);
                     if (++compressionIdx >= sample.Length)
+                    {
                         break;
+                    }
                 }
                 else
                 {
-                    if(compressionByte < 0x20)
+                    if (compressionByte < 0x20)
                     {
                         compressionLevel += CompressionLookup[b >> 4];
                         samples.Add(compressionLevel);
                         if (++compressionIdx >= sample.Length)
+                        {
                             break;
+                        }
                     }
                     compressionByte--;
                     compressionLevel += CompressionLookup[b & 0xF];
                     samples.Add(compressionLevel);
                     if (++compressionIdx >= sample.Length)
+                    {
                         break;
+                    }
                 }
             }
 

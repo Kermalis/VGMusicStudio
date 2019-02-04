@@ -1,6 +1,6 @@
-﻿using Kermalis.SoundFont2;
+﻿using GBAMusicStudio.Util;
+using Kermalis.SoundFont2;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -45,7 +45,7 @@ namespace GBAMusicStudio.Core
 
         private class M4AVoiceTableSaver
         {
-            SF2 sf2;
+            readonly SF2 sf2;
 
             public M4AVoiceTableSaver(string fileName, bool saveAfter7F)
             {
@@ -58,19 +58,21 @@ namespace GBAMusicStudio.Core
                 sf2.Save(fileName);
             }
 
-            List<int> addedTables = new List<int>();
+            readonly List<int> addedTables = new List<int>();
             void AddTable(M4AVoiceTable table, bool saveAfter7F, bool fromDrum)
             {
                 int tableOffset = table.GetOffset();
                 if (addedTables.Contains(tableOffset))
+                {
                     return;
+                }
                 addedTables.Add(tableOffset);
 
                 int amt = saveAfter7F ? 0xFF : 0x7F;
 
                 for (int i = 0; i <= amt; i++)
                 {
-                    var voice = table[i];
+                    WrappedVoice voice = table[i];
                     //Console.WriteLine("{0} {1} {2}", i, fromDrum, voice);
 
                     if (!fromDrum)
@@ -103,10 +105,13 @@ namespace GBAMusicStudio.Core
                             Console.WriteLine("Skipping nested key split within a drum at table 0x{0:X7} index {1}.", tableOffset, i);
                             continue;
                         }
-                        foreach (var key in keySplit.Keys)
+                        foreach (Triple<byte, byte, byte> key in keySplit.Keys)
                         {
-                            if (key.Item1 > amt || key.Item2 >= 0x80) continue;
-                            var subvoice = keySplit.Table[key.Item1];
+                            if (key.Item1 > amt || key.Item2 >= 0x80)
+                            {
+                                continue;
+                            }
+                            WrappedVoice subvoice = keySplit.Table[key.Item1];
 
                             var m4 = (M4AVoiceEntry)voice.Voice;
                             if (subvoice is M4AWrappedDirect subdirect)
@@ -168,19 +173,29 @@ namespace GBAMusicStudio.Core
 
                 M4AVoiceType type = (M4AVoiceType)(entry.Type & 0x7);
                 if (type == M4AVoiceType.Square1 || type == M4AVoiceType.Square2)
+                {
                     sample = (int)entry.SquarePattern;
+                }
                 else if (type == M4AVoiceType.Wave)
+                {
                     sample = AddWave(entry.Address - ROM.Pak);
+                }
                 else if (type == M4AVoiceType.Noise)
+                {
                     sample = (int)entry.NoisePattern + 4;
+                }
                 else
+                {
                     return;
+                }
 
                 sf2.AddInstrumentBag();
 
                 high = Math.Min((byte)0x7F, high);
                 if (!(low == 0 && high == 0x7F))
+                {
                     sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
+                }
 
                 // ADSR
                 if (entry.ADSR.A != 0)
@@ -195,9 +210,15 @@ namespace GBAMusicStudio.Core
                 {
                     double sus;
                     // Compute attenuation in cB if sustain is non-zero
-                    if (entry.ADSR.S != 0) sus = 100 * Math.Log(15d / entry.ADSR.S);
+                    if (entry.ADSR.S != 0)
+                    {
+                        sus = 100 * Math.Log(15d / entry.ADSR.S);
+                    }
                     // Special case where attenuation is infinite -> use max value
-                    else sus = 1000;
+                    else
+                    {
+                        sus = 1000;
+                    }
 
                     sf2.AddInstrumentGenerator(SF2Generator.SustainVolEnv, new SF2GeneratorAmount { Amount = (short)sus });
 
@@ -213,7 +234,9 @@ namespace GBAMusicStudio.Core
                 }
 
                 if (type == M4AVoiceType.Noise && entry.Panpot != 0)
+                {
                     sf2.AddInstrumentGenerator(SF2Generator.Pan, new SF2GeneratorAmount { Amount = (short)((entry.Panpot - 0xC0) * (500d / 0x80)) });
+                }
                 sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { Amount = 1 });
                 sf2.AddInstrumentGenerator(SF2Generator.SampleID, new SF2GeneratorAmount { Amount = (short)sample });
             }
@@ -221,9 +244,11 @@ namespace GBAMusicStudio.Core
             {
                 var entry = (M4AVoiceEntry)direct.Voice;
 
-                var gSample = direct.Sample.GetSample();
+                WrappedSample gSample = direct.Sample.GetSample();
                 if (gSample == null)
+                {
                     return;
+                }
 
                 var flags = (M4AVoiceFlags)entry.Type;
                 bool bCompressed = ROM.Instance.Game.Engine.HasPokemonCompression && (flags & M4AVoiceFlags.Compressed) == M4AVoiceFlags.Compressed;
@@ -233,11 +258,15 @@ namespace GBAMusicStudio.Core
 
                 high = Math.Min((byte)0x7F, high);
                 if (!(low == 0 && high == 0x7F))
+                {
                     sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = low, HighByte = high });
+                }
 
                 // Fixed frequency
                 if ((entry.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed)
+                {
                     sf2.AddInstrumentGenerator(SF2Generator.ScaleTuning, new SF2GeneratorAmount { Amount = 0 });
+                }
 
                 // ADSR
                 if (entry.ADSR.A != 0xFF)
@@ -252,9 +281,15 @@ namespace GBAMusicStudio.Core
                 {
                     double sus;
                     // Compute attenuation in cB if sustain is non-zero
-                    if (entry.ADSR.S != 0) sus = 100 * Math.Log((double)0x100 / entry.ADSR.S);
+                    if (entry.ADSR.S != 0)
+                    {
+                        sus = 100 * Math.Log((double)0x100 / entry.ADSR.S);
+                    }
                     // Special case where attenuation is infinite -> use max value
-                    else sus = 1000;
+                    else
+                    {
+                        sus = 1000;
+                    }
 
                     sf2.AddInstrumentGenerator(SF2Generator.SustainVolEnv, new SF2GeneratorAmount { Amount = (short)sus });
 
@@ -271,17 +306,21 @@ namespace GBAMusicStudio.Core
                 }
 
                 if (entry.Panpot != 0)
+                {
                     sf2.AddInstrumentGenerator(SF2Generator.Pan, new SF2GeneratorAmount { Amount = (short)((entry.Panpot - 0xC0) * (500d / 0x80)) });
+                }
                 sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { Amount = (short)(gSample.bLoop ? 1 : 0) });
                 sf2.AddInstrumentGenerator(SF2Generator.SampleID, new SF2GeneratorAmount { Amount = (short)sample });
             }
 
 
-            List<int> savedSamples = new List<int>();
+            readonly List<int> savedSamples = new List<int>();
             int AddWave(int address)
             {
                 if (savedSamples.Contains(address))
+                {
                     return 6 + savedSamples.IndexOf(address);
+                }
                 savedSamples.Add(address);
 
                 float[] ieee = Samples.PCM4ToFloat(address);
@@ -292,10 +331,12 @@ namespace GBAMusicStudio.Core
             {
                 int sampleOffset = sample.GetOffset();
                 if (savedSamples.Contains(sampleOffset))
+                {
                     return 6 + savedSamples.IndexOf(sampleOffset);
+                }
                 savedSamples.Add(sampleOffset);
 
-                var gSample = sample.GetSample();
+                WrappedSample gSample = sample.GetSample();
                 byte[] pcm8;
                 string name;
                 if (bCompressed)
@@ -327,9 +368,9 @@ namespace GBAMusicStudio.Core
 
         private class MLSSVoiceTableSaver
         {
-            SF2 sf2;
+            readonly SF2 sf2;
             // value is index in sf2
-            Dictionary<MLSSWrappedSample, int> addedSamples = new Dictionary<MLSSWrappedSample, int>();
+            readonly Dictionary<MLSSWrappedSample, int> addedSamples = new Dictionary<MLSSWrappedSample, int>();
 
             public MLSSVoiceTableSaver(string fileName)
             {
@@ -347,11 +388,13 @@ namespace GBAMusicStudio.Core
             {
                 for (int i = 0; i < table.Samples.Length; i++)
                 {
-                    var sample = table.Samples[i];
+                    MLSSWrappedSample sample = table.Samples[i];
                     if (sample == null)
+                    {
                         continue;
+                    }
 
-                    var gSample = sample.GetSample();
+                    WrappedSample gSample = sample.GetSample();
                     byte[] pcmU8 = ROM.Instance.Reader.ReadBytes(gSample.Length, gSample.GetOffset());
                     short[] pcm16 = Samples.PCMU8ToPCM16(pcmU8);
                     addedSamples.Add(sample,
@@ -364,35 +407,45 @@ namespace GBAMusicStudio.Core
                 for (int i = 0; i < table.Length; i++)
                 {
                     var voice = (MLSSWrappedVoice)table[i];
-                    var entries = voice.GetSubVoices().Cast<MLSSVoiceEntry>();
+                    IEnumerable<MLSSVoiceEntry> entries = voice.GetSubVoices().Cast<MLSSVoiceEntry>();
                     if (entries.Count() == 0)
+                    {
                         continue;
+                    }
 
                     string name = "Instrument " + i;
                     sf2.AddPreset(name, (ushort)i, 0);
                     sf2.AddPresetBag();
                     sf2.AddPresetGenerator(SF2Generator.Instrument,
                         new SF2GeneratorAmount { Amount = (short)sf2.AddInstrument(name) });
-                    foreach (var entry in entries)
+                    foreach (MLSSVoiceEntry entry in entries)
                     {
                         sf2.AddInstrumentBag();
                         if (!(entry.MinKey == 0 && entry.MaxKey == 0x7F))
+                        {
                             sf2.AddInstrumentGenerator(SF2Generator.KeyRange, new SF2GeneratorAmount { LowByte = entry.MinKey, HighByte = entry.MaxKey });
+                        }
                         if (entry.IsFixedFrequency == 0x80)
+                        {
                             sf2.AddInstrumentGenerator(SF2Generator.ScaleTuning, new SF2GeneratorAmount { Amount = 0 });
+                        }
                         if (entry.Sample < table.Samples.Length)
                         {
-                            var sample = table.Samples[entry.Sample];
+                            MLSSWrappedSample sample = table.Samples[entry.Sample];
                             if (sample != null)
                             {
                                 sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { Amount = (short)(sample.GetSample().bLoop ? 1 : 0) });
                                 sf2.AddInstrumentGenerator(SF2Generator.SampleID, new SF2GeneratorAmount { Amount = (short)addedSamples[sample] });
                             }
                             else
+                            {
                                 Console.WriteLine("Voice {0} uses a null sample id ({1})", i, entry.Sample);
+                            }
                         }
                         else
+                        {
                             Console.WriteLine("Voice {0} uses an invalid sample id ({1})", i, entry.Sample);
+                        }
                     }
                 }
             }

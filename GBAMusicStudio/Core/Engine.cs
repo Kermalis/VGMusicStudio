@@ -30,9 +30,9 @@ namespace GBAMusicStudio.Core
             };
 
             allowedCommands = new Dictionary<EngineType, ICommand[]>();
-            foreach (var pair in types)
+            foreach (KeyValuePair<EngineType, Type[]> pair in types)
             {
-                var commands = pair.Value.Select(type => (ICommand)Activator.CreateInstance(type)).ToArray();
+                ICommand[] commands = pair.Value.Select(type => (ICommand)Activator.CreateInstance(type)).ToArray();
                 allowedCommands.Add(pair.Key, commands);
             }
         }

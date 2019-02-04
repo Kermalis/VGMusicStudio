@@ -25,9 +25,9 @@ namespace GBAMusicStudio.Core
         List<string> loaded = new List<string>();
         Dictionary<string, int> defines;
 
-        Dictionary<string, Pair> labels = new Dictionary<string, Pair>();
-        List<Pointer> lPointers = new List<Pointer>();
-        List<byte> bytes = new List<byte>();
+        readonly Dictionary<string, Pair> labels = new Dictionary<string, Pair>();
+        readonly List<Pointer> lPointers = new List<Pointer>();
+        readonly List<byte> bytes = new List<byte>();
 
         public readonly string FileName;
         public int this[string Label]
@@ -47,15 +47,17 @@ namespace GBAMusicStudio.Core
 
         public void SetBaseOffset(int baseOffset)
         {
-            foreach (var p in lPointers)
+            foreach (Pointer p in lPointers)
             {
                 // Our example label is SEQ_STUFF at the binary offset 0x1000, curBaseOffset is 0x500, baseOffset is 0x1800
                 // There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DFC
                 int oldPointer = BitConverter.ToInt32(Binary, p.BinaryOffset); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
                 int labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
-                var newPointerBytes = BitConverter.GetBytes(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
+                byte[] newPointerBytes = BitConverter.GetBytes(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
                 for (int i = 0; i < 4; i++)
+                {
                     bytes[p.BinaryOffset + i] = newPointerBytes[i]; // Copy the new pointer to binary offset 0x1DF4
+                }
             }
             BaseOffset = baseOffset;
         }
@@ -68,9 +70,13 @@ namespace GBAMusicStudio.Core
                 if ((label[i] >= 'a' && label[i] <= 'z') ||
                     (label[i] >= 'A' && label[i] <= 'Z') ||
                     (label[i] >= '0' && label[i] <= '9' && i > 0))
+                {
                     ret += label[i];
+                }
                 else
+                {
                     ret += '_';
+                }
             }
             return ret;
         }
@@ -78,7 +84,10 @@ namespace GBAMusicStudio.Core
         // Returns a status
         string Read(string fileName)
         {
-            if (loaded.Contains(fileName)) return $"{fileName} was already loaded";
+            if (loaded.Contains(fileName))
+            {
+                return $"{fileName} was already loaded";
+            }
 
             string[] file = File.ReadAllLines(fileName);
             loaded.Add(fileName);
@@ -86,7 +95,10 @@ namespace GBAMusicStudio.Core
             for (int i = 0; i < file.Length; i++)
             {
                 string line = file[i];
-                if (string.IsNullOrWhiteSpace(line)) continue; // Skip empty lines
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue; // Skip empty lines
+                }
 
                 bool readingCMD = false; // If it's reading the command
                 string cmd = null;
@@ -94,7 +106,10 @@ namespace GBAMusicStudio.Core
                 string str = "";
                 foreach (char c in line)
                 {
-                    if (c == '@') break; // Ignore comments from this point
+                    if (c == '@') // Ignore comments from this point
+                    {
+                        break;
+                    }
                     else if (c == '.' && cmd == null)
                     {
                         readingCMD = true;
@@ -102,7 +117,9 @@ namespace GBAMusicStudio.Core
                     else if (c == ':') // Labels
                     {
                         if (!labels.ContainsKey(str))
+                        {
                             labels.Add(str, new Pair());
+                        }
                         labels[str].Offset = bytes.Count;
                         str = "";
                     }
@@ -125,83 +142,115 @@ namespace GBAMusicStudio.Core
                         str += c;
                     }
                 }
-                if (cmd == null) continue; // Commented line
+                if (cmd == null)
+                {
+                    continue; // Commented line
+                }
+
                 args.Add(str); // Add last string before the newline
 
                 switch (cmd.ToLower())
                 {
                     case "include":
-                        try
                         {
-                            Read(args[0].Replace("\"", string.Empty));
+                            try
+                            {
+                                Read(args[0].Replace("\"", string.Empty));
+                            }
+                            catch
+                            {
+                                throw new IOException(string.Format(fileErrorFormat, fileName, i, args[0], Environment.NewLine));
+                            }
+                            break;
                         }
-                        catch
-                        {
-                            throw new IOException(string.Format(fileErrorFormat, fileName, i, args[0], Environment.NewLine));
-                        }
-                        break;
                     case "equ":
-                        try
                         {
-                            defines.Add(args[0], ParseInt(args[1]));
+                            try
+                            {
+                                defines.Add(args[0], ParseInt(args[1]));
+                            }
+                            catch
+                            {
+                                throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            }
+                            break;
                         }
-                        catch
-                        {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
-                        }
-                        break;
                     case "global":
-                        if (!labels.ContainsKey(args[0]))
-                            labels.Add(args[0], new Pair());
-                        labels[args[0]].Global = true;
-                        break;
+                        {
+                            if (!labels.ContainsKey(args[0]))
+                            {
+                                labels.Add(args[0], new Pair());
+                            }
+                            labels[args[0]].Global = true;
+                            break;
+                        }
                     case "align":
-                        int align = ParseInt(args[0]);
-                        for (int a = BinaryLength % align; a < align; a++)
-                            bytes.Add(0);
-                        break;
+                        {
+                            int align = ParseInt(args[0]);
+                            for (int a = BinaryLength % align; a < align; a++)
+                            {
+                                bytes.Add(0);
+                            }
+                            break;
+                        }
                     case "byte":
-                        try
                         {
-                            foreach (var a in args)
-                                bytes.Add((byte)ParseInt(a));
+                            try
+                            {
+                                foreach (string a in args)
+                                {
+                                    bytes.Add((byte)ParseInt(a));
+                                }
+                            }
+                            catch
+                            {
+                                throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            }
+                            break;
                         }
-                        catch
-                        {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
-                        }
-                        break;
                     case "hword":
-                        try
                         {
-                            foreach (var a in args)
-                                bytes.AddRange(BitConverter.GetBytes((short)ParseInt(a)));
+                            try
+                            {
+                                foreach (string a in args)
+                                {
+                                    bytes.AddRange(BitConverter.GetBytes((short)ParseInt(a)));
+                                }
+                            }
+                            catch
+                            {
+                                throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            }
+                            break;
                         }
-                        catch
-                        {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
-                        }
-                        break;
                     case "int":
                     case "word":
-                        try
                         {
-                            foreach (var a in args)
-                                bytes.AddRange(BitConverter.GetBytes(ParseInt(a)));
+                            try
+                            {
+                                foreach (string a in args)
+                                {
+                                    bytes.AddRange(BitConverter.GetBytes(ParseInt(a)));
+                                }
+                            }
+                            catch
+                            {
+                                throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            }
+                            break;
                         }
-                        catch
-                        {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
-                        }
-                        break;
                     case "end":
-                        goto end;
+                        {
+                            goto end;
+                        }
                     case "section": // Ignore
-                        break;
+                        {
+                            break;
+                        }
                     default: throw new NotSupportedException(string.Format(cmdErrorFormat, fileName, i, cmd, Environment.NewLine));
                 }
             }
-            end:
+        end:
             return $"{fileName} loaded with no issues";
         }
 
@@ -210,13 +259,21 @@ namespace GBAMusicStudio.Core
             // First try regular values like "40" and "0x20"
             var provider = new CultureInfo("en-US");
             if (value.StartsWith("0x"))
+            {
                 if (int.TryParse(value.Substring(2), NumberStyles.HexNumber, provider, out int hex))
+                {
                     return hex;
+                }
+            }
             if (int.TryParse(value, NumberStyles.Integer, provider, out int dec))
+            {
                 return dec;
-
+            }
             // Then check if it's defined
-            if (defines.TryGetValue(value, out int def)) return def;
+            if (defines.TryGetValue(value, out int def))
+            {
+                return def;
+            }
             if (labels.TryGetValue(value, out Pair pair))
             {
                 lPointers.Add(new Pointer { Label = value, BinaryOffset = bytes.Count });
@@ -232,13 +289,28 @@ namespace GBAMusicStudio.Core
             {
                 char c = value[i];
 
-                if (char.IsWhiteSpace(c)) continue; // White space does nothing here
+                if (char.IsWhiteSpace(c)) // White space does nothing here
+                {
+                    continue;
+                }
                 else if (c == '+' || c == '-' || c == '*' || c == '/')
                 {
-                    if (add) ret += ParseInt(str);
-                    else if (sub) ret -= ParseInt(str);
-                    else if (mul) ret *= ParseInt(str);
-                    else if (div) ret /= ParseInt(str);
+                    if (add)
+                    {
+                        ret += ParseInt(str);
+                    }
+                    else if (sub)
+                    {
+                        ret -= ParseInt(str);
+                    }
+                    else if (mul)
+                    {
+                        ret *= ParseInt(str);
+                    }
+                    else if (div)
+                    {
+                        ret /= ParseInt(str);
+                    }
                     add = c == '+'; sub = c == '-'; mul = c == '*'; div = c == '/';
                     str = "";
                     foundMath = true;
@@ -250,10 +322,22 @@ namespace GBAMusicStudio.Core
             }
             if (foundMath)
             {
-                if (add) ret += ParseInt(str); // Handle last
-                else if (sub) ret -= ParseInt(str);
-                else if (mul) ret *= ParseInt(str);
-                else if (div) ret /= ParseInt(str);
+                if (add) // Handle last
+                {
+                    ret += ParseInt(str);
+                }
+                else if (sub)
+                {
+                    ret -= ParseInt(str);
+                }
+                else if (mul)
+                {
+                    ret *= ParseInt(str);
+                }
+                else if (div)
+                {
+                    ret /= ParseInt(str);
+                }
                 return ret;
             }
 

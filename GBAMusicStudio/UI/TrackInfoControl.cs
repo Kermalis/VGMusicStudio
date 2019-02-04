@@ -24,7 +24,9 @@ namespace GBAMusicStudio.UI
         public TrackInfo()
         {
             for (int i = 0; i < 16; i++)
+            {
                 Notes[i] = new sbyte[0];
+            }
         }
     }
 
@@ -76,13 +78,18 @@ namespace GBAMusicStudio.UI
         void ToggleVisibility(object sender, EventArgs e) => ((CheckBox)sender).Checked = ((CheckBox)sender).Visible;
         void TogglePiano(object sender, EventArgs e)
         {
-            if (ParentForm == null) return;
+            if (ParentForm == null)
+            {
+                return;
+            }
             var check = (CheckBox)sender;
             if (check == pianos[16])
             {
                 bool b = check.CheckState != CheckState.Unchecked;
                 for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
+                {
                     pianos[i].Checked = b;
+                }
             }
             else
             {
@@ -90,9 +97,13 @@ namespace GBAMusicStudio.UI
                 for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
                 {
                     if (pianos[i] == check)
+                    {
                         ((MainForm)ParentForm).PianoTracks[i] = pianos[i].Checked && pianos[i].Visible;
+                    }
                     if (pianos[i].Checked)
+                    {
                         on++;
+                    }
                 }
                 pianos[16].CheckStateChanged -= TogglePiano;
                 pianos[16].CheckState = on == SongPlayer.Instance.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
@@ -106,7 +117,9 @@ namespace GBAMusicStudio.UI
             {
                 bool b = check.CheckState != CheckState.Unchecked;
                 for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
+                {
                     mutes[i].Checked = b;
+                }
             }
             else
             {
@@ -114,9 +127,13 @@ namespace GBAMusicStudio.UI
                 for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
                 {
                     if (mutes[i] == check)
+                    {
                         SoundMixer.Instance.SetMute(i, !check.Checked);
+                    }
                     if (mutes[i].Checked)
+                    {
                         on++;
+                    }
                 }
                 mutes[16].CheckStateChanged -= ToggleMute;
                 mutes[16].CheckState = on == SongPlayer.Instance.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
@@ -129,9 +146,13 @@ namespace GBAMusicStudio.UI
             Info = new TrackInfo();
             previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
             for (int i = 0; i < 16; i++)
+            {
                 previousNotes.Item2[i] = noNotes;
+            }
             for (int i = SongPlayer.Instance.NumTracks; i < 16; i++)
+            {
                 pianos[i].Visible = mutes[i].Visible = false;
+            }
             Invalidate();
         }
 
@@ -205,8 +226,14 @@ namespace GBAMusicStudio.UI
                 e.Graphics.DrawString(Info.Pitches[i].ToString(), Font, Brushes.Purple, vox + (r2d * 4), r2y);
 
                 e.Graphics.DrawLine(Pens.GreenYellow, bx, by, bx, by + bh); // Left bar bound line
-                if (Config.Instance.CenterIndicators) e.Graphics.DrawLine(pen, cx, by, cx, by + bh); // Center line
-                if (Config.Instance.PanpotIndicators) e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, by + bh); // Pan line
+                if (Config.Instance.CenterIndicators)
+                {
+                    e.Graphics.DrawLine(pen, cx, by, cx, by + bh); // Center line
+                }
+                if (Config.Instance.PanpotIndicators)
+                {
+                    e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, by + bh); // Pan line
+                }
                 e.Graphics.DrawLine(Pens.GreenYellow, brx, by, brx, by + bh); // Right bar bound line
 
                 var rect = new Rectangle((int)(bx + (bw / 2) - (Info.Lefts[i] * bw / 2)) + bwd,
@@ -219,11 +246,14 @@ namespace GBAMusicStudio.UI
                 string theseNotes = string.Join(" ", Info.Notes[i].Select(n => SongEvent.NoteName(n)));
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? noNotes : theseNotes;
-                if (empty && previousNotes.Item1[i]++ < Config.Instance.RefreshRate * 10) theseNotes = previousNotes.Item2[i];
+                if (empty && previousNotes.Item1[i]++ < Config.Instance.RefreshRate * 10)
+                {
+                    theseNotes = previousNotes.Item2[i];
+                }
                 else if (!empty || previousNotes.Item2[i] != theseNotes) { previousNotes.Item1[i] = 0; previousNotes.Item2[i] = theseNotes; }
                 e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, nx, r1y);
 
-                var strSize = e.Graphics.MeasureString(Info.Types[i], Font);
+                SizeF strSize = e.Graphics.MeasureString(Info.Types[i], Font);
                 e.Graphics.DrawString(Info.Types[i], Font, Brushes.DeepPink, ix - strSize.Width, by + (r2o / (Font.Size / 2.5f)));
 
                 bg.Dispose();

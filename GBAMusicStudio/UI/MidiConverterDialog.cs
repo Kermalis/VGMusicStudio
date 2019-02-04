@@ -55,7 +55,10 @@ namespace GBAMusicStudio.UI
         void OpenMIDI(object sender, EventArgs e)
         {
             var d = new OpenFileDialog { Title = Strings.TitleOpenMIDI, Filter = $"{Strings.FilterOpenMIDI}|*.mid" };
-            if (d.ShowDialog() != DialogResult.OK) return;
+            if (d.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
 
             try
             {
@@ -63,23 +66,27 @@ namespace GBAMusicStudio.UI
                 switch (ROM.Instance.Game.Engine.Type)
                 {
                     case EngineType.M4A:
-                        var process = new Process
                         {
-                            StartInfo = new ProcessStartInfo
+                            var process = new Process
                             {
-                                FileName = "midi2agb.exe",
-                                Arguments = string.Format("\"{0}\" \"{1}\"", midiFileName, "temp.s")
-                            }
-                        };
-                        process.Start();
-                        process.WaitForExit();
-                        var ass = new Assembler("temp.s", ROM.Pak, new Dictionary<string, int> { { "voicegroup000", (int)(ROM.Pak + offsetValueBox.Value) } });
-                        File.Delete("temp.s");
-                        song = new M4AASMSong(ass, "temp");
-                        break;
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = "midi2agb.exe",
+                                    Arguments = string.Format("\"{0}\" \"{1}\"", midiFileName, "temp.s")
+                                }
+                            };
+                            process.Start();
+                            process.WaitForExit();
+                            var ass = new Assembler("temp.s", ROM.Pak, new Dictionary<string, int> { { "voicegroup000", (int)(ROM.Pak + offsetValueBox.Value) } });
+                            File.Delete("temp.s");
+                            song = new M4AASMSong(ass, "temp");
+                            break;
+                        }
                     case EngineType.MLSS:
-                        song = new MLSSMIDISong(midiFileName);
-                        break;
+                        {
+                            song = new MLSSMIDISong(midiFileName);
+                            break;
+                        }
                 }
                 previewButton.Enabled = true;
             }

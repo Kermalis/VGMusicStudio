@@ -194,7 +194,9 @@ namespace GBAMusicStudio.UI
         void RemoveEvent(object sender, EventArgs e)
         {
             if (listView.SelectedIndex == -1)
+            {
                 return;
+            }
             SongPlayer.Instance.Song.RemoveEvent(currentTrack, listView.SelectedIndex);
             SongPlayer.Instance.RefreshSong();
             LoadTrack(currentTrack);
@@ -202,38 +204,46 @@ namespace GBAMusicStudio.UI
 
         void RowColorer(OLVListItem item)
         {
-            var e = (SongEvent)item.RowObject;
-            if (e.Command is GoToCommand || e.Command is CallCommand || e.Command is ReturnCommand || e.Command is FinishCommand)
-                item.BackColor = Color.MediumSpringGreen;
-            else if (e.Command is VoiceCommand)
-                item.BackColor = Color.DarkSalmon;
-            else if (e.Command is RestCommand)
-                item.BackColor = Color.PaleVioletRed;
-            else if (e.Command is KeyShiftCommand || e.Command is NoteCommand || e.Command is EndOfTieCommand || e.Command is FreeNoteCommand)
-                item.BackColor = Color.SkyBlue;
-            else if (e.Command is ModDepthCommand || e.Command is ModTypeCommand)
-                item.BackColor = Color.LightSteelBlue;
-            else if (e.Command is TuneCommand || e.Command is BendCommand || e.Command is BendRangeCommand)
-                item.BackColor = Color.MediumPurple;
-            else if (e.Command is PanpotCommand || e.Command is LFODelayCommand || e.Command is LFOSpeedCommand)
-                item.BackColor = Color.GreenYellow;
-            else if (e.Command is TempoCommand)
-                item.BackColor = Color.DeepSkyBlue;
-            else
-                item.BackColor = Color.SteelBlue;
+            switch (((SongEvent)item.RowObject).Command)
+            {
+                case GoToCommand _:
+                case CallCommand _:
+                case ReturnCommand _:
+                case FinishCommand _: item.BackColor = Color.MediumSpringGreen; break;
+                case VoiceCommand _: item.BackColor = Color.DarkSalmon; break;
+                case RestCommand _: item.BackColor = Color.PaleVioletRed; break;
+                case KeyShiftCommand _:
+                case NoteCommand _:
+                case EndOfTieCommand _:
+                case FreeNoteCommand _: item.BackColor = Color.SkyBlue; break;
+                case ModDepthCommand _:
+                case ModTypeCommand _: item.BackColor = Color.LightSteelBlue; break;
+                case TuneCommand _:
+                case BendCommand _:
+                case BendRangeCommand _: item.BackColor = Color.MediumPurple; break;
+                case PanpotCommand _:
+                case LFODelayCommand _:
+                case LFOSpeedCommand _: item.BackColor = Color.GreenYellow; break;
+                case TempoCommand _: item.BackColor = Color.DeepSkyBlue; break;
+                default: item.BackColor = Color.SteelBlue; break;
+            }
         }
 
         void ApplyRemap(bool from)
         {
             bool changed = false;
             string remap = (string)remapsBox.SelectedItem;
-            foreach (var track in SongPlayer.Instance.Song.Commands)
-                foreach (var ev in track)
+            foreach (List<SongEvent> track in SongPlayer.Instance.Song.Commands)
+            {
+                foreach (SongEvent ev in track)
+                {
                     if (ev.Command is VoiceCommand voice)
                     {
                         voice.Voice = Config.Instance.GetRemap(voice.Voice, remap, from);
                         changed = true;
                     }
+                }
+            }
             if (changed)
             {
                 SongPlayer.Instance.RefreshSong();
@@ -243,12 +253,14 @@ namespace GBAMusicStudio.UI
         void ChangeEvents(object sender, EventArgs e)
         {
             bool changed = false;
-            foreach (var ev in events)
+            foreach (SongEvent ev in events)
+            {
                 if (sender == trackChangeVoicesButton && ev.Command is VoiceCommand voice && voice.Voice == trackVoiceArgs[0].Value)
                 {
                     voice.Voice = (byte)trackVoiceArgs[1].Value;
                     changed = true;
                 }
+            }
             if (changed)
             {
                 SongPlayer.Instance.RefreshSong();
@@ -258,13 +270,17 @@ namespace GBAMusicStudio.UI
         void ChangeAllEvents(object sender, EventArgs e)
         {
             bool changed = false;
-            foreach (var track in SongPlayer.Instance.Song.Commands)
-                foreach (var ev in track)
+            foreach (List<SongEvent> track in SongPlayer.Instance.Song.Commands)
+            {
+                foreach (SongEvent ev in track)
+                {
                     if (sender == globalChangeVoicesButton && ev.Command is VoiceCommand voice && voice.Voice == globalVoiceArgs[0].Value)
                     {
                         voice.Voice = (byte)globalVoiceArgs[1].Value;
                         changed = true;
                     }
+                }
+            }
             if (changed)
             {
                 SongPlayer.Instance.RefreshSong();
@@ -292,7 +308,9 @@ namespace GBAMusicStudio.UI
             commandsBox.DataSource = Engine.GetCommands().Select(c => c.Name).ToList();
 
             if (!tracks)
+            {
                 listView.Items.Clear();
+            }
         }
         void SelectItem(int index)
         {
@@ -307,16 +325,21 @@ namespace GBAMusicStudio.UI
             {
                 if (sender == argNumerics[i])
                 {
-                    var se = events[listView.SelectedIndices[0]];
+                    SongEvent se = events[listView.SelectedIndices[0]];
                     object value = argNumerics[i].Value;
-                    var m = se.Command.GetType().GetMember(argLabels[i].Text)[0];
+                    MemberInfo m = se.Command.GetType().GetMember(argLabels[i].Text)[0];
                     if (m is FieldInfo f)
+                    {
                         f.SetValue(se.Command, Convert.ChangeType(value, f.FieldType));
+                    }
                     else if (m is PropertyInfo p)
+                    {
                         p.SetValue(se.Command, Convert.ChangeType(value, p.PropertyType));
+                    }
+
                     SongPlayer.Instance.RefreshSong();
 
-                    var control = ActiveControl;
+                    Control control = ActiveControl;
                     int index = listView.SelectedIndex;
                     LoadTrack(currentTrack);
                     SelectItem(index);
@@ -336,8 +359,8 @@ namespace GBAMusicStudio.UI
             else
             {
                 var se = (SongEvent)listView.SelectedObject;
-                var ignore = typeof(ICommand).GetMembers();
-                var mi = se.Command == null ? new MemberInfo[0] : se.Command.GetType().GetMembers().Where(m => !ignore.Any(a => m.Name == a.Name) && (m is FieldInfo || m is PropertyInfo)).ToArray();
+                MemberInfo[] ignore = typeof(ICommand).GetMembers();
+                MemberInfo[] mi = se.Command == null ? new MemberInfo[0] : se.Command.GetType().GetMembers().Where(m => !ignore.Any(a => m.Name == a.Name) && (m is FieldInfo || m is PropertyInfo)).ToArray();
                 for (int i = 0; i < 3; i++)
                 {
                     argLabels[i].Visible = argNumerics[i].Visible = i < mi.Length;
@@ -353,9 +376,13 @@ namespace GBAMusicStudio.UI
 
                         TypeInfo valueType;
                         if (mi[i].MemberType == MemberTypes.Field)
+                        {
                             valueType = m.FieldType;
+                        }
                         else
+                        {
                             valueType = m.PropertyType;
+                        }
                         argNumerics[i].Maximum = valueType.DeclaredFields.Single(f => f.Name == "MaxValue").GetValue(m);
                         argNumerics[i].Minimum = valueType.DeclaredFields.Single(f => f.Name == "MinValue").GetValue(m);
 

@@ -26,7 +26,6 @@
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections;
-using System.ComponentModel;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
@@ -52,7 +51,9 @@ namespace GBAMusicStudio.UI
                 {
                     onBrush.Color = value;
                     if (Pressed)
+                    {
                         Invalidate();
+                    }
                 }
             }
             public Color NoteOffColor
@@ -65,7 +66,9 @@ namespace GBAMusicStudio.UI
                 {
                     offBrush.Color = value;
                     if (!Pressed)
+                    {
                         Invalidate();
+                    }
                 }
             }
 
@@ -79,7 +82,9 @@ namespace GBAMusicStudio.UI
                 set
                 {
                     if (value < 0 || value > ShortMessage.DataMaxValue)
+                    {
                         throw new ArgumentOutOfRangeException("NoteID", noteID, "Note ID out of range.");
+                    }
                     noteID = value;
                 }
             }
@@ -92,7 +97,10 @@ namespace GBAMusicStudio.UI
 
             public void PressPianoKey()
             {
-                if (Pressed) return;
+                if (Pressed)
+                {
+                    return;
+                }
 
                 Pressed = true;
                 Invalidate();
@@ -100,7 +108,10 @@ namespace GBAMusicStudio.UI
             }
             public void ReleasePianoKey()
             {
-                if (!Pressed) return;
+                if (!Pressed)
+                {
+                    return;
+                }
 
                 Pressed = false;
                 Invalidate();
@@ -110,20 +121,26 @@ namespace GBAMusicStudio.UI
             protected override void OnMouseEnter(EventArgs e)
             {
                 if (MouseButtons == MouseButtons.Left)
+                {
                     PressPianoKey();
+                }
                 base.OnMouseEnter(e);
             }
             protected override void OnMouseLeave(EventArgs e)
             {
                 if (Pressed)
+                {
                     ReleasePianoKey();
+                }
                 base.OnMouseLeave(e);
             }
             protected override void OnMouseDown(MouseEventArgs e)
             {
                 PressPianoKey();
                 if (!owner.Focused)
+                {
                     owner.Focus();
+                }
                 base.OnMouseDown(e);
             }
             protected override void OnMouseUp(MouseEventArgs e)
@@ -134,7 +151,9 @@ namespace GBAMusicStudio.UI
             protected override void OnMouseMove(MouseEventArgs e)
             {
                 if (e.X < 0 || e.X > Width || e.Y < 0 || e.Y > Height)
+                {
                     Capture = false;
+                }
                 base.OnMouseMove(e);
             }
             protected override void Dispose(bool disposing)
@@ -159,11 +178,8 @@ namespace GBAMusicStudio.UI
             White,
             Black
         }
-        readonly static Hashtable keyTable = new Hashtable();
-        static readonly KeyType[] KeyTypeTable =
-            {
-                KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White, KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White,
-            };
+        static readonly Hashtable keyTable = new Hashtable();
+        static readonly KeyType[] KeyTypeTable = { KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White, KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White };
         const double BlackKeyScale = 2 / 3D;
         PianoKey[] keys = null;
 
@@ -180,12 +196,19 @@ namespace GBAMusicStudio.UI
             set
             {
                 if (value < 0 || value > ShortMessage.DataMaxValue)
+                {
                     throw new ArgumentOutOfRangeException("LowNoteID", value, "Low note ID out of range.");
-                if (value == lowNoteID) return;
+                }
+                if (value == lowNoteID)
+                {
+                    return;
+                }
 
                 lowNoteID = value;
                 if (lowNoteID > highNoteID)
+                {
                     highNoteID = lowNoteID;
+                }
 
                 CreatePianoKeys();
                 InitializePianoKeys();
@@ -200,12 +223,19 @@ namespace GBAMusicStudio.UI
             set
             {
                 if (value < 0 || value > ShortMessage.DataMaxValue)
+                {
                     throw new ArgumentOutOfRangeException("HighNoteID", value, "High note ID out of range.");
-                if (value == highNoteID) return;
+                }
+                if (value == highNoteID)
+                {
+                    return;
+                }
 
                 highNoteID = value;
                 if (highNoteID < lowNoteID)
+                {
                     lowNoteID = highNoteID;
+                }
 
                 CreatePianoKeys();
                 InitializePianoKeys();
@@ -224,12 +254,17 @@ namespace GBAMusicStudio.UI
             }
             set
             {
-                if (value == noteOnColor) return;
+                if (value == noteOnColor)
+                {
+                    return;
+                }
 
                 noteOnColor = value;
 
                 foreach (PianoKey key in keys)
+                {
                     key.NoteOnColor = noteOnColor;
+                }
             }
         }
 
@@ -270,9 +305,13 @@ namespace GBAMusicStudio.UI
             noteOnCallback = delegate (ChannelMessage message)
             {
                 if (message.Data2 > 0)
+                {
                     keys[message.Data1 - lowNoteID].PressPianoKey();
+                }
                 else
+                {
                     keys[message.Data1 - lowNoteID].ReleasePianoKey();
+                }
             };
             noteOffCallback = delegate (ChannelMessage message)
             {
@@ -317,7 +356,10 @@ namespace GBAMusicStudio.UI
         }
         void InitializePianoKeys()
         {
-            if (keys.Length == 0) return;
+            if (keys.Length == 0)
+            {
+                return;
+            }
 
             int whiteKeyWidth = Width / WhiteKeyCount;
             int blackKeyWidth = (int)(whiteKeyWidth * BlackKeyScale);
@@ -358,34 +400,49 @@ namespace GBAMusicStudio.UI
                 message.Data1 >= LowNoteID && message.Data1 <= HighNoteID)
             {
                 if (InvokeRequired)
+                {
                     BeginInvoke(noteOnCallback, message);
+                }
                 else
+                {
                     noteOnCallback(message);
+                }
             }
             else if (message.Command == ChannelCommand.NoteOff &&
                 message.Data1 >= LowNoteID && message.Data1 <= HighNoteID)
             {
                 if (InvokeRequired)
+                {
                     BeginInvoke(noteOffCallback, message);
+                }
                 else
+                {
                     noteOffCallback(message);
+                }
             }
         }
         public void PressPianoKey(int noteID)
         {
             if (noteID < lowNoteID || noteID > highNoteID)
+            {
                 throw new ArgumentOutOfRangeException();
+            }
             keys[noteID - lowNoteID].PressPianoKey();
         }
         public void ReleasePianoKey(int noteID)
         {
             if (noteID < lowNoteID || noteID > highNoteID)
+            {
                 throw new ArgumentOutOfRangeException();
+            }
             keys[noteID - lowNoteID].ReleasePianoKey();
         }
         public void PressPianoKey(Keys k)
         {
-            if (!Focused) return;
+            if (!Focused)
+            {
+                return;
+            }
 
             if (keyTable.Contains(k))
             {
@@ -393,7 +450,9 @@ namespace GBAMusicStudio.UI
                 if (noteID >= LowNoteID && noteID <= HighNoteID)
                 {
                     if (!keys[noteID - lowNoteID].Pressed)
+                    {
                         keys[noteID - lowNoteID].PressPianoKey();
+                    }
                 }
             }
             else
@@ -415,11 +474,16 @@ namespace GBAMusicStudio.UI
         }
         public void ReleasePianoKey(Keys k)
         {
-            if (!keyTable.Contains(k)) return;
+            if (!keyTable.Contains(k))
+            {
+                return;
+            }
 
             int noteID = (int)keyTable[k] + 12 * octaveOffset;
             if (noteID >= LowNoteID && noteID <= HighNoteID)
+            {
                 keys[noteID - lowNoteID].ReleasePianoKey();
+            }
         }
 
         protected override void OnResize(EventArgs e)
@@ -430,8 +494,12 @@ namespace GBAMusicStudio.UI
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 foreach (PianoKey key in keys)
+                {
                     key.Dispose();
+                }
+            }
             base.Dispose(disposing);
         }
         protected virtual void OnPianoKeyDown(PianoKeyEventArgs e)

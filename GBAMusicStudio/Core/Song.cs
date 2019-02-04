@@ -23,12 +23,17 @@ namespace GBAMusicStudio.Core
                 if (ticks == -1)
                 {
                     CalculateTicks();
-                    foreach (var track in Commands)
+                    foreach (List<SongEvent> track in Commands)
                     {
-                        if (track.Count == 0) continue; // Prevent crashes with invalid ones
+                        if (track.Count == 0)
+                        {
+                            continue; // Prevent crashes with invalid ones
+                        }
                         int length = track.Last().AbsoluteTicks;
                         if (length > ticks)
+                        {
                             ticks = length;
+                        }
                     }
                 }
                 return ticks + 1;
@@ -43,27 +48,36 @@ namespace GBAMusicStudio.Core
         public void CalculateTicks()
         {
             for (int i = 0; i < NumTracks; i++)
+            {
                 CalculateTicks(i);
+            }
         }
         public void CalculateTicks(int trackIndex)
         {
-            var track = Commands[trackIndex];
+            List<SongEvent> track = Commands[trackIndex];
 
             int length = 0, endOfPattern = 0;
             for (int i = 0; i < track.Count; i++)
             {
-                var e = track[i];
+                SongEvent e = track[i];
                 if (endOfPattern == 0)
+                {
                     e.AbsoluteTicks = length;
-
+                }
                 if (e.Command is RestCommand rest)
+                {
                     length += rest.Rest;
+                }
                 else if (this is MLSSSong)
                 {
                     if (e.Command is FreeNoteCommand ext)
+                    {
                         length += ext.Duration;
+                    }
                     else if (e.Command is MLSSNoteCommand mlnote)
+                    {
                         length += mlnote.Duration;
+                    }
                 }
                 else if (e.Command is CallCommand call)
                 {
@@ -96,7 +110,7 @@ namespace GBAMusicStudio.Core
         protected void AddTimeSignaturesToTrack(MIDISaveArgs args, Sanford.Multimedia.Midi.Track track)
         {
             var ts = new TimeSignatureBuilder();
-            foreach (var e in args.TimeSignatures)
+            foreach (Pair<int, Pair<byte, byte>> e in args.TimeSignatures)
             {
                 ts.Numerator = e.Item2.Item1;
                 ts.Denominator = e.Item2.Item2;
@@ -124,11 +138,13 @@ namespace GBAMusicStudio.Core
 
             Commands = new List<SongEvent>[Header.NumTracks];
             for (int i = 0; i < Header.NumTracks; i++)
+            {
                 Commands[i] = new List<SongEvent>();
-
+            }
             if (Header.NumTracks > ROM.Instance.Game.Engine.TrackLimit)
+            {
                 throw new InvalidDataException(string.Format(Strings.ErrorTooManyTracks, Header.NumTracks));
-
+            }
             for (int i = 0; i < NumTracks; i++)
             {
                 reader.BaseStream.Position = Header.Tracks[i] - ROM.Pak;
@@ -142,25 +158,47 @@ namespace GBAMusicStudio.Core
 
                     cmd = reader.ReadByte();
                     if (cmd >= 0xBD) // Commands that work within running status
+                    {
                         runCmd = cmd;
-
+                    }
                     #region TIE & Notes
 
                     if (runCmd >= 0xCF && cmd < 0x80) // Within running status
                     {
-                        var peek = reader.PeekBytes(2);
-                        if (peek[0] >= 0x80) command = AddNoteEvent(cmd, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
-                        else if (peek[1] > 3 || peek[1] < 1) command = AddNoteEvent(cmd, reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
-                        else command = AddNoteEvent(cmd, reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
+                        byte[] peek = reader.PeekBytes(2);
+                        if (peek[0] >= 0x80)
+                        {
+                            command = AddNoteEvent(cmd, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        }
+                        else if (peek[1] > 3 || peek[1] < 1)
+                        {
+                            command = AddNoteEvent(cmd, reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
+                        }
+                        else
+                        {
+                            command = AddNoteEvent(cmd, reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
+                        }
                     }
                     else if (cmd >= 0xCF)
                     {
-                        var peek = reader.PeekBytes(3);
-                        if (peek[0] >= 0x80) command = AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
-                        else if (peek[1] >= 0x80) command = AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        byte[] peek = reader.PeekBytes(3);
+                        if (peek[0] >= 0x80)
+                        {
+                            command = AddNoteEvent(prevNote, prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        }
+                        else if (peek[1] >= 0x80)
+                        {
+                            command = AddNoteEvent(reader.ReadByte(), prevVelocity, 0, runCmd, out prevNote, out prevVelocity);
+                        }
                         // TIE cannot have an added duration so it needs to stop here
-                        else if (cmd == 0xCF || peek[2] > 3 || peek[2] < 1) command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
-                        else command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
+                        else if (cmd == 0xCF || peek[2] > 3 || peek[2] < 1)
+                        {
+                            command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), 0, runCmd, out prevNote, out prevVelocity);
+                        }
+                        else
+                        {
+                            command = AddNoteEvent(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), runCmd, out prevNote, out prevVelocity);
+                        }
                     }
 
                     #endregion
@@ -168,7 +206,9 @@ namespace GBAMusicStudio.Core
                     #region Rests
 
                     else if (cmd >= 0x80 && cmd <= 0xB0)
+                    {
                         command = new RestCommand { Rest = SongEvent.RestFromCMD(0x80, cmd) };
+                    }
 
                     #endregion
 
@@ -219,20 +259,22 @@ namespace GBAMusicStudio.Core
                             case 0xC8: command = new TuneCommand { Tune = (sbyte)(reader.ReadByte() - 0x40) }; break;
                             case 0xCD: command = new LibraryCommand { Command = reader.ReadByte(), Argument = reader.ReadByte() }; break;
                             case 0xCE: // EOT
-                                sbyte note;
-
-                                if (reader.PeekByte() < 0x80)
                                 {
-                                    note = reader.ReadSByte();
-                                    prevNote = (byte)note;
-                                }
-                                else
-                                {
-                                    note = -1;
-                                }
+                                    sbyte note;
 
-                                command = new EndOfTieCommand { Note = note };
-                                break;
+                                    if (reader.PeekByte() < 0x80)
+                                    {
+                                        note = reader.ReadSByte();
+                                        prevNote = (byte)note;
+                                    }
+                                    else
+                                    {
+                                        note = -1;
+                                    }
+
+                                    command = new EndOfTieCommand { Note = note };
+                                    break;
+                                }
                             default: Console.WriteLine("Invalid command: 0x{0:X7} = {1}", off, cmd); break;
                         }
                     }
@@ -257,8 +299,9 @@ namespace GBAMusicStudio.Core
         public override void SaveAsASM(string fileName)
         {
             if (NumTracks == 0)
+            {
                 throw new InvalidDataException(Strings.ErrorNoTracks);
-
+            }
             using (var file = new StreamWriter(fileName))
             {
                 string label = Assembler.FixLabel(Path.GetFileNameWithoutExtension(fileName));
@@ -285,15 +328,17 @@ namespace GBAMusicStudio.Core
                     file.WriteLine();
                     file.WriteLine($"{label}_{num}:");
 
-                    var offsets = Commands[i].Where(e => e.Command is CallCommand || e.Command is GoToCommand || e.Command is RepeatCommand)
+                    IEnumerable<int> offsets = Commands[i].Where(e => e.Command is CallCommand || e.Command is GoToCommand || e.Command is RepeatCommand)
                         .Select(e => (int)(((dynamic)e.Command).Offset)).Distinct(); // Get all offsets we need labels for
                     int jumps = 0;
                     var labels = new Dictionary<int, string>();
                     foreach (int o in offsets)
+                    {
                         labels.Add(o, $"{label}_{num}_{jumps++:D3}");
+                    }
                     int ticks = 0;
                     bool displayed = false;
-                    foreach (var e in Commands[i])
+                    foreach (SongEvent e in Commands[i])
                     {
                         void DisplayRest(int rest)
                         {
@@ -301,12 +346,14 @@ namespace GBAMusicStudio.Core
                             file.WriteLine($"\t.byte\tW{amt:D2}");
                             int rem = rest - amt;
                             if (rem != 0)
+                            {
                                 file.WriteLine($"\t.byte\tW{rem:D2}");
+                            }
                             ticks += rest; // TODO: Separate by 96 ticks
                             displayed = false;
                         }
 
-                        var c = e.Command;
+                        ICommand c = e.Command;
 
                         if (!displayed && ticks % 96 == 0)
                         {
@@ -315,13 +362,18 @@ namespace GBAMusicStudio.Core
                         }
                         int eOffset = e.GetOffset();
                         if (offsets.Contains(eOffset))
+                        {
                             file.WriteLine($"{labels[eOffset]}:");
-
+                        }
                         if (c == null)
+                        {
                             continue;
+                        }
 
                         if (c is TempoCommand tempo)
+                        {
                             file.WriteLine($"\t.byte\tTEMPO , {tempo.Tempo}*{label}_tbs/2");
+                        }
                         else if (c is RestCommand rest)
                         {
                             DisplayRest(rest.Rest);
@@ -337,41 +389,73 @@ namespace GBAMusicStudio.Core
                             string vel = $"v{dynote.Velocity:D3}";
 
                             if (dynote.Duration != -1 && rem != 0)
+                            {
                                 file.WriteLine($"\t.byte\t\t{name}   , {not} , {vel}, gtp{rem}");
+                            }
                             else
+                            {
                                 file.WriteLine($"\t.byte\t\t{name}   , {not} , {vel}");
+                            }
                         }
                         else if (c is EndOfTieCommand eot)
                         {
                             if (eot.Note != -1)
+                            {
                                 file.WriteLine("\t.byte\t\tEOT");
+                            }
                             else
+                            {
                                 file.WriteLine($"\t.byte\t\tEOT   , {SongEvent.NoteName(eot.Note, true)}");
+                            }
                         }
                         else if (c is VoiceCommand voice)
+                        {
                             file.WriteLine($"\t.byte\t\tVOICE , {voice.Voice}");
+                        }
                         else if (c is VolumeCommand volume)
+                        {
                             file.WriteLine($"\t.byte\t\tVOL   , {volume.Volume}*{label}_mvl/mxv");
+                        }
                         else if (c is PanpotCommand pan)
+                        {
                             file.WriteLine($"\t.byte\t\tPAN   , {SongEvent.CenterValueString(pan.Panpot)}");
+                        }
                         else if (c is BendCommand bend)
+                        {
                             file.WriteLine($"\t.byte\t\tBEND  , {SongEvent.CenterValueString(bend.Bend)}");
+                        }
                         else if (c is TuneCommand tune)
+                        {
                             file.WriteLine($"\t.byte\t\tTUNE  , {SongEvent.CenterValueString(tune.Tune)}");
+                        }
                         else if (c is BendRangeCommand bendr)
+                        {
                             file.WriteLine($"\t.byte\t\tBENDR , {bendr.Range}");
+                        }
                         else if (c is LFOSpeedCommand lfos)
+                        {
                             file.WriteLine($"\t.byte\t\tLFOS  , {lfos.Speed}");
+                        }
                         else if (c is LFODelayCommand lfodl)
+                        {
                             file.WriteLine($"\t.byte\t\tLFODL , {lfodl.Delay}");
+                        }
                         else if (c is ModDepthCommand mod)
+                        {
                             file.WriteLine($"\t.byte\t\tMOD   , {mod.Depth}");
+                        }
                         else if (c is ModTypeCommand modt)
+                        {
                             file.WriteLine($"\t.byte\t\tMODT  , {modt.Type}");
+                        }
                         else if (c is PriorityCommand prio)
+                        {
                             file.WriteLine($"\t.byte\tPRIO , {prio.Priority}");
+                        }
                         else if (c is KeyShiftCommand keysh)
+                        {
                             file.WriteLine($"\t.byte\tKEYSH , {label}_key+{keysh.Shift}");
+                        }
                         else if (c is GoToCommand goTo)
                         {
                             file.WriteLine("\t.byte\tGOTO");
@@ -385,9 +469,13 @@ namespace GBAMusicStudio.Core
                         else if (c is M4AFinishCommand fine)
                         {
                             if (fine.Type == 0xB1)
+                            {
                                 file.WriteLine("\t.byte\tFINE");
+                            }
                             else
+                            {
                                 file.WriteLine("\t.byte\t0xB6\t@PREV");
+                            }
                         }
                         else if (c is CallCommand patt)
                         {
@@ -395,11 +483,17 @@ namespace GBAMusicStudio.Core
                             file.WriteLine($"\t .word\t{labels[patt.Offset]}");
                         }
                         else if (c is ReturnCommand pend)
+                        {
                             file.WriteLine("\t.byte\tPEND");
+                        }
                         else if (c is MemoryAccessCommand memacc)
+                        {
                             file.WriteLine($"\t.byte\t\tMEMACC, {memacc.Operator,4}, {memacc.Address,4}, {memacc.Data}");
+                        }
                         else if (c is LibraryCommand xcmd)
+                        {
                             file.WriteLine($"\t.byte\t\tXCMD  , {xcmd.Command,4}, {xcmd.Argument}");
+                        }
                     }
                 }
 
@@ -416,7 +510,10 @@ namespace GBAMusicStudio.Core
                 file.WriteLine($"\t.word\t{label}_grp");
                 file.WriteLine();
                 for (int i = 0; i < NumTracks; i++)
+                {
                     file.WriteLine($"\t.word\t{label}_{i + 1}");
+                }
+
                 file.WriteLine();
                 file.WriteLine("\t.end");
             }
@@ -424,8 +521,9 @@ namespace GBAMusicStudio.Core
         public override void SaveAsMIDI(string fileName, MIDISaveArgs args)
         {
             if (NumTracks == 0)
+            {
                 throw new InvalidDataException(Strings.ErrorNoTracks);
-
+            }
             int baseVolume = 0x7F;
             // Find highest volume
             if (args.ReverseVolume)
@@ -451,132 +549,189 @@ namespace GBAMusicStudio.Core
 
                 for (int j = 0; j < Commands[i].Count; j++)
                 {
-                    var e = Commands[i][j];
+                    SongEvent e = Commands[i][j];
                     int ticks = e.AbsoluteTicks + (endOfPatternTicks - startOfPatternTicks);
 
                     // Preliminary check for saving events before keysh
                     switch (e.Command)
                     {
                         case KeyShiftCommand keysh: foundKeysh = true; break;
-                        default:
-                            // If we should not save before keysh then skip this event
-                            if (!args.SaveBeforeKeysh && !foundKeysh)
-                                continue;
-                            break;
+                        default: // If we should not save before keysh then skip this event
+                            {
+                                if (!args.SaveBeforeKeysh && !foundKeysh)
+                                {
+                                    continue;
+                                }
+                                break;
+                            }
                     }
                     // Now do the event magic...
                     switch (e.Command)
                     {
                         case KeyShiftCommand keysh:
-                            shift = keysh.Shift;
-                            break;
+                            {
+                                shift = keysh.Shift;
+                                break;
+                            }
                         case M4ANoteCommand note:
-                            int n = (note.Note + shift).Clamp(0, 0x7F);
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
-                            if (note.Duration != -1)
-                                track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
-                            else
-                                playing.Add(note);
-                            break;
+                            {
+                                int n = (note.Note + shift).Clamp(0, 0x7F);
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
+                                if (note.Duration != -1)
+                                {
+                                    track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                                }
+                                else
+                                {
+                                    playing.Add(note);
+                                }
+                                break;
+                            }
                         case EndOfTieCommand eot:
-                            M4ANoteCommand nc = null;
-
-                            if (eot.Note == -1)
-                                nc = playing.LastOrDefault();
-                            else
-                                nc = playing.LastOrDefault(no => no.Note == eot.Note);
-
-                            if (nc != null)
                             {
-                                n = (nc.Note + shift).Clamp(0, 0x7F);
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, n));
-                                playing.Remove(nc);
+                                M4ANoteCommand nc = null;
+
+                                if (eot.Note == -1)
+                                {
+                                    nc = playing.LastOrDefault();
+                                }
+                                else
+                                {
+                                    nc = playing.LastOrDefault(no => no.Note == eot.Note);
+                                }
+
+                                if (nc != null)
+                                {
+                                    int n = (nc.Note + shift).Clamp(0, 0x7F);
+                                    track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                                    playing.Remove(nc);
+                                }
+                                break;
                             }
-                            break;
                         case PriorityCommand prio:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.VolumeFine, prio.Priority));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.VolumeFine, prio.Priority));
+                                break;
+                            }
                         case VoiceCommand voice:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
+                                break;
+                            }
                         case VolumeCommand vol:
-                            double d = baseVolume / (double)0x7F;
-                            int volume = (int)(vol.Volume / d);
-                            // If there are rounding errors, fix them (happens if baseVolume is not 127 and baseVolume is not vol.Volume)
-                            if (volume * baseVolume / 0x7F == vol.Volume - 1)
-                                volume++;
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, volume));
-                            break;
+                            {
+                                double d = baseVolume / (double)0x7F;
+                                int volume = (int)(vol.Volume / d);
+                                // If there are rounding errors, fix them (happens if baseVolume is not 127 and baseVolume is not vol.Volume)
+                                if (volume * baseVolume / 0x7F == vol.Volume - 1)
+                                {
+                                    volume++;
+                                }
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, volume));
+                                break;
+                            }
                         case PanpotCommand pan:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
+                                break;
+                            }
                         case BendCommand bend:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend + 0x40));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend + 0x40));
+                                break;
+                            }
                         case BendRangeCommand bendr:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range));
+                                break;
+                            }
                         case LFOSpeedCommand lfos:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 21, lfos.Speed));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 21, lfos.Speed));
+                                break;
+                            }
                         case LFODelayCommand lfodl:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 26, lfodl.Delay));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 26, lfodl.Delay));
+                                break;
+                            }
                         case ModDepthCommand mod:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.ModulationWheel, mod.Depth));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.ModulationWheel, mod.Depth));
+                                break;
+                            }
                         case ModTypeCommand modt:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 22, modt.Type));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 22, modt.Type));
+                                break;
+                            }
                         case TuneCommand tune:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
+                                break;
+                            }
                         case LibraryCommand xcmd:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 30, xcmd.Command));
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 29, xcmd.Argument));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 30, xcmd.Command));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 29, xcmd.Argument));
+                                break;
+                            }
                         case MemoryAccessCommand memacc:
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 13, memacc.Operator));
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 14, memacc.Address));
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 12, memacc.Data));
-                            break;
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 13, memacc.Operator));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 14, memacc.Address));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 12, memacc.Data));
+                                break;
+                            }
                         case TempoCommand tempo:
-                            var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
-                            change.Build();
-                            metaTrack.Insert(ticks, change.Result);
-                            break;
+                            {
+                                var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
+                                change.Build();
+                                metaTrack.Insert(ticks, change.Result);
+                                break;
+                            }
                         case CallCommand patt:
-                            int callCmd = Commands[i].FindIndex(c => c.GetOffset() == patt.Offset);
-                            endOfPattern = j;
-                            endOfPatternTicks = e.AbsoluteTicks;
-                            j = callCmd - 1; // -1 for incoming ++
-                            startOfPatternTicks = Commands[i][j + 1].AbsoluteTicks;
-                            break;
+                            {
+                                int callCmd = Commands[i].FindIndex(c => c.GetOffset() == patt.Offset);
+                                endOfPattern = j;
+                                endOfPatternTicks = e.AbsoluteTicks;
+                                j = callCmd - 1; // -1 for incoming ++
+                                startOfPatternTicks = Commands[i][j + 1].AbsoluteTicks;
+                                break;
+                            }
                         case ReturnCommand _:
-                            if (endOfPattern != 0)
                             {
-                                j = endOfPattern;
-                                endOfPattern = startOfPatternTicks = endOfPatternTicks = 0;
+                                if (endOfPattern != 0)
+                                {
+                                    j = endOfPattern;
+                                    endOfPattern = startOfPatternTicks = endOfPatternTicks = 0;
+                                }
+                                break;
                             }
-                            break;
                         case GoToCommand goTo:
-                            if (i == 0)
                             {
-                                int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
-                                metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
-                                metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                                if (i == 0)
+                                {
+                                    int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
+                                    metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                                    metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                                }
+                                break;
                             }
-                            break;
                         case FinishCommand _:
-                            // TODO: FINE vs PREV
-                            // If the track is not only the finish command, place the finish command at the correct tick
-                            if (track.Count > 1)
-                                track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
-                            goto endOfTrack;
+                            {
+                                // TODO: FINE vs PREV
+                                // If the track is not only the finish command, place the finish command at the correct tick
+                                if (track.Count > 1)
+                                {
+                                    track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
+                                }
+                                goto endOfTrack;
+                            }
                     }
                 }
 
-                endOfTrack:;
+            endOfTrack:;
             }
             midi.Save(fileName);
         }
@@ -596,7 +751,7 @@ namespace GBAMusicStudio.Core
         public M4AASMSong(Assembler assembler, string headerLabel)
         {
             SetOffset(assembler.BaseOffset);
-            var binary = assembler.Binary;
+            byte[] binary = assembler.Binary;
             var reader = new EndianBinaryReader(new MemoryStream(binary));
             Load(binary, reader, assembler[headerLabel]);
         }
@@ -611,8 +766,9 @@ namespace GBAMusicStudio.Core
         public override void SaveAsMIDI(string fileName, MIDISaveArgs args)
         {
             if (NumTracks == 0)
+            {
                 throw new InvalidDataException(Strings.ErrorNoTracks);
-
+            }
             CalculateTicks();
             var midi = new Sequence(48 * 2) { Format = 1 };
             var metaTrack = new Sanford.Multimedia.Midi.Track();
@@ -630,7 +786,7 @@ namespace GBAMusicStudio.Core
 
                 for (int j = 0; j < Commands[i].Count; j++)
                 {
-                    var e = Commands[i][j];
+                    SongEvent e = Commands[i][j];
 
                     // Extended note ended ended and wasn't renewed
                     if (freeNoteOff != null && freeNoteOff.AbsoluteTicks < e.AbsoluteTicks * 2)
@@ -642,79 +798,101 @@ namespace GBAMusicStudio.Core
                     switch (e.Command)
                     {
                         case VolumeCommand vol:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume / 2));
-                            break;
+                            {
+                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, vol.Volume / 2));
+                                break;
+                            }
                         case VoiceCommand voice:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
-                            break;
+                            {
+                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
+                                break;
+                            }
                         case PanpotCommand pan:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot / 2 + 0x40));
-                            break;
+                            {
+                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot / 2 + 0x40));
+                                break;
+                            }
                         case BendCommand bend:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend / 2 + 0x40));
-                            break;
+                            {
+                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend / 2 + 0x40));
+                                break;
+                            }
                         case BendRangeCommand bendr:
-                            track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range / 2));
-                            break;
+                            {
+                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range / 2));
+                                break;
+                            }
                         case MLSSNoteCommand note:
-                            // Extended note is playing and it should be extended by this note
-                            if (freeNote != null && freeNote.Note - 0x80 == note.Note)
                             {
-                                // Move the note off command
-                                track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + note.Duration * 2);
+                                // Extended note is playing and it should be extended by this note
+                                if (freeNote != null && freeNote.Note - 0x80 == note.Note)
+                                {
+                                    // Move the note off command
+                                    track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + note.Duration * 2);
+                                }
+                                // Extended note is playing but this note is different OR there is no extended note playing
+                                // Either way we play a new note and forget that one
+                                else
+                                {
+                                    track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, note.Note, 0x7F));
+                                    track.Insert(e.AbsoluteTicks * 2 + note.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, note.Note));
+                                    freeNote = null;
+                                    freeNoteOff = null;
+                                }
+                                break;
                             }
-                            // Extended note is playing but this note is different OR there is no extended note playing
-                            // Either way we play a new note and forget that one
-                            else
-                            {
-                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, note.Note, 0x7F));
-                                track.Insert(e.AbsoluteTicks * 2 + note.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, note.Note));
-                                freeNote = null;
-                                freeNoteOff = null;
-                            }
-                            break;
                         case FreeNoteCommand free:
-                            // Extended note is playing and it should be extended
-                            if (freeNote != null && freeNote.Note == free.Note)
                             {
-                                // Move the note off command
-                                track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + free.Duration * 2);
+                                // Extended note is playing and it should be extended
+                                if (freeNote != null && freeNote.Note == free.Note)
+                                {
+                                    // Move the note off command
+                                    track.Move(freeNoteOff, freeNoteOff.AbsoluteTicks + free.Duration * 2);
+                                }
+                                // Extended note is playing but this note is different OR there is no extended note playing
+                                // Either way we play a new note and forget that one
+                                else
+                                {
+                                    track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, free.Note - 0x80, 0x7F));
+                                    track.Insert(e.AbsoluteTicks * 2 + free.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, free.Note - 0x80));
+                                    freeNote = free;
+                                    freeNoteOff = track.GetMidiEvent(track.Count - 2); // -1 would be the end of track event
+                                }
+                                break;
                             }
-                            // Extended note is playing but this note is different OR there is no extended note playing
-                            // Either way we play a new note and forget that one
-                            else
-                            {
-                                track.Insert(e.AbsoluteTicks * 2, new ChannelMessage(ChannelCommand.NoteOn, i, free.Note - 0x80, 0x7F));
-                                track.Insert(e.AbsoluteTicks * 2 + free.Duration * 2, new ChannelMessage(ChannelCommand.NoteOff, i, free.Note - 0x80));
-                                freeNote = free;
-                                freeNoteOff = track.GetMidiEvent(track.Count - 2); // -1 would be the end of track event
-                            }
-                            break;
                         case TempoCommand tempo:
-                            if (i == 0)
                             {
-                                var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
-                                change.Build();
-                                metaTrack.Insert(e.AbsoluteTicks * 2, change.Result);
+                                if (i == 0)
+                                {
+                                    var change = new TempoChangeBuilder { Tempo = (60000000 / tempo.Tempo) };
+                                    change.Build();
+                                    metaTrack.Insert(e.AbsoluteTicks * 2, change.Result);
+                                }
+                                break;
                             }
-                            break;
                         case GoToCommand goTo:
-                            if (i == 0)
                             {
-                                int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
-                                metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
-                                metaTrack.Insert(e.AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                                if (i == 0)
+                                {
+                                    int jumpCmd = Commands[i].FindIndex(c => c.GetOffset() == goTo.Offset);
+                                    metaTrack.Insert(Commands[i][jumpCmd].AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                                    metaTrack.Insert(e.AbsoluteTicks * 2, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                                }
+                                break;
                             }
-                            break;
                         case FinishCommand _:
-                            // If the track is not only the finish command, place the finish command at the correct tick
-                            if (track.Count > 1)
-                                track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
-                            goto endOfTrack;
+                            {
+                                // If the track is not only the finish command, place the finish command at the correct tick
+                                if (track.Count > 1)
+                                {
+                                    track.EndOfTrackOffset = e.AbsoluteTicks - track.GetMidiEvent(track.Count - 2).AbsoluteTicks;
+                                }
+                                goto endOfTrack;
+                            }
                     }
                 }
 
-                endOfTrack:;
+            endOfTrack:;
             }
             midi.Save(fileName);
         }
@@ -753,9 +931,11 @@ namespace GBAMusicStudio.Core
                         case 0xF5: command = new BendCommand { Bend = ROM.Instance.Reader.ReadSByte() }; break;
                         case 0xF6: command = new RestCommand { Rest = ROM.Instance.Reader.ReadByte() }; break;
                         case 0xF8:
-                            short offsetFromEnd = ROM.Instance.Reader.ReadInt16();
-                            command = new GoToCommand { Offset = (int)(ROM.Instance.Reader.BaseStream.Position + offsetFromEnd) };
-                            break;
+                            {
+                                short offsetFromEnd = ROM.Instance.Reader.ReadInt16();
+                                command = new GoToCommand { Offset = (int)(ROM.Instance.Reader.BaseStream.Position + offsetFromEnd) };
+                                break;
+                            }
                         case 0xF9: command = new TempoCommand { Tempo = ROM.Instance.Reader.ReadByte() }; break;
                         case 0xFF: command = new FinishCommand(); break;
                         default: command = new MLSSNoteCommand { Duration = cmd, Note = ROM.Instance.Reader.ReadSByte() }; break;

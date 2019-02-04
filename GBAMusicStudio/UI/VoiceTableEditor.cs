@@ -1,6 +1,7 @@
 ﻿using BrightIdeasSoftware;
 using GBAMusicStudio.Core;
 using GBAMusicStudio.Properties;
+using GBAMusicStudio.Util;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -112,10 +113,12 @@ namespace GBAMusicStudio.UI
             // Auto-color
             if (e.ListView == voicesListView)
             {
-                var color = Config.Instance.GetColor((byte)e.RowIndex, ROM.Instance.Game.Remap, true);
+                HSLColor color = Config.Instance.GetColor((byte)e.RowIndex, ROM.Instance.Game.Remap, true);
                 e.Item.BackColor = color;
                 if (color.Luminosity <= 100)
+                {
                     e.Item.ForeColor = Color.White;
+                }
             }
         }
 
@@ -123,14 +126,20 @@ namespace GBAMusicStudio.UI
         // Also enables editing of the selected voice
         void MainIndexChanged(object sender, EventArgs e)
         {
-            if (voicesListView.SelectedIndices.Count != 1) return;
+            if (voicesListView.SelectedIndices.Count != 1)
+            {
+                return;
+            }
 
             subVoicesListView.SetObjects(table[voicesListView.SelectedIndex].GetSubVoices());
             SetVoice(voicesListView.SelectedIndex, subVoicesListView.SelectedIndex);
         }
         void SubIndexChanged(object sender, EventArgs e)
         {
-            if (subVoicesListView.SelectedIndices.Count != 1) return;
+            if (subVoicesListView.SelectedIndices.Count != 1)
+            {
+                return;
+            }
 
             SetVoice(voicesListView.SelectedIndex, subVoicesListView.SelectedIndex);
         }
@@ -153,14 +162,16 @@ namespace GBAMusicStudio.UI
             voiceALabel.Visible = voiceDLabel.Visible = voiceSLabel.Visible = voiceRLabel.Visible = false;
 
             WrappedVoice voice = table[mainIndex];
-            var subs = voice.GetSubVoices().ToArray();
+            IVoiceTableInfo[] subs = voice.GetSubVoices().ToArray();
 
             if (voice.Voice is M4AVoiceEntry m4aEntry)
             {
                 if (subIndex != -1)
+                {
                     m4aEntry = (M4AVoiceEntry)((WrappedVoice)subs[subIndex]).Voice;
+                }
                 entry = m4aEntry;
-                
+
                 bytesLabel.Text = m4aEntry.GetBytesString();
 
                 var flags = (M4AVoiceFlags)m4aEntry.Type;
@@ -202,8 +213,10 @@ namespace GBAMusicStudio.UI
                 if (mlss.Entries.Length > 0)
                 {
                     if (subIndex == -1)
+                    {
                         subIndex = 0;
-                    var mlssEntry = mlss.Entries[subIndex];
+                    }
+                    MLSSVoiceEntry mlssEntry = mlss.Entries[subIndex];
                     entry = mlssEntry;
 
                     bytesLabel.Text = mlssEntry.GetBytesString();

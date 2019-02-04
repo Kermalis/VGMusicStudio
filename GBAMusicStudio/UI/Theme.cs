@@ -49,7 +49,10 @@ namespace GBAMusicStudio.UI
         {
             base.OnPaint(e);
 
-            if (!Enabled) TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, Theme.DrainColor(ForeColor), BackColor);
+            if (!Enabled)
+            {
+                TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, Theme.DrainColor(ForeColor), BackColor);
+            }
         }
         protected override bool ShowFocusCues => false;
     }
@@ -79,10 +82,14 @@ namespace GBAMusicStudio.UI
         {
             base.OnPaint(e);
             using (var b = new SolidBrush(BackColor))
+            {
                 e.Graphics.FillRectangle(b, e.ClipRectangle);
+            }
             using (var b = new SolidBrush(Theme.BorderColor))
             using (var p = new Pen(b, 2))
+            {
                 e.Graphics.DrawRectangle(p, e.ClipRectangle);
+            }
         }
     }
     class ThemedTextBox : TextBox
@@ -108,10 +115,12 @@ namespace GBAMusicStudio.UI
             base.WndProc(ref m);
             if (m.Msg == WM_NCPAINT && BorderStyle == BorderStyle.Fixed3D)
             {
-                var hdc = GetWindowDC(Handle);
-                using (var g = Graphics.FromHdcInternal(hdc))
+                IntPtr hdc = GetWindowDC(Handle);
+                using (Graphics g = Graphics.FromHdcInternal(hdc))
                 using (var p = new Pen(Theme.BorderColor))
+                {
                     g.DrawRectangle(p, new Rectangle(0, 0, Width - 1, Height - 1));
+                }
                 ReleaseDC(Handle, hdc);
             }
         }

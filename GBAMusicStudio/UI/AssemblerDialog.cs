@@ -70,8 +70,11 @@ namespace GBAMusicStudio.UI
 
         void AddedDefsGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            var cell = addedDefsGrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
-            if (cell.Value == null) return;
+            DataGridViewCell cell = addedDefsGrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            if (cell.Value == null)
+            {
+                return;
+            }
 
             if (e.ColumnIndex == 0)
             {
@@ -97,15 +100,20 @@ namespace GBAMusicStudio.UI
         void OpenASM(object sender, EventArgs e)
         {
             var d = new OpenFileDialog { Title = Strings.TitleOpenASM, Filter = $"{Strings.FilterOpenASM}|*.s" };
-            if (d.ShowDialog() != DialogResult.OK) return;
+            if (d.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
 
             try
             {
                 var s = new Dictionary<string, int>();
-                foreach (var r in addedDefsGrid.Rows.Cast<DataGridViewRow>())
+                foreach (DataGridViewRow r in addedDefsGrid.Rows.Cast<DataGridViewRow>())
                 {
                     if (r.Cells[0].Value == null || r.Cells[1].Value == null)
+                    {
                         continue;
+                    }
                     s.Add(r.Cells[0].Value.ToString(), (int)Utils.ParseValue(r.Cells[1].Value.ToString()));
                 }
                 song = new M4AASMSong(assembler = new Assembler(d.FileName, (int)(ROM.Pak + offsetValueBox.Value), s),

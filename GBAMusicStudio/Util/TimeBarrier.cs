@@ -23,12 +23,17 @@ namespace GBAMusicStudio.Util
 
         public void Wait()
         {
-            if (!started) return;
+            if (!started)
+            {
+                return;
+            }
             double totalElapsed = sw.ElapsedTicks * timerInterval;
             double desiredTimeStamp = lastTimeStamp + waitInterval;
             double timeToWait = desiredTimeStamp - totalElapsed;
             if (timeToWait < 0)
+            {
                 timeToWait = 0;
+            }
             int millisToWait = (int)(timeToWait * 1000d);
             Thread.Sleep(millisToWait);
             lastTimeStamp = desiredTimeStamp;
@@ -36,7 +41,10 @@ namespace GBAMusicStudio.Util
 
         public void Start()
         {
-            if (started) return;
+            if (started)
+            {
+                return;
+            }
             started = true;
             lastTimeStamp = 0;
             sw.Restart();
@@ -44,7 +52,10 @@ namespace GBAMusicStudio.Util
 
         public void Stop()
         {
-            if (!started) return;
+            if (!started)
+            {
+                return;
+            }
             started = false;
             sw.Stop();
         }

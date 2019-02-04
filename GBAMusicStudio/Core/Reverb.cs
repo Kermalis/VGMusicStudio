@@ -23,7 +23,7 @@ namespace GBAMusicStudio.Core
             int index = 0;
             while (samplesPerBuffer > 0)
             {
-                var left = Process(buffer, samplesPerBuffer, ref index);
+                int left = Process(buffer, samplesPerBuffer, ref index);
                 index += (samplesPerBuffer - left) * 2;
                 samplesPerBuffer = left;
             }
@@ -33,13 +33,13 @@ namespace GBAMusicStudio.Core
         {
             int rSamplesPerBuffer = reverbBuffer.Length / 2;
 
-            var count = Math.Min(
+            int count = Math.Min(
                 Math.Min(rSamplesPerBuffer - bufferPos1, rSamplesPerBuffer - bufferPos2),
                 samplesPerBuffer
                 );
             bool reset1 = (rSamplesPerBuffer - bufferPos1 == count),
                 reset2 = (rSamplesPerBuffer - bufferPos2 == count);
-            var c = count;
+            int c = count;
             do
             {
                 float rev = (reverbBuffer[bufferPos1 * 2] * 2
@@ -49,7 +49,14 @@ namespace GBAMusicStudio.Core
                 reverbBuffer[bufferPos1 * 2 + 1] = buffer[index++] += rev;
                 bufferPos1++; bufferPos2++;
             } while (--c > 0);
-            if (reset1) bufferPos1 = 0; if (reset2) bufferPos2 = 0;
+            if (reset1)
+            {
+                bufferPos1 = 0;
+            }
+            if (reset2)
+            {
+                bufferPos2 = 0;
+            }
             return samplesPerBuffer - count;
         }
     }
@@ -95,7 +102,14 @@ namespace GBAMusicStudio.Core
                 bufferPos1++; bufferPos2++;
             } while (--c > 0);
 
-            if (reset1) bufferPos1 = 0; if (resetC) bufferPos2 = 0;
+            if (reset1)
+            {
+                bufferPos1 = 0;
+            }
+            if (resetC)
+            {
+                bufferPos2 = 0;
+            }
             return samplesPerBuffer - count;
         }
     }
@@ -146,7 +160,18 @@ namespace GBAMusicStudio.Core
                 index += 2;
                 bufferPos1++; bufferPos2++; cPos++;
             } while (--c > 0);
-            if (reset) bufferPos1 = 0; if (reset2) bufferPos2 = 0; if (resetC) cPos = 0;
+            if (reset)
+            {
+                bufferPos1 = 0;
+            }
+            if (reset2)
+            {
+                bufferPos2 = 0;
+            }
+            if (resetC)
+            {
+                cPos = 0;
+            }
             return samplesPerBuffer - count;
         }
     }

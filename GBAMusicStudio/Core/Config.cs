@@ -20,7 +20,10 @@ namespace GBAMusicStudio.Core
 
         public override bool Equals(object obj)
         {
-            if (!(obj is ASong other)) return false;
+            if (!(obj is ASong other))
+            {
+                return false;
+            }
             return other.Index == Index && other.Name == Name;
         }
         public override int GetHashCode() => unchecked(Index.GetHashCode() ^ Name.GetHashCode());
@@ -39,7 +42,7 @@ namespace GBAMusicStudio.Core
         public override string ToString()
         {
             int songCount = Songs.Length;
-            var cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            CultureInfo cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
 
             if (cul.Equals(CultureInfo.CreateSpecificCulture("it")) // Italian
                 || cul.Equals(CultureInfo.CreateSpecificCulture("it-it"))) // Italian (Italy)
@@ -111,16 +114,7 @@ namespace GBAMusicStudio.Core
 
     class Config
     {
-        static Config instance;
-        public static Config Instance
-        {
-            get
-            {
-                if (instance == null)
-                    instance = new Config();
-                return instance;
-            }
-        }
+        public static Config Instance { get; } = new Config();
 
         readonly int DefaultTableSize = 1000;
 
@@ -164,33 +158,41 @@ namespace GBAMusicStudio.Core
 
             var cmap = (YamlMappingNode)mapping.Children["Colors"];
             Colors = new HSLColor[256];
-            foreach (var c in cmap)
+            foreach (KeyValuePair<YamlNode, YamlNode> c in cmap)
             {
                 int i = (int)Utils.ParseValue(c.Key.ToString());
-                var children = ((YamlMappingNode)c.Value).Children;
+                IDictionary<YamlNode, YamlNode> children = ((YamlMappingNode)c.Value).Children;
                 double h = 0, s = 0, l = 0;
-                foreach (var v in children)
+                foreach (KeyValuePair<YamlNode, YamlNode> v in children)
                 {
                     if (v.Key.ToString() == "H")
+                    {
                         h = byte.Parse(v.Value.ToString());
+                    }
                     else if (v.Key.ToString() == "S")
+                    {
                         s = byte.Parse(v.Value.ToString());
+                    }
                     else if (v.Key.ToString() == "L")
+                    {
                         l = byte.Parse(v.Value.ToString());
+                    }
                 }
                 HSLColor color = new HSLColor(h, s, l);
                 Colors[i] = Colors[i + 0x80] = color;
             }
 
-            var rmap = (YamlMappingNode)mapping.Children["InstrumentRemaps"];
+            YamlMappingNode rmap = (YamlMappingNode)mapping.Children["InstrumentRemaps"];
             InstrumentRemaps = new Dictionary<string, ARemap>();
-            foreach (var r in rmap)
+            foreach (KeyValuePair<YamlNode, YamlNode> r in rmap)
             {
                 var remaps = new List<Tuple<byte, byte>>();
 
-                var children = ((YamlMappingNode)r.Value).Children;
-                foreach (var v in children)
+                IDictionary<YamlNode, YamlNode> children = ((YamlMappingNode)r.Value).Children;
+                foreach (KeyValuePair<YamlNode, YamlNode> v in children)
+                {
                     remaps.Add(new Tuple<byte, byte>(byte.Parse(v.Key.ToString()), byte.Parse(v.Value.ToString())));
+                }
 
                 InstrumentRemaps.Add(r.Key.ToString(), new ARemap(remaps.ToArray()));
             }
@@ -203,7 +205,7 @@ namespace GBAMusicStudio.Core
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
 
             Games = new Dictionary<string, AGame>();
-            foreach (var g in mapping)
+            foreach (KeyValuePair<YamlNode, YamlNode> g in mapping)
             {
                 string code, name, creator;
                 EngineType engineType = EngineType.M4A; ReverbType reverbType = ReverbType.Normal;
@@ -222,32 +224,48 @@ namespace GBAMusicStudio.Core
                 name = game.Children["Name"].ToString();
 
                 // SongTables
-                var songTables = game.Children["SongTable"].ToString().Split(' ');
+                string[] songTables = game.Children["SongTable"].ToString().Split(' ');
                 tables = new int[songTables.Length]; tableSizes = new int[songTables.Length];
                 for (int i = 0; i < songTables.Length; i++)
+                {
                     tables[i] = (int)Utils.ParseValue(songTables[i]);
+                }
 
                 // MLSS info
                 if (game.Children.TryGetValue("VoiceTable", out YamlNode vTable))
+                {
                     voiceTable = (int)Utils.ParseValue(vTable.ToString());
+                }
+
                 if (game.Children.TryGetValue("SampleTable", out YamlNode sTable))
+                {
                     sampleTable = (int)Utils.ParseValue(sTable.ToString());
+                }
+
                 if (game.Children.TryGetValue("SampleTableSize", out YamlNode saTableSize))
+                {
                     sampleTableSize = (int)Utils.ParseValue(saTableSize.ToString());
+                }
 
                 // If we are to copy another game's config
                 if (game.Children.TryGetValue("Copy", out YamlNode copy))
+                {
                     game = (YamlMappingNode)mapping.Children[copy];
+                }
 
                 // SongTable Sizes
                 string[] sizes = { };
                 if (game.Children.TryGetValue("SongTableSize", out YamlNode soTableSize))
+                {
                     sizes = soTableSize.ToString().Split(' ');
+                }
                 for (int i = 0; i < songTables.Length; i++)
                 {
                     tableSizes[i] = DefaultTableSize;
                     if (i < sizes.Length)
+                    {
                         tableSizes[i] = (int)Utils.ParseValue(sizes[i]);
+                    }
                 }
 
                 // Creator name (required)
@@ -255,29 +273,46 @@ namespace GBAMusicStudio.Core
 
                 // Remap
                 if (game.Children.TryGetValue("Remap", out YamlNode rmap))
+                {
                     remap = rmap.ToString();
+                }
 
                 // Engine
                 if (game.Children.TryGetValue("Engine", out YamlNode yeng))
                 {
                     var eng = (YamlMappingNode)yeng;
                     if (eng.Children.TryGetValue("Type", out YamlNode type))
+                    {
                         engineType = (EngineType)Enum.Parse(typeof(EngineType), type.ToString());
+                    }
                     if (eng.Children.TryGetValue("ReverbType", out YamlNode rType))
+                    {
                         reverbType = (ReverbType)Enum.Parse(typeof(ReverbType), rType.ToString());
+                    }
                     if (eng.Children.TryGetValue("Reverb", out YamlNode reverb))
+                    {
                         engineReverb = (byte)Utils.ParseValue(reverb.ToString());
+                    }
                     if (eng.Children.TryGetValue("Volume", out YamlNode volume))
+                    {
                         engineVolume = (byte)Utils.ParseValue(volume.ToString());
+                    }
                     if (eng.Children.TryGetValue("TrackLimit", out YamlNode trackLim))
+                    {
                         engineTrackLimit = (byte)Utils.ParseValue(trackLim.ToString());
+                    }
                     if (eng.Children.TryGetValue("Frequency", out YamlNode frequency))
+                    {
                         engineFrequency = (int)Utils.ParseValue(frequency.ToString());
+                    }
                     if (eng.Children.TryGetValue("GoldenSunSynths", out YamlNode synths))
+                    {
                         engineHasGoldenSunSynths = bool.Parse(synths.ToString());
+                    }
                     if (eng.Children.TryGetValue("PokemonCompression", out YamlNode compression))
+                    {
                         engineHasPokemonCompression = bool.Parse(compression.ToString());
-
+                    }
                 }
                 var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineTrackLimit, engineFrequency, engineHasGoldenSunSynths, engineHasPokemonCompression);
 
@@ -286,18 +321,22 @@ namespace GBAMusicStudio.Core
                 if (game.Children.TryGetValue("Music", out YamlNode ymusic))
                 {
                     var music = (YamlMappingNode)ymusic;
-                    foreach (var kvp in music)
+                    foreach (KeyValuePair<YamlNode, YamlNode> kvp in music)
                     {
                         var songs = new List<ASong>();
-                        foreach (var song in (YamlMappingNode)kvp.Value)
-                            songs.Add(new ASong(int.Parse(song.Key.ToString()), song.Value.ToString())); // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
+                        foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value) // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
+                        {
+                            songs.Add(new ASong(int.Parse(song.Key.ToString()), song.Value.ToString()));
+                        }
                         playlists.Add(new APlaylist(kvp.Key.ToString(), songs.ToArray()));
                     }
                 }
 
                 // The complete playlist
                 if (!playlists.Any(p => p.Name == "Music"))
+                {
                     playlists.Insert(0, new APlaylist("Music", playlists.Select(p => p.Songs).UniteAll().OrderBy(s => s.Index).ToArray()));
+                }
 
                 Games.Add(code, new AGame(code, name, creator, engine, tables, tableSizes, playlists, remap,
                     voiceTable, sampleTable, sampleTableSize));
@@ -312,9 +351,11 @@ namespace GBAMusicStudio.Core
         {
             if (InstrumentRemaps.TryGetValue(key, out ARemap remap))
             {
-                var r = remap.Remaps.FirstOrDefault(t => (from ? t.Item1 : t.Item2) == voice);
+                Tuple<byte, byte> r = remap.Remaps.FirstOrDefault(t => (from ? t.Item1 : t.Item2) == voice);
                 if (r == null)
+                {
                     return voice;
+                }
                 return from ? r.Item2 : r.Item1;
             }
             return voice;

@@ -28,7 +28,9 @@ namespace GBAMusicStudio.Core
             byte wait = (byte)(cmd - startCMD);
             byte add = wait > 24 ? (byte)24 : wait;
             for (int i = 24 + 1; i <= wait; i++)
+            {
                 add += added[i % 4];
+            }
             return add;
         }
         public static byte[] RestToCMD = {
@@ -46,12 +48,19 @@ namespace GBAMusicStudio.Core
         public static string NoteName(sbyte note, bool m4aStyle = false)
         {
             if (notes == null)
+            {
                 notes = Strings.Notes.Split(';');
+            }
             if (note < 0)
+            {
                 return note.ToString();
-            var style = m4aStyle ? m4aNotes : notes;
+            }
+            string[] style = m4aStyle ? m4aNotes : notes;
             string str = style[note % 12] + ((note / 12) - 2);
-            if (m4aStyle) str = str.Replace('-', 'M');
+            if (m4aStyle)
+            {
+                str = str.Replace('-', 'M');
+            }
             return str;
         }
 

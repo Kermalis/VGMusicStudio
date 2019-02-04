@@ -54,7 +54,9 @@ namespace GBAMusicStudio.Core
         public void Tick()
         {
             if (Delay != 0)
+            {
                 Delay--;
+            }
             if (SoundMixer.Instance.TickNotes(Index) > 0)
             {
                 if (LFODelayCount > 0)
@@ -106,7 +108,7 @@ namespace GBAMusicStudio.Core
         public override void Init()
         {
             base.Init();
-            
+
             FreeChannel = null;
         }
     }

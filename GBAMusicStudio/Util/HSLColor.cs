@@ -1,5 +1,4 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace GBAMusicStudio.Util
 {
@@ -33,21 +32,25 @@ namespace GBAMusicStudio.Util
         private double CheckRange(double value)
         {
             if (value < 0.0)
+            {
                 value = 0.0;
+            }
             else if (value > 1.0)
+            {
                 value = 1.0;
+            }
             return value;
         }
 
         public override string ToString()
         {
-            return String.Format("H: {0:#0.##} S: {1:#0.##} L: {2:#0.##}", Hue, Saturation, Luminosity);
+            return string.Format("H: {0:#0.##} S: {1:#0.##} L: {2:#0.##}", Hue, Saturation, Luminosity);
         }
 
         public string ToRGBString()
         {
-            Color color = (Color)this;
-            return String.Format("R: {0:#0.##} G: {1:#0.##} B: {2:#0.##}", color.R, color.G, color.B);
+            Color color = this;
+            return string.Format("R: {0:#0.##} G: {1:#0.##} B: {2:#0.##}", color.R, color.G, color.B);
         }
 
         #region Casts to/from System.Drawing.Color
@@ -57,7 +60,9 @@ namespace GBAMusicStudio.Util
             if (hslColor.luminosity != 0)
             {
                 if (hslColor.saturation == 0)
+                {
                     r = g = b = hslColor.luminosity;
+                }
                 else
                 {
                     double temp2 = GetTemp2(hslColor);
@@ -75,29 +80,45 @@ namespace GBAMusicStudio.Util
         {
             temp3 = MoveIntoRange(temp3);
             if (temp3 < 1.0 / 6.0)
+            {
                 return temp1 + (temp2 - temp1) * 6.0 * temp3;
+            }
             else if (temp3 < 0.5)
+            {
                 return temp2;
+            }
             else if (temp3 < 2.0 / 3.0)
+            {
                 return temp1 + ((temp2 - temp1) * ((2.0 / 3.0) - temp3) * 6.0);
+            }
             else
+            {
                 return temp1;
+            }
         }
         private static double MoveIntoRange(double temp3)
         {
             if (temp3 < 0.0)
+            {
                 temp3 += 1.0;
+            }
             else if (temp3 > 1.0)
+            {
                 temp3 -= 1.0;
+            }
             return temp3;
         }
         private static double GetTemp2(HSLColor hslColor)
         {
             double temp2;
             if (hslColor.luminosity < 0.5)  //<=??
+            {
                 temp2 = hslColor.luminosity * (1.0 + hslColor.saturation);
+            }
             else
+            {
                 temp2 = hslColor.luminosity + hslColor.saturation - (hslColor.luminosity * hslColor.saturation);
+            }
             return temp2;
         }
 
@@ -115,10 +136,10 @@ namespace GBAMusicStudio.Util
 
         public void SetRGB(int red, int green, int blue)
         {
-            HSLColor hslColor = (HSLColor)Color.FromArgb(red, green, blue);
-            this.hue = hslColor.hue;
-            this.saturation = hslColor.saturation;
-            this.luminosity = hslColor.luminosity;
+            HSLColor hslColor = Color.FromArgb(red, green, blue);
+            hue = hslColor.hue;
+            saturation = hslColor.saturation;
+            luminosity = hslColor.luminosity;
         }
 
         public HSLColor() { }
@@ -132,9 +153,9 @@ namespace GBAMusicStudio.Util
         }
         public HSLColor(double hue, double saturation, double luminosity)
         {
-            this.Hue = hue;
-            this.Saturation = saturation;
-            this.Luminosity = luminosity;
+            Hue = hue;
+            Saturation = saturation;
+            Luminosity = luminosity;
         }
     }
 }

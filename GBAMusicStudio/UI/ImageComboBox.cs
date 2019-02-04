@@ -51,7 +51,10 @@ namespace GBAMusicStudio.UI
         {
             Item = item ?? throw new ArgumentNullException("item");
             Image = image;
-            if (indentLevel < 0) throw new ArgumentOutOfRangeException("indentLevel");
+            if (indentLevel < 0)
+            {
+                throw new ArgumentOutOfRangeException("indentLevel");
+            }
             IndentLevel = indentLevel;
         }
 

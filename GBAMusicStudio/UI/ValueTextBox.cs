@@ -42,8 +42,12 @@ namespace GBAMusicStudio.UI
             get
             {
                 if (TextLength > 0)
+                {
                     if (Utils.TryParseValue(Text, out long l))
+                    {
                         return l;
+                    }
+                }
                 return min;
             }
             set
@@ -61,9 +65,10 @@ namespace GBAMusicStudio.UI
             if (m.Msg == WM_NOTIFY && m.WParam == new IntPtr(0xB))
             {
                 if (Hexadecimal && SelectionStart < 2)
+                {
                     SelectionStart = 2;
+                }
             }
-
             base.WndProc(ref m);
         }
         protected override void OnKeyPress(KeyPressEventArgs e)
@@ -74,8 +79,9 @@ namespace GBAMusicStudio.UI
                 char.IsDigit(e.KeyChar) || // It is a digit
                 (e.KeyChar >= 'a' && e.KeyChar <= 'f') || // It is a letter that shows in hex
                 (e.KeyChar >= 'A' && e.KeyChar <= 'F'))
+            {
                 e.Handled = false;
-
+            }
             base.OnKeyPress(e);
         }
         protected override void OnTextChanged(EventArgs e)

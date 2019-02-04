@@ -17,7 +17,9 @@ namespace GBAMusicStudio.Core
             {
                 T vTable = Activator.CreateInstance<T>();
                 if (shouldCache)
+                {
                     cache.Add(table, vTable);
+                }
                 vTable.Load(table);
                 return vTable;
             }
@@ -59,17 +61,27 @@ namespace GBAMusicStudio.Core
             {
                 int off = table + (i * 0xC);
                 if (!ROM.IsValidRomOffset(off))
+                {
                     break;
-                var voice = ROM.Instance.Reader.ReadObject<M4AVoiceEntry>(off);
+                }
+                M4AVoiceEntry voice = ROM.Instance.Reader.ReadObject<M4AVoiceEntry>(off);
                 voice.SetOffset(off);
                 if (voice.Type == (int)M4AVoiceFlags.KeySplit)
+                {
                     voices[i] = new M4AWrappedKeySplit(voice);
+                }
                 else if (voice.Type == (int)M4AVoiceFlags.Drum)
+                {
                     voices[i] = new M4AWrappedDrum(voice);
+                }
                 else if ((voice.Type & 0x7) == (int)M4AVoiceType.Direct)
+                {
                     voices[i] = new M4AWrappedDirect(voice);
+                }
                 else
+                {
                     voices[i] = new WrappedVoice(voice);
+                }
             }
         }
 
@@ -78,23 +90,26 @@ namespace GBAMusicStudio.Core
             fromDrum = false;
 
             WrappedVoice sv = voices[voice];
-            Read:
+        Read:
             M4AVoiceEntry v = (M4AVoiceEntry)sv.Voice;
             switch (v.Type)
             {
                 case (int)M4AVoiceFlags.KeySplit:
-                    fromDrum = false; // In case there is a multi within a drum
-                    var keySplit = (M4AWrappedKeySplit)sv;
-                    byte inst = ROM.Instance.Reader.ReadByte(v.Keys - ROM.Pak + note);
-                    sv = keySplit.Table[inst];
-                    goto Read;
+                    {
+                        fromDrum = false; // In case there is a multi within a drum
+                        var keySplit = (M4AWrappedKeySplit)sv;
+                        byte inst = ROM.Instance.Reader.ReadByte(v.Keys - ROM.Pak + note);
+                        sv = keySplit.Table[inst];
+                        goto Read;
+                    }
                 case (int)M4AVoiceFlags.Drum:
-                    fromDrum = true;
-                    var drum = (M4AWrappedDrum)sv;
-                    sv = drum.Table[note];
-                    goto Read;
-                default:
-                    return sv;
+                    {
+                        fromDrum = true;
+                        var drum = (M4AWrappedDrum)sv;
+                        sv = drum.Table[note];
+                        goto Read;
+                    }
+                default: return sv;
             }
         }
     }

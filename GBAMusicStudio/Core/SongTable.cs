@@ -25,7 +25,7 @@
 
         protected override Song LoadSong(int i)
         {
-            var entry = ROM.Instance.Reader.ReadObject<M4ASongEntry>(offset + (i * 8));
+            M4ASongEntry entry = ROM.Instance.Reader.ReadObject<M4ASongEntry>(offset + (i * 8));
             return new M4AROMSong(entry.Header - ROM.Pak);
         }
     }

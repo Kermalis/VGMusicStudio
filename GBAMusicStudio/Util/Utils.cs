@@ -11,9 +11,18 @@ namespace GBAMusicStudio.Util
 
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
         {
-            if (val.CompareTo(min) < 0) return min;
-            else if (val.CompareTo(max) > 0) return max;
-            else return val;
+            if (val.CompareTo(min) < 0)
+            {
+                return min;
+            }
+            else if (val.CompareTo(max) > 0)
+            {
+                return max;
+            }
+            else
+            {
+                return val;
+            }
         }
         public static bool TryParseValue(string value, out long outValue)
         {
@@ -24,12 +33,20 @@ namespace GBAMusicStudio.Util
         {
             var provider = new CultureInfo("en-US");
             if (value.StartsWith("0x"))
+            {
                 if (long.TryParse(value.Substring(2), NumberStyles.HexNumber, provider, out long hexp))
+                {
                     return hexp;
+                }
+            }
             if (long.TryParse(value, NumberStyles.Integer, provider, out long dec))
+            {
                 return dec;
+            }
             if (long.TryParse(value, NumberStyles.HexNumber, provider, out long hex))
+            {
                 return hex;
+            }
             throw new ArgumentException("\"value\" was invalid.");
         }
 
@@ -37,7 +54,9 @@ namespace GBAMusicStudio.Util
         {
             IEnumerable<T> output = new T[0];
             foreach (IEnumerable<T> i in source)
+            {
                 output = output.Union(i);
+            }
             return output;
         }
         public static string Print<T>(this IEnumerable<T> source, bool parenthesis = true)

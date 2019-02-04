@@ -264,12 +264,16 @@ namespace GBAMusicStudio.UI
             {
                 // Pause which stops the thread inside from processing during loading, which would increase the stream latency
                 if (!paused)
+                {
                     SongPlayer.Instance.Pause();
-                var loadedSong = ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value];
+                }
+                Song loadedSong = ROM.Instance.SongTables[(int)tableNumerical.Value][(int)songNumerical.Value];
                 SongPlayer.Instance.SetSong(loadedSong);
                 // Then "un pause" it, setting it to the stopped state
                 if (!paused)
+                {
                     SongPlayer.Instance.Stop();
+                }
                 UpdateTrackInfo(playing);
                 MIDIKeyboard.Instance.Start();
             }
@@ -282,7 +286,7 @@ namespace GBAMusicStudio.UI
         }
         void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var item = ((ImageComboBoxItem)songsComboBox.SelectedItem).Item;
+            object item = ((ImageComboBoxItem)songsComboBox.SelectedItem).Item;
             if (item is APlaylist playlist)
             {
                 if (playlist.Songs.Length > 0
@@ -297,7 +301,9 @@ namespace GBAMusicStudio.UI
             else // Song was selected
             {
                 if (SongPlayer.Instance.PlaylistPlaying)
+                {
                     playedSongs.Add(curSong);
+                }
                 SetAndLoadSong(((ASong)item).Index);
             }
         }
@@ -313,7 +319,7 @@ namespace GBAMusicStudio.UI
         void PopulatePlaylists(List<APlaylist> playlists)
         {
             songsComboBox.Items.Clear();
-            foreach (var playlist in playlists)
+            foreach (APlaylist playlist in playlists)
             {
                 // Add playlist to combobox
                 songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
@@ -322,9 +328,13 @@ namespace GBAMusicStudio.UI
             }
             // Load first song of complete playlist if there is one, otherwise load song 0
             if (playlists[0].Songs.Length == 0)
+            {
                 SetAndLoadSong(0);
+            }
             else
+            {
                 SetAndLoadSong(playlists[0].Songs[0].Index);
+            }
         }
         void EndCurrentPlaylist()
         {
@@ -337,7 +347,10 @@ namespace GBAMusicStudio.UI
         void OpenROM(object sender, EventArgs e)
         {
             var d = new OpenFileDialog { Title = Strings.TitleOpenGBA, Filter = $"{Strings.FilterOpenGBA}|*.gba" };
-            if (d.ShowDialog() != DialogResult.OK) return;
+            if (d.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
 
             Stop();
 
@@ -412,7 +425,10 @@ namespace GBAMusicStudio.UI
         void ExportSF2(object sender, EventArgs e)
         {
             var d = new SaveFileDialog { Title = Strings.TitleSaveSF2, Filter = $"{Strings.FilterSaveSF2}|*.sf2" };
-            if (d.ShowDialog() != DialogResult.OK) return;
+            if (d.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
 
             try
             {
@@ -427,7 +443,10 @@ namespace GBAMusicStudio.UI
         void ExportASM(object sender, EventArgs e)
         {
             var d = new SaveFileDialog { Title = Strings.TitleSaveASM, Filter = $"{Strings.FilterSaveASM}|*.s" };
-            if (d.ShowDialog() != DialogResult.OK) return;
+            if (d.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
 
             try
             {
@@ -442,7 +461,10 @@ namespace GBAMusicStudio.UI
         void ExportMIDI(object sender, EventArgs e)
         {
             var d = new SaveFileDialog { Title = Strings.TitleSaveMIDI, Filter = $"{Strings.FilterSaveMIDI}|*.mid" };
-            if (d.ShowDialog() != DialogResult.OK) return;
+            if (d.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
 
             try
             {
@@ -501,9 +523,13 @@ namespace GBAMusicStudio.UI
             trackEditor?.UpdateTracks();
             voiceTableEditor?.UpdateTable();
             if (play)
+            {
                 Play();
+            }
             else
+            {
                 pauseButton.Text = Strings.PlayerPause;
+            }
             teToolStripMenuItem.Enabled = true;
         }
 
@@ -552,9 +578,13 @@ namespace GBAMusicStudio.UI
         void TogglePlayback()
         {
             if (SongPlayer.Instance.State == PlayerState.Stopped)
+            {
                 Play();
+            }
             else if (SongPlayer.Instance.State == PlayerState.Paused || SongPlayer.Instance.State == PlayerState.Playing)
+            {
                 Pause();
+            }
         }
         void PlayPreviousSong()
         {
@@ -589,7 +619,9 @@ namespace GBAMusicStudio.UI
                 {
                     remainingSongs = curPlaylist.Songs.Select(s => s.Index).ToList();
                     if (Config.Instance.PlaylistMode == PlaylistMode.Random)
+                    {
                         remainingSongs.Shuffle();
+                    }
                 }
 
                 nextSong = remainingSongs[0];
@@ -611,16 +643,21 @@ namespace GBAMusicStudio.UI
         void ClearPianoNotes()
         {
             foreach (byte n in pianoNotes)
+            {
                 if (n >= piano.LowNoteID && n <= piano.HighNoteID)
                 {
                     piano[n - piano.LowNoteID].NoteOnColor = Color.DeepSkyBlue;
                     piano.ReleasePianoKey(n);
                 }
+            }
             pianoNotes.Clear();
         }
         void UpdateUI(object sender, EventArgs e)
         {
-            if (!System.Threading.Monitor.TryEnter(timerLock)) return;
+            if (!System.Threading.Monitor.TryEnter(timerLock))
+            {
+                return;
+            }
             try
             {
                 // Song ended in SongPlayer
@@ -629,25 +666,31 @@ namespace GBAMusicStudio.UI
                     stopUI = false;
                     // Stop if no playlist is playing
                     if (!SongPlayer.Instance.PlaylistPlaying)
+                    {
                         Stop();
+                    }
                     else
+                    {
                         PlayNextSong();
+                    }
                 }
                 // Draw
                 else
                 {
                     // Draw piano notes
                     ClearPianoNotes();
-                    var info = trackInfo.Info;
+                    TrackInfo info = trackInfo.Info;
                     SongPlayer.Instance.GetSongState(info);
                     for (int i = SongPlayer.Instance.NumTracks - 1; i >= 0; i--)
                     {
                         if (!PianoTracks[i])
+                        {
                             continue;
+                        }
 
-                        var notes = info.Notes[i];
+                        sbyte[] notes = info.Notes[i];
                         pianoNotes.AddRange(notes);
-                        foreach (var n in notes)
+                        foreach (sbyte n in notes)
                         {
                             if (n >= piano.LowNoteID && n <= piano.HighNoteID)
                             {
@@ -658,7 +701,9 @@ namespace GBAMusicStudio.UI
                     }
                     // If the user is not dragging the position bar
                     if (!drag)
+                    {
                         UpdateSongPosition(info.Position);
+                    }
                     // Draw trackinfo
                     trackInfo.Invalidate();
                 }
@@ -672,16 +717,23 @@ namespace GBAMusicStudio.UI
         {
             positionBar.Value = position.Clamp(0, positionBar.Maximum);
             if (Config.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
+            {
                 TaskbarManager.Instance.SetProgressValue(positionBar.Value, positionBar.Maximum, Handle);
+            }
         }
         void UpdateTaskbarState()
         {
             if (Config.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
             {
                 TaskbarProgressBarState state = TaskbarProgressBarState.NoProgress;
-                if (SongPlayer.Instance.State == PlayerState.Playing) state = TaskbarProgressBarState.Normal;
-                else if (SongPlayer.Instance.State == PlayerState.Paused) state = TaskbarProgressBarState.Paused;
-
+                if (SongPlayer.Instance.State == PlayerState.Playing)
+                {
+                    state = TaskbarProgressBarState.Normal;
+                }
+                else if (SongPlayer.Instance.State == PlayerState.Paused)
+                {
+                    state = TaskbarProgressBarState.Paused;
+                }
                 TaskbarManager.Instance.SetProgressState(state, Handle);
             }
         }
@@ -719,7 +771,10 @@ namespace GBAMusicStudio.UI
         }
         void OnResize(object sender, EventArgs e)
         {
-            if (WindowState == FormWindowState.Minimized) return;
+            if (WindowState == FormWindowState.Minimized)
+            {
+                return;
+            }
 
             // Position bar & song combobox
             int sWidth = (int)(splitContainer.Width / sfWidth);
@@ -749,9 +804,13 @@ namespace GBAMusicStudio.UI
             if (playButton.Enabled && !songsComboBox.Focused && keyData == Keys.Space)
             {
                 if (SongPlayer.Instance.State == PlayerState.Stopped)
+                {
                     Play();
+                }
                 else
+                {
                     Pause();
+                }
                 return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);

@@ -104,16 +104,22 @@ namespace GBAMusicStudio.Core
         {
             if (!ROM.Instance.Game.Engine.HasGoldenSunSynths || (Type & 0x7) != (int)M4AVoiceType.Direct
                 || Type == (int)M4AVoiceFlags.KeySplit || Type == (int)M4AVoiceFlags.Drum)
+            {
                 return false;
+            }
             var gSample = new M4AWrappedSample(Address - ROM.Pak).GetSample();
             if (gSample == null)
+            {
                 return false;
-            return (gSample.bLoop && gSample.LoopPoint == 0 && gSample.Length == 0);
+            }
+            return gSample.bLoop && gSample.LoopPoint == 0 && gSample.Length == 0;
         }
         public bool IsGBInstrument()
         {
             if (Type == (int)M4AVoiceFlags.KeySplit || Type == (int)M4AVoiceFlags.Drum)
+            {
                 return false;
+            }
             M4AVoiceType vType = (M4AVoiceType)(Type & 0x7);
             return vType >= M4AVoiceType.Square1 && vType <= M4AVoiceType.Noise;
         }
@@ -134,9 +140,13 @@ namespace GBAMusicStudio.Core
             if (name == string.Empty)
             {
                 if (Type == (int)M4AVoiceFlags.KeySplit)
+                {
                     name = "Key Split";
+                }
                 else if (Type == (int)M4AVoiceFlags.Drum)
+                {
                     name = "Drum";
+                }
                 else
                 {
                     switch ((M4AVoiceType)(Type & 0x7))
@@ -169,16 +179,28 @@ namespace GBAMusicStudio.Core
                     if (bFixed || bReversed || bCompressed)
                     {
                         str += " [";
-                        if (bFixed) str += "F";
-                        if (bReversed) str += "R";
-                        if (bCompressed) str += "C";
+                        if (bFixed)
+                        {
+                            str += "F";
+                        }
+                        if (bReversed)
+                        {
+                            str += "R";
+                        }
+                        if (bCompressed)
+                        {
+                            str += "C";
+                        }
                         str += ']';
                     }
                 }
                 else
                 {
                     bool bOFN = (flags & M4AVoiceFlags.OffWithNoise) == M4AVoiceFlags.OffWithNoise;
-                    if (bOFN) str += " [O]";
+                    if (bOFN)
+                    {
+                        str += " [O]";
+                    }
                 }
             }
             return str;
@@ -202,7 +224,7 @@ namespace GBAMusicStudio.Core
             {
                 Table = VoiceTable.LoadTable<M4AVoiceTable>(keySplit.Address - ROM.Pak, true);
 
-                var keys = ROM.Instance.Reader.ReadBytes(128, keySplit.Keys - ROM.Pak);
+                byte[] keys = ROM.Instance.Reader.ReadBytes(128, keySplit.Keys - ROM.Pak);
                 var loading = new List<Triple<byte, byte, byte>>(); // Key, min, max
                 int prev = -1;
                 for (int i = 0; i < 128; i++)
@@ -210,7 +232,9 @@ namespace GBAMusicStudio.Core
                     byte a = keys[i];
                     byte bi = (byte)i;
                     if (prev == a)
+                    {
                         loading[loading.Count - 1].Item3 = bi;
+                    }
                     else
                     {
                         prev = a;
@@ -258,18 +282,21 @@ namespace GBAMusicStudio.Core
             this.offset = offset;
 
             if (offset == 0 || !ROM.IsValidRomOffset(offset))
+            {
                 goto fail;
+            }
 
             sample = ROM.Instance.Reader.ReadObject<M4AMLSSSample>(offset);
 
             if (!ROM.IsValidRomOffset(sample.Length + (offset + 0x10)))
+            {
                 goto fail;
-
+            }
             gSample = new WrappedSample(sample.DoesLoop == 0x40000000, sample.LoopPoint, sample.Length, sample.Frequency >> 10, false);
             gSample.SetOffset(offset + 0x10);
             return;
 
-            fail:
+        fail:
             sample = new M4AMLSSSample();
             gSample = null;
             Console.WriteLine("Error loading instrument at 0x{0:X}.", offset);

@@ -6,21 +6,12 @@ namespace GBAMusicStudio.MIDI
 {
     class MIDIKeyboard
     {
-        static MIDIKeyboard instance;
-        public static MIDIKeyboard Instance
-        {
-            get
-            {
-                if (instance == null)
-                    instance = new MIDIKeyboard();
-                return instance;
-            }
-        }
+        public static MIDIKeyboard Instance { get; } = new MIDIKeyboard();
 
         const byte vNum = 1; // Voice number in the voice table
         bool enabled = false;
         InputDevice inDevice;
-        
+
         Core.Track track;
 
         private MIDIKeyboard()
