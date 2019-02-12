@@ -319,6 +319,11 @@ AXVE:
       395: "Pokémon Contest! (Multiplayer - Player 3)"
       396: "Pokémon Contest! (Multiplayer - Player 4)"
       467: "Unused - Team Rocket Appears!"
+AWAE:
+  Name: "Wario Land 4 (USA)"
+  Creator: "Nintendo"
+  SongTable: 0x98028
+  SongTableSize: 819
 AZLE:
   Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
   Creator: "Nintendo, Capcom"
