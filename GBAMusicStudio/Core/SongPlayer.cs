@@ -10,7 +10,7 @@ namespace GBAMusicStudio.Core
         public static SongPlayer Instance { get; } = new SongPlayer();
 
         readonly TimeBarrier time;
-        Thread thread;
+        readonly Thread thread;
 
         public short Tempo;
         int tempoStack;
@@ -25,6 +25,10 @@ namespace GBAMusicStudio.Core
 
         public Song Song { get; private set; }
         public int NumTracks => Song == null ? 0 : Song.NumTracks;
+
+        public PlayerState State { get; private set; }
+        public delegate void SongEndedEvent();
+        public event SongEndedEvent SongEnded;
 
         private SongPlayer()
         {
@@ -54,10 +58,6 @@ namespace GBAMusicStudio.Core
 
             Song = null;
         }
-
-        public PlayerState State { get; private set; }
-        public delegate void SongEndedEvent();
-        public event SongEndedEvent SongEnded;
 
         public void SetSong(Song song)
         {
@@ -141,7 +141,7 @@ namespace GBAMusicStudio.Core
         }
         public void Pause()
         {
-            State = (State == PlayerState.Paused ? PlayerState.Playing : PlayerState.Paused);
+            State = State == PlayerState.Paused ? PlayerState.Playing : PlayerState.Paused;
         }
         public void Stop()
         {
@@ -164,34 +164,50 @@ namespace GBAMusicStudio.Core
             info.Tempo = Tempo; info.Position = position;
             for (int i = 0; i < NumTracks; i++)
             {
-                info.Positions[i] = Song.Commands[i][tracks[i].CommandIndex].GetOffset();
-                info.Delays[i] = tracks[i].Delay;
-                info.Voices[i] = tracks[i].Voice;
-                info.Mods[i] = tracks[i].MODDepth;
-                info.Types[i] = Song.VoiceTable[tracks[i].Voice].GetName();
-                info.Volumes[i] = tracks[i].GetVolume();
-                info.Pitches[i] = tracks[i].GetPitch();
-                info.Pans[i] = tracks[i].GetPan();
+                Track track = tracks[i];
+                info.Positions[i] = Song.Commands[i][track.CommandIndex].GetOffset();
+                info.Delays[i] = track.Delay;
+                info.Voices[i] = track.Voice;
+                info.Mods[i] = track.MODDepth;
+                info.Types[i] = Song.VoiceTable[track.Voice].GetName();
+                info.Volumes[i] = track.GetVolume();
+                info.Pitches[i] = track.GetPitch();
+                info.Pans[i] = track.GetPan();
 
-                Channel[] channels = SoundMixer.Instance.GetChannels(i);
-                bool none = channels.Length == 0;
-                info.Lefts[i] = none ? 0 : channels.Select(c => c.GetVolume().LeftVol).Max();
-                info.Rights[i] = none ? 0 : channels.Select(c => c.GetVolume().RightVol).Max();
-                info.Notes[i] = none ? new sbyte[0] : channels.Where(c => c.State < ADSRState.Releasing).Select(c => c.Note.OriginalKey).Distinct().ToArray();
+                Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
+                if (channels.Length == 0)
+                {
+                    info.Notes[i] = new sbyte[0];
+                    info.Lefts[i] = 0;
+                    info.Rights[i] = 0;
+                }
+                else
+                {
+                    var lefts = new float[channels.Length];
+                    var rights = new float[channels.Length];
+                    for (int j = 0; j < channels.Length; j++)
+                    {
+                        ChannelVolume vol = channels[j].GetVolume();
+                        lefts[j] = vol.LeftVol;
+                        rights[j] = vol.RightVol;
+                    }
+                    info.Notes[i] = channels.Where(c => c.State < EnvelopeState.Releasing).Select(c => c.Note.OriginalKey).Distinct().ToArray();
+                    info.Lefts[i] = lefts.Max();
+                    info.Rights[i] = rights.Max();
+                }
             }
         }
 
         public Channel PlayNote(Track track, sbyte note, byte velocity, int duration)
         {
             int shift = note + track.KeyShift;
-            note = (sbyte)(shift.Clamp(0, 0x7F));
+            note = (sbyte)shift.Clamp(0, 0x7F);
             track.PrevNote = note;
 
             if (!track.Ready)
             {
                 return null;
             }
-            byte owner = track.Index;
             WrappedVoice voice = null;
             bool fromDrum = false;
             try
@@ -200,40 +216,40 @@ namespace GBAMusicStudio.Core
             }
             catch
             {
-                Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
+                Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", track.Index, track.Voice, note);
                 return null;
             }
 
             var aNote = new Note { Duration = duration, Velocity = velocity, OriginalKey = note, Key = fromDrum ? voice.Voice.GetRootNote() : note };
             if (voice.Voice is M4AVoiceEntry m4a)
             {
-                M4AVoiceType type = (M4AVoiceType)(m4a.Type & 0x7);
+                var type = (M4AVoiceType)(m4a.Type & 0x7);
                 switch (type)
                 {
                     case M4AVoiceType.Direct:
                         {
                             bool bFixed = (m4a.Type & (int)M4AVoiceFlags.Fixed) == (int)M4AVoiceFlags.Fixed;
                             bool bCompressed = ROM.Instance.Game.Engine.HasPokemonCompression && (m4a.Type & (int)M4AVoiceFlags.Compressed) == (int)M4AVoiceFlags.Compressed;
-                            return SoundMixer.Instance.NewDSNote(owner, m4a.ADSR, aNote,
+                            return SoundMixer.Instance.NewDSNote(track, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
-                                bFixed, bCompressed, ((M4AWrappedDirect)voice).Sample.GetSample(), tracks);
+                                bFixed, bCompressed, ((M4AWrappedDirect)voice).Sample.GetSample());
                         }
                     case M4AVoiceType.Square1:
                     case M4AVoiceType.Square2:
                         {
-                            return SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
+                            return SoundMixer.Instance.NewGBNote(track, m4a.ADSR, aNote,
                            track.GetVolume(), track.GetPan(), track.GetPitch(),
                            type, m4a.SquarePattern);
                         }
                     case M4AVoiceType.Wave:
                         {
-                            return SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
+                            return SoundMixer.Instance.NewGBNote(track, m4a.ADSR, aNote,
                                 track.GetVolume(), track.GetPan(), track.GetPitch(),
                                 type, m4a.Address - ROM.Pak);
                         }
                     case M4AVoiceType.Noise:
                         {
-                            return SoundMixer.Instance.NewGBNote(owner, m4a.ADSR, aNote,
+                            return SoundMixer.Instance.NewGBNote(track, m4a.ADSR, aNote,
                              track.GetVolume(), track.GetPan(), track.GetPitch(),
                              type, m4a.NoisePattern);
                         }
@@ -256,28 +272,28 @@ namespace GBAMusicStudio.Core
                 }
                 catch
                 {
-                    Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", owner, track.Voice, note);
+                    Console.WriteLine("Track {0} tried to play a bad note... Voice {1} Note {2}", track.Index, track.Voice, note);
                     return null;
                 }
                 if (bSquare)
                 {
                     int val = Math.Max(NumTracks, 8);
-                    bool sq1 = owner == val - 2;
-                    bool sq2 = owner == val - 1;
+                    bool sq1 = track.Index == val - 2;
+                    bool sq2 = track.Index == val - 1;
                     if (!sq1 && !sq2) // Tried to play a square in a bad track
                     {
                         return null;
                     }
                     M4AVoiceType type = sq1 ? M4AVoiceType.Square1 : sq2 ? M4AVoiceType.Square2 : M4AVoiceType.Invalid5; // Invalid5 wouldn't happen
-                    return SoundMixer.Instance.NewGBNote(owner, new ADSR { S = 0x7 }, aNote,
+                    return SoundMixer.Instance.NewGBNote(track, new ADSR { S = 0x7 }, aNote,
                         track.GetVolume(), track.GetPan(), track.GetPitch(),
                         type, (SquarePattern)entry.Sample);
                 }
                 else if (sample != null)
                 {
-                    return SoundMixer.Instance.NewDSNote(owner, new ADSR { A = 0xFF, S = 0xFF }, aNote,
+                    return SoundMixer.Instance.NewDSNote(track, new ADSR { A = 0xFF, S = 0xFF }, aNote,
                             track.GetVolume(), track.GetPan(), track.GetPitch(),
-                            bFixed, false, sample, tracks);
+                            bFixed, false, sample);
                 }
             }
             return null;
@@ -332,7 +348,7 @@ namespace GBAMusicStudio.Core
                 if (e.Command is FinishCommand)
                 {
                     track.Stopped = true;
-                    SoundMixer.Instance.ReleaseChannels(i, -1);
+                    track.ReleaseChannels(-1);
                 }
                 else if (e.Command is PriorityCommand prio) { track.Priority = prio.Priority; } // TODO: Update channel priorities
                 else if (e.Command is TempoCommand tempo) { Tempo = tempo.Tempo; }
@@ -363,12 +379,11 @@ namespace GBAMusicStudio.Core
                 {
                     if (eot.Note == -1)
                     {
-                        SoundMixer.Instance.ReleaseChannels(i, track.PrevNote);
+                        track.ReleaseChannels(track.PrevNote);
                     }
                     else
                     {
-                        sbyte note = (sbyte)(eot.Note + track.KeyShift).Clamp(0, 127);
-                        SoundMixer.Instance.ReleaseChannels(i, note);
+                        track.ReleaseChannels((eot.Note + track.KeyShift).Clamp(0, 127));
                     }
                 }
                 else if (e.Command is NoteCommand n)
@@ -448,10 +463,6 @@ namespace GBAMusicStudio.Core
                         for (int i = 0; i < NumTracks; i++)
                         {
                             Track track = tracks[i];
-                            if (!track.Stopped || !SoundMixer.Instance.AllDead(i))
-                            {
-                                allDone = false;
-                            }
                             track.Tick();
                             bool update = false;
                             while (track.Delay == 0 && !track.Stopped)
@@ -460,7 +471,11 @@ namespace GBAMusicStudio.Core
                             }
                             if (update || track.MODDepth > 0)
                             {
-                                SoundMixer.Instance.UpdateChannels(i, track.GetVolume(), track.GetPan(), track.GetPitch());
+                                track.UpdateChannels();
+                            }
+                            if (!track.Stopped || track.Channels.Count != 0)
+                            {
+                                allDone = false;
                             }
                         }
                         position++;

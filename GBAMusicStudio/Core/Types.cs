@@ -6,7 +6,7 @@ namespace GBAMusicStudio.Core
 {
     enum EngineType { M4A, MLSS }
 
-    enum ADSRState { Initializing, Rising, Decaying, Playing, Releasing, Dying, Dead }
+    enum EnvelopeState { Initializing, Rising, Decaying, Playing, Releasing, Dying, Dead }
     enum PlayerState { Stopped, Playing, Paused, ShutDown }
     enum PlaylistMode { Random, Sequential }
 
@@ -26,7 +26,7 @@ namespace GBAMusicStudio.Core
         Drum = 0x80
     }
 
-    enum MODType : byte { Vibrate, Volume, Panpot }
+    enum MODType : byte { Pitch, Volume, Panpot }
     enum GSPSGType : byte { Square, Saw, Triangle }
     enum ReverbType { Normal, Camelot1, Camelot2, MGAT, None }
     enum SquarePattern : byte { D12, D25, D50, D75 }

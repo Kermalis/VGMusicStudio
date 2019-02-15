@@ -13,19 +13,19 @@ using System.Windows.Forms;
 namespace GBAMusicStudio.UI
 {
     [DesignerCategory("")]
-    class MainForm : Form
+    class MainForm : ThemedForm
     {
         bool stopUI = false, drag = false;
-        List<sbyte> pianoNotes = new List<sbyte>();
+        readonly List<sbyte> pianoNotes = new List<sbyte>();
         public readonly bool[] PianoTracks = new bool[16];
 
         APlaylist curPlaylist;
         int curSong = 0;
         List<int> playedSongs = new List<int>(), remainingSongs = new List<int>();
 
-        readonly int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)
-        readonly float sfWidth = 2.35f; // Song combobox and volumebar width
-        readonly float spfHeight = 5.5f; // Split panel 1 height
+        const int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)
+        const float sfWidth = 2.35f; // Song combobox and volumebar width
+        const float spfHeight = 5.5f; // Split panel 1 height
 
         AssemblerDialog assemblerDialog; MIDIConverterDialog midiConverterDialog;
         TrackEditor trackEditor; VoiceTableEditor voiceTableEditor;
@@ -37,9 +37,8 @@ namespace GBAMusicStudio.UI
         ToolStripMenuItem fileToolStripMenuItem, openROMToolStripMenuItem, openMIDIToolStripMenuItem, openASMToolStripMenuItem, configToolStripMenuItem,
             dataToolStripMenuItem, teToolStripMenuItem, vteToolStripMenuItem, eSf2ToolStripMenuItem, eASMToolStripMenuItem, eMIDIToolStripMenuItem;
         Timer timer;
-        readonly object timerLock = new object();
         ThemedNumeric songNumerical, tableNumerical;
-        ThemedButton playButton, stopButton, pauseButton;
+        ThemedButton playButton, pauseButton, stopButton;
         ThemedLabel creatorLabel, gameLabel, codeLabel;
         SplitContainer splitContainer;
         PianoControl piano;
@@ -158,8 +157,8 @@ namespace GBAMusicStudio.UI
                 Size = new Size(155, 27),
                 SmallChange = 5
             };
-            volumeBar.ValueChanged += (o, e) => SoundMixer.Instance.MasterVolume = (volumeBar.Value / (float)volumeBar.Maximum);
-            volumeBar.Value = Config.Instance.Volume; // Update MusicPlayer volume
+            volumeBar.ValueChanged += (o, e) => SoundMixer.Instance.MasterVolume = volumeBar.Value / (float)volumeBar.Maximum;
+            volumeBar.Value = Config.Instance.Volume; // Update SoundMixer volume
 
             // Playlist box
             songsComboBox = new ImageComboBox()
@@ -194,11 +193,10 @@ namespace GBAMusicStudio.UI
             splitContainer.Panel2.Controls.Add(trackInfo);
 
             // MainForm
-            AutoScaleDimensions = new SizeF(6F, 13F);
+            AutoScaleDimensions = new SizeF(6, 13);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(iWidth, iHeight);
             Controls.AddRange(new Control[] { splitContainer, mainMenu });
-            Icon = Resources.Icon;
             MainMenuStrip = mainMenu;
             MinimumSize = new Size(8 + iWidth + 8, 30 + iHeight + 8); // Borders
             SongPlayer.Instance.SongEnded += SongEnded;
@@ -545,7 +543,7 @@ namespace GBAMusicStudio.UI
         }
         void Pause()
         {
-            SongPlayer.Instance.Pause(); // Change state
+            SongPlayer.Instance.Pause();
             if (SongPlayer.Instance.State != PlayerState.Paused)
             {
                 stopButton.Enabled = true;
@@ -557,7 +555,7 @@ namespace GBAMusicStudio.UI
                 stopButton.Enabled = false;
                 pauseButton.Text = Strings.PlayerUnpause;
                 timer.Stop();
-                System.Threading.Monitor.Enter(timerLock);
+                System.Threading.Monitor.Enter(timer);
                 ClearPianoNotes();
             }
             UpdateTaskbarState();
@@ -568,7 +566,7 @@ namespace GBAMusicStudio.UI
             SongPlayer.Instance.Stop();
             positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
             timer.Stop();
-            System.Threading.Monitor.Enter(timerLock);
+            System.Threading.Monitor.Enter(timer);
             ClearPianoNotes();
             trackInfo.DeleteData();
             UpdateSongPosition(0);
@@ -654,7 +652,7 @@ namespace GBAMusicStudio.UI
         }
         void UpdateUI(object sender, EventArgs e)
         {
-            if (!System.Threading.Monitor.TryEnter(timerLock))
+            if (!System.Threading.Monitor.TryEnter(timer))
             {
                 return;
             }
@@ -710,7 +708,7 @@ namespace GBAMusicStudio.UI
             }
             finally
             {
-                System.Threading.Monitor.Exit(timerLock);
+                System.Threading.Monitor.Exit(timer);
             }
         }
         void UpdateSongPosition(int position)

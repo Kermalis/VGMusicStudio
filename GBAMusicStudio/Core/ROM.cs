@@ -22,7 +22,7 @@ namespace GBAMusicStudio.Core
         {
             Instance = this;
             ROMFile = File.ReadAllBytes(filePath);
-            Stream stream = Stream.Synchronized(new MemoryStream(ROMFile));
+            var stream = Stream.Synchronized(new MemoryStream(ROMFile));
             Reader = new EndianBinaryReader(stream);
             Writer = new EndianBinaryWriter(stream);
             HandleConfigLoaded();

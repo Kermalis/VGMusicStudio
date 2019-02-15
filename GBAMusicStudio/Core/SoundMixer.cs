@@ -17,14 +17,14 @@ namespace GBAMusicStudio.Core
 
         readonly WaveBuffer audio;
         float[][] trackBuffers;
-        readonly bool[] mutes;
+        public readonly bool[] Mutes;
         Reverb[] reverbs;
         readonly DirectSoundChannel[] dsChannels;
         readonly SquareChannel sq1, sq2;
         readonly WaveChannel wave;
         readonly NoiseChannel noise;
         readonly Channel[] allChannels;
-        readonly Channel[] gbChannels;
+        readonly GBChannel[] gbChannels;
 
         readonly BufferedWaveProvider buffer;
         readonly IWavePlayer @out;
@@ -41,9 +41,9 @@ namespace GBAMusicStudio.Core
             }
 
             gbChannels = new GBChannel[] { sq1 = new SquareChannel(), sq2 = new SquareChannel(), wave = new WaveChannel(), noise = new NoiseChannel() };
-            allChannels = dsChannels.Union(gbChannels).ToArray();
+            allChannels = ((Channel[])dsChannels).Union(gbChannels).ToArray();
 
-            mutes = new bool[17]; // 0-15 for tracks, 16 for the program
+            Mutes = new bool[17]; // 0-15 for tracks, 16 for the program
 
             int amt = SamplesPerBuffer * 2;
             audio = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
@@ -89,7 +89,6 @@ namespace GBAMusicStudio.Core
             }
         }
 
-        public void SetMute(int owner, bool m) => mutes[owner] = m;
         public void FadeIn()
         {
             fadePos = 0;
@@ -102,19 +101,22 @@ namespace GBAMusicStudio.Core
             fadeMicroFramesLeft = (int)(Config.Instance.PlaylistFadeOutLength / 1000f * Engine.AGB_FPS);
             fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
         }
-        public bool IsFadeDone() => fadeMicroFramesLeft == 0;
+        public bool IsFadeDone()
+        {
+            return fadeMicroFramesLeft == 0;
+        }
         public void ResetFade()
         {
             fadeMicroFramesLeft = 0;
         }
 
-        public DirectSoundChannel NewDSNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, WrappedSample sample, Track[] tracks)
+        public DirectSoundChannel NewDSNote(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, WrappedSample sample)
         {
             DirectSoundChannel nChn = null;
-            IOrderedEnumerable<DirectSoundChannel> byOwner = dsChannels.OrderByDescending(c => c.OwnerIdx);
+            IOrderedEnumerable<DirectSoundChannel> byOwner = dsChannels.OrderByDescending(c => c.Owner == null ? 0xFF : c.Owner.Index);
             foreach (DirectSoundChannel i in byOwner) // Find free
             {
-                if (i.State == ADSRState.Dead || i.OwnerIdx == 0xFF)
+                if (i.State == EnvelopeState.Dead || i.Owner == null)
                 {
                     nChn = i;
                     break;
@@ -124,7 +126,7 @@ namespace GBAMusicStudio.Core
             {
                 foreach (DirectSoundChannel i in byOwner)
                 {
-                    if (i.State == ADSRState.Releasing)
+                    if (i.State == EnvelopeState.Releasing)
                     {
                         nChn = i;
                         break;
@@ -135,7 +137,7 @@ namespace GBAMusicStudio.Core
             {
                 foreach (DirectSoundChannel i in byOwner)
                 {
-                    if (owner >= 16 || tracks[owner].Priority > tracks[i.OwnerIdx].Priority)
+                    if (owner.Index >= 16 || owner.Priority > i.Owner.Priority)
                     {
                         nChn = i;
                         break;
@@ -145,7 +147,7 @@ namespace GBAMusicStudio.Core
             if (nChn == null) // None available
             {
                 DirectSoundChannel lowest = byOwner.First(); // Kill lowest track's instrument if the track is lower than this one
-                if (lowest.OwnerIdx >= owner)
+                if (lowest.Owner.Index >= owner.Index)
                 {
                     nChn = lowest;
                 }
@@ -156,7 +158,7 @@ namespace GBAMusicStudio.Core
             }
             return nChn;
         }
-        public GBChannel NewGBNote(byte owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
+        public GBChannel NewGBNote(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, M4AVoiceType type, object arg)
         {
             GBChannel nChn;
             switch (type)
@@ -164,7 +166,7 @@ namespace GBAMusicStudio.Core
                 case M4AVoiceType.Square1:
                     {
                         nChn = sq1;
-                        if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
+                        if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                         {
                             return null;
                         }
@@ -174,7 +176,7 @@ namespace GBAMusicStudio.Core
                 case M4AVoiceType.Square2:
                     {
                         nChn = sq2;
-                        if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
+                        if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                         {
                             return null;
                         }
@@ -184,7 +186,7 @@ namespace GBAMusicStudio.Core
                 case M4AVoiceType.Wave:
                     {
                         nChn = wave;
-                        if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
+                        if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                         {
                             return null;
                         }
@@ -194,7 +196,7 @@ namespace GBAMusicStudio.Core
                 case M4AVoiceType.Noise:
                     {
                         nChn = noise;
-                        if (nChn.State < ADSRState.Releasing && nChn.OwnerIdx < owner)
+                        if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                         {
                             return null;
                         }
@@ -208,53 +210,11 @@ namespace GBAMusicStudio.Core
             return nChn;
         }
 
-        // Returns number of active notes
-        public int TickNotes(int owner)
-        {
-            int active = 0;
-            foreach (Channel c in allChannels)
-            {
-                if (c.OwnerIdx == owner && c.TickNote())
-                {
-                    active++;
-                }
-            }
-            return active;
-        }
-        public bool AllDead(int owner)
-        {
-            return !allChannels.Any(c => c.OwnerIdx == owner);
-        }
-        public Channel[] GetChannels(int owner)
-        {
-            return allChannels.Where(c => c.OwnerIdx == owner).ToArray();
-        }
-        public void ReleaseChannels(int owner, int key)
-        {
-            foreach (Channel c in allChannels)
-            {
-                if (c.OwnerIdx == owner && (key == -1 || (c.Note.OriginalKey == key && c.Note.Duration == -1)))
-                {
-                    c.Release();
-                }
-            }
-        }
-        public void UpdateChannels(int owner, byte vol, sbyte pan, int pitch)
-        {
-            foreach (Channel c in allChannels)
-            {
-                if (c.OwnerIdx == owner)
-                {
-                    c.SetVolume(vol, pan);
-                    c.SetPitch(pitch);
-                }
-            }
-        }
         public void StopAllChannels()
         {
-            foreach (Channel c in allChannels)
+            for (int i = 0; i < allChannels.Length; i++)
             {
-                c.Stop();
+                allChannels[i].Stop();
             }
         }
 
@@ -265,17 +225,19 @@ namespace GBAMusicStudio.Core
             {
                 return;
             }
-            foreach (float[] buf in trackBuffers)
+            for (int i = 0; i < trackBuffers.Length; i++)
             {
+                float[] buf = trackBuffers[i];
                 Array.Clear(buf, 0, buf.Length);
             }
             audio.Clear();
 
-            foreach (DirectSoundChannel c in dsChannels)
+            for (int i = 0; i < dsChannels.Length; i++)
             {
-                if (c.OwnerIdx != 0xFF)
+                DirectSoundChannel c = dsChannels[i];
+                if (c.Owner != null)
                 {
-                    c.Process(trackBuffers[c.OwnerIdx]);
+                    c.Process(trackBuffers[c.Owner.Index]);
                 }
             }
             // Reverb only applies to DirectSound
@@ -284,11 +246,12 @@ namespace GBAMusicStudio.Core
                 reverbs[i]?.Process(trackBuffers[i], SamplesPerBuffer);
             }
 
-            foreach (Channel c in gbChannels)
+            for (int i = 0; i < gbChannels.Length; i++)
             {
-                if (c.OwnerIdx != 0xFF)
+                GBChannel c = gbChannels[i];
+                if (c.Owner != null)
                 {
-                    c.Process(trackBuffers[c.OwnerIdx]);
+                    c.Process(trackBuffers[c.Owner.Index]);
                 }
             }
 
@@ -304,7 +267,7 @@ namespace GBAMusicStudio.Core
             float masterStep = (toMaster - fromMaster) * SamplesReciprocal;
             for (int i = 0; i < numTracks; i++)
             {
-                if (mutes[i])
+                if (Mutes[i])
                 {
                     continue;
                 }

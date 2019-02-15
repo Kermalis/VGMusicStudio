@@ -6,8 +6,8 @@ namespace GBAMusicStudio.Core
 {
     abstract class Channel
     {
-        public ADSRState State { get; protected set; } = ADSRState.Dead;
-        public byte OwnerIdx { get; protected set; } = 0xFF; // 0xFF indicates no owner
+        public EnvelopeState State { get; protected set; } = EnvelopeState.Dead;
+        public Track Owner = null;
 
         public Note Note; // Must be a field
         protected ADSR adsr;
@@ -22,9 +22,9 @@ namespace GBAMusicStudio.Core
         public abstract void SetPitch(int pitch);
         public virtual void Release()
         {
-            if (State < ADSRState.Releasing)
+            if (State < EnvelopeState.Releasing)
             {
-                State = ADSRState.Releasing;
+                State = EnvelopeState.Releasing;
             }
         }
 
@@ -33,14 +33,14 @@ namespace GBAMusicStudio.Core
         // Returns whether the note is active or not
         public virtual bool TickNote()
         {
-            if (State < ADSRState.Releasing)
+            if (State < EnvelopeState.Releasing)
             {
                 if (Note.Duration > 0)
                 {
                     Note.Duration--;
                     if (Note.Duration == 0)
                     {
-                        State = ADSRState.Releasing;
+                        State = EnvelopeState.Releasing;
                         return false;
                     }
                     return true;
@@ -57,8 +57,12 @@ namespace GBAMusicStudio.Core
         }
         public void Stop()
         {
-            State = ADSRState.Dead;
-            OwnerIdx = 0xFF;
+            State = EnvelopeState.Dead;
+            if (Owner != null)
+            {
+                Owner.Channels.Remove(this);
+            }
+            Owner = null;
         }
     }
     class DirectSoundChannel : Channel
@@ -76,11 +80,16 @@ namespace GBAMusicStudio.Core
         byte leftVol, rightVol;
         sbyte[] decompressedSample;
 
-        public void Init(byte ownerIdx, Note note, ADSR adsr, WrappedSample sample, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed)
+        public void Init(Track owner, Note note, ADSR adsr, WrappedSample sample, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed)
         {
-            State = ADSRState.Initializing;
+            State = EnvelopeState.Initializing;
             pos = 0; interPos = 0;
-            OwnerIdx = ownerIdx;
+            if (Owner != null)
+            {
+                Owner.Channels.Remove(this);
+            }
+            Owner = owner;
+            Owner.Channels.Add(this);
             Note = note;
             this.adsr = adsr;
             this.sample = sample;
@@ -101,13 +110,13 @@ namespace GBAMusicStudio.Core
             const float max = 0x10000; // 0x100 * 0x100
             return new ChannelVolume
             {
-                LeftVol = leftVol * velocity / max,
-                RightVol = rightVol * velocity / max
+                LeftVol = leftVol * velocity / max * SoundMixer.Instance.DSMasterVolume,
+                RightVol = rightVol * velocity / max * SoundMixer.Instance.DSMasterVolume
             };
         }
         public override void SetVolume(byte vol, sbyte pan)
         {
-            if (State < ADSRState.Releasing)
+            if (State < EnvelopeState.Releasing)
             {
                 byte range = Engine.GetPanpotRange();
                 int fix = (Engine.GetMaxVolume() + 1) * range;
@@ -124,18 +133,18 @@ namespace GBAMusicStudio.Core
         {
             switch (State)
             {
-                case ADSRState.Initializing:
+                case EnvelopeState.Initializing:
                     {
                         velocity = adsr.A;
-                        State = ADSRState.Rising;
+                        State = EnvelopeState.Rising;
                         break;
                     }
-                case ADSRState.Rising:
+                case EnvelopeState.Rising:
                     {
                         int nextVel = velocity + adsr.A;
                         if (nextVel >= 0xFF)
                         {
-                            State = ADSRState.Decaying;
+                            State = EnvelopeState.Decaying;
                             velocity = 0xFF;
                         }
                         else
@@ -144,12 +153,12 @@ namespace GBAMusicStudio.Core
                         }
                         break;
                     }
-                case ADSRState.Decaying:
+                case EnvelopeState.Decaying:
                     {
                         int nextVel = (velocity * adsr.D) >> 8;
                         if (nextVel <= adsr.S)
                         {
-                            State = ADSRState.Playing;
+                            State = EnvelopeState.Playing;
                             velocity = adsr.S;
                         }
                         else
@@ -158,16 +167,16 @@ namespace GBAMusicStudio.Core
                         }
                         break;
                     }
-                case ADSRState.Playing:
+                case EnvelopeState.Playing:
                     {
                         break;
                     }
-                case ADSRState.Releasing:
+                case EnvelopeState.Releasing:
                     {
                         int nextVel = (velocity * adsr.R) >> 8;
                         if (nextVel <= 0)
                         {
-                            State = ADSRState.Dying;
+                            State = EnvelopeState.Dying;
                             velocity = 0;
                         }
                         else
@@ -176,7 +185,7 @@ namespace GBAMusicStudio.Core
                         }
                         break;
                     }
-                case ADSRState.Dying:
+                case EnvelopeState.Dying:
                     {
                         Stop();
                         break;
@@ -187,15 +196,12 @@ namespace GBAMusicStudio.Core
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            if (State == ADSRState.Dead)
+            if (State == EnvelopeState.Dead)
             {
                 return;
             }
 
             ChannelVolume vol = GetVolume();
-            vol.LeftVol *= SoundMixer.Instance.DSMasterVolume;
-            vol.RightVol *= SoundMixer.Instance.DSMasterVolume;
-
             ProcArgs pargs;
             pargs.LeftVol = vol.LeftVol;
             pargs.RightVol = vol.RightVol;
@@ -357,14 +363,19 @@ namespace GBAMusicStudio.Core
         }
 
         byte processStep;
-        ADSRState nextState;
+        EnvelopeState nextState;
         byte peakVelocity, sustainVelocity;
         protected GBPan panpot = GBPan.Center;
 
-        protected void Init(byte ownerIdx, Note note, ADSR env)
+        protected void Init(Track owner, Note note, ADSR env)
         {
-            State = ADSRState.Initializing;
-            OwnerIdx = ownerIdx;
+            State = EnvelopeState.Initializing;
+            if (Owner != null)
+            {
+                Owner.Channels.Remove(this);
+            }
+            Owner = owner;
+            Owner.Channels.Add(this);
             Note = note;
             adsr.A = (byte)(env.A & 0x7);
             adsr.D = (byte)(env.D & 0x7);
@@ -374,7 +385,7 @@ namespace GBAMusicStudio.Core
 
         public override void Release()
         {
-            if (State < ADSRState.Releasing)
+            if (State < EnvelopeState.Releasing)
             {
                 if (adsr.R == 0)
                 {
@@ -387,13 +398,13 @@ namespace GBAMusicStudio.Core
                 }
                 else
                 {
-                    nextState = ADSRState.Releasing;
+                    nextState = EnvelopeState.Releasing;
                 }
             }
         }
         public override bool TickNote()
         {
-            if (State < ADSRState.Releasing)
+            if (State < EnvelopeState.Releasing)
             {
                 if (Note.Duration > 0)
                 {
@@ -406,7 +417,7 @@ namespace GBAMusicStudio.Core
                         }
                         else
                         {
-                            State = ADSRState.Releasing;
+                            State = EnvelopeState.Releasing;
                         }
                         return false;
                     }
@@ -425,7 +436,7 @@ namespace GBAMusicStudio.Core
 
         public override ChannelVolume GetVolume()
         {
-            const float max = 0x20;
+            float max = 0x20;
             return new ChannelVolume
             {
                 LeftVol = panpot == GBPan.Right ? 0 : velocity / max,
@@ -434,7 +445,7 @@ namespace GBAMusicStudio.Core
         }
         public override void SetVolume(byte vol, sbyte pan)
         {
-            if (State < ADSRState.Releasing)
+            if (State < EnvelopeState.Releasing)
             {
                 int range = Engine.GetPanpotRange() / 2;
                 if (pan < -range)
@@ -451,7 +462,7 @@ namespace GBAMusicStudio.Core
                 }
                 peakVelocity = (byte)((Note.Velocity * vol) >> 10).Clamp(0, 0xF);
                 sustainVelocity = (byte)((peakVelocity * adsr.S + 0xF) >> 4).Clamp(0, 0xF);
-                if (State == ADSRState.Playing)
+                if (State == EnvelopeState.Playing)
                 {
                     velocity = sustainVelocity;
                 }
@@ -466,7 +477,7 @@ namespace GBAMusicStudio.Core
                 if (velocity - 1 <= sustainVelocity)
                 {
                     velocity = sustainVelocity;
-                    nextState = ADSRState.Playing;
+                    nextState = EnvelopeState.Playing;
                 }
                 else
                 {
@@ -489,7 +500,7 @@ namespace GBAMusicStudio.Core
                     processStep = 0;
                     if (velocity - 1 <= 0)
                     {
-                        nextState = ADSRState.Dying;
+                        nextState = EnvelopeState.Dying;
                         velocity = 0;
                     }
                     else
@@ -501,19 +512,19 @@ namespace GBAMusicStudio.Core
 
             switch (State)
             {
-                case ADSRState.Initializing:
+                case EnvelopeState.Initializing:
                     {
-                        nextState = ADSRState.Rising;
+                        nextState = EnvelopeState.Rising;
                         processStep = 0;
                         if ((adsr.A | adsr.D) == 0 || (sustainVelocity == 0 && peakVelocity == 0))
                         {
-                            State = ADSRState.Playing;
+                            State = EnvelopeState.Playing;
                             velocity = sustainVelocity;
                             return;
                         }
                         else if (adsr.A == 0 && adsr.S < 0xF)
                         {
-                            State = ADSRState.Decaying;
+                            State = EnvelopeState.Decaying;
                             velocity = (byte)(peakVelocity - 1).Clamp(0, 0xF);
                             if (velocity < sustainVelocity)
                             {
@@ -523,34 +534,34 @@ namespace GBAMusicStudio.Core
                         }
                         else if (adsr.A == 0)
                         {
-                            State = ADSRState.Playing;
+                            State = EnvelopeState.Playing;
                             velocity = sustainVelocity;
                             return;
                         }
                         else
                         {
-                            State = ADSRState.Rising;
+                            State = EnvelopeState.Rising;
                             velocity = 1;
                             return;
                         }
                     }
-                case ADSRState.Rising:
+                case EnvelopeState.Rising:
                     {
                         if (++processStep >= adsr.A)
                         {
-                            if (nextState == ADSRState.Decaying)
+                            if (nextState == EnvelopeState.Decaying)
                             {
-                                State = ADSRState.Decaying;
+                                State = EnvelopeState.Decaying;
                                 dec(); return;
                             }
-                            if (nextState == ADSRState.Playing)
+                            if (nextState == EnvelopeState.Playing)
                             {
-                                State = ADSRState.Playing;
+                                State = EnvelopeState.Playing;
                                 sus(); return;
                             }
-                            if (nextState == ADSRState.Releasing)
+                            if (nextState == EnvelopeState.Releasing)
                             {
-                                State = ADSRState.Releasing;
+                                State = EnvelopeState.Releasing;
                                 rel(); return;
                             }
                             processStep = 0;
@@ -558,58 +569,58 @@ namespace GBAMusicStudio.Core
                             {
                                 if (adsr.D == 0)
                                 {
-                                    nextState = ADSRState.Playing;
+                                    nextState = EnvelopeState.Playing;
                                 }
                                 else if (peakVelocity == sustainVelocity)
                                 {
-                                    nextState = ADSRState.Playing;
+                                    nextState = EnvelopeState.Playing;
                                     velocity = peakVelocity;
                                 }
                                 else
                                 {
                                     velocity = peakVelocity;
-                                    nextState = ADSRState.Decaying;
+                                    nextState = EnvelopeState.Decaying;
                                 }
                             }
                         }
                         break;
                     }
-                case ADSRState.Decaying:
+                case EnvelopeState.Decaying:
                     {
                         if (++processStep >= adsr.D)
                         {
-                            if (nextState == ADSRState.Playing)
+                            if (nextState == EnvelopeState.Playing)
                             {
-                                State = ADSRState.Playing;
+                                State = EnvelopeState.Playing;
                                 sus(); return;
                             }
-                            if (nextState == ADSRState.Releasing)
+                            if (nextState == EnvelopeState.Releasing)
                             {
-                                State = ADSRState.Releasing;
+                                State = EnvelopeState.Releasing;
                                 rel(); return;
                             }
                             dec();
                         }
                         break;
                     }
-                case ADSRState.Playing:
+                case EnvelopeState.Playing:
                     {
                         if (++processStep >= 1)
                         {
-                            if (nextState == ADSRState.Releasing)
+                            if (nextState == EnvelopeState.Releasing)
                             {
-                                State = ADSRState.Releasing;
+                                State = EnvelopeState.Releasing;
                                 rel(); return;
                             }
                             sus();
                         }
                         break;
                     }
-                case ADSRState.Releasing:
+                case EnvelopeState.Releasing:
                     {
                         if (++processStep >= adsr.R)
                         {
-                            if (nextState == ADSRState.Dying)
+                            if (nextState == EnvelopeState.Dying)
                             {
                                 Stop();
                                 return;
@@ -627,9 +638,9 @@ namespace GBAMusicStudio.Core
         float[] pat;
 
         public SquareChannel() : base() { }
-        public void Init(byte ownerIdx, Note note, ADSR env, SquarePattern pattern)
+        public void Init(Track owner, Note note, ADSR env, SquarePattern pattern)
         {
-            Init(ownerIdx, note, env);
+            Init(owner, note, env);
             switch (pattern)
             {
                 default: pat = Samples.SquareD12; break;
@@ -641,13 +652,13 @@ namespace GBAMusicStudio.Core
 
         public override void SetPitch(int pitch)
         {
-            frequency = 3520 * (float)Math.Pow(2, (Note.Key - 69) / 12f + pitch / 768f);
+            frequency = 3520 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
         }
 
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            if (State == ADSRState.Dead)
+            if (State == EnvelopeState.Dead)
             {
                 return;
             }
@@ -675,22 +686,22 @@ namespace GBAMusicStudio.Core
         float[] sample;
 
         public WaveChannel() : base() { }
-        public void Init(byte ownerIdx, Note note, ADSR env, int address)
+        public void Init(Track owner, Note note, ADSR env, int address)
         {
-            Init(ownerIdx, note, env);
+            Init(owner, note, env);
 
             sample = Samples.PCM4ToFloat(address);
         }
 
         public override void SetPitch(int pitch)
         {
-            frequency = 7040 * (float)Math.Pow(2, (Note.Key - 69) / 12f + pitch / 768f);
+            frequency = 7040 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
         }
 
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            if (State == ADSRState.Dead)
+            if (State == EnvelopeState.Dead)
             {
                 return;
             }
@@ -717,21 +728,21 @@ namespace GBAMusicStudio.Core
     {
         BitArray pat;
 
-        public void Init(byte ownerIdx, Note note, ADSR env, NoisePattern pattern)
+        public void Init(Track owner, Note note, ADSR env, NoisePattern pattern)
         {
-            Init(ownerIdx, note, env);
-            pat = (pattern == NoisePattern.Fine ? Samples.NoiseFine : Samples.NoiseRough);
+            Init(owner, note, env);
+            pat = pattern == NoisePattern.Fine ? Samples.NoiseFine : Samples.NoiseRough;
         }
 
         public override void SetPitch(int pitch)
         {
-            frequency = (0x1000 * (float)Math.Pow(8, (Note.Key - 60) / 12f + pitch / 768f)).Clamp(8, 0x80000); // Thanks ipatix
+            frequency = (0x1000 * (float)Math.Pow(8, ((Note.Key - 60) / 12f) + (pitch / 768f))).Clamp(8, 0x80000); // Thanks ipatix
         }
 
         public override void Process(float[] buffer)
         {
             StepEnvelope();
-            if (State == ADSRState.Dead)
+            if (State == EnvelopeState.Dead)
             {
                 return;
             }

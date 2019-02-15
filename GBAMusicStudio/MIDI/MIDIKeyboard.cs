@@ -67,7 +67,7 @@ namespace GBAMusicStudio.MIDI
             Console.WriteLine("{0}\t\t{1}\t{2}\t{3}", e.Message.Command, e.Message.MidiChannel, e.Message.Data1, e.Message.Data2);
 
             var note = (sbyte)e.Message.Data1;
-            byte volumeOrVelocity = (byte)((e.Message.Data2 / (float)0x7F) * Engine.GetMaxVolume());
+            byte volumeOrVelocity = (byte)(e.Message.Data2 / (float)0x7F * Engine.GetMaxVolume());
 
             if (e.Message.Command == ChannelCommand.Controller && e.Message.Data1 == 7) // Volume
             {
@@ -76,7 +76,7 @@ namespace GBAMusicStudio.MIDI
             else if ((e.Message.Command == ChannelCommand.NoteOn && e.Message.Data2 == 0) || e.Message.Command == ChannelCommand.NoteOff) // Note off
             {
                 // Has some input lag
-                SoundMixer.Instance.ReleaseChannels(16, note);
+                track.ReleaseChannels(note);
             }
             else if (e.Message.Command == ChannelCommand.NoteOn) // Note on
             {

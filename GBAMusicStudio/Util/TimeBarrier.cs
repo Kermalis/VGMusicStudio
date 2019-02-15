@@ -34,7 +34,7 @@ namespace GBAMusicStudio.Util
             {
                 timeToWait = 0;
             }
-            int millisToWait = (int)(timeToWait * 1000d);
+            int millisToWait = (int)(timeToWait * 1000);
             Thread.Sleep(millisToWait);
             lastTimeStamp = desiredTimeStamp;
         }

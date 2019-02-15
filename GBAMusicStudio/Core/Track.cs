@@ -1,4 +1,5 @@
 ﻿using GBAMusicStudio.Util;
+using System.Collections.Generic;
 
 namespace GBAMusicStudio.Core
 {
@@ -11,9 +12,12 @@ namespace GBAMusicStudio.Core
             LFOSpeed, LFODelay, MODDepth,
             EchoVolume, EchoLength; // Unused for now
         public MODType MODType;
-        public sbyte Bend, Tune, Pan, KeyShift, PrevNote;
+        public sbyte Bend, Tune, Pan, KeyShift;
+        public sbyte PrevNote; // Possibly remove? Use Channels.Last() instead
         public int CommandIndex, NextCommandIndex, EndOfPattern;
         public bool Ready, Stopped;
+
+        public readonly List<Channel> Channels = new List<Channel>();
 
         int Tri(int index)
         {
@@ -23,7 +27,7 @@ namespace GBAMusicStudio.Core
 
         public virtual int GetPitch()
         {
-            int mod = MODType == MODType.Vibrate ? (Tri(LFOPhase) * MODDepth) >> 8 : 0;
+            int mod = MODType == MODType.Pitch ? (Tri(LFOPhase) * MODDepth) >> 8 : 0;
             return Bend * BendRange + Tune + mod;
         }
         public byte GetVolume()
@@ -38,18 +42,22 @@ namespace GBAMusicStudio.Core
             return (sbyte)(Pan + mod).Clamp(-range, range - 1);
         }
 
-        public Track(byte i) => Index = i;
+        public Track(byte i)
+        {
+            Index = i;
+        }
         public virtual void Init()
         {
             Voice = Priority = Delay = LFODelay = LFODelayCount = LFOPhase = MODDepth = EchoVolume = EchoLength = BendRange = 0;
             Bend = Tune = Pan = KeyShift = 0;
             CommandIndex = EndOfPattern = 0;
             NextCommandIndex = 1;
-            MODType = MODType.Vibrate;
+            MODType = MODType.Pitch;
             Ready = true;
             Stopped = false;
             LFOSpeed = 22;
             Volume = 127;
+            RemoveAllChannels();
         }
         public void Tick()
         {
@@ -57,7 +65,15 @@ namespace GBAMusicStudio.Core
             {
                 Delay--;
             }
-            if (SoundMixer.Instance.TickNotes(Index) > 0)
+            int active = 0;
+            for (int i = 0; i < Channels.Count; i++)
+            {
+                if (Channels[i].TickNote())
+                {
+                    active++;
+                }
+            }
+            if (active != 0)
             {
                 if (LFODelayCount > 0)
                 {
@@ -73,6 +89,38 @@ namespace GBAMusicStudio.Core
             {
                 LFOPhase = 0;
                 LFODelayCount = LFODelay;
+            }
+        }
+
+        public void ReleaseChannels(int key)
+        {
+            for (int i = 0; i < Channels.Count; i++)
+            {
+                Channel c = Channels[i];
+                if (key == -1 || (c.Note.OriginalKey == key && c.Note.Duration == -1))
+                {
+                    c.Release();
+                }
+            }
+        }
+        public void RemoveAllChannels()
+        {
+            for (int i = 0; i < Channels.Count; i++)
+            {
+                Channels[i].Owner = null;
+            }
+            Channels.Clear();
+        }
+        public void UpdateChannels()
+        {
+            byte vol = GetVolume();
+            sbyte pan = GetPan();
+            int pitch = GetPitch();
+            for (int i = 0; i < Channels.Count; i++)
+            {
+                Channel c = Channels[i];
+                c.SetVolume(vol, pan);
+                c.SetPitch(pitch);
             }
         }
 

@@ -235,7 +235,7 @@ namespace GBAMusicStudio.Core
         public string Name => "MOD Type";
 
         MODType type;
-        public byte Type { get => (byte)type; set => type = (MODType)value.Clamp((byte)MODType.Vibrate, (byte)MODType.Panpot); }
+        public byte Type { get => (byte)type; set => type = (MODType)value.Clamp((byte)MODType.Pitch, (byte)MODType.Panpot); }
 
         public string Arguments => type.ToString();
     }
