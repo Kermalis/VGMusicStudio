@@ -156,30 +156,27 @@ namespace GBAMusicStudio.UI
             Invalidate();
         }
 
-        float infoHeight, infoY, positionX, notesX, delayX, ix, typeX, voicesX, row2ElementAdditionX, yMargin, trackHeight, row2Offset, tempoX;
+        float infoHeight, infoY, positionX, notesX, delayX, typeEndX, typeX, voicesX, row2ElementAdditionX, yMargin, trackHeight, row2Offset, tempoX;
         int checkboxOffset, barHeight, barStartX, barWidth, bwd, barRightBoundX, barCenterX;
         protected override void OnResize(EventArgs e)
         {
             infoHeight = Height / 25.125f;
             infoY = infoHeight - (TextRenderer.MeasureText("A", Font).Height * 1.125f);
             checkboxOffset = (checkboxSize - 13) / 2;
-            positionX = checkboxSize * 2 + checkboxOffset * 2;
-            int FWidth = Width - (int)positionX; // Fake width
-            float dex = positionX + FWidth / 5.75f; // Del x
-            notesX = positionX + FWidth / 4.4f; // Notes x
-            // TODO: Fix Delay when resizing
-            delayX = notesX - TextRenderer.MeasureText("Delay", Font).Width; // "Delay" x
-            float td = FWidth / 100f; // Voice type difference
-            ix = positionX + FWidth - td;
-            typeX = ix - TextRenderer.MeasureText("Type", Font).Width;
-            voicesX = positionX + FWidth / 25f;
+            positionX = (checkboxSize * 2) + (checkboxOffset * 2);
+            int FWidth = Width - (int)positionX; // Width between checkboxes' edges and the window edge
+            notesX = positionX + (FWidth / 4f);
+            delayX = positionX + (FWidth / 6f);
+            typeEndX = positionX + FWidth - (FWidth / 100f);
+            typeX = typeEndX - TextRenderer.MeasureText("Type", Font).Width;
+            voicesX = positionX + (FWidth / 25f);
             row2ElementAdditionX = FWidth / 15f;
 
             yMargin = Height / 200f;
             trackHeight = (Height - yMargin) / 16.5f;
             row2Offset = trackHeight / 2.5f;
             barHeight = (int)(Height / 30.3f);
-            barStartX = (int)(positionX + FWidth / 2.35f);
+            barStartX = (int)(positionX + (FWidth / 2.35f));
             barWidth = (int)(FWidth / 2.95f);
             bwd = barWidth % 2; // Add/Subtract by 1 if the bar width is odd
             barRightBoundX = barStartX + barWidth - bwd;
@@ -218,9 +215,9 @@ namespace GBAMusicStudio.UI
                 byte velocity = (byte)((Info.Lefts[i] + Info.Rights[i]) * byte.MaxValue);
                 var lBrush = new LinearGradientBrush(new Point(barStartX, by), new Point(barStartX + barWidth, by + barHeight), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 3, 0xFF), color));
 
-                mutes[i].Location = new Point(checkboxOffset, (int)r1y + checkboxOffset); // Checkboxes
+                mutes[i].Location = new Point(checkboxOffset, (int)r1y + checkboxOffset);
                 pianos[i].Visible = mutes[i].Visible = true;
-                pianos[i].Location = new Point(checkboxSize + checkboxOffset * 2, (int)r1y + checkboxOffset);
+                pianos[i].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)r1y + checkboxOffset);
 
                 e.Graphics.DrawString(string.Format("0x{0:X7}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
                 e.Graphics.DrawString(Info.Delays[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
@@ -256,11 +253,14 @@ namespace GBAMusicStudio.UI
                 {
                     theseNotes = previousNotes.Item2[i];
                 }
-                else if (!empty || previousNotes.Item2[i] != theseNotes) { previousNotes.Item1[i] = 0; previousNotes.Item2[i] = theseNotes; }
+                else if (!empty || previousNotes.Item2[i] != theseNotes)
+                {
+                    previousNotes.Item1[i] = 0;
+                    previousNotes.Item2[i] = theseNotes;
+                }
                 e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, notesX, r1y);
 
-                SizeF strSize = e.Graphics.MeasureString(Info.Types[i], Font);
-                e.Graphics.DrawString(Info.Types[i], Font, Brushes.DeepPink, ix - strSize.Width, by + (row2Offset / (Font.Size / 2.5f)));
+                e.Graphics.DrawString(Info.Types[i], Font, Brushes.DeepPink, typeEndX - e.Graphics.MeasureString(Info.Types[i], Font).Width, by + (row2Offset / (Font.Size / 2.5f)));
 
                 bg.Dispose();
                 pen.Dispose();
