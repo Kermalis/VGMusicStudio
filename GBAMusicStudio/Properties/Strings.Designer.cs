@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace GBAMusicStudio.Properties {
+namespace Kermalis.GBAMusicStudio.Properties {
     using System;
     
     

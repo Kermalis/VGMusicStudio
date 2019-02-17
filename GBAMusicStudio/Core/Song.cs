@@ -1,5 +1,5 @@
-﻿using GBAMusicStudio.Properties;
-using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Properties;
+using Kermalis.GBAMusicStudio.Util;
 using Kermalis.EndianBinaryIO;
 using Sanford.Multimedia.Midi;
 using System;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     abstract class Song : IOffset
     {

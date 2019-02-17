@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class ROM
     {

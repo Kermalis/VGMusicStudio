@@ -30,7 +30,7 @@ using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     public partial class PianoControl : Control
     {

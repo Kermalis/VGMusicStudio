@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GBAMusicStudio.Util
+namespace Kermalis.GBAMusicStudio.Util
 {
     class Pair<T1, T2>
     {

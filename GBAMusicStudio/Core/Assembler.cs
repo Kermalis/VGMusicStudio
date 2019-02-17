@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class Assembler
     {

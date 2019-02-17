@@ -1,8 +1,8 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Util;
 using System;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     class ValueTextBox : ThemedTextBox
     {

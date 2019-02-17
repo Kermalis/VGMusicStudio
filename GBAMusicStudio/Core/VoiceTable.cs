@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     abstract class VoiceTable : IEnumerable<WrappedVoice>, IOffset
     {

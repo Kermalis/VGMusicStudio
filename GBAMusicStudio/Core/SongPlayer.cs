@@ -1,9 +1,9 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Util;
 using System;
 using System.Linq;
 using System.Threading;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class SongPlayer
     {

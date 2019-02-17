@@ -1,7 +1,7 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Util;
 using System.Collections.Generic;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class Track
     {

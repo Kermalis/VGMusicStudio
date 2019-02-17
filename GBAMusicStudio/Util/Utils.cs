@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace GBAMusicStudio.Util
+namespace Kermalis.GBAMusicStudio.Util
 {
     static class Utils
     {

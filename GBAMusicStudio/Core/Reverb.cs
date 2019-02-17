@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     // All of this was written in C++ by ipatix; I just converted it
     class Reverb

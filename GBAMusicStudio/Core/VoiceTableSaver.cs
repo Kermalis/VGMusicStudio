@@ -1,10 +1,10 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Util;
 using Kermalis.SoundFont2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class VoiceTableSaver
     {

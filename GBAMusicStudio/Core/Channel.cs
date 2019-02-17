@@ -1,8 +1,8 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Util;
 using System;
 using System.Collections;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     abstract class Channel
     {

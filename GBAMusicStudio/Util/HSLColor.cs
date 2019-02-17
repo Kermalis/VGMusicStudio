@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace GBAMusicStudio.Util
+namespace Kermalis.GBAMusicStudio.Util
 {
     // https://richnewman.wordpress.com/about/code-listings-and-diagrams/hslcolor-class/
     class HSLColor

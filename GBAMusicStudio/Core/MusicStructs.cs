@@ -1,4 +1,4 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Util;
 using Kermalis.EndianBinaryIO;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 #pragma warning disable CS0649
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class WrappedVoice : IVoiceTableInfo
     {

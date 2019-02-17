@@ -1,8 +1,8 @@
-﻿using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Util;
 using System;
 using System.Collections.Generic;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     enum EngineType { M4A, MLSS }
 

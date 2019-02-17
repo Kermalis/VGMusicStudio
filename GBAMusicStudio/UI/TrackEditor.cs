@@ -1,6 +1,6 @@
 ﻿using BrightIdeasSoftware;
-using GBAMusicStudio.Core;
-using GBAMusicStudio.Properties;
+using Kermalis.GBAMusicStudio.Core;
+using Kermalis.GBAMusicStudio.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     [DesignerCategory("")]
     class TrackEditor : ThemedForm

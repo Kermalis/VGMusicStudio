@@ -35,14 +35,14 @@
 #endregion
 
 
-using GBAMusicStudio.Util;
+using Kermalis.GBAMusicStudio.Util;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     /* Original code from Michal Brylka on Code Project
     * see https://www.codeproject.com/Articles/17395/Owner-drawn-trackbar-slider

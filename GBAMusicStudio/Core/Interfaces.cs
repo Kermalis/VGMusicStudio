@@ -1,4 +1,4 @@
-﻿namespace GBAMusicStudio.Core
+﻿namespace Kermalis.GBAMusicStudio.Core
 {
     // Used everywhere
     interface IOffset

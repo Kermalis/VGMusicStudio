@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     class ImageComboBox : ComboBox
     {

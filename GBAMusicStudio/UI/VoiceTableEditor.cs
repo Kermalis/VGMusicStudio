@@ -1,14 +1,14 @@
 ﻿using BrightIdeasSoftware;
-using GBAMusicStudio.Core;
-using GBAMusicStudio.Properties;
-using GBAMusicStudio.Util;
+using Kermalis.GBAMusicStudio.Core;
+using Kermalis.GBAMusicStudio.Properties;
+using Kermalis.GBAMusicStudio.Util;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     [DesignerCategory("")]
     class VoiceTableEditor : ThemedForm

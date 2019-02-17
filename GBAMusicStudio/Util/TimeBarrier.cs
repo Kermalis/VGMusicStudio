@@ -1,8 +1,8 @@
-﻿using GBAMusicStudio.Core;
+﻿using Kermalis.GBAMusicStudio.Core;
 using System.Diagnostics;
 using System.Threading;
 
-namespace GBAMusicStudio.Util
+namespace Kermalis.GBAMusicStudio.Util
 {
     // Credit to ipatix
     class TimeBarrier

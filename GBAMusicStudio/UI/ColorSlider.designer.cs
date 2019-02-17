@@ -1,4 +1,4 @@
-﻿namespace GBAMusicStudio.UI
+﻿namespace Kermalis.GBAMusicStudio.UI
 {
     partial class ColorSlider
     {

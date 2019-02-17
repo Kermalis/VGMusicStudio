@@ -1,5 +1,5 @@
-﻿using GBAMusicStudio.Core;
-using GBAMusicStudio.Properties;
+﻿using Kermalis.GBAMusicStudio.Core;
+using Kermalis.GBAMusicStudio.Properties;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -7,7 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     class TrackInfo
     {

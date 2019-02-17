@@ -1,9 +1,9 @@
-﻿using GBAMusicStudio.Properties;
-using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Properties;
+using Kermalis.GBAMusicStudio.Util;
 
 #pragma warning disable CS0649
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class SongEvent : IOffset
     {

@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class SoundMixer
     {

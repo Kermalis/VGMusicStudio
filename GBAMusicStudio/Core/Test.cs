@@ -1,7 +1,7 @@
 ﻿using Sanford.Multimedia.Midi;
 using System;
 
-namespace GBAMusicStudio.Core
+namespace Kermalis.GBAMusicStudio.Core
 {
     class Test
     {

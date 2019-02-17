@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     /*  FlexibleMessageBox – A flexible replacement for the .NET MessageBox
      * 

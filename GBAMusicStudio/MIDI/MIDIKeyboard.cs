@@ -1,8 +1,8 @@
-﻿using GBAMusicStudio.Core;
+﻿using Kermalis.GBAMusicStudio.Core;
 using Sanford.Multimedia.Midi;
 using System;
 
-namespace GBAMusicStudio.MIDI
+namespace Kermalis.GBAMusicStudio.MIDI
 {
     class MIDIKeyboard
     {

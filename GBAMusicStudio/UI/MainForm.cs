@@ -1,7 +1,7 @@
-﻿using GBAMusicStudio.Core;
-using GBAMusicStudio.MIDI;
-using GBAMusicStudio.Properties;
-using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Core;
+using Kermalis.GBAMusicStudio.MIDI;
+using Kermalis.GBAMusicStudio.Properties;
+using Kermalis.GBAMusicStudio.Util;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     [DesignerCategory("")]
     class MainForm : ThemedForm

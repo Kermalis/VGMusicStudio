@@ -1,11 +1,11 @@
-﻿using GBAMusicStudio.Properties;
-using GBAMusicStudio.Util;
+﻿using Kermalis.GBAMusicStudio.Properties;
+using Kermalis.GBAMusicStudio.Util;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace GBAMusicStudio.UI
+namespace Kermalis.GBAMusicStudio.UI
 {
     static class Theme
     {
