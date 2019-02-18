@@ -23,6 +23,7 @@
 
 #endregion
 
+using Kermalis.GBAMusicStudio.Util;
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections;
@@ -40,7 +41,7 @@ namespace Kermalis.GBAMusicStudio.UI
             public bool Pressed { get; private set; } = false;
 
             SolidBrush onBrush = new SolidBrush(Color.SkyBlue);
-            SolidBrush offBrush = new SolidBrush(Color.White);
+            SolidBrush offBrush;
             public Color NoteOnColor
             {
                 get
@@ -89,10 +90,12 @@ namespace Kermalis.GBAMusicStudio.UI
                 }
             }
 
-            public PianoKey(PianoControl piano)
+            public PianoKey(PianoControl piano, int noteId)
             {
                 owner = piano;
                 TabStop = false;
+                NoteID = noteId;
+                offBrush = new SolidBrush(new HSLColor(160.0, 0.0, KeyTypeTable[noteID % 12] == KeyType.White ? noteID / 12 % 2 == 0 ? 240.0 : 120.0 : 0.0));
             }
 
             public void PressPianoKey()
@@ -338,7 +341,7 @@ namespace Kermalis.GBAMusicStudio.UI
 
             for (int i = 0; i < keys.Length; i++)
             {
-                keys[i] = new PianoKey(this) { NoteID = i + LowNoteID };
+                keys[i] = new PianoKey(this, i + LowNoteID);
 
                 if (KeyTypeTable[keys[i].NoteID % 12] == KeyType.White)
                 {
@@ -346,7 +349,6 @@ namespace Kermalis.GBAMusicStudio.UI
                 }
                 else
                 {
-                    keys[i].NoteOffColor = Color.Black;
                     keys[i].BringToFront();
                 }
 
