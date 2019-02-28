@@ -236,15 +236,9 @@ namespace Kermalis.GBAMusicStudio.Core
                 {
                     voiceTable = (int)Utils.ParseValue(vTable.ToString());
                 }
-
                 if (game.Children.TryGetValue("SampleTable", out YamlNode sTable))
                 {
                     sampleTable = (int)Utils.ParseValue(sTable.ToString());
-                }
-
-                if (game.Children.TryGetValue("SampleTableSize", out YamlNode saTableSize))
-                {
-                    sampleTableSize = (int)Utils.ParseValue(saTableSize.ToString());
                 }
 
                 // If we are to copy another game's config
@@ -253,7 +247,7 @@ namespace Kermalis.GBAMusicStudio.Core
                     game = (YamlMappingNode)mapping.Children[copy];
                 }
 
-                // SongTable Sizes
+                // SongTable Sizes (Copyable)
                 string[] sizes = { };
                 if (game.Children.TryGetValue("SongTableSize", out YamlNode soTableSize))
                 {
@@ -267,17 +261,22 @@ namespace Kermalis.GBAMusicStudio.Core
                         tableSizes[i] = (int)Utils.ParseValue(sizes[i]);
                     }
                 }
+                // MLSS Sample Table Size (Copyable)
+                if (game.Children.TryGetValue("SampleTableSize", out YamlNode saTableSize))
+                {
+                    sampleTableSize = (int)Utils.ParseValue(saTableSize.ToString());
+                }
 
-                // Creator name (required)
+                // Creator name (required) (Copyable)
                 creator = game.Children["Creator"].ToString();
 
-                // Remap
+                // Remap (Copyable)
                 if (game.Children.TryGetValue("Remap", out YamlNode rmap))
                 {
                     remap = rmap.ToString();
                 }
 
-                // Engine
+                // Engine (Copyable)
                 if (game.Children.TryGetValue("Engine", out YamlNode yeng))
                 {
                     var eng = (YamlMappingNode)yeng;
@@ -316,7 +315,7 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
                 var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineTrackLimit, engineFrequency, engineHasGoldenSunSynths, engineHasPokemonCompression);
 
-                // Load playlists
+                // Playlists (Copyable)
                 playlists = new List<APlaylist>();
                 if (game.Children.TryGetValue("Music", out YamlNode ymusic))
                 {
