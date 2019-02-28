@@ -399,7 +399,7 @@ namespace Kermalis.GBAMusicStudio.Core
                         }
                         else if (c is EndOfTieCommand eot)
                         {
-                            if (eot.Note != -1)
+                            if (eot.Note == -1)
                             {
                                 file.WriteLine("\t.byte\t\tEOT");
                             }
