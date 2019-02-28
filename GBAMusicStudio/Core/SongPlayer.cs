@@ -67,6 +67,10 @@ namespace Kermalis.GBAMusicStudio.Core
         }
         public void SetSongPosition(int p)
         {
+            if (State == PlayerState.Stopped || State == PlayerState.ShutDown)
+            {
+                return;
+            }
             bool pause = State == PlayerState.Playing;
             if (pause)
             {
@@ -101,6 +105,10 @@ namespace Kermalis.GBAMusicStudio.Core
 
         public void RefreshSong()
         {
+            if (State == PlayerState.Stopped || State == PlayerState.ShutDown)
+            {
+                return;
+            }
             DetermineLongestTrack();
             SetSongPosition(position);
         }

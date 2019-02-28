@@ -313,6 +313,8 @@ namespace Kermalis.GBAMusicStudio.UI
             Stop();
             SongPlayer.Instance.SetSong(song);
             UpdateTrackInfo(playing);
+            trackEditor?.UpdateTracks();
+            voiceTableEditor?.UpdateTable();
         }
         void PopulatePlaylists(List<APlaylist> playlists)
         {
