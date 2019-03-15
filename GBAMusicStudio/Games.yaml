@@ -99,6 +99,14 @@ AGFE:
     Frequency: 31536
     GoldenSunSynths: True
     TrackLimit: 10
+AGLJ:
+  Name: "Tomato Adventure (Japan)"
+  Creator: "AlphaDream"
+  SongTable: 0x4B11A4
+  SongTableSize: 244
+  Engine:
+    Frequency: 15768
+    TrackLimit: 10
 AGSE:
   Name: "Golden Sun (USA)"
   Creator: "Camelot"
