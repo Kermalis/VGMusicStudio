@@ -14,6 +14,77 @@ A3UJ:
   Engine:
     Frequency: 15768
     TrackLimit: 10
+A7KE:
+  Name: "Kirby: Nightmare in Dream Land (USA)"
+  Creator: "Nintendo, HAL Laboratory"
+  SongTable: 0x060B460
+  SongTableSize: 579
+  Engine:
+    Frequency: 15768
+    TrackLimit: 10
+  Music:
+    Sound Test (Music):
+      26: "0 - Title Screen"
+      40: "1 - File Select"
+      0: "2 - Vegetable Valley"
+      21: "3 - Ice Cream Island"
+      11: "4 - Butter Building"
+      17: "5 - Grape Garden"
+      22: "6 - Yoghurt Yard"
+      12: "7 - Orange Ocean"
+      18: "8 - Rainbow Resort"
+      15: "9 - Fortified Fronts"
+      2: "10 - Sky Stages"
+      37: "11 - Mini-Boss Fight"
+      30: "12 - Boss Fight"
+      1: "13 - Boss Defeated!"
+      14: "14 - Victory Dance 1"
+      13: "15 - Victory Dance 2"
+      39: "16 - Arena"
+      25: "17 - Museum"
+      38: "18 - King Dedede's Theme"
+      20: "19 - Green Greens Theme"
+      27: "20 - Fountain of Dreams"
+      31: "21 - Returning the Star Rod!"
+      32: "22 - Nightmare's Power Orb"
+      33: "23 - Nightmare's Persuit"
+      34: "24 - Fighting the Nightmare!"
+      24: "25 - The End!"
+      3: "26 - Down!"
+      4: "27 - Level 1: Vegetable Valley"
+      5: "28 - Level 2: Ice Cream Island"
+      6: "29 - Level 3: Butter Building"
+      7: "30 - Level 4: Grape Garden"
+      8: "31 - Level 5: Yoghurt Yard"
+      9: "32 - Level 6: Orange Ocean"
+      10: "33 - Level 7: Rainbow Resort"
+      35: "34 - Minigame: Quick Draw"
+      46: "35 - Minigame: Bomb Rally"
+      42: "36 - Minigame: Kirby's Air Grind"
+      43: "37 - Minigame: Kirby's Air Grind (Goal!)"
+      44: "38 - Minigame: Kirby's Air Grind (Results)"
+      23: "39 - Minigame Result: Bad!"
+      28: "40 - Minigame Result: Good!"
+      29: "41 - Minigame Result: Perfect!"
+      19: "42 - Invincible Candy"
+      16: "43 - Game Over"
+    Other Music:
+      47: "Vegetable Valley (No Intro)"
+      53: "Ice Cream Island (No Intro)"
+      48: "Butter Building (No Intro)"
+      50: "Grape Garden (No Intro)"
+      54: "Yoghurt Yard (No Intro)"
+      49: "Orange Ocean (No Intro)"
+      51: "Rainbow Resort (No Intro)"
+      55: "Fortified Zone (No Intro)"
+      52: "Green Greens (No Intro)"
+      41: "Building of Battles (Outside)"
+      56: "Nightmare Appears!"
+A7KP:
+  Name: "Kirby: Nightmare in Dream Land (Europe)"
+  Creator: "Nintendo, HAL Laboratory"
+  SongTable: 0x0843B50
+  Copy: "A7KE"
 A88E:
   Name: "Mario & Luigi - Superstar Saga (USA)"
   Creator: "AlphaDream"
@@ -192,6 +263,13 @@ AMTE:
   Creator: "Nintendo"
   SongTable: 0xA8D3C
   SongTableSize: 745
+AMZE:
+  Name: "Super Mario Advance (USA)"
+  Creator: "Nintendo"
+  SongTable: 0xF40D4
+  SongTableSize: 447
+  Engine:
+    Frequency: 10512
 AXPE:
   Name: "Pokémon Sapphire Version (USA)"
   SongTable: 0x4554E8
