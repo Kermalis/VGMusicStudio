@@ -65,15 +65,14 @@ namespace Kermalis.GBAMusicStudio.Core
         public readonly ReverbType ReverbType;
         public readonly byte Reverb;
         public readonly byte Volume; // 0-F
-        public readonly byte TrackLimit;
         public readonly int Frequency;
 
         public readonly bool HasGoldenSunSynths;
         public readonly bool HasPokemonCompression;
 
-        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, byte trackLimit, int frequency, bool hasGoldenSunSynths, bool hasPokemonCompression)
+        public AnEngine(EngineType type, ReverbType reverbType, byte reverb, byte volume, int frequency, bool hasGoldenSunSynths, bool hasPokemonCompression)
         {
-            Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; TrackLimit = trackLimit; Frequency = frequency;
+            Type = type; ReverbType = reverbType; Reverb = reverb; Volume = volume; Frequency = frequency;
             HasGoldenSunSynths = hasGoldenSunSynths; HasPokemonCompression = hasPokemonCompression;
         }
 
@@ -209,7 +208,7 @@ namespace Kermalis.GBAMusicStudio.Core
             {
                 string code, name, creator;
                 EngineType engineType = EngineType.M4A; ReverbType reverbType = ReverbType.Normal;
-                byte engineReverb = 0, engineVolume = 0xF, engineTrackLimit = 0x10;
+                byte engineReverb = 0, engineVolume = 0xF;
                 int engineFrequency = 13379;
                 bool engineHasGoldenSunSynths = false, engineHasPokemonCompression = false;
                 int[] tables, tableSizes;
@@ -296,10 +295,6 @@ namespace Kermalis.GBAMusicStudio.Core
                     {
                         engineVolume = (byte)Utils.ParseValue(volume.ToString());
                     }
-                    if (eng.Children.TryGetValue("TrackLimit", out YamlNode trackLim))
-                    {
-                        engineTrackLimit = (byte)Utils.ParseValue(trackLim.ToString());
-                    }
                     if (eng.Children.TryGetValue("Frequency", out YamlNode frequency))
                     {
                         engineFrequency = (int)Utils.ParseValue(frequency.ToString());
@@ -313,7 +308,7 @@ namespace Kermalis.GBAMusicStudio.Core
                         engineHasPokemonCompression = bool.Parse(compression.ToString());
                     }
                 }
-                var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineTrackLimit, engineFrequency, engineHasGoldenSunSynths, engineHasPokemonCompression);
+                var engine = new AnEngine(engineType, reverbType, engineReverb, engineVolume, engineFrequency, engineHasGoldenSunSynths, engineHasPokemonCompression);
 
                 // Playlists (Copyable)
                 playlists = new List<APlaylist>();

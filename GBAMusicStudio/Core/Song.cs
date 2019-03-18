@@ -141,10 +141,10 @@ namespace Kermalis.GBAMusicStudio.Core
             {
                 Commands[i] = new List<SongEvent>();
             }
-            if (Header.NumTracks > ROM.Instance.Game.Engine.TrackLimit)
+            /*if (Header.NumTracks > ROM.Instance.Game.Engine.TrackLimit)
             {
                 throw new InvalidDataException(string.Format(Strings.ErrorTooManyTracks, Header.NumTracks));
-            }
+            }*/
             for (int i = 0; i < NumTracks; i++)
             {
                 reader.BaseStream.Position = Header.Tracks[i] - ROM.Pak;

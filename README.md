@@ -64,6 +64,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Jesse (jelle)
 * SomeShrug
 * Stich991
+* Platinum Lucario
 
 ----
 # GBA Music Studio Uses:

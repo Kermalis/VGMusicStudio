@@ -45,7 +45,8 @@ namespace Kermalis.GBAMusicStudio.Core
                 return;
             }
 
-            byte amt = ROM.Instance.Game.Engine.TrackLimit;
+            //byte amt = ROM.Instance.Game.Engine.TrackLimit;
+            const byte amt = 0x10;
             tracks = new Track[amt];
             for (byte i = 0; i < amt; i++)
             {

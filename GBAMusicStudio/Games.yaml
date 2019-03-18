@@ -5,7 +5,6 @@ A2UJ:
   SongTableSize: 451
   Engine:
     Frequency: 10512
-    TrackLimit: 10
 A3UJ:
   Name: "Mother 3 (Japan)"
   Creator: "Brownie Brown, Nintendo, HAL Laboratory"
@@ -13,7 +12,6 @@ A3UJ:
   SongTableSize: 1968
   Engine:
     Frequency: 15768
-    TrackLimit: 10
 A7KE:
   Name: "Kirby: Nightmare in Dream Land (USA)"
   Creator: "Nintendo, HAL Laboratory"
@@ -21,7 +19,6 @@ A7KE:
   SongTableSize: 579
   Engine:
     Frequency: 15768
-    TrackLimit: 10
   Music:
     Sound Test (Music):
       26: "0 - Title Screen"
@@ -30,7 +27,7 @@ A7KE:
       21: "3 - Ice Cream Island"
       11: "4 - Butter Building"
       17: "5 - Grape Garden"
-      22: "6 - Yoghurt Yard"
+      22: "6 - Yogurt Yard"
       12: "7 - Orange Ocean"
       18: "8 - Rainbow Resort"
       15: "9 - Fortified Fronts"
@@ -47,7 +44,7 @@ A7KE:
       27: "20 - Fountain of Dreams"
       31: "21 - Returning the Star Rod!"
       32: "22 - Nightmare's Power Orb"
-      33: "23 - Nightmare's Persuit"
+      33: "23 - Nightmare's Pursuit"
       34: "24 - Fighting the Nightmare!"
       24: "25 - The End!"
       3: "26 - Down!"
@@ -55,7 +52,7 @@ A7KE:
       5: "28 - Level 2: Ice Cream Island"
       6: "29 - Level 3: Butter Building"
       7: "30 - Level 4: Grape Garden"
-      8: "31 - Level 5: Yoghurt Yard"
+      8: "31 - Level 5: Yogurt Yard"
       9: "32 - Level 6: Orange Ocean"
       10: "33 - Level 7: Rainbow Resort"
       35: "34 - Minigame: Quick Draw"
@@ -73,7 +70,7 @@ A7KE:
       53: "Ice Cream Island (No Intro)"
       48: "Butter Building (No Intro)"
       50: "Grape Garden (No Intro)"
-      54: "Yoghurt Yard (No Intro)"
+      54: "Yogurt Yard (No Intro)"
       49: "Orange Ocean (No Intro)"
       51: "Rainbow Resort (No Intro)"
       55: "Fortified Zone (No Intro)"
@@ -169,7 +166,6 @@ AGFE:
     ReverbType: "Camelot2"
     Frequency: 31536
     GoldenSunSynths: True
-    TrackLimit: 10
 AGLJ:
   Name: "Tomato Adventure (Japan)"
   Creator: "AlphaDream"
@@ -177,7 +173,6 @@ AGLJ:
   SongTableSize: 244
   Engine:
     Frequency: 15768
-    TrackLimit: 10
 AGSE:
   Name: "Golden Sun (USA)"
   Creator: "Camelot"
@@ -187,7 +182,6 @@ AGSE:
     ReverbType: "Camelot1"
     Frequency: 21024
     GoldenSunSynths: True
-    TrackLimit: 10
 AINJ:
   Name: "Initial D: Another Stage (Japan)"
   Creator: "Sammy Corporation"
@@ -195,8 +189,15 @@ AINJ:
   SongTableSize: 88
   Engine:
     Frequency: 10512
-    TrackLimit: 10
     Volume: 13
+AMAE:
+  Name: "Super Mario Advance (Europe)"
+  SongTable: 0xF4368
+  Copy: "AMZE"
+AMAJ:
+  Name: "Super Mario Advance (Japan)"
+  SongTable: 0xF3F18
+  Copy: "AMZE"
 AMKE:
   Name: "Mario Kart: Super Circuit (USA)"
   Creator: "Nintendo"
@@ -281,7 +282,6 @@ AXVE:
   SongTableSize: 468
   Engine:
     Volume: 12
-    TrackLimit: 10
     PokemonCompression: True
   Music:
     Disc 1:
@@ -547,7 +547,6 @@ BPEE:
   SongTableSize: 610
   Engine:
     Volume: 12
-    TrackLimit: 10
     PokemonCompression: True
   Music:
     Music:
@@ -792,7 +791,6 @@ BPRE:
   SongTableSize: 347
   Engine:
     Volume: 12
-    TrackLimit: 10
     PokemonCompression: True
   Music:
     Disc 1:
