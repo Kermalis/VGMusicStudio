@@ -7,10 +7,10 @@ namespace Kermalis.GBAMusicStudio.Core
     static class Samples
     {
         // Squares
-        public static float[] SquareD12 = new float[] { 0.50f, 0.50f, 0.50f, 0.50f, -0.50f, -0.50f, -0.50f, -0.50f };
-        public static float[] SquareD25 = new float[] { 0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f };
-        public static float[] SquareD50 = new float[] { 0.75f, 0.75f, -0.25f, -0.25f, -0.25f, -0.25f, -0.25f, -0.25f };
-        public static float[] SquareD75 = new float[] { 0.25f, 0.25f, 0.25f, 0.25f, 0.25f, 0.25f, -0.75f, -0.75f };
+        public static byte[] SquareD12 = new byte[] { 0xC0, 0xC0, 0xC0, 0xC0, 0x40, 0x40, 0x40, 0x40 };
+        public static byte[] SquareD25 = new byte[] { 0xF0, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70 };
+        public static byte[] SquareD50 = new byte[] { 0xE0, 0xE0, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60 };
+        public static byte[] SquareD75 = new byte[] { 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0x20, 0x20 };
 
         // Noises
         static BitArray noiseFine = null, noiseRough = null;
@@ -67,25 +67,19 @@ namespace Kermalis.GBAMusicStudio.Core
             }
         }
 
-        public static float[] PCM4ToFloat(int address)
+        public static byte[] PCM4ToPCM8(int address)
         {
-            var sample = new float[0x20];
+            var sample = new byte[0x20];
 
             byte[] data = ROM.Instance.Reader.ReadBytes(0x10, address);
-            float sum = 0;
             for (int i = 0; i < 0x10; i++)
             {
                 byte b = data[i];
-                float first = (b >> 4) / 16f;
-                float second = (b & 0xF) / 16f;
-                sum += sample[i * 2] = first;
-                sum += sample[i * 2 + 1] = second;
+                sample[i * 2] = (byte)((b >> 4) * 17);
+                sample[i * 2 + 1] = (byte)((b & 0xF) * 17);
             }
-            float dcCorrection = sum / 0x20;
-            for (int i = 0; i < 0x20; i++)
-            {
-                sample[i] -= dcCorrection;
-            }
+
+            // TODO: Bring back correction? It gets really loud in some songs now
 
             return sample;
         }
@@ -106,7 +100,7 @@ namespace Kermalis.GBAMusicStudio.Core
         public static readonly sbyte[] CompressionLookup = { 0, 1, 4, 9, 16, 25, 36, 49, -64, -49, -36, -25, -16, -9, -4, -1 };
         public static sbyte[] Decompress(WrappedSample sample)
         {
-            List<sbyte> samples = new List<sbyte>();
+            var samples = new List<sbyte>();
             sbyte compressionLevel = 0;
             int compressionByte = 0, compressionIdx = 0;
 

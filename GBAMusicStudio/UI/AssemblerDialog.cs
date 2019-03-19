@@ -95,7 +95,7 @@ namespace Kermalis.GBAMusicStudio.UI
         }
         void PreviewSong(object sender, EventArgs e)
         {
-            ((MainForm)Owner).PreviewSong(song, Path.GetFileName(assembler.FileName));
+            MainForm.Instance.PreviewSong(song, Path.GetFileName(assembler.FileName));
         }
         void OpenASM(object sender, EventArgs e)
         {

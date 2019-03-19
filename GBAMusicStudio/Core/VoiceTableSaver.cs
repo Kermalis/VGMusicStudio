@@ -31,8 +31,8 @@ namespace Kermalis.GBAMusicStudio.Core
         {
             switch (ROM.Instance.Game.Engine.Type)
             {
-                case EngineType.M4A: new M4AVoiceTableSaver(fileName, false); return;
-                case EngineType.MLSS: new MLSSVoiceTableSaver(fileName); return;
+                //case EngineType.M4A: new M4AVoiceTableSaver(fileName, false); return;
+                //case EngineType.MLSS: new MLSSVoiceTableSaver(fileName); return;
                 default: throw new PlatformNotSupportedException("Exporting to SF2 from this game engine is not supported at this time.");
             }
         }
@@ -42,7 +42,7 @@ namespace Kermalis.GBAMusicStudio.Core
             sf2.InfoChunk.Copyright = ROM.Instance.Game.Creator;
             sf2.InfoChunk.Tools = "GBA Music Studio by Kermalis";
         }
-
+        /*
         private class M4AVoiceTableSaver
         {
             readonly SF2 sf2;
@@ -323,7 +323,7 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
                 savedSamples.Add(address);
 
-                float[] ieee = Samples.PCM4ToFloat(address);
+                float[] ieee = Samples.PCM4ToPCM8(address);
                 short[] pcm16 = Samples.FloatToPCM16(ieee);
                 return (int)sf2.AddSample(pcm16, string.Format("Wave 0x{0:X7}", address), true, 0, 7040, 69, 0);
             }
@@ -450,5 +450,6 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
             }
         }
+        */
     }
 }

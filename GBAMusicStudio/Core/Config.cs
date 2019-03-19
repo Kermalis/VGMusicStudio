@@ -118,7 +118,6 @@ namespace Kermalis.GBAMusicStudio.Core
         readonly int DefaultTableSize = 1000;
 
         public byte DirectCount { get; private set; }
-        public int SampleRate { get; private set; }
         public bool All256Voices { get; private set; }
         public bool MIDIKeyboardFixedVelocity { get; private set; }
         public bool TaskbarProgress { get; private set; }
@@ -128,7 +127,6 @@ namespace Kermalis.GBAMusicStudio.Core
         public PlaylistMode PlaylistMode { get; private set; }
         public byte PlaylistSongLoops { get; private set; }
         public int PlaylistFadeOutLength { get; private set; }
-        public byte Volume { get; private set; }
         public HSLColor[] Colors { get; private set; }
         public Dictionary<string, ARemap> InstrumentRemaps { get; private set; }
 
@@ -143,7 +141,6 @@ namespace Kermalis.GBAMusicStudio.Core
 
             var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
             DirectCount = (byte)Utils.ParseValue(mapping.Children["DirectCount"].ToString());
-            SampleRate = (int)Utils.ParseValue(mapping.Children["SampleRate"].ToString());
             All256Voices = bool.Parse(mapping.Children["All256Voices"].ToString());
             MIDIKeyboardFixedVelocity = bool.Parse(mapping.Children["MIDIKeyboardFixedVelocity"].ToString());
             TaskbarProgress = bool.Parse(mapping.Children["TaskbarProgress"].ToString());
@@ -153,7 +150,6 @@ namespace Kermalis.GBAMusicStudio.Core
             PlaylistMode = (PlaylistMode)Enum.Parse(typeof(PlaylistMode), mapping.Children["PlaylistMode"].ToString());
             PlaylistSongLoops = (byte)Utils.ParseValue(mapping.Children["PlaylistSongLoops"].ToString());
             PlaylistFadeOutLength = (int)Utils.ParseValue(mapping.Children["PlaylistFadeOutLength"].ToString());
-            Volume = (byte)Utils.ParseValue(mapping.Children["Volume"].ToString());
 
             var cmap = (YamlMappingNode)mapping.Children["Colors"];
             Colors = new HSLColor[256];

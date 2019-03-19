@@ -1,22 +1,25 @@
-﻿using NAudio.Wave;
+﻿using Kermalis.GBAMusicStudio.UI;
+using NAudio.CoreAudioApi;
+using NAudio.CoreAudioApi.Interfaces;
+using NAudio.Wave;
 using System;
 using System.Linq;
 
 namespace Kermalis.GBAMusicStudio.Core
 {
-    class SoundMixer
+    class SoundMixer : IAudioSessionEventsHandler
     {
         public static SoundMixer Instance { get; } = new SoundMixer();
 
-        public readonly float SampleRateReciprocal, SamplesReciprocal;
-        public readonly int SamplesPerBuffer;
+        public float SampleRateReciprocal, SamplesReciprocal;
+        public int SamplesPerBuffer;
 
-        public float MasterVolume = 1; public float DSMasterVolume { get; private set; }
+        public float DSMasterVolume;
         int fadeMicroFramesLeft; float fadePos, fadeStepPerMicroframe;
         int numTracks; // Last will be for program use
 
-        readonly WaveBuffer audio;
-        float[][] trackBuffers;
+        byte[] audio;
+        byte[][] trackBuffers;
         public readonly bool[] Mutes;
         Reverb[] reverbs;
         readonly DirectSoundChannel[] dsChannels;
@@ -26,14 +29,12 @@ namespace Kermalis.GBAMusicStudio.Core
         readonly Channel[] allChannels;
         readonly GBChannel[] gbChannels;
 
-        readonly BufferedWaveProvider buffer;
-        readonly IWavePlayer @out;
+        BufferedWaveProvider buffer;
+        WasapiOut @out;
+        AudioSessionControl appVolume;
 
         private SoundMixer()
         {
-            SamplesPerBuffer = Config.Instance.SampleRate / Engine.AGB_FPS;
-            SampleRateReciprocal = 1f / Config.Instance.SampleRate; SamplesReciprocal = 1f / SamplesPerBuffer;
-
             dsChannels = new DirectSoundChannel[Config.Instance.DirectCount];
             for (int i = 0; i < Config.Instance.DirectCount; i++)
             {
@@ -44,30 +45,45 @@ namespace Kermalis.GBAMusicStudio.Core
             allChannels = ((Channel[])dsChannels).Union(gbChannels).ToArray();
 
             Mutes = new bool[17]; // 0-15 for tracks, 16 for the program
-
-            int amt = SamplesPerBuffer * 2;
-            audio = new WaveBuffer(amt * 4) { FloatBufferCount = amt };
-
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(Config.Instance.SampleRate, 2))
-            {
-                DiscardOnBufferOverflow = true
-            };
-            @out = new WasapiOut();
-            @out.Init(buffer);
-            @out.Play();
         }
         public void Init(byte reverbAmt)
         {
+            SamplesPerBuffer = (int)(ROM.Instance.Game.Engine.Frequency / Engine.AGB_FPS);
+            SampleRateReciprocal = 1f / ROM.Instance.Game.Engine.Frequency; SamplesReciprocal = 1f / SamplesPerBuffer;
+            buffer = new BufferedWaveProvider(new WaveFormat(ROM.Instance.Game.Engine.Frequency, 8, 2))
+            {
+                DiscardOnBufferOverflow = true
+            };
+            @out?.Stop();
+            @out = new WasapiOut();
+            @out.Init(buffer);
+            if (appVolume == null)
+            {
+                SessionCollection sessions = new MMDeviceEnumerator().GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia).AudioSessionManager.Sessions;
+                int id = System.Diagnostics.Process.GetCurrentProcess().Id;
+                for (int i = 0; i < sessions.Count; i++)
+                {
+                    AudioSessionControl session = sessions[i];
+                    if (session.GetProcessID == id)
+                    {
+                        appVolume = session;
+                        appVolume.RegisterEventClient(this);
+                        break;
+                    }
+                }
+            }
+            @out.Play();
+            int amt = SamplesPerBuffer * 2;
+            audio = new byte[amt];
             DSMasterVolume = ROM.Instance.Game.Engine.Volume / (float)0xF;
             numTracks = 16 + 1; // 1 for program use
 
-            trackBuffers = new float[numTracks][];
+            trackBuffers = new byte[numTracks][];
             reverbs = new Reverb[numTracks];
 
-            int amt = SamplesPerBuffer * 2;
             for (int i = 0; i < numTracks; i++)
             {
-                trackBuffers[i] = new float[amt];
+                trackBuffers[i] = new byte[amt];
             }
 
             ReverbType reverbType = ROM.Instance.Game.Engine.ReverbType;
@@ -227,10 +243,10 @@ namespace Kermalis.GBAMusicStudio.Core
             }
             for (int i = 0; i < trackBuffers.Length; i++)
             {
-                float[] buf = trackBuffers[i];
+                byte[] buf = trackBuffers[i];
                 Array.Clear(buf, 0, buf.Length);
             }
-            audio.Clear();
+            Array.Clear(audio, 0, audio.Length);
 
             for (int i = 0; i < dsChannels.Length; i++)
             {
@@ -243,7 +259,7 @@ namespace Kermalis.GBAMusicStudio.Core
             // Reverb only applies to DirectSound
             for (int i = 0; i < numTracks; i++)
             {
-                reverbs[i]?.Process(trackBuffers[i], SamplesPerBuffer);
+                //reverbs[i]?.Process(trackBuffers[i], SamplesPerBuffer);
             }
 
             for (int i = 0; i < gbChannels.Length; i++)
@@ -255,7 +271,7 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
             }
 
-            float fromMaster = MasterVolume, toMaster = MasterVolume;
+            float fromMaster = 1f, toMaster = 1f;
             if (fadeMicroFramesLeft > 0)
             {
                 const float scale = 10f / 6f;
@@ -273,17 +289,60 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
 
                 float masterLevel = fromMaster;
-                float[] buf = trackBuffers[i];
+                byte[] buf = trackBuffers[i];
                 for (int j = 0; j < SamplesPerBuffer; j++)
                 {
-                    audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
-                    audio.FloatBuffer[j * 2 + 1] += buf[j * 2 + 1] * masterLevel;
+                    audio[j * 2] += (byte)(buf[j * 2] * masterLevel);
+                    audio[j * 2 + 1] += (byte)(buf[j * 2 + 1] * masterLevel);
 
                     masterLevel += masterStep;
                 }
             }
 
-            buffer.AddSamples(audio, 0, audio.ByteBufferCount);
+            buffer.AddSamples(audio, 0, audio.Length);
+        }
+
+        bool ignoreVolChangeFromUI = false;
+        public void OnVolumeChanged(float volume, bool isMuted)
+        {
+            if (!ignoreVolChangeFromUI)
+            {
+                MainForm.Instance.SetVolumeBarValue(volume);
+            }
+            ignoreVolChangeFromUI = false;
+        }
+        public void OnDisplayNameChanged(string displayName)
+        {
+            throw new NotImplementedException();
+        }
+        public void OnIconPathChanged(string iconPath)
+        {
+            throw new NotImplementedException();
+        }
+        public void OnChannelVolumeChanged(uint channelCount, IntPtr newVolumes, uint channelIndex)
+        {
+            throw new NotImplementedException();
+        }
+        public void OnGroupingParamChanged(ref Guid groupingId)
+        {
+            throw new NotImplementedException();
+        }
+        // Fires on @out.Play() and @out.Stop()
+        public void OnStateChanged(AudioSessionState state)
+        {
+            if (state == AudioSessionState.AudioSessionStateActive)
+            {
+                OnVolumeChanged(appVolume.SimpleAudioVolume.Volume, appVolume.SimpleAudioVolume.Mute);
+            }
+        }
+        public void OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason)
+        {
+            throw new NotImplementedException();
+        }
+        public void SetVolume(float volume)
+        {
+            ignoreVolChangeFromUI = true;
+            appVolume.SimpleAudioVolume.Volume = volume;
         }
     }
 }

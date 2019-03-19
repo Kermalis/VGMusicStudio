@@ -98,7 +98,7 @@ namespace Kermalis.GBAMusicStudio.UI
                 {
                     if (pianos[i] == check)
                     {
-                        ((MainForm)ParentForm).PianoTracks[i] = pianos[i].Checked && pianos[i].Visible;
+                        MainForm.Instance.PianoTracks[i] = pianos[i].Checked && pianos[i].Visible;
                     }
                     if (pianos[i].Checked)
                     {

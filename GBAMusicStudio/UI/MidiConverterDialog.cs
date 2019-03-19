@@ -50,7 +50,7 @@ namespace Kermalis.GBAMusicStudio.UI
 
         void PreviewSong(object sender, EventArgs e)
         {
-            ((MainForm)Owner).PreviewSong(song, Path.GetFileName(midiFileName));
+            MainForm.Instance.PreviewSong(song, Path.GetFileName(midiFileName));
         }
         void OpenMIDI(object sender, EventArgs e)
         {

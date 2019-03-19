@@ -28,7 +28,7 @@ namespace Kermalis.GBAMusicStudio.Core
             }
         }
 
-        public abstract void Process(float[] buffer);
+        public abstract void Process(byte[] buffer);
 
         // Returns whether the note is active or not
         public virtual bool TickNote()
@@ -193,7 +193,7 @@ namespace Kermalis.GBAMusicStudio.Core
             }
         }
 
-        public override void Process(float[] buffer)
+        public override void Process(byte[] buffer)
         {
             StepEnvelope();
             if (State == EnvelopeState.Dead)
@@ -235,21 +235,21 @@ namespace Kermalis.GBAMusicStudio.Core
             }
         }
 
-        void ProcessNormal(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
+        void ProcessNormal(byte[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
-            float GetSample(int position)
+            byte GetSample(int position)
             {
                 position += sample.GetOffset();
-                return (sample.bUnsigned ? ROM.Instance.Reader.ReadByte(position) - 0x80 : ROM.Instance.Reader.ReadSByte(position)) / (float)0x80;
+                return (byte)(sample.bUnsigned ? ROM.Instance.Reader.ReadByte(position) : ROM.Instance.Reader.ReadSByte(position) + 0x80);
             }
 
             int bufPos = 0;
             do
             {
-                float samp = GetSample(pos);
+                byte samp = GetSample(pos);
 
-                buffer[bufPos++] += samp * pargs.LeftVol;
-                buffer[bufPos++] += samp * pargs.RightVol;
+                buffer[bufPos++] += (byte)(samp * pargs.LeftVol);
+                buffer[bufPos++] += (byte)(samp * pargs.RightVol);
 
                 interPos += pargs.InterStep;
                 int posDelta = (int)interPos;
@@ -269,15 +269,15 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
             } while (--samplesPerBuffer > 0);
         }
-        void ProcessCompressed(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
+        void ProcessCompressed(byte[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
             int bufPos = 0;
             do
             {
-                float samp = decompressedSample[pos] / (float)0x80;
+                byte samp = (byte)(decompressedSample[pos] + 0x80);
 
-                buffer[bufPos++] += samp * pargs.LeftVol;
-                buffer[bufPos++] += samp * pargs.RightVol;
+                buffer[bufPos++] += (byte)(samp * pargs.LeftVol);
+                buffer[bufPos++] += (byte)(samp * pargs.RightVol);
 
                 interPos += pargs.InterStep;
                 int posDelta = (int)interPos;
@@ -290,7 +290,7 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
             } while (--samplesPerBuffer > 0);
         }
-        void ProcessSquare(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
+        void ProcessSquare(byte[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
             pos += gsPSG.CycleSpeed << 24;
             int iThreshold = (gsPSG.MinimumCycle << 24) + pos;
@@ -303,8 +303,10 @@ namespace Kermalis.GBAMusicStudio.Core
             {
                 float samp = interPos < threshold ? 0.5f : -0.5f;
                 samp += 0.5f - threshold;
-                buffer[bufPos++] += samp * pargs.LeftVol;
-                buffer[bufPos++] += samp * pargs.RightVol;
+                // TODO: byte samp
+                samp = samp * 128 + 128;
+                buffer[bufPos++] += (byte)((byte)samp * pargs.LeftVol);
+                buffer[bufPos++] += (byte)((byte)samp * pargs.RightVol);
 
                 interPos += pargs.InterStep;
                 if (interPos >= 1)
@@ -313,7 +315,7 @@ namespace Kermalis.GBAMusicStudio.Core
                 }
             } while (--samplesPerBuffer > 0);
         }
-        void ProcessSaw(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
+        void ProcessSaw(byte[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
             const int fix = 0x70;
 
@@ -329,14 +331,15 @@ namespace Kermalis.GBAMusicStudio.Core
                 int var2 = (int)(interPos * 0x10000) << 17;
                 int var3 = var1 - (var2 >> 27);
                 pos = var3 + (pos >> 1);
+                
+                // TODO: byte samp
+                byte samp = (byte)(pos / 2f + 128);
 
-                float samp = pos / (float)0x100;
-
-                buffer[bufPos++] += samp * pargs.LeftVol;
-                buffer[bufPos++] += samp * pargs.RightVol;
+                buffer[bufPos++] += (byte)(samp * pargs.LeftVol);
+                buffer[bufPos++] += (byte)(samp * pargs.RightVol);
             } while (--samplesPerBuffer > 0);
         }
-        void ProcessTri(float[] buffer, int samplesPerBuffer, ProcArgs pargs)
+        void ProcessTri(byte[] buffer, int samplesPerBuffer, ProcArgs pargs)
         {
             int bufPos = 0;
             do
@@ -347,9 +350,11 @@ namespace Kermalis.GBAMusicStudio.Core
                     interPos--;
                 }
                 float samp = interPos < 0.5f ? interPos * 4 - 1 : 3 - (interPos * 4);
+                // TODO: byte samp
+                samp = samp * 128 + 128;
 
-                buffer[bufPos++] += samp * pargs.LeftVol;
-                buffer[bufPos++] += samp * pargs.RightVol;
+                buffer[bufPos++] += (byte)((byte)samp * pargs.LeftVol);
+                buffer[bufPos++] += (byte)((byte)samp * pargs.RightVol);
             } while (--samplesPerBuffer > 0);
         }
     }
@@ -635,7 +640,7 @@ namespace Kermalis.GBAMusicStudio.Core
 
     class SquareChannel : GBChannel
     {
-        float[] pat;
+        byte[] pat;
 
         public SquareChannel() : base() { }
         public void Init(Track owner, Note note, ADSR env, SquarePattern pattern)
@@ -655,7 +660,7 @@ namespace Kermalis.GBAMusicStudio.Core
             frequency = 3520 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
         }
 
-        public override void Process(float[] buffer)
+        public override void Process(byte[] buffer)
         {
             StepEnvelope();
             if (State == EnvelopeState.Dead)
@@ -669,10 +674,10 @@ namespace Kermalis.GBAMusicStudio.Core
             int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
             do
             {
-                float samp = pat[pos];
+                byte samp = pat[pos];
 
-                buffer[bufPos++] += samp * vol.LeftVol;
-                buffer[bufPos++] += samp * vol.RightVol;
+                buffer[bufPos++] += (byte)(samp * vol.LeftVol);
+                buffer[bufPos++] += (byte)(samp * vol.RightVol);
 
                 interPos += interStep;
                 int posDelta = (int)interPos;
@@ -683,14 +688,14 @@ namespace Kermalis.GBAMusicStudio.Core
     }
     class WaveChannel : GBChannel
     {
-        float[] sample;
+        byte[] sample;
 
         public WaveChannel() : base() { }
         public void Init(Track owner, Note note, ADSR env, int address)
         {
             Init(owner, note, env);
 
-            sample = Samples.PCM4ToFloat(address);
+            sample = Samples.PCM4ToPCM8(address);
         }
 
         public override void SetPitch(int pitch)
@@ -698,7 +703,7 @@ namespace Kermalis.GBAMusicStudio.Core
             frequency = 7040 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
         }
 
-        public override void Process(float[] buffer)
+        public override void Process(byte[] buffer)
         {
             StepEnvelope();
             if (State == EnvelopeState.Dead)
@@ -712,10 +717,10 @@ namespace Kermalis.GBAMusicStudio.Core
             int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
             do
             {
-                float samp = sample[pos];
+                byte samp = sample[pos];
 
-                buffer[bufPos++] += samp * vol.LeftVol;
-                buffer[bufPos++] += samp * vol.RightVol;
+                buffer[bufPos++] += (byte)(samp * vol.LeftVol);
+                buffer[bufPos++] += (byte)(samp * vol.RightVol);
 
                 interPos += interStep;
                 int posDelta = (int)interPos;
@@ -739,7 +744,7 @@ namespace Kermalis.GBAMusicStudio.Core
             frequency = (0x1000 * (float)Math.Pow(8, ((Note.Key - 60) / 12f) + (pitch / 768f))).Clamp(8, 0x80000); // Thanks ipatix
         }
 
-        public override void Process(float[] buffer)
+        public override void Process(byte[] buffer)
         {
             StepEnvelope();
             if (State == EnvelopeState.Dead)
@@ -753,10 +758,10 @@ namespace Kermalis.GBAMusicStudio.Core
             int bufPos = 0; int samplesPerBuffer = SoundMixer.Instance.SamplesPerBuffer;
             do
             {
-                float samp = pat[pos & (pat.Length - 1)] ? 0.5f : -0.5f;
+                byte samp = (byte)(pat[pos & (pat.Length - 1)] ? 0xC0 : 0x40);
 
-                buffer[bufPos++] += samp * vol.LeftVol;
-                buffer[bufPos++] += samp * vol.RightVol;
+                buffer[bufPos++] += (byte)(samp * vol.LeftVol);
+                buffer[bufPos++] += (byte)(samp * vol.RightVol);
 
                 interPos += interStep;
                 int posDelta = (int)interPos;

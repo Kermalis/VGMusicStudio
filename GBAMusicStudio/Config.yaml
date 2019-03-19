@@ -1,8 +1,6 @@
 # These cannot be refreshed in the program:
 
 DirectCount: 24 # 5 or above.
-Volume: 50 # 0 to 100.
-SampleRate: 48000 # Must be a multiple of 60 or else you will get bad audio.
 
 # These can be refreshed in the program:
 

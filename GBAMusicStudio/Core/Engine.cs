@@ -6,7 +6,8 @@ namespace Kermalis.GBAMusicStudio.Core
 {
     static class Engine
     {
-        public const int BPM_PER_FRAME = 150, AGB_FPS = 60;
+        public const int BPM_PER_FRAME = 150;
+        public const double AGB_FPS = 59.7275;
         static readonly Exception BAD = new PlatformNotSupportedException("Invalid game engine.");
 
         static readonly Dictionary<EngineType, ICommand[]> allowedCommands;

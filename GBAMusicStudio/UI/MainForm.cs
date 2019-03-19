@@ -15,6 +15,8 @@ namespace Kermalis.GBAMusicStudio.UI
     [DesignerCategory("")]
     class MainForm : ThemedForm
     {
+        public static MainForm Instance { get; } = new MainForm();
+
         bool stopUI = false, drag = false;
         readonly List<sbyte> pianoNotes = new List<sbyte>();
         public readonly bool[] PianoTracks = new bool[16];
@@ -58,7 +60,7 @@ namespace Kermalis.GBAMusicStudio.UI
             }
             base.Dispose(disposing);
         }
-        public MainForm()
+        private MainForm()
         {
             components = new Container();
 
@@ -139,7 +141,7 @@ namespace Kermalis.GBAMusicStudio.UI
             // Volume bar & Position bar
             int sWidth = (int)(iWidth / sfWidth);
             int sX = iWidth - sWidth - 4;
-            positionBar = new ColorSlider()
+            positionBar = new ColorSlider
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Enabled = false,
@@ -149,19 +151,19 @@ namespace Kermalis.GBAMusicStudio.UI
             };
             positionBar.MouseUp += SetSongPosition;
             positionBar.MouseDown += (o, e) => drag = true;
-            volumeBar = new ColorSlider()
+            volumeBar = new ColorSlider
             {
+                Enabled = false,
                 LargeChange = 20,
                 Location = new Point(83, 45),
                 Maximum = 100,
                 Size = new Size(155, 27),
                 SmallChange = 5
             };
-            volumeBar.ValueChanged += (o, e) => SoundMixer.Instance.MasterVolume = volumeBar.Value / (float)volumeBar.Maximum;
-            volumeBar.Value = Config.Instance.Volume; // Update SoundMixer volume
+            volumeBar.ValueChanged += VolumeBar_ValueChanged;
 
             // Playlist box
-            songsComboBox = new ImageComboBox()
+            songsComboBox = new ImageComboBox
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Enabled = false,
@@ -171,14 +173,14 @@ namespace Kermalis.GBAMusicStudio.UI
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
 
             // Track info
-            trackInfo = new TrackInfoControl()
+            trackInfo = new TrackInfoControl
             {
                 Dock = DockStyle.Fill,
                 Size = new Size(iWidth, 690)
             };
 
             // Split container
-            splitContainer = new SplitContainer()
+            splitContainer = new SplitContainer
             {
                 BackColor = Theme.TitleBar,
                 Dock = DockStyle.Fill,
@@ -217,6 +219,17 @@ namespace Kermalis.GBAMusicStudio.UI
             }
         }
 
+        void VolumeBar_ValueChanged(object sender, EventArgs e)
+        {
+            SoundMixer.Instance.SetVolume(volumeBar.Value / (float)volumeBar.Maximum);
+        }
+        public void SetVolumeBarValue(float volume)
+        {
+            volumeBar.ValueChanged -= VolumeBar_ValueChanged;
+            volumeBar.Value = (int)(volume * volumeBar.Maximum);
+            volumeBar.ValueChanged += VolumeBar_ValueChanged;
+        }
+
         void SetSongPosition(object sender, EventArgs e)
         {
             SongPlayer.Instance.SetSongPosition(positionBar.Value);
@@ -243,7 +256,7 @@ namespace Kermalis.GBAMusicStudio.UI
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
 
             APlaylist mainPlaylist = ROM.Instance.Game.Playlists[0];
-            List<ASong> songs = mainPlaylist.Songs.ToList();
+            var songs = mainPlaylist.Songs.ToList();
             ASong song = songs.SingleOrDefault(s => s.Index == songNumerical.Value);
             if (song != null)
             {
@@ -504,7 +517,7 @@ namespace Kermalis.GBAMusicStudio.UI
 
             openMIDIToolStripMenuItem.Enabled =
                 teToolStripMenuItem.Enabled = vteToolStripMenuItem.Enabled = eSf2ToolStripMenuItem.Enabled = eASMToolStripMenuItem.Enabled = eMIDIToolStripMenuItem.Enabled =
-                songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = true;
+                songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = true;
 
             openASMToolStripMenuItem.Enabled = ROM.Instance.Game.Engine.Type == EngineType.M4A;
 
