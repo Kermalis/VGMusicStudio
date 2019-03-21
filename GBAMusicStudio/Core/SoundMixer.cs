@@ -259,7 +259,7 @@ namespace Kermalis.GBAMusicStudio.Core
             // Reverb only applies to DirectSound
             for (int i = 0; i < numTracks; i++)
             {
-                //reverbs[i]?.Process(trackBuffers[i], SamplesPerBuffer);
+                reverbs[i]?.Process(trackBuffers[i], SamplesPerBuffer);
             }
 
             for (int i = 0; i < gbChannels.Length; i++)

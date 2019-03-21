@@ -176,124 +176,123 @@ namespace Kermalis.GBAMusicStudio.UI
             }
             void InitializeComponent()
             {
-                this.components = new Container();
-                this.button1 = new ThemedButton();
-                this.richTextBoxMessage = new ThemedRichTextBox();
-                this.FlexibleMessageBoxFormBindingSource = new BindingSource(this.components);
-                this.panel1 = new ThemedPanel();
-                this.pictureBoxForIcon = new PictureBox();
-                this.button2 = new ThemedButton();
-                this.button3 = new ThemedButton();
-                ((ISupportInitialize)(this.FlexibleMessageBoxFormBindingSource)).BeginInit();
-                this.panel1.SuspendLayout();
-                ((ISupportInitialize)(this.pictureBoxForIcon)).BeginInit();
-                this.SuspendLayout();
+                components = new Container();
+                button1 = new ThemedButton();
+                richTextBoxMessage = new ThemedRichTextBox();
+                FlexibleMessageBoxFormBindingSource = new BindingSource(components);
+                panel1 = new ThemedPanel();
+                pictureBoxForIcon = new PictureBox();
+                button2 = new ThemedButton();
+                button3 = new ThemedButton();
+                ((ISupportInitialize)(FlexibleMessageBoxFormBindingSource)).BeginInit();
+                panel1.SuspendLayout();
+                ((ISupportInitialize)(pictureBoxForIcon)).BeginInit();
+                SuspendLayout();
                 // 
                 // button1
                 // 
-                this.button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-                this.button1.AutoSize = true;
-                this.button1.DialogResult = DialogResult.OK;
-                this.button1.Location = new Point(11, 67);
-                this.button1.MinimumSize = new Size(0, 24);
-                this.button1.Name = "button1";
-                this.button1.Size = new Size(75, 24);
-                this.button1.TabIndex = 2;
-                this.button1.Text = "OK";
-                this.button1.UseVisualStyleBackColor = true;
-                this.button1.Visible = false;
+                button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+                button1.AutoSize = true;
+                button1.DialogResult = DialogResult.OK;
+                button1.Location = new Point(11, 67);
+                button1.MinimumSize = new Size(0, 24);
+                button1.Name = "button1";
+                button1.Size = new Size(75, 24);
+                button1.TabIndex = 2;
+                button1.Text = "OK";
+                button1.UseVisualStyleBackColor = true;
+                button1.Visible = false;
                 // 
                 // richTextBoxMessage
                 // 
-                this.richTextBoxMessage.Anchor = ((AnchorStyles)((((AnchorStyles.Top | AnchorStyles.Bottom)
+                richTextBoxMessage.Anchor = (((AnchorStyles.Top | AnchorStyles.Bottom)
                 | AnchorStyles.Left)
-                | AnchorStyles.Right)));
-                this.richTextBoxMessage.BorderStyle = BorderStyle.None;
-                this.richTextBoxMessage.DataBindings.Add(new Binding("Text", this.FlexibleMessageBoxFormBindingSource, "MessageText", true, DataSourceUpdateMode.OnPropertyChanged));
-                this.richTextBoxMessage.Font = new Font(Theme.Font.FontFamily, 9);
-                this.richTextBoxMessage.Location = new Point(50, 26);
-                this.richTextBoxMessage.Margin = new Padding(0);
-                this.richTextBoxMessage.Name = "richTextBoxMessage";
-                this.richTextBoxMessage.ReadOnly = true;
-                this.richTextBoxMessage.ScrollBars = RichTextBoxScrollBars.Vertical;
-                this.richTextBoxMessage.Size = new Size(200, 20);
-                this.richTextBoxMessage.TabIndex = 0;
-                this.richTextBoxMessage.TabStop = false;
-                this.richTextBoxMessage.Text = "<Message>";
-                this.richTextBoxMessage.LinkClicked += new LinkClickedEventHandler(this.LinkClicked);
+                | AnchorStyles.Right);
+                richTextBoxMessage.BorderStyle = BorderStyle.None;
+                richTextBoxMessage.DataBindings.Add(new Binding("Text", FlexibleMessageBoxFormBindingSource, "MessageText", true, DataSourceUpdateMode.OnPropertyChanged));
+                richTextBoxMessage.Font = new Font(Theme.Font.FontFamily, 9);
+                richTextBoxMessage.Location = new Point(50, 26);
+                richTextBoxMessage.Margin = new Padding(0);
+                richTextBoxMessage.Name = "richTextBoxMessage";
+                richTextBoxMessage.ReadOnly = true;
+                richTextBoxMessage.ScrollBars = RichTextBoxScrollBars.Vertical;
+                richTextBoxMessage.Size = new Size(200, 20);
+                richTextBoxMessage.TabIndex = 0;
+                richTextBoxMessage.TabStop = false;
+                richTextBoxMessage.Text = "<Message>";
+                richTextBoxMessage.LinkClicked += new LinkClickedEventHandler(LinkClicked);
                 // 
                 // panel1
                 // 
-                this.panel1.Anchor = ((AnchorStyles)((((AnchorStyles.Top | AnchorStyles.Bottom)
+                panel1.Anchor = (((AnchorStyles.Top | AnchorStyles.Bottom)
                 | AnchorStyles.Left)
-                | AnchorStyles.Right)));
-                this.panel1.Controls.Add(this.pictureBoxForIcon);
-                this.panel1.Controls.Add(this.richTextBoxMessage);
-                this.panel1.Location = new Point(-3, -4);
-                this.panel1.Name = "panel1";
-                this.panel1.Size = new Size(268, 59);
-                this.panel1.TabIndex = 1;
+                | AnchorStyles.Right);
+                panel1.Controls.Add(pictureBoxForIcon);
+                panel1.Controls.Add(richTextBoxMessage);
+                panel1.Location = new Point(-3, -4);
+                panel1.Name = "panel1";
+                panel1.Size = new Size(268, 59);
+                panel1.TabIndex = 1;
                 // 
                 // pictureBoxForIcon
                 // 
-                this.pictureBoxForIcon.BackColor = Color.Transparent;
-                this.pictureBoxForIcon.Location = new Point(15, 19);
-                this.pictureBoxForIcon.Name = "pictureBoxForIcon";
-                this.pictureBoxForIcon.Size = new Size(32, 32);
-                this.pictureBoxForIcon.TabIndex = 8;
-                this.pictureBoxForIcon.TabStop = false;
+                pictureBoxForIcon.BackColor = Color.Transparent;
+                pictureBoxForIcon.Location = new Point(15, 19);
+                pictureBoxForIcon.Name = "pictureBoxForIcon";
+                pictureBoxForIcon.Size = new Size(32, 32);
+                pictureBoxForIcon.TabIndex = 8;
+                pictureBoxForIcon.TabStop = false;
                 // 
                 // button2
                 // 
-                this.button2.Anchor = ((AnchorStyles)((AnchorStyles.Bottom | AnchorStyles.Right)));
-                this.button2.DialogResult = DialogResult.OK;
-                this.button2.Location = new Point(92, 67);
-                this.button2.MinimumSize = new Size(0, 24);
-                this.button2.Name = "button2";
-                this.button2.Size = new Size(75, 24);
-                this.button2.TabIndex = 3;
-                this.button2.Text = "OK";
-                this.button2.UseVisualStyleBackColor = true;
-                this.button2.Visible = false;
+                button2.Anchor = (AnchorStyles.Bottom | AnchorStyles.Right);
+                button2.DialogResult = DialogResult.OK;
+                button2.Location = new Point(92, 67);
+                button2.MinimumSize = new Size(0, 24);
+                button2.Name = "button2";
+                button2.Size = new Size(75, 24);
+                button2.TabIndex = 3;
+                button2.Text = "OK";
+                button2.UseVisualStyleBackColor = true;
+                button2.Visible = false;
                 // 
                 // button3
                 // 
-                this.button3.Anchor = ((AnchorStyles)((AnchorStyles.Bottom | AnchorStyles.Right)));
-                this.button3.AutoSize = true;
-                this.button3.DialogResult = DialogResult.OK;
-                this.button3.Location = new Point(173, 67);
-                this.button3.MinimumSize = new Size(0, 24);
-                this.button3.Name = "button3";
-                this.button3.Size = new Size(75, 24);
-                this.button3.TabIndex = 0;
-                this.button3.Text = "OK";
-                this.button3.UseVisualStyleBackColor = true;
-                this.button3.Visible = false;
+                button3.Anchor = (AnchorStyles.Bottom | AnchorStyles.Right);
+                button3.AutoSize = true;
+                button3.DialogResult = DialogResult.OK;
+                button3.Location = new Point(173, 67);
+                button3.MinimumSize = new Size(0, 24);
+                button3.Name = "button3";
+                button3.Size = new Size(75, 24);
+                button3.TabIndex = 0;
+                button3.Text = "OK";
+                button3.UseVisualStyleBackColor = true;
+                button3.Visible = false;
                 // 
                 // FlexibleMessageBoxForm
                 // 
-                this.AutoScaleDimensions = new SizeF(6F, 13F);
-                this.AutoScaleMode = AutoScaleMode.Font;
-                this.ClientSize = new Size(260, 102);
-                this.Controls.Add(this.button3);
-                this.Controls.Add(this.button2);
-                this.Controls.Add(this.panel1);
-                this.Controls.Add(this.button1);
-                this.DataBindings.Add(new Binding("Text", this.FlexibleMessageBoxFormBindingSource, "CaptionText", true));
-                this.Icon = GBAMusicStudio.Properties.Resources.Icon;
-                this.MaximizeBox = false;
-                this.MinimizeBox = false;
-                this.MinimumSize = new Size(276, 140);
-                this.Name = "FlexibleMessageBoxForm";
-                this.SizeGripStyle = SizeGripStyle.Show;
-                this.StartPosition = FormStartPosition.CenterParent;
-                this.Text = "<Caption>";
-                this.Shown += new EventHandler(this.FlexibleMessageBoxForm_Shown);
-                ((ISupportInitialize)(this.FlexibleMessageBoxFormBindingSource)).EndInit();
-                this.panel1.ResumeLayout(false);
-                ((ISupportInitialize)(this.pictureBoxForIcon)).EndInit();
-                this.ResumeLayout(false);
-                this.PerformLayout();
+                AutoScaleDimensions = new SizeF(6F, 13F);
+                AutoScaleMode = AutoScaleMode.Font;
+                ClientSize = new Size(260, 102);
+                Controls.Add(button3);
+                Controls.Add(button2);
+                Controls.Add(panel1);
+                Controls.Add(button1);
+                DataBindings.Add(new Binding("Text", FlexibleMessageBoxFormBindingSource, "CaptionText", true));
+                MaximizeBox = false;
+                MinimizeBox = false;
+                MinimumSize = new Size(276, 140);
+                Name = "FlexibleMessageBoxForm";
+                SizeGripStyle = SizeGripStyle.Show;
+                StartPosition = FormStartPosition.CenterParent;
+                Text = "<Caption>";
+                Shown += new EventHandler(FlexibleMessageBoxForm_Shown);
+                ((ISupportInitialize)(FlexibleMessageBoxFormBindingSource)).EndInit();
+                panel1.ResumeLayout(false);
+                ((ISupportInitialize)(pictureBoxForIcon)).EndInit();
+                ResumeLayout(false);
+                PerformLayout();
             }
 
             ThemedButton button1, button2, button3;
@@ -338,8 +337,8 @@ namespace Kermalis.GBAMusicStudio.UI
                 //Try to evaluate the language. If this fails, the fallback language English will be used
                 Enum.TryParse(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, out languageID);
 
-                this.KeyPreview = true;
-                this.KeyUp += FlexibleMessageBoxForm_KeyUp;
+                KeyPreview = true;
+                KeyUp += FlexibleMessageBoxForm_KeyUp;
             }
 
             #endregion
@@ -348,7 +347,10 @@ namespace Kermalis.GBAMusicStudio.UI
 
             static string[] GetStringRows(string message)
             {
-                if (string.IsNullOrEmpty(message)) return null;
+                if (string.IsNullOrEmpty(message))
+                {
+                    return null;
+                }
 
                 var messageRows = message.Split(new char[] { '\n' }, StringSplitOptions.None);
                 return messageRows;
@@ -358,7 +360,7 @@ namespace Kermalis.GBAMusicStudio.UI
             {
                 var buttonTextArrayIndex = Convert.ToInt32(buttonID);
 
-                switch (this.languageID)
+                switch (languageID)
                 {
                     case TwoLetterISOLanguageID.de: return BUTTON_TEXTS_GERMAN_DE[buttonTextArrayIndex];
                     case TwoLetterISOLanguageID.es: return BUTTON_TEXTS_SPANISH_ES[buttonTextArrayIndex];
@@ -373,8 +375,15 @@ namespace Kermalis.GBAMusicStudio.UI
                 const double MIN_FACTOR = 0.2;
                 const double MAX_FACTOR = 1.0;
 
-                if (workingAreaFactor < MIN_FACTOR) return MIN_FACTOR;
-                if (workingAreaFactor > MAX_FACTOR) return MAX_FACTOR;
+                if (workingAreaFactor < MIN_FACTOR)
+                {
+                    return MIN_FACTOR;
+                }
+
+                if (workingAreaFactor > MAX_FACTOR)
+                {
+                    return MAX_FACTOR;
+                }
 
                 return workingAreaFactor;
             }
@@ -399,7 +408,10 @@ namespace Kermalis.GBAMusicStudio.UI
 
                 //Get rows. Exit if there are no rows to render...
                 var stringRows = GetStringRows(text);
-                if (stringRows == null) return;
+                if (stringRows == null)
+                {
+                    return;
+                }
 
                 //Calculate whole text height
                 var textHeight = TextRenderer.MeasureText(text, FONT).Height;
@@ -552,7 +564,7 @@ namespace Kermalis.GBAMusicStudio.UI
                 Button buttonToFocus;
 
                 //Set the default button...
-                switch (this.defaultButton)
+                switch (defaultButton)
                 {
                     case MessageBoxDefaultButton.Button1:
                     default:
@@ -566,19 +578,22 @@ namespace Kermalis.GBAMusicStudio.UI
                         break;
                 }
 
-                if (buttonIndexToFocus > this.visibleButtonsCount) buttonIndexToFocus = this.visibleButtonsCount;
+                if (buttonIndexToFocus > visibleButtonsCount)
+                {
+                    buttonIndexToFocus = visibleButtonsCount;
+                }
 
                 if (buttonIndexToFocus == 3)
                 {
-                    buttonToFocus = this.button3;
+                    buttonToFocus = button3;
                 }
                 else if (buttonIndexToFocus == 2)
                 {
-                    buttonToFocus = this.button2;
+                    buttonToFocus = button2;
                 }
                 else
                 {
-                    buttonToFocus = this.button1;
+                    buttonToFocus = button1;
                 }
 
                 buttonToFocus.Focus();
@@ -607,15 +622,15 @@ namespace Kermalis.GBAMusicStudio.UI
                 //Handle standard key strikes for clipboard copy: "Ctrl + C" and "Ctrl + Insert"
                 if (e.Control && (e.KeyCode == Keys.C || e.KeyCode == Keys.Insert))
                 {
-                    var buttonsTextLine = (this.button1.Visible ? this.button1.Text + STANDARD_MESSAGEBOX_SEPARATOR_SPACES : string.Empty)
-                                        + (this.button2.Visible ? this.button2.Text + STANDARD_MESSAGEBOX_SEPARATOR_SPACES : string.Empty)
-                                        + (this.button3.Visible ? this.button3.Text + STANDARD_MESSAGEBOX_SEPARATOR_SPACES : string.Empty);
+                    var buttonsTextLine = (button1.Visible ? button1.Text + STANDARD_MESSAGEBOX_SEPARATOR_SPACES : string.Empty)
+                                        + (button2.Visible ? button2.Text + STANDARD_MESSAGEBOX_SEPARATOR_SPACES : string.Empty)
+                                        + (button3.Visible ? button3.Text + STANDARD_MESSAGEBOX_SEPARATOR_SPACES : string.Empty);
 
                     //Build same clipboard text like the standard .Net MessageBox
                     var textForClipboard = STANDARD_MESSAGEBOX_SEPARATOR_LINES
-                                         + this.Text + Environment.NewLine
+                                         + Text + Environment.NewLine
                                          + STANDARD_MESSAGEBOX_SEPARATOR_LINES
-                                         + this.richTextBoxMessage.Text + Environment.NewLine
+                                         + richTextBoxMessage.Text + Environment.NewLine
                                          + STANDARD_MESSAGEBOX_SEPARATOR_LINES
                                          + buttonsTextLine.Replace("&", string.Empty) + Environment.NewLine
                                          + STANDARD_MESSAGEBOX_SEPARATOR_LINES;

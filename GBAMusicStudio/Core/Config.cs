@@ -173,11 +173,11 @@ namespace Kermalis.GBAMusicStudio.Core
                         l = byte.Parse(v.Value.ToString());
                     }
                 }
-                HSLColor color = new HSLColor(h, s, l);
+                var color = new HSLColor(h, s, l);
                 Colors[i] = Colors[i + 0x80] = color;
             }
 
-            YamlMappingNode rmap = (YamlMappingNode)mapping.Children["InstrumentRemaps"];
+            var rmap = (YamlMappingNode)mapping.Children["InstrumentRemaps"];
             InstrumentRemaps = new Dictionary<string, ARemap>();
             foreach (KeyValuePair<YamlNode, YamlNode> r in rmap)
             {
