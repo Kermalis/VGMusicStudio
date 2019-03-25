@@ -15,7 +15,6 @@ namespace Kermalis.GBAMusicStudio
             Console.WriteLine("UI Culture: {0}", Thread.CurrentThread.CurrentUICulture);
 
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(UI.MainForm.Instance);
 
             // Bad coding that I have to include the following line, but I legitimately don't know why a system thread was remaining alive
