@@ -1,6 +1,6 @@
-# Kermalis's GBA Music Studio
+# Kermalis's VG Music Studio
 
-A tool that is designed to be a Sappy replacement as well as support different game engines.
+VG Music Studio is a music player and visualizer for the most common GBA music format (M4A/MP2K), Mario & Luigi: Superstar Saga, the most common NDS music format (SDAT), and a more rare NDS music format (DSE) [found in PMD2 among others].
 
 ![Preview](https://i.imgur.com/BJI8GU3.gif)
 
@@ -67,7 +67,7 @@ A tool that is designed to be a Sappy replacement as well as support different g
 * Platinum Lucario
 
 ----
-# GBA Music Studio Uses:
+# VG Music Studio Uses:
 * [NAudio](https://github.com/naudio/NAudio)
 * [ObjectListView](http://objectlistview.sourceforge.net)
 * [YamlDotNet](https://github.com/aaubry/YamlDotNet/wiki)
