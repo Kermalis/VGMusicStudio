@@ -1,5 +1,5 @@
 ﻿using Kermalis.MusicStudio.Core;
-using Kermalis.MusicStudio.Properties;
+using Kermalis.MusicStudio.Util;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -11,21 +11,25 @@ namespace Kermalis.MusicStudio.UI
 {
     class TrackInfo
     {
-        public short Tempo; public int Position;
-        public int[] Positions = new int[16];
-        public byte[] Voices = new byte[16], Volumes = new byte[16],
-            Delays = new byte[16], Mods = new byte[16];
-        public sbyte[] Pans = new sbyte[16];
-        public float[] Lefts = new float[16], Rights = new float[16];
-        public int[] Pitches = new int[16];
-        public string[] Types = new string[16];
-        public sbyte[][] Notes = new sbyte[16][];
+        public ushort Tempo;
+        public long[] Positions = new long[0x10];
+        public byte[] Voices = new byte[0x10];
+        public byte[] Volumes = new byte[0x10];
+        public int[] Mods = new int[0x10];
+        public long[] Delays = new long[0x10];
+        public sbyte[] Pans = new sbyte[0x10];
+        public float[] Lefts = new float[0x10],
+            Rights = new float[0x10];
+        public int[] Pitches = new int[0x10];
+        public byte[] Extras = new byte[0x10];
+        public string[] Types = new string[0x10];
+        public byte[][] Notes = new byte[0x10][];
 
         public TrackInfo()
         {
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < Notes.Length; i++)
             {
-                Notes[i] = new sbyte[0];
+                Notes[i] = new byte[0];
             }
         }
     }
@@ -47,9 +51,9 @@ namespace Kermalis.MusicStudio.UI
             Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
             Size = new Size(525, 675);
 
-            pianos = new CheckBox[17]; // Index 16 is master
-            mutes = new CheckBox[17];
-            for (int i = 0; i < 17; i++)
+            pianos = new CheckBox[0x11]; // Index 0x10 is master
+            mutes = new CheckBox[0x11];
+            for (int i = 0; i < 0x11; i++)
             {
                 pianos[i] = new CheckBox
                 {
@@ -58,7 +62,6 @@ namespace Kermalis.MusicStudio.UI
                     Checked = true
                 };
                 pianos[i].CheckStateChanged += TogglePiano;
-                pianos[i].VisibleChanged += ToggleVisibility;
                 mutes[i] = new CheckBox
                 {
                     BackColor = Color.Transparent,
@@ -66,7 +69,6 @@ namespace Kermalis.MusicStudio.UI
                     Checked = true
                 };
                 mutes[i].CheckStateChanged += ToggleMute;
-                mutes[i].VisibleChanged += ToggleVisibility;
             }
             Controls.AddRange(pianos);
             Controls.AddRange(mutes);
@@ -75,18 +77,13 @@ namespace Kermalis.MusicStudio.UI
             DeleteData();
         }
 
-        void ToggleVisibility(object sender, EventArgs e) => ((CheckBox)sender).Checked = ((CheckBox)sender).Visible;
         void TogglePiano(object sender, EventArgs e)
         {
-            if (ParentForm == null)
-            {
-                return;
-            }
             var check = (CheckBox)sender;
-            if (check == pianos[16])
+            if (check == pianos[0x10])
             {
                 bool b = check.CheckState != CheckState.Unchecked;
-                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
+                for (int i = 0; i < 0x10; i++)
                 {
                     pianos[i].Checked = b;
                 }
@@ -94,29 +91,29 @@ namespace Kermalis.MusicStudio.UI
             else
             {
                 int on = 0;
-                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
+                for (int i = 0; i < 0x10; i++)
                 {
                     if (pianos[i] == check)
                     {
-                        ((MainForm)ParentForm).PianoTracks[i] = pianos[i].Checked && pianos[i].Visible;
+                        ((MainForm)ParentForm).PianoTracks[i] = pianos[i].Checked;
                     }
                     if (pianos[i].Checked)
                     {
                         on++;
                     }
                 }
-                pianos[16].CheckStateChanged -= TogglePiano;
-                pianos[16].CheckState = on == SongPlayer.Instance.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
-                pianos[16].CheckStateChanged += TogglePiano;
+                pianos[0x10].CheckStateChanged -= TogglePiano;
+                pianos[0x10].CheckState = on == 0x10 ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
+                pianos[0x10].CheckStateChanged += TogglePiano;
             }
         }
         void ToggleMute(object sender, EventArgs e)
         {
             var check = (CheckBox)sender;
-            if (check == mutes[16])
+            if (check == mutes[0x10])
             {
                 bool b = check.CheckState != CheckState.Unchecked;
-                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
+                for (int i = 0; i < 0x10; i++)
                 {
                     mutes[i].Checked = b;
                 }
@@ -124,34 +121,30 @@ namespace Kermalis.MusicStudio.UI
             else
             {
                 int on = 0;
-                for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
+                for (int i = 0; i < 0x10; i++)
                 {
                     if (mutes[i] == check)
                     {
-                        SoundMixer.Instance.Mutes[i] = !check.Checked;
+                        Engine.Instance.Mixer.Mutes[i] = !check.Checked;
                     }
                     if (mutes[i].Checked)
                     {
                         on++;
                     }
                 }
-                mutes[16].CheckStateChanged -= ToggleMute;
-                mutes[16].CheckState = on == SongPlayer.Instance.NumTracks ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
-                mutes[16].CheckStateChanged += ToggleMute;
+                mutes[0x10].CheckStateChanged -= ToggleMute;
+                mutes[0x10].CheckState = on == 0x10 ? CheckState.Checked : (on == 0 ? CheckState.Unchecked : CheckState.Indeterminate);
+                mutes[0x10].CheckStateChanged += ToggleMute;
             }
         }
 
         public void DeleteData()
         {
             Info = new TrackInfo();
-            previousNotes = new Tuple<int[], string[]>(new int[16], new string[16]);
-            for (int i = 0; i < 16; i++)
+            previousNotes = new Tuple<int[], string[]>(new int[0x10], new string[0x10]);
+            for (int i = 0; i < previousNotes.Item2.Length; i++)
             {
                 previousNotes.Item2[i] = string.Empty;
-            }
-            for (int i = SongPlayer.Instance.NumTracks; i < 16; i++)
-            {
-                pianos[i].Visible = mutes[i].Visible = false;
             }
             Invalidate();
         }
@@ -165,8 +158,8 @@ namespace Kermalis.MusicStudio.UI
             checkboxOffset = (checkboxSize - 13) / 2;
             positionX = (checkboxSize * 2) + (checkboxOffset * 2);
             int FWidth = Width - (int)positionX; // Width between checkboxes' edges and the window edge
-            notesX = positionX + (FWidth / 4f);
-            delayX = positionX + (FWidth / 6f);
+            notesX = positionX + (FWidth / 4.4f);
+            delayX = positionX + (FWidth / 7.5f);
             typeEndX = positionX + FWidth - (FWidth / 100f);
             typeX = typeEndX - TextRenderer.MeasureText("Type", Font).Width;
             voicesX = positionX + (FWidth / 25f);
@@ -191,35 +184,34 @@ namespace Kermalis.MusicStudio.UI
             var bg = new SolidBrush(Theme.PlayerColor);
             e.Graphics.FillRectangle(bg, e.ClipRectangle);
 
-            mutes[16].Location = new Point(checkboxOffset, (int)infoY + checkboxOffset);
-            pianos[16].Location = new Point(checkboxSize + checkboxOffset * 2, (int)infoY + checkboxOffset);
-            e.Graphics.DrawString(Strings.PlayerPosition, Font, Brushes.Lime, positionX, infoY);
-            e.Graphics.DrawString(Strings.PlayerDelay, Font, Brushes.Crimson, delayX, infoY);
-            e.Graphics.DrawString(Strings.PlayerNotes, Font, Brushes.Turquoise, notesX, infoY);
+            mutes[0x10].Location = new Point(checkboxOffset, (int)infoY + checkboxOffset);
+            pianos[0x10].Location = new Point(checkboxSize + checkboxOffset * 2, (int)infoY + checkboxOffset);
+            e.Graphics.DrawString("Position", Font, Brushes.Lime, positionX, infoY);
+            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, delayX, infoY);
+            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, notesX, infoY);
             e.Graphics.DrawString("L", Font, Brushes.GreenYellow, barStartX - 5, infoY);
-            e.Graphics.DrawString(Strings.PlayerTempo + " - " + Info.Tempo.ToString(), Font, Brushes.Cyan, tempoX, infoY);
+            e.Graphics.DrawString("Tempo - " + Info.Tempo, Font, Brushes.Cyan, tempoX, infoY);
             e.Graphics.DrawString("R", Font, Brushes.GreenYellow, barRightBoundX - 5, infoY);
-            e.Graphics.DrawString(Strings.PlayerType, Font, Brushes.DeepPink, typeX, infoY);
+            e.Graphics.DrawString("Type", Font, Brushes.DeepPink, typeX, infoY);
             e.Graphics.DrawLine(Pens.Gold, 0, infoHeight, Width, infoHeight);
 
-            for (int i = 0; i < SongPlayer.Instance.NumTracks; i++)
+            for (int i = 0; i < 0x10; i++)
             {
                 float r1y = infoHeight + yMargin + (i * trackHeight); // Row 1 y
                 float r2y = r1y + row2Offset; // Row 2 y
                 int by = (int)(r1y + yMargin); // Bar y
-                int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (Info.Pans[i] / (float)Engine.GetPanpotRange()))); // Pan line x
+                int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (Info.Pans[i] / (float)0x40))); // Pan line x
 
-                Color color = Config.Instance.GetColor(Info.Voices[i], ROM.Instance.Game.Remap, true);
+                Color color = Config.Instance.Colors[Info.Voices[i]];
                 var pen = new Pen(color);
                 var brush = new SolidBrush(color);
                 byte velocity = (byte)((Info.Lefts[i] + Info.Rights[i]) * byte.MaxValue);
                 var lBrush = new LinearGradientBrush(new Point(barStartX, by), new Point(barStartX + barWidth, by + barHeight), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 3, 0xFF), color));
 
                 mutes[i].Location = new Point(checkboxOffset, (int)r1y + checkboxOffset);
-                pianos[i].Visible = mutes[i].Visible = true;
                 pianos[i].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)r1y + checkboxOffset);
 
-                e.Graphics.DrawString(string.Format("0x{0:X7}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
+                e.Graphics.DrawString(string.Format("0x{0:X4}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
                 e.Graphics.DrawString(Info.Delays[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
 
                 e.Graphics.DrawString(Info.Voices[i].ToString(), Font, brush, voicesX, r2y);
@@ -227,6 +219,7 @@ namespace Kermalis.MusicStudio.UI
                 e.Graphics.DrawString(Info.Volumes[i].ToString(), Font, Brushes.LightSeaGreen, voicesX + (row2ElementAdditionX * 2), r2y);
                 e.Graphics.DrawString(Info.Mods[i].ToString(), Font, Brushes.SkyBlue, voicesX + (row2ElementAdditionX * 3), r2y);
                 e.Graphics.DrawString(Info.Pitches[i].ToString(), Font, Brushes.Purple, voicesX + (row2ElementAdditionX * 4), r2y);
+                e.Graphics.DrawString(Info.Extras[i].ToString(), Font, Brushes.HotPink, voicesX + (row2ElementAdditionX * 5), r2y);
 
                 e.Graphics.DrawLine(Pens.GreenYellow, barStartX, by, barStartX, by + barHeight); // Left bar bound line
                 if (Config.Instance.CenterIndicators)
@@ -246,7 +239,7 @@ namespace Kermalis.MusicStudio.UI
                 e.Graphics.FillRectangle(lBrush, rect);
                 e.Graphics.DrawRectangle(pen, rect);
 
-                string theseNotes = string.Join(" ", Info.Notes[i].Select(n => SongEvent.NoteName(n)));
+                string theseNotes = string.Join(" ", Info.Notes[i].Select(n => Utils.GetNoteName(n)));
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? string.Empty : theseNotes;
                 if (empty && previousNotes.Item1[i]++ < Config.Instance.RefreshRate * 10)

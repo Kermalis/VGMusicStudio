@@ -96,32 +96,41 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\ADPCMDecoder.cs" />
     <Compile Include="Core\Assembler.cs" />
-    <Compile Include="Core\Channel.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Engine.cs" />
-    <Compile Include="Core\Samples.cs" />
-    <Compile Include="Core\Interfaces.cs" />
-    <Compile Include="Core\MusicStructs.cs" />
-    <Compile Include="Core\Reverb.cs" />
-    <Compile Include="Core\SongEvent.cs" />
-    <Compile Include="Core\SongTable.cs" />
-    <Compile Include="Core\SongPlayer.cs" />
-    <Compile Include="Core\ROM.cs" />
-    <Compile Include="Core\Song.cs" />
-    <Compile Include="Core\SoundMixer.cs" />
+    <Compile Include="Core\Mixer.cs" />
+    <Compile Include="Core\NDS\DSE\Channel.cs" />
+    <Compile Include="Core\NDS\DSE\DSE.cs" />
+    <Compile Include="Core\NDS\DSE\DSEMixer.cs" />
+    <Compile Include="Core\NDS\DSE\DSEPlayer.cs" />
+    <Compile Include="Core\NDS\DSE\Enums.cs" />
+    <Compile Include="Core\NDS\DSE\ProgramInfo.cs" />
+    <Compile Include="Core\NDS\DSE\SMDL.cs" />
+    <Compile Include="Core\NDS\DSE\SWDL.cs" />
+    <Compile Include="Core\NDS\DSE\Track.cs" />
+    <Compile Include="Core\NDS\DSE\WavInfo.cs" />
+    <Compile Include="Core\NDS\SDAT\Channel.cs" />
+    <Compile Include="Core\NDS\SDAT\Enums.cs" />
+    <Compile Include="Core\NDS\SDAT\FileHeader.cs" />
+    <Compile Include="Core\NDS\SDAT\InstrumentData.cs" />
+    <Compile Include="Core\NDS\SDAT\SBNK.cs" />
+    <Compile Include="Core\NDS\SDAT\SDAT.cs" />
+    <Compile Include="Core\NDS\SDAT\SDATMixer.cs" />
+    <Compile Include="Core\NDS\SDAT\SDATPlayer.cs" />
+    <Compile Include="Core\NDS\SDAT\SDATUtils.cs" />
+    <Compile Include="Core\NDS\SDAT\SSEQ.cs" />
+    <Compile Include="Core\NDS\SDAT\SWAR.cs" />
+    <Compile Include="Core\NDS\SDAT\SWAVInfo.cs" />
+    <Compile Include="Core\NDS\SDAT\Track.cs" />
+    <Compile Include="Core\Player.cs" />
     <Compile Include="Core\Test.cs" />
-    <Compile Include="Core\Types.cs" />
-    <Compile Include="Core\Track.cs" />
-    <Compile Include="Core\VoiceTable.cs" />
-    <Compile Include="Core\VoiceTableSaver.cs" />
-    <Compile Include="MIDI\MIDIKeyboard.cs" />
     <Compile Include="Properties\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="UI\AssemblerDialog.cs" />
     <Compile Include="UI\ColorSlider.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -131,7 +140,6 @@
     <Compile Include="UI\ImageComboBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\MIDIConverterDialog.cs" />
     <Compile Include="UI\FlexibleMessageBox.cs" />
     <Compile Include="UI\Theme.cs" />
     <Compile Include="UI\ValueTextBox.cs">
@@ -144,8 +152,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\TrackInfoControl.cs" />
-    <Compile Include="UI\TrackEditor.cs" />
-    <Compile Include="UI\VoiceTableEditor.cs" />
     <Compile Include="Util\HSLColor.cs" />
     <Compile Include="Util\TimeBarrier.cs" />
     <Compile Include="Util\Tuple.cs" />
@@ -211,6 +217,10 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Core\GBA\M4A\" />
+    <Folder Include="Core\GBA\MLSS\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

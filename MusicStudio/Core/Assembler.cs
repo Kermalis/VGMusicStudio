@@ -17,19 +17,19 @@ namespace Kermalis.MusicStudio.Core
             public string Label;
             public int BinaryOffset;
         }
-        readonly string fileErrorFormat = "{0}{3}{3}Error reading file included in line {1}:{3}{2}",
+        const string fileErrorFormat = "{0}{3}{3}Error reading file included in line {1}:{3}{2}",
             mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
             cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
 
         public int BaseOffset { get; private set; }
-        List<string> loaded = new List<string>();
-        Dictionary<string, int> defines;
+        readonly List<string> loaded = new List<string>();
+        readonly Dictionary<string, int> defines;
 
         readonly Dictionary<string, Pair> labels = new Dictionary<string, Pair>();
         readonly List<Pointer> lPointers = new List<Pointer>();
         readonly List<byte> bytes = new List<byte>();
 
-        public readonly string FileName;
+        public string FileName { get; }
         public int this[string Label]
         {
             get => labels[FixLabel(Label)].Offset;
@@ -37,7 +37,7 @@ namespace Kermalis.MusicStudio.Core
         public byte[] Binary => bytes.ToArray();
         public int BinaryLength => bytes.Count;
 
-        public Assembler(string fileName, int baseOffset = ROM.Pak, Dictionary<string, int> initialDefines = null)
+        public Assembler(string fileName, int baseOffset, Dictionary<string, int> initialDefines = null)
         {
             FileName = fileName;
             defines = initialDefines ?? new Dictionary<string, int>();
@@ -67,11 +67,12 @@ namespace Kermalis.MusicStudio.Core
             string ret = "";
             for (int i = 0; i < label.Length; i++)
             {
-                if ((label[i] >= 'a' && label[i] <= 'z') ||
-                    (label[i] >= 'A' && label[i] <= 'Z') ||
-                    (label[i] >= '0' && label[i] <= '9' && i > 0))
+                char c = label[i];
+                if ((c >= 'a' && c <= 'z') ||
+                    (c >= 'A' && c <= 'Z') ||
+                    (c >= '0' && c <= '9' && i > 0))
                 {
-                    ret += label[i];
+                    ret += c;
                 }
                 else
                 {
@@ -340,9 +341,10 @@ namespace Kermalis.MusicStudio.Core
                 }
                 return ret;
             }
-
-            // If not then RIP
-            throw new ArgumentException("\"value\" was invalid.");
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
         }
     }
 }

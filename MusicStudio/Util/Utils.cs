@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kermalis.MusicStudio.Properties;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -49,7 +50,7 @@ namespace Kermalis.MusicStudio.Util
             {
                 return hex;
             }
-            throw new ArgumentException("\"value\" was invalid.");
+            throw new ArgumentOutOfRangeException(nameof(value));
         }
 
         public static IEnumerable<T> UniteAll<T>(this IEnumerable<IEnumerable<T>> source)
@@ -78,6 +79,20 @@ namespace Kermalis.MusicStudio.Util
                 source[a] = source[b];
                 source[b] = value;
             }
+        }
+
+        static string[] notes = null;
+        public static string GetNoteName(byte note)
+        {
+            if (notes == null)
+            {
+                notes = Strings.Notes.Split(';');
+            }
+            if (note < 0)
+            {
+                return note.ToString();
+            }
+            return notes[note % 12] + ((note / 12) - 2);
         }
     }
 }

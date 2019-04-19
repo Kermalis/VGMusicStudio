@@ -1,5 +1,4 @@
-﻿using Kermalis.MusicStudio.Core;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading;
 
 namespace Kermalis.MusicStudio.Util
@@ -13,12 +12,12 @@ namespace Kermalis.MusicStudio.Util
         double lastTimeStamp;
         bool started;
 
-        public TimeBarrier()
+        public TimeBarrier(double framesPerSecond)
         {
-            waitInterval = 1d / Engine.AGB_FPS;
+            waitInterval = 1.0 / framesPerSecond;
             started = false;
             sw = new Stopwatch();
-            timerInterval = 1d / Stopwatch.Frequency;
+            timerInterval = 1.0 / Stopwatch.Frequency;
         }
 
         public void Wait()
@@ -34,8 +33,7 @@ namespace Kermalis.MusicStudio.Util
             {
                 timeToWait = 0;
             }
-            int millisToWait = (int)(timeToWait * 1000);
-            Thread.Sleep(millisToWait);
+            Thread.Sleep((int)(timeToWait * 1000));
             lastTimeStamp = desiredTimeStamp;
         }
 

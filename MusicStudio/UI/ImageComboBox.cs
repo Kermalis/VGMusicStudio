@@ -22,7 +22,7 @@ namespace Kermalis.MusicStudio.UI
 
             if (e.Index >= 0)
             {
-                ImageComboBoxItem item = Items[e.Index] as ImageComboBoxItem ?? throw new InvalidCastException("Item was not a \"ImageComboBoxItem\"");
+                ImageComboBoxItem item = Items[e.Index] as ImageComboBoxItem ?? throw new InvalidCastException($"Item was not of type \"{nameof(ImageComboBoxItem)}\"");
                 int indent = open ? item.IndentLevel : 0;
                 e.Graphics.DrawImage(item.Image, e.Bounds.Left + (indent * imgSize), e.Bounds.Top, imgSize, imgSize);
                 e.Graphics.DrawString(item.ToString(), e.Font, new SolidBrush(e.ForeColor), e.Bounds.Left + (indent * imgSize) + imgSize, e.Bounds.Top);
@@ -43,18 +43,14 @@ namespace Kermalis.MusicStudio.UI
     }
     class ImageComboBoxItem
     {
-        public readonly object Item;
-        public readonly Image Image;
-        public readonly int IndentLevel;
+        public object Item { get; }
+        public Image Image { get; }
+        public int IndentLevel { get; }
 
         public ImageComboBoxItem(object item, Image image, int indentLevel)
         {
-            Item = item ?? throw new ArgumentNullException("item");
+            Item = item;
             Image = image;
-            if (indentLevel < 0)
-            {
-                throw new ArgumentOutOfRangeException("indentLevel");
-            }
             IndentLevel = indentLevel;
         }
 

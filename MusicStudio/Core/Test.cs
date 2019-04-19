@@ -15,7 +15,7 @@ namespace Kermalis.MusicStudio.Core
             {
                 Sanford.Multimedia.Midi.Track midi1Track = midi1[i];
                 Sanford.Multimedia.Midi.Track midi2Track = midi2[i];
-                Sanford.Multimedia.Midi.Track babyTrack = new Sanford.Multimedia.Midi.Track();
+                var babyTrack = new Sanford.Multimedia.Midi.Track();
                 baby.Add(babyTrack);
 
                 for (int j = 0; j < midi1Track.Count; j++)
