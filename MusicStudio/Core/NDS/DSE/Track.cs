@@ -63,9 +63,10 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
 
         public void CloseAllChannels()
         {
-            for (int i = 0; i < Channels.Count; i++)
+            Channel[] chans = Channels.ToArray();
+            for (int i = 0; i < chans.Length; i++)
             {
-                Channels[i].Stop();
+                chans[i].Stop();
             }
         }
     }
