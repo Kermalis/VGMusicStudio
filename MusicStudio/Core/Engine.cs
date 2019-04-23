@@ -1,4 +1,5 @@
-﻿using Kermalis.MusicStudio.Core.NDS.DSE;
+﻿using Kermalis.MusicStudio.Core.GBA.M4A;
+using Kermalis.MusicStudio.Core.NDS.DSE;
 using Kermalis.MusicStudio.Core.NDS.SDAT;
 using System;
 
@@ -25,6 +26,14 @@ namespace Kermalis.MusicStudio.Core
         {
             switch (type)
             {
+                case EngineType.GBA_M4A:
+                    {
+                        var rom = (byte[])playerArg;
+                        var mixer = new M4AMixer(rom);
+                        Mixer = mixer;
+                        Player = new M4APlayer(mixer, rom);
+                        break;
+                    }
                 case EngineType.NDS_DSE:
                     {
                         var mixer = new DSEMixer();

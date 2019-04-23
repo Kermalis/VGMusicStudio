@@ -17,7 +17,7 @@ namespace Kermalis.MusicStudio.UI
         public byte[] Volumes = new byte[0x10];
         public int[] Mods = new int[0x10];
         public long[] Delays = new long[0x10];
-        public sbyte[] Pans = new sbyte[0x10];
+        public sbyte[] Panpots = new sbyte[0x10];
         public float[] Lefts = new float[0x10],
             Rights = new float[0x10];
         public int[] Pitches = new int[0x10];
@@ -200,7 +200,7 @@ namespace Kermalis.MusicStudio.UI
                 float r1y = infoHeight + yMargin + (i * trackHeight); // Row 1 y
                 float r2y = r1y + row2Offset; // Row 2 y
                 int by = (int)(r1y + yMargin); // Bar y
-                int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (Info.Pans[i] / (float)0x40))); // Pan line x
+                int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (Info.Panpots[i] / (float)0x40))); // Pan line x
 
                 Color color = Config.Instance.Colors[Info.Voices[i]];
                 var pen = new Pen(color);
@@ -215,7 +215,7 @@ namespace Kermalis.MusicStudio.UI
                 e.Graphics.DrawString(Info.Delays[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
 
                 e.Graphics.DrawString(Info.Voices[i].ToString(), Font, brush, voicesX, r2y);
-                e.Graphics.DrawString(Info.Pans[i].ToString(), Font, Brushes.OrangeRed, voicesX + row2ElementAdditionX, r2y);
+                e.Graphics.DrawString(Info.Panpots[i].ToString(), Font, Brushes.OrangeRed, voicesX + row2ElementAdditionX, r2y);
                 e.Graphics.DrawString(Info.Volumes[i].ToString(), Font, Brushes.LightSeaGreen, voicesX + (row2ElementAdditionX * 2), r2y);
                 e.Graphics.DrawString(Info.Mods[i].ToString(), Font, Brushes.SkyBlue, voicesX + (row2ElementAdditionX * 3), r2y);
                 e.Graphics.DrawString(Info.Pitches[i].ToString(), Font, Brushes.Purple, voicesX + (row2ElementAdditionX * 4), r2y);

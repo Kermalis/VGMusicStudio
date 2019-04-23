@@ -100,6 +100,15 @@
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Engine.cs" />
+    <Compile Include="Core\GBA\GBAUtils.cs" />
+    <Compile Include="Core\GBA\M4A\Channel.cs" />
+    <Compile Include="Core\GBA\M4A\Enums.cs" />
+    <Compile Include="Core\GBA\M4A\M4AMixer.cs" />
+    <Compile Include="Core\GBA\M4A\M4APlayer.cs" />
+    <Compile Include="Core\GBA\M4A\M4AUtils.cs" />
+    <Compile Include="Core\GBA\M4A\Samples.cs" />
+    <Compile Include="Core\GBA\M4A\Structs.cs" />
+    <Compile Include="Core\GBA\M4A\Track.cs" />
     <Compile Include="Core\Mixer.cs" />
     <Compile Include="Core\NDS\DSE\Channel.cs" />
     <Compile Include="Core\NDS\DSE\DSE.cs" />
@@ -111,6 +120,7 @@
     <Compile Include="Core\NDS\DSE\SWDL.cs" />
     <Compile Include="Core\NDS\DSE\Track.cs" />
     <Compile Include="Core\NDS\DSE\WavInfo.cs" />
+    <Compile Include="Core\NDS\NDSUtils.cs" />
     <Compile Include="Core\NDS\SDAT\Channel.cs" />
     <Compile Include="Core\NDS\SDAT\Enums.cs" />
     <Compile Include="Core\NDS\SDAT\FileHeader.cs" />
@@ -173,7 +183,7 @@
     <Content Include="Config.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Games.yaml">
+    <Content Include="GBA.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="midi2agb.exe">
@@ -219,7 +229,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\GBA\M4A\" />
     <Folder Include="Core\GBA\MLSS\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -30,7 +30,7 @@ namespace Kermalis.MusicStudio.UI
 
         IContainer components;
         MenuStrip mainMenu;
-        ToolStripMenuItem fileToolStripMenuItem, openDSEToolStripMenuItem, openSDATToolStripMenuItem, configToolStripMenuItem;
+        ToolStripMenuItem fileItem, openDSEItem, openGBAItem, openSDATItem, refreshConfigItem;
         Timer timer;
         ThemedNumeric songNumerical;
         ThemedButton playButton, pauseButton, stopButton;
@@ -62,21 +62,24 @@ namespace Kermalis.MusicStudio.UI
             components = new Container();
 
             // Main Menu
-            openDSEToolStripMenuItem = new ToolStripMenuItem { Text = "Open DSE", ShortcutKeys = Keys.Control | Keys.D };
-            openDSEToolStripMenuItem.Click += OpenDSE;
+            openDSEItem = new ToolStripMenuItem { Text = "Open DSE Folder", ShortcutKeys = Keys.Control | Keys.O | Keys.D };
+            openDSEItem.Click += OpenDSE;
 
-            openSDATToolStripMenuItem = new ToolStripMenuItem { Text = "Open SDAT", ShortcutKeys = Keys.Control | Keys.S };
-            openSDATToolStripMenuItem.Click += OpenSDAT;
+            openGBAItem = new ToolStripMenuItem { Text = "Open GBA ROM", ShortcutKeys = Keys.Control | Keys.O | Keys.G };
+            openGBAItem.Click += OpenGBA;
 
-            configToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuRefreshConfig, ShortcutKeys = Keys.Control | Keys.R };
-            configToolStripMenuItem.Click += ReloadConfig;
+            openSDATItem = new ToolStripMenuItem { Text = "Open SDAT File", ShortcutKeys = Keys.Control | Keys.O | Keys.S };
+            openSDATItem.Click += OpenSDAT;
 
-            fileToolStripMenuItem = new ToolStripMenuItem { Text = Strings.MenuFile };
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEToolStripMenuItem, openSDATToolStripMenuItem, configToolStripMenuItem });
+            refreshConfigItem = new ToolStripMenuItem { Text = Strings.MenuRefreshConfig, ShortcutKeys = Keys.Control | Keys.R };
+            refreshConfigItem.Click += ReloadConfig;
+
+            fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
+            fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openGBAItem, openSDATItem, refreshConfigItem });
 
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
-            mainMenu.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            mainMenu.Items.AddRange(new ToolStripItem[] { fileItem });
 
             // Buttons
             playButton = new ThemedButton { ForeColor = Color.MediumSpringGreen, Location = new Point(5, 3), Text = Strings.PlayerPlay };
@@ -278,9 +281,44 @@ namespace Kermalis.MusicStudio.UI
                 FlexibleMessageBox.Show(ex.Message, "Error Loading DSE");
             }
         }
+        void OpenGBA(object sender, EventArgs e)
+        {
+            var d = new OpenFileDialog { Title = "Open GBA ROM", Filter = "GBA Files|*.gba" };
+            if (d.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            if (Engine.Instance != null)
+            {
+                Stop();
+                Engine.Instance.ShutDown();
+            }
+
+            try
+            {
+                byte[] rom = File.ReadAllBytes(d.FileName);
+                new Engine(Engine.EngineType.GBA_M4A, rom);
+                Engine.Instance.Player.SongEnded += SongEnded;
+                songsComboBox.Items.Clear();
+                const int numSequences = 1000; // TODO
+                songsComboBox.Items.AddRange(Enumerable.Range(0, numSequences).Select(i => new ImageComboBoxItem(i.ToString(), Resources.IconSong, 0)).ToArray()); // TODO
+
+                songsComboBox.SelectedIndex = 0;
+                SongsComboBox_SelectedIndexChanged(null, null); // Why doesn't it work on its own??
+                LoadSong();
+                songNumerical.Maximum = numSequences - 1; // TODO
+                songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = true;
+                UpdateTaskbarButtons();
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(ex.Message, "Error Loading GBA ROM");
+            }
+        }
         void OpenSDAT(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open SDAT", Filter = "SDAT Files|*.sdat" };
+            var d = new OpenFileDialog { Title = "Open SDAT File", Filter = "SDAT Files|*.sdat" };
             if (d.ShowDialog() != DialogResult.OK)
             {
                 return;
@@ -309,7 +347,7 @@ namespace Kermalis.MusicStudio.UI
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Loading SDAT");
+                FlexibleMessageBox.Show(ex.Message, "Error Loading SDAT File");
             }
         }
         void ReloadConfig(object sender, EventArgs e)

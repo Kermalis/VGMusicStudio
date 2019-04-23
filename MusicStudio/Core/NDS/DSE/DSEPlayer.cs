@@ -95,11 +95,12 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
             State = PlayerState.Stopped;
             for (int i = 0; i < tracks.Length; i++)
             {
-                tracks[i].CloseAllChannels();
+                tracks[i].StopAllChannels();
             }
         }
         public void ShutDown()
         {
+            // TODO: Dispose tracks and track readers
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
@@ -119,7 +120,7 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
                 info.Volumes[i] = track.Volume;
                 //info.Pitches[i] = track.GetPitch();
                 info.Extras[i] = track.Octave;
-                info.Pans[i] = track.Panpot;
+                info.Panpots[i] = track.Panpot;
 
                 Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
                 if (channels.Length == 0)
@@ -138,7 +139,7 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
                         lefts[j] = (float)(-c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
                         rights[j] = (float)(c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
                     }
-                    info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).Distinct().ToArray();
+                    info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).ToArray();
                     info.Lefts[i] = lefts.Max();
                     info.Rights[i] = rights.Max();
                 }
@@ -372,7 +373,6 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
                     mixer.ChannelTick();
                     mixer.Process();
                 }
-                // Wait for next frame
                 time.Wait();
             }
             time.Stop();

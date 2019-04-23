@@ -42,7 +42,7 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
             LastDelay = Delay = LastNoteDuration = 0;
             LoopOffset = -1;
             Stopped = false;
-            CloseAllChannels();
+            StopAllChannels();
         }
 
         public void Tick()
@@ -61,7 +61,7 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
             }
         }
 
-        public void CloseAllChannels()
+        public void StopAllChannels()
         {
             Channel[] chans = Channels.ToArray();
             for (int i = 0; i < chans.Length; i++)

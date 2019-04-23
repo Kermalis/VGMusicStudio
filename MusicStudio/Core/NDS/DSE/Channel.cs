@@ -50,7 +50,7 @@ namespace Kermalis.MusicStudio.Core.NDS.DSE
                         sample = masterswdl.Samples[split.SampleId];
                         Key = (byte)key;
                         RootKey = split.SampleRootKey;
-                        BaseTimer = (ushort)(16756991 / sample.WavInfo.SampleRate); // 16756991 is ARM7_CLOCK
+                        BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / sample.WavInfo.SampleRate);
                         SetAttack(0x7F - sample.WavInfo.Attack);
                         SetDecay(0x7F - sample.WavInfo.Decay);
                         SetSustain(sample.WavInfo.Sustain);

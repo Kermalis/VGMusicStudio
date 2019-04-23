@@ -71,7 +71,7 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
             SweepPitch = 0;
             LFOType = LFOType.Pitch;
             Delay = 0;
-            CloseAllChannels();
+            StopAllChannels();
         }
         public void Tick()
         {
@@ -120,7 +120,7 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
             }
         }
 
-        public void CloseAllChannels()
+        public void StopAllChannels()
         {
             Channel[] chans = Channels.ToArray();
             for (int i = 0; i < chans.Length; i++)

@@ -136,7 +136,7 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
             State = PlayerState.Stopped;
             for (int i = 0; i < 0x10; i++)
             {
-                tracks[i].CloseAllChannels();
+                tracks[i].StopAllChannels();
             }
         }
         public void ShutDown()
@@ -159,7 +159,7 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
                 info.Volumes[i] = track.Volume;
                 info.Pitches[i] = track.GetPitch();
                 info.Extras[i] = track.Portamento ? track.PortamentoTime : (byte)0;
-                info.Pans[i] = track.GetPan();
+                info.Panpots[i] = track.GetPan();
 
                 Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
                 if (channels.Length == 0)
@@ -178,7 +178,7 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
                         lefts[j] = (float)(-c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
                         rights[j] = (float)(c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
                     }
-                    info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).Distinct().ToArray();
+                    info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).ToArray();
                     info.Lefts[i] = lefts.Max();
                     info.Rights[i] = rights.Max();
                 }
@@ -605,7 +605,7 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
                             case 0xC8: // Tie
                                 {
                                     track.Tie = cmdArg == 1;
-                                    track.CloseAllChannels();
+                                    track.StopAllChannels();
                                     break;
                                 }
                             case 0xC9: // Portamento Control
@@ -794,7 +794,6 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
                     mixer.ChannelTick();
                     mixer.Process();
                 }
-                // Wait for next frame
                 time.Wait();
             }
             time.Stop();

@@ -8,7 +8,7 @@ namespace Kermalis.MusicStudio.Core.NDS.SDAT
         public SWAVFormat Format;
         public bool DoesLoop;
         public ushort SampleRate;
-        public ushort Timer; // (ARM7_CLOCK / SampleRate) [ARM7_CLOCK: (33.513982 MHz / 2) == 16.756991 MHz]
+        public ushort Timer; // (NDSUtils.ARM7_CLOCK / SampleRate)
         public ushort LoopOffset;
         public int Length;
 
