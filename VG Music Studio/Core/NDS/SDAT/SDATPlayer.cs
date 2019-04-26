@@ -151,36 +151,39 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
-                info.Positions[i] = track.DataOffset;
-                info.Delays[i] = track.Delay;
-                info.Voices[i] = track.Voice;
-                info.Mods[i] = track.LFODepth * track.LFORange;
-                info.Types[i] = sbnk.NumInstruments <= track.Voice ? "???" : sbnk.Instruments[track.Voice].Type.ToString();
-                info.Volumes[i] = track.Volume;
-                info.Pitches[i] = track.GetPitch();
-                info.Extras[i] = track.Portamento ? track.PortamentoTime : (byte)0;
-                info.Panpots[i] = track.GetPan();
+                if (track.Enabled)
+                {
+                    info.Positions[i] = track.DataOffset;
+                    info.Delays[i] = track.Delay;
+                    info.Voices[i] = track.Voice;
+                    info.Mods[i] = track.LFODepth * track.LFORange;
+                    info.Types[i] = sbnk.NumInstruments <= track.Voice ? "???" : sbnk.Instruments[track.Voice].Type.ToString();
+                    info.Volumes[i] = track.Volume;
+                    info.Pitches[i] = track.GetPitch();
+                    info.Extras[i] = track.Portamento ? track.PortamentoTime : (byte)0;
+                    info.Panpots[i] = track.GetPan();
 
-                Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
-                if (channels.Length == 0)
-                {
-                    info.Notes[i] = new byte[0];
-                    info.Lefts[i] = 0;
-                    info.Rights[i] = 0;
-                }
-                else
-                {
-                    float[] lefts = new float[channels.Length];
-                    float[] rights = new float[channels.Length];
-                    for (int j = 0; j < channels.Length; j++)
+                    Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
+                    if (channels.Length == 0)
                     {
-                        Channel c = channels[j];
-                        lefts[j] = (float)(-c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
-                        rights[j] = (float)(c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+                        info.Notes[i] = new byte[0];
+                        info.Lefts[i] = 0;
+                        info.Rights[i] = 0;
                     }
-                    info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).ToArray();
-                    info.Lefts[i] = lefts.Max();
-                    info.Rights[i] = rights.Max();
+                    else
+                    {
+                        float[] lefts = new float[channels.Length];
+                        float[] rights = new float[channels.Length];
+                        for (int j = 0; j < channels.Length; j++)
+                        {
+                            Channel c = channels[j];
+                            lefts[j] = (float)(-c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+                            rights[j] = (float)(c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+                        }
+                        info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).ToArray();
+                        info.Lefts[i] = lefts.Max();
+                        info.Rights[i] = rights.Max();
+                    }
                 }
             }
         }

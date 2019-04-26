@@ -15,11 +15,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public readonly EndianBinaryReader Reader;
         private readonly WaveBuffer audio;
         private readonly float[][] trackBuffers;
-        private readonly DirectSoundChannel[] dsChannels;
+        private readonly PCM8Channel[] pcm8Channels;
         private readonly SquareChannel sq1, sq2;
-        private readonly WaveChannel wave;
+        private readonly PCM4Channel pcm4;
         private readonly NoiseChannel noise;
-        private readonly GBChannel[] gbChannels;
+        private readonly PSGChannel[] psgChannels;
         private readonly BufferedWaveProvider buffer;
 
         public M4AMixer(byte[] rom)
@@ -29,12 +29,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             SampleRateReciprocal = 1f / 13379; // TODO
             SamplesReciprocal = 1f / SamplesPerBuffer;
 
-            dsChannels = new DirectSoundChannel[24];
-            for (int i = 0; i < dsChannels.Length; i++)
+            pcm8Channels = new PCM8Channel[24];
+            for (int i = 0; i < pcm8Channels.Length; i++)
             {
-                dsChannels[i] = new DirectSoundChannel(this);
+                pcm8Channels[i] = new PCM8Channel(this);
             }
-            gbChannels = new GBChannel[] { sq1 = new SquareChannel(this), sq2 = new SquareChannel(this), wave = new WaveChannel(this), noise = new NoiseChannel(this) };
+            psgChannels = new PSGChannel[] { sq1 = new SquareChannel(this), sq2 = new SquareChannel(this), pcm4 = new PCM4Channel(this), noise = new NoiseChannel(this) };
 
             Mutes = new bool[0x10];
 
@@ -54,11 +54,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             Init(buffer);
         }
 
-        public DirectSoundChannel NewDSNote(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
+        public PCM8Channel AllocPCM8Channel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
         {
-            DirectSoundChannel nChn = null;
-            IOrderedEnumerable<DirectSoundChannel> byOwner = dsChannels.OrderByDescending(c => c.Owner == null ? 0xFF : c.Owner.Index);
-            foreach (DirectSoundChannel i in byOwner) // Find free
+            PCM8Channel nChn = null;
+            IOrderedEnumerable<PCM8Channel> byOwner = pcm8Channels.OrderByDescending(c => c.Owner == null ? 0xFF : c.Owner.Index);
+            foreach (PCM8Channel i in byOwner) // Find free
             {
                 if (i.State == EnvelopeState.Dead || i.Owner == null)
                 {
@@ -68,7 +68,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
             if (nChn == null) // Find releasing
             {
-                foreach (DirectSoundChannel i in byOwner)
+                foreach (PCM8Channel i in byOwner)
                 {
                     if (i.State == EnvelopeState.Releasing)
                     {
@@ -79,7 +79,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
             if (nChn == null) // Find prioritized
             {
-                foreach (DirectSoundChannel i in byOwner)
+                foreach (PCM8Channel i in byOwner)
                 {
                     if (owner.Priority > i.Owner.Priority)
                     {
@@ -90,7 +90,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
             if (nChn == null) // None available
             {
-                DirectSoundChannel lowest = byOwner.First(); // Kill lowest track's instrument if the track is lower than this one
+                PCM8Channel lowest = byOwner.First(); // Kill lowest track's instrument if the track is lower than this one
                 if (lowest.Owner.Index >= owner.Index)
                 {
                     nChn = lowest;
@@ -102,9 +102,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
             return nChn;
         }
-        public GBChannel NewGBNote(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, VoiceType type, object arg)
+        public PSGChannel AllocPSGChannel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, VoiceType type, object arg)
         {
-            GBChannel nChn;
+            PSGChannel nChn;
             switch (type)
             {
                 case VoiceType.Square1:
@@ -129,12 +129,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 }
                 case VoiceType.PCM4:
                 {
-                    nChn = wave;
+                    nChn = pcm4;
                     if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                     {
                         return null;
                     }
-                    wave.Init(owner, note, env, (int)arg);
+                    pcm4.Init(owner, note, env, (int)arg);
                     break;
                 }
                 case VoiceType.Noise:
@@ -163,18 +163,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
             audio.Clear();
 
-            for (int i = 0; i < dsChannels.Length; i++)
+            for (int i = 0; i < pcm8Channels.Length; i++)
             {
-                DirectSoundChannel c = dsChannels[i];
+                PCM8Channel c = pcm8Channels[i];
                 if (c.Owner != null)
                 {
                     c.Process(trackBuffers[c.Owner.Index]);
                 }
             }
 
-            for (int i = 0; i < gbChannels.Length; i++)
+            for (int i = 0; i < psgChannels.Length; i++)
             {
-                GBChannel c = gbChannels[i];
+                PSGChannel c = psgChannels[i];
                 if (c.Owner != null)
                 {
                     c.Process(trackBuffers[c.Owner.Index]);

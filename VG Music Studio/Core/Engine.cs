@@ -1,4 +1,5 @@
 ﻿using Kermalis.VGMusicStudio.Core.GBA.M4A;
+using Kermalis.VGMusicStudio.Core.GBA.MLSS;
 using Kermalis.VGMusicStudio.Core.NDS.DSE;
 using Kermalis.VGMusicStudio.Core.NDS.SDAT;
 using System;
@@ -32,6 +33,14 @@ namespace Kermalis.VGMusicStudio.Core
                     var mixer = new M4AMixer(rom);
                     Mixer = mixer;
                     Player = new M4APlayer(mixer, rom);
+                    break;
+                }
+                case EngineType.GBA_MLSS:
+                {
+                    byte[] rom = (byte[])playerArg;
+                    var mixer = new MLSSMixer(rom);
+                    Mixer = mixer;
+                    Player = new MLSSPlayer(mixer, rom);
                     break;
                 }
                 case EngineType.NDS_DSE:

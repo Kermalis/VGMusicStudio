@@ -71,4 +71,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public int LoopOffset { get; set; }
         public int Length { get; set; }
     }
+
+    internal struct ChannelVolume
+    {
+        public float LeftVol, RightVol;
+    }
+    internal struct Note
+    {
+        public byte Key, OriginalKey;
+        public byte Velocity;
+        /// <summary>
+        /// -1 = forever
+        /// </summary>
+        public int Duration;
+    }
 }

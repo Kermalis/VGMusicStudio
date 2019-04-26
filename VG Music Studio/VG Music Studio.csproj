@@ -114,6 +114,12 @@
     <Compile Include="Core\GBA\M4A\Samples.cs" />
     <Compile Include="Core\GBA\M4A\Structs.cs" />
     <Compile Include="Core\GBA\M4A\Track.cs" />
+    <Compile Include="Core\GBA\MLSS\Channel.cs" />
+    <Compile Include="Core\GBA\MLSS\Enums.cs" />
+    <Compile Include="Core\GBA\MLSS\MLSSMixer.cs" />
+    <Compile Include="Core\GBA\MLSS\MLSSPlayer.cs" />
+    <Compile Include="Core\GBA\MLSS\Structs.cs" />
+    <Compile Include="Core\GBA\MLSS\Track.cs" />
     <Compile Include="Core\Mixer.cs" />
     <Compile Include="Core\NDS\DSE\Channel.cs" />
     <Compile Include="Core\NDS\DSE\DSE.cs" />
@@ -231,9 +237,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Core\GBA\MLSS\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

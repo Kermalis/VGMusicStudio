@@ -297,7 +297,7 @@ namespace Kermalis.VGMusicStudio.UI
             try
             {
                 byte[] rom = File.ReadAllBytes(d.FileName);
-                new Engine(Engine.EngineType.GBA_M4A, rom);
+                new Engine(Engine.EngineType.GBA_MLSS, rom); // TODO
                 Engine.Instance.Player.SongEnded += SongEnded;
                 songsComboBox.Items.Clear();
                 const int numSequences = 1000; // TODO

@@ -53,8 +53,7 @@ Discord Server: https://discord.gg/q2pAw3x
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 
 ## Mario & Luigi: Superstar Saga Engine
-* Voice table - Find out the last 4 bytes in voice entry struct
-* Squares - Songs above index 50 will have squares in tracks 0 and 1
+* Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
 * Find channel and track limits (most tracks is 9 in credits)
 
 ----

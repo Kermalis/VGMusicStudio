@@ -4,17 +4,6 @@ using System.Collections;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
-    internal struct ChannelVolume
-    {
-        public float LeftVol, RightVol;
-    }
-    internal struct Note
-    {
-        public byte Key, OriginalKey;
-        public byte Velocity;
-        public int Duration; // -1 = forever
-    }
-
     internal abstract class Channel
     {
         public EnvelopeState State = EnvelopeState.Dead;
@@ -82,7 +71,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             Owner = null;
         }
     }
-    internal class DirectSoundChannel : Channel
+    internal class PCM8Channel : Channel
     {
         private SampleHeader sampleHeader;
         private int sampleOffset;
@@ -91,7 +80,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private byte leftVol, rightVol;
         private sbyte[] decompressedSample;
 
-        public DirectSoundChannel(M4AMixer mixer) : base(mixer) { }
+        public PCM8Channel(M4AMixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR adsr, int sampleOffset, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed)
         {
             State = EnvelopeState.Initializing;
@@ -340,7 +329,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
         }
     }
-    internal abstract class GBChannel : Channel
+    internal abstract class PSGChannel : Channel
     {
         protected enum GBPan
         {
@@ -354,7 +343,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private byte peakVelocity, sustainVelocity;
         protected GBPan panpot = GBPan.Center;
 
-        public GBChannel(M4AMixer mixer) : base(mixer) { }
+        public PSGChannel(M4AMixer mixer) : base(mixer) { }
         protected void Init(Track owner, Note note, ADSR env)
         {
             State = EnvelopeState.Initializing;
@@ -436,8 +425,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             if (State < EnvelopeState.Releasing)
             {
                 panpot = pan < -0x20 ? GBPan.Left : pan > 0x20 ? GBPan.Right : GBPan.Center;
-                peakVelocity = (byte)((Note.Velocity * vol) >> 10).Clamp(0, 0xF);
-                sustainVelocity = (byte)(((peakVelocity * adsr.S) + 0xF) >> 4).Clamp(0, 0xF);
+                peakVelocity = (byte)((Note.Velocity * vol) >> 10);
+                sustainVelocity = (byte)(((peakVelocity * adsr.S) + 0xF) >> 4); // TODO
                 if (State == EnvelopeState.Playing)
                 {
                     velocity = sustainVelocity;
@@ -608,7 +597,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
         }
     }
-    internal class SquareChannel : GBChannel
+    internal class SquareChannel : PSGChannel
     {
         private float[] pat;
 
@@ -656,11 +645,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             } while (--samplesPerBuffer > 0);
         }
     }
-    internal class WaveChannel : GBChannel
+    internal class PCM4Channel : PSGChannel
     {
         private float[] sample;
 
-        public WaveChannel(M4AMixer mixer) : base(mixer) { }
+        public PCM4Channel(M4AMixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR env, int sampleOffset)
         {
             Init(owner, note, env);
@@ -699,7 +688,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             } while (--samplesPerBuffer > 0);
         }
     }
-    internal class NoiseChannel : GBChannel
+    internal class NoiseChannel : PSGChannel
     {
         private BitArray pat;
 

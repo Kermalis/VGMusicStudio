@@ -157,7 +157,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             {
                                 bool bFixed = (v.Type & (int)VoiceFlags.Fixed) == (int)VoiceFlags.Fixed;
                                 bool bCompressed = false;//ROM.Instance.Game.Engine.HasPokemonCompression && (v.Type & (int)VoiceFlags.Compressed) == (int)VoiceFlags.Compressed;
-                                mixer.NewDSNote(track, v.ADSR, note,
+                                mixer.AllocPCM8Channel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     bFixed, bCompressed, v.Int4 - GBAUtils.CartridgeOffset);
                                 return;
@@ -165,21 +165,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             case VoiceType.Square1:
                             case VoiceType.Square2:
                             {
-                                mixer.NewGBNote(track, v.ADSR, note,
+                                mixer.AllocPSGChannel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     type, (SquarePattern)v.Int4);
                                 return;
                             }
                             case VoiceType.PCM4:
                             {
-                                mixer.NewGBNote(track, v.ADSR, note,
+                                mixer.AllocPSGChannel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     type, v.Int4 - GBAUtils.CartridgeOffset);
                                 return;
                             }
                             case VoiceType.Noise:
                             {
-                                mixer.NewGBNote(track, v.ADSR, note,
+                                mixer.AllocPSGChannel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     type, (NoisePattern)v.Int4);
                                 return;
