@@ -4,6 +4,8 @@ VG Music Studio is a music player and visualizer for the most common GBA music f
 
 ![Preview](https://i.imgur.com/BJI8GU3.gif)
 
+Discord Server: https://discord.gg/q2pAw3x
+
 ----
 # Some Advantages Over Sappy:
 * Pause button & song position changing
