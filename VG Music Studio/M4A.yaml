@@ -388,10 +388,10 @@ AXVE:
   Creator: "Game Freak"
   SongTableOffsets: 0x45548C
   SongTableSizes: 468
-  SampleRate: 12
+  SampleRate: 3
   ReverbType: "Normal"
   Reverb: 0
-  Volume: 15
+  Volume: 12
   HasGoldenSunSynths: False
   HasPokemonCompression: True
   Playlists:
