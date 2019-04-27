@@ -19,9 +19,10 @@ namespace Kermalis.VGMusicStudio.Core
 
         public static Engine Instance { get; private set; }
 
-        public readonly EngineType Type;
-        public readonly Mixer Mixer;
-        public readonly IPlayer Player;
+        public EngineType Type { get; }
+        public Config Config { get; private set; }
+        public Mixer Mixer { get; private set; }
+        public IPlayer Player { get; private set; }
 
         public Engine(EngineType type, object playerArg)
         {
@@ -30,9 +31,11 @@ namespace Kermalis.VGMusicStudio.Core
                 case EngineType.GBA_M4A:
                 {
                     byte[] rom = (byte[])playerArg;
-                    var mixer = new M4AMixer(rom);
+                    var config = new M4AConfig(rom);
+                    Config = config;
+                    var mixer = new M4AMixer(config);
                     Mixer = mixer;
-                    Player = new M4APlayer(mixer, rom);
+                    Player = new M4APlayer(mixer, config);
                     break;
                 }
                 case EngineType.GBA_MLSS:
@@ -65,7 +68,12 @@ namespace Kermalis.VGMusicStudio.Core
 
         public void ShutDown()
         {
+            // TODO: Dispose
+            Config = null;
+            Mixer = null;
             Player.ShutDown();
+            Player = null;
+            Instance = null;
         }
     }
 }

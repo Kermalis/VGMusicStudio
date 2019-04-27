@@ -93,16 +93,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             Owner.Channels.Add(this);
             Note = note;
             this.adsr = adsr;
-            sampleHeader = mixer.Reader.ReadObject<SampleHeader>(sampleOffset);
+            sampleHeader = mixer.Config.Reader.ReadObject<SampleHeader>(sampleOffset);
             this.sampleOffset = sampleOffset + 0x10;
             this.bFixed = bFixed;
             this.bCompressed = bCompressed;
-            decompressedSample = bCompressed ? Samples.Decompress(mixer.Reader, this.sampleOffset, sampleHeader.Length) : null;
-            //bGoldenSun = ROM.Instance.Game.Engine.HasGoldenSunSynths && sample.bLoop && sample.LoopPoint == 0 && sample.Length == 0;
-            bGoldenSun = false && sampleHeader.DoesLoop == 0x40000000 && sampleHeader.LoopOffset == 0 && sampleHeader.Length == 0; // TODO
+            decompressedSample = bCompressed ? Samples.Decompress(mixer.Config.Reader, this.sampleOffset, sampleHeader.Length) : null;
+            bGoldenSun = mixer.Config.HasGoldenSunSynths && sampleHeader.DoesLoop == 0x40000000 && sampleHeader.LoopOffset == 0 && sampleHeader.Length == 0;
             if (bGoldenSun)
             {
-                gsPSG = mixer.Reader.ReadObject<GoldenSunPSG>(this.sampleOffset);
+                gsPSG = mixer.Config.Reader.ReadObject<GoldenSunPSG>(this.sampleOffset);
             }
             SetVolume(vol, pan);
             SetPitch(pitch);
@@ -205,7 +204,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
 
             ChannelVolume vol = GetVolume();
-            float interStep = bFixed && !bGoldenSun ? 13379 * mixer.SampleRateReciprocal : frequency * mixer.SampleRateReciprocal; // TODO
+            float interStep = bFixed && !bGoldenSun ? mixer.SampleRate * mixer.SampleRateReciprocal : frequency * mixer.SampleRateReciprocal;
             if (bGoldenSun) // Most Golden Sun processing is thanks to ipatix
             {
                 interStep /= 0x40;
@@ -304,7 +303,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
                 do
                 {
-                    float samp = mixer.Reader.ReadSByte(pos + sampleOffset) / (float)0x80;
+                    float samp = mixer.Config.Reader.ReadSByte(pos + sampleOffset) / (float)0x80;
 
                     buffer[bufPos++] += samp * vol.LeftVol;
                     buffer[bufPos++] += samp * vol.RightVol;
@@ -654,7 +653,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         {
             Init(owner, note, env);
 
-            sample = Samples.PCM4ToFloat(mixer.Reader, sampleOffset);
+            sample = Samples.PCM4ToFloat(mixer.Config.Reader, sampleOffset);
         }
 
         public override void SetPitch(int pitch)

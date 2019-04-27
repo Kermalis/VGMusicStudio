@@ -208,9 +208,6 @@
   <data name="MenuOpenROM" xml:space="preserve">
     <value>Open ROM</value>
   </data>
-  <data name="MenuRefreshConfig" xml:space="preserve">
-    <value>Refresh Config</value>
-  </data>
   <data name="MenuSaveASM" xml:space="preserve">
     <value>Export Song To ASM</value>
   </data>

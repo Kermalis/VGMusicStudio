@@ -12,6 +12,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         Dying,
         Dead
     }
+    internal enum ReverbType
+    {
+        None,
+        Normal,
+        Camelot1,
+        Camelot2,
+        MGAT
+    }
 
     internal enum GoldenSunPSGType : byte
     {

@@ -202,7 +202,7 @@ namespace Kermalis.VGMusicStudio.UI
                 int by = (int)(r1y + yMargin); // Bar y
                 int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (Info.Panpots[i] / (float)0x40))); // Pan line x
 
-                Color color = Config.Instance.Colors[Info.Voices[i]];
+                Color color = GlobalConfig.Instance.Colors[Info.Voices[i]];
                 var pen = new Pen(color);
                 var brush = new SolidBrush(color);
                 byte velocity = (byte)((Info.Lefts[i] + Info.Rights[i]) * byte.MaxValue);
@@ -222,11 +222,11 @@ namespace Kermalis.VGMusicStudio.UI
                 e.Graphics.DrawString(Info.Extras[i].ToString(), Font, Brushes.HotPink, voicesX + (row2ElementAdditionX * 5), r2y);
 
                 e.Graphics.DrawLine(Pens.GreenYellow, barStartX, by, barStartX, by + barHeight); // Left bar bound line
-                if (Config.Instance.CenterIndicators)
+                if (GlobalConfig.Instance.CenterIndicators)
                 {
                     e.Graphics.DrawLine(pen, barCenterX, by, barCenterX, by + barHeight); // Center line
                 }
-                if (Config.Instance.PanpotIndicators)
+                if (GlobalConfig.Instance.PanpotIndicators)
                 {
                     e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, by + barHeight); // Pan line
                 }
@@ -242,7 +242,7 @@ namespace Kermalis.VGMusicStudio.UI
                 string theseNotes = string.Join(" ", Info.Notes[i].Select(n => Utils.GetNoteName(n)));
                 bool empty = string.IsNullOrEmpty(theseNotes);
                 theseNotes = empty ? string.Empty : theseNotes;
-                if (empty && previousNotes.Item1[i]++ < Config.Instance.RefreshRate * 10)
+                if (empty && previousNotes.Item1[i]++ < GlobalConfig.Instance.RefreshRate * 10)
                 {
                     theseNotes = previousNotes.Item2[i];
                 }

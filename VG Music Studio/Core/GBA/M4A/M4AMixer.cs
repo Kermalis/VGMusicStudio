@@ -1,18 +1,16 @@
-﻿using Kermalis.EndianBinaryIO;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using System;
-using System.IO;
 using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
     internal class M4AMixer : Mixer
     {
-        public readonly float SampleRateReciprocal, SamplesReciprocal;
-        public readonly int SamplesPerBuffer;
-        public float DSMasterVolume = 12f / 15f; // TODO
+        public readonly int SampleRate, SamplesPerBuffer;
+        public readonly float SampleRateReciprocal;
+        public readonly float DSMasterVolume;
 
-        public readonly EndianBinaryReader Reader;
+        public readonly M4AConfig Config;
         private readonly WaveBuffer audio;
         private readonly float[][] trackBuffers;
         private readonly PCM8Channel[] pcm8Channels;
@@ -22,12 +20,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private readonly PSGChannel[] psgChannels;
         private readonly BufferedWaveProvider buffer;
 
-        public M4AMixer(byte[] rom)
+        public M4AMixer(M4AConfig config)
         {
-            Reader = new EndianBinaryReader(new MemoryStream(rom));
-            SamplesPerBuffer = 224; // TODO
-            SampleRateReciprocal = 1f / 13379; // TODO
-            SamplesReciprocal = 1f / SamplesPerBuffer;
+            Config = config;
+            (SampleRate, SamplesPerBuffer) = M4AUtils.FrequencyTable[config.SampleRate];
+            SampleRateReciprocal = 1f / SampleRate;
+            DSMasterVolume = config.Volume / 15f;
 
             pcm8Channels = new PCM8Channel[24];
             for (int i = 0; i < pcm8Channels.Length; i++)
@@ -45,8 +43,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             {
                 trackBuffers[i] = new float[amt];
             }
-            //buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2)) // TODO
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(13379, 2)) // TODO
+            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(SampleRate, 2))
             {
                 DiscardOnBufferOverflow = true,
                 BufferLength = SamplesPerBuffer * 64

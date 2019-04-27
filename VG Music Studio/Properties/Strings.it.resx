@@ -198,9 +198,6 @@
   <data name="MenuOpenROM" xml:space="preserve">
     <value>Apri ROM</value>
   </data>
-  <data name="MenuRefreshConfig" xml:space="preserve">
-    <value>Ricarica Config</value>
-  </data>
   <data name="MenuSaveASM" xml:space="preserve">
     <value>Esporta Canzone In ASM</value>
   </data>

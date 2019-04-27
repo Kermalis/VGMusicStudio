@@ -1,25 +1,37 @@
 A2UJ:
   Name: "Mother 1 + 2 (Japan)"
   Creator: "Ape Inc., Nintendo Tokyo R&D Products, HAL Laboratory"
-  SongTable: 0x10B530
-  SongTableSize: 451
-  Engine:
-    Frequency: 10512
+  SongTableOffsets: 0x10B530
+  SongTableSizes: 451
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 A3UJ:
   Name: "Mother 3 (Japan)"
   Creator: "Brownie Brown, Nintendo, HAL Laboratory"
-  SongTable: 0x120E94
-  SongTableSize: 1968
-  Engine:
-    Frequency: 15768
+  SongTableOffsets: 0x120E94
+  SongTableSizes: 1968
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 A7KE:
   Name: "Kirby: Nightmare in Dream Land (USA)"
   Creator: "Nintendo, HAL Laboratory"
-  SongTable: 0x060B460
-  SongTableSize: 579
-  Engine:
-    Frequency: 15768
-  Music:
+  SongTableOffsets: 0x060B460
+  SongTableSizes: 579
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+  Playlists:
     Sound Test (Music):
       26: "0 - Title Screen"
       40: "1 - File Select"
@@ -80,132 +92,83 @@ A7KE:
 A7KP:
   Name: "Kirby: Nightmare in Dream Land (Europe)"
   Creator: "Nintendo, HAL Laboratory"
-  SongTable: 0x0843B50
+  SongTableOffsets: 0x0843B50
   Copy: "A7KE"
-A88E:
-  Name: "Mario & Luigi - Superstar Saga (USA)"
-  Creator: "AlphaDream"
-  SongTable: 0x21CB70
-  SongTableSize: 407
-  VoiceTable: 0x21D1CC
-  SampleTable: 0xA806B8
-  SampleTableSize: 236
-  Remap: "MLSS"
-  Engine:
-    Type: "MLSS"
-    ReverbType: "None"
-  Music:
-    Music:
-      1: "1"
-      2: "2"
-      3: "Mini Game"
-      4: "Border Jump"
-      5: "Star 'Stache Smash"
-      6: "6"
-      7: "7"
-      8: "Stardust Fields"
-      9: "Hoohoo Mountain"
-      10: "Battle"
-      11: "Victory"
-      12: "Beanbean Fields"
-      13: "Chucklehuck Woods"
-      14: "Seabed"
-      15: "Beanbean Castle"
-      16: "Boss Battle"
-      17: "Woohoo Hooniversity"
-      18: "Teehee Valley"
-      19: "Joke's End"
-      20: "Little Fungitown"
-      21: "Gwarhar Lagoon"
-      22: "Underground"
-      23: "Toad Town Square"
-      24: "Bowser's Castle"
-      25: "Warp Pipe"
-      26: "Special Item"
-      27: "Royal Welcome"
-      28: "Prince Peasley's Theme"
-      29: "Cackletta's Theme"
-      30: "File Select"
-      31: "Hoohoo Village"
-      32: "Devastation"
-      33: "Panic!"
-      34: "Koopa Cruiser"
-      35: "Danger!"
-      36: "Popple Battle"
-      37: "Cackletta Battle"
-      38: "Bowletta Battle"
-      39: "Ending"
-      40: "Credits"
-      41: "Title"
-      42: "Chateau de Chucklehuck"
-      43: "43"
-      44: "Final Cackletta Battle"
-      45: "45"
-      46: "46"
-      47: "47"
-      48: "Professor E Gadd"
-      49: "Ghostly Encounter"
-      50: "Bean Time!"
-A88P:
-  Name: "Mario & Luigi - Superstar Saga (Europe)"
-  SongTable: 0x21DC50
-  VoiceTable: 0x21E2AC
-  SampleTable: 0xA82088
-  Copy: "A88E"
 AE7E:
   Name: "Fire Emblem 7 (USA)"
   Creator: "Intelligent Systems"
-  SongTable: 0x69D6E0
-  SongTableSize: 1000
+  SongTableOffsets: 0x69D6E0
+  SongTableSizes: 1000
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 AGFE:
   Name: "Golden Sun: The Lost Age (USA)"
   Creator: "Camelot"
-  SongTable: 0x1C4530
-  SongTableSize: 800
-  Engine:
-    ReverbType: "Camelot2"
-    Frequency: 31536
-    GoldenSunSynths: True
+  SongTableOffsets: 0x1C4530
+  SongTableSizes: 800
+  SampleRate: 8
+  ReverbType: "Camelot2"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: True
+  HasPokemonCompression: False
 AGLJ:
   Name: "Tomato Adventure (Japan)"
   Creator: "AlphaDream"
-  SongTable: 0x4B11A4
-  SongTableSize: 244
-  Engine:
-    Frequency: 15768
+  SongTableOffsets: 0x4B11A4
+  SongTableSizes: 244
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 AGSE:
   Name: "Golden Sun (USA)"
   Creator: "Camelot"
-  SongTable: 0xFC684
-  SongTableSize: 312
-  Engine:
-    ReverbType: "Camelot1"
-    Frequency: 21024
-    GoldenSunSynths: True
+  SongTableOffsets: 0xFC684
+  SongTableSizes: 312
+  SampleRate: 6
+  ReverbType: "Camelot1"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: True
+  HasPokemonCompression: False
 AINJ:
   Name: "Initial D: Another Stage (Japan)"
   Creator: "Sammy Corporation"
-  SongTable: 0x648B38
-  SongTableSize: 88
-  Engine:
-    Frequency: 10512
-    Volume: 13
+  SongTableOffsets: 0x648B38
+  SongTableSizes: 88
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 13
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 AMAE:
   Name: "Super Mario Advance (Europe)"
-  SongTable: 0xF4368
+  SongTableOffsets: 0xF4368
   Copy: "AMZE"
 AMAJ:
   Name: "Super Mario Advance (Japan)"
-  SongTable: 0xF3F18
+  SongTableOffsets: 0xF3F18
   Copy: "AMZE"
 AMKE:
   Name: "Mario Kart: Super Circuit (USA)"
   Creator: "Nintendo"
-  SongTable: 0x102498
-  SongTableSize: 403
-  Engine:
-    Frequency: 10512
-  Music:
+  SongTableOffsets: 0x102498
+  SongTableSizes: 403
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+  Playlists:
     Music:
       2: "Main Menu"
       3: "Race Intro (Grand Prix)"
@@ -262,28 +225,176 @@ AMKE:
 AMTE:
   Name: "Metroid Fusion (USA)"
   Creator: "Nintendo"
-  SongTable: 0xA8D3C
-  SongTableSize: 745
+  SongTableOffsets: 0xA8D3C
+  SongTableSizes: 745
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 AMZE:
   Name: "Super Mario Advance (USA)"
   Creator: "Nintendo"
-  SongTable: 0xF40D4
-  SongTableSize: 447
-  Engine:
-    Frequency: 10512
+  SongTableOffsets: 0xF40D4
+  SongTableSizes: 447
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+AWAE:
+  Name: "Wario Land 4 (USA)"
+  Creator: "Nintendo"
+  SongTableOffsets: 0x98028
+  SongTableSizes: 819
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+  Playlists:
+    Music:
+      635: "Intro"
+      636: "Work It!"
+      638: "Enter the Pyramid"
+      639: "Map"
+      672: "Hall of Hieroglyphs"
+      651: "Palm Tree Paradise"
+      652: "Palm Tree Paradise (Caves)"
+      653: "Palm Tree Paradise (Back From Caves)"
+      654: "Wildflower Fields"
+      655: "Mystic Lake (Lakeside)"
+      656: "Mystic Lake (Inside Jungle)"
+      657: "Mystic Lake (Back to Lakeside)"
+      658: "Monsoon Jungle"
+      659: "The Curious Factory"
+      660: "The Toxic Landfill"
+      662: "40 Below Fridge"
+      661: "Pinball Zone"
+      663: "Toy Block Tower"
+      664: "The Big Board"
+      665: "Doodle Woods"
+      666: "Domino Row"
+      667: "Crescent Moon Village"
+      668: "Arabian Night"
+      670: "Fiery Cavern"
+      669: "Hotel Horror"
+      671: "Golden Passage"
+      617: "Wario's Workout"
+      673: "Puzzle Room"
+      674: "Puzzle Room (2)"
+      217: "Hurry Up Time Limit"
+      681: "Hurry Up!!!"
+      450: "Only a Few Seconds Left!!!"
+      452: "Coin Loss..."
+      642: "Inside the Void"
+      342: "Four Pieces"
+      594: "High Score"
+      448: "Door to Next Stage Opens"
+      457: "Door to Next Stage Opens (2)"
+      421: "Stage Already Clear"
+      447: "Stage Already Clear (2)"
+      475: "Can't Enter Boss Room"
+      425: "Boss Room Opens"
+      473: "Enter Boss Room"
+      474: "Track 37"
+      640: "Boss Room"
+      682: "Item Shop"
+      493: "Boss's Presence"
+      683: "Here Comes the Mystery Man"
+      684: "Here Comes the Mystery Man (Shorter Version)"
+      508: "Bugle"
+      511: "Large Lips"
+      512: "Large Lips (Longer Version)"
+      513: "Random Damage Sound"
+      124: "Boss is Ready"
+      207: "Boss is Ready (Shorter Version)"
+      687: "Boss"
+      429: "Treasures (Part 1)"
+      430: "Treasures (Part 2)"
+      431: "Treasures (Part 3)"
+      422: "Victory"
+      432: "Victory (2)"
+      701: "Mini Game Shop"
+      709: "Wario's Homerun Derby"
+      710: "Homerun!"
+      715: "Cheerleaders (Part 1)"
+      716: "Cheerleaders (Part 2)"
+      702: "The Wario Hop Begins"
+      707: "The Wario Hop Begins (No Loop)"
+      703: "The Wario Hop 1"
+      704: "The Wario Hop 2"
+      705: "The Wario Hop 3"
+      706: "The Wario Hop 4"
+      708: "Wario's Roulette"
+      711: "Failure 1"
+      712: "Failure 2"
+      713: "Failure 3"
+      714: "Failure 4"
+      593: "Mini Game High Score"
+      191: "Golden Diva Appears"
+      183: "Golden Diva is Ready"
+      688: "Golden Diva"
+      689: "Golden Diva's Lip is Left"
+      489: "All of my Treasures!"
+      800: "Escape from the Pyramid"
+      801: "Track 68"
+      802: "Thank You Wario"
+      803: "Japanese Ending Song"
+      806: "Japanese Ending Song (2)"
+      809: "Japanese Ending Song (3)"
+      812: "Japanese Ending Song (4)"
+      815: "English Ending Song"
+      816: "English Ending Song (2)"
+      817: "English Ending Song (3)"
+      818: "English Engind Song (4)"
+      814: "The Big Board (Ending Mix)"
+      813: "Mystic Lake (Ending Mix)"
+      811: "Wildflower Fields (Ending Mix)"
+      810: "Hall of Hieroglyphs (Ending Mix)"
+      808: "Doodle Woods (Ending Mix)"
+      807: "Crescent Moon Village (Ending Mix)"
+      805: "Monsoon Jungle (Ending Mix)"
+      804: "Toy Blick Tower (Ending Mix)"
+      618: "Sound Room"
+      619: "About That Shepherd"
+      620: "Things That Never Change"
+      621: "Tomorrow's Blood Pressure"
+      622: "Beyond the Headrush"
+      623: "Driftwood & The Island Dog"
+      624: "The Judge's Feet"
+      625: "The Moon's Lamppost"
+      626: "Soft Shell"
+      627: "So Sleepy"
+      628: "The Short Futon"
+      629: "Avocado Song"
+      630: "Mr. Fly"
+      631: "Yesterday's Words"
+      632: "The Errand"
+      633: "You and Your Shoes"
+      634: "Mr. Ether and Planaria"
+      727: "Medamayaki (Karaoke)"
+      728: "Medamayaki (Karaoke) (2)"
+      729: "Medamayaki (Voice)"
 AXPE:
   Name: "Pokémon Sapphire Version (USA)"
-  SongTable: 0x4554E8
+  SongTableOffsets: 0x4554E8
   Copy: "AXVE"
 AXVE:
   Name: "Pokémon Ruby Version (USA)"
   Creator: "Game Freak"
-  SongTable: 0x45548C
-  SongTableSize: 468
-  Engine:
-    Volume: 12
-    PokemonCompression: True
-  Music:
+  SongTableOffsets: 0x45548C
+  SongTableSizes: 468
+  SampleRate: 12
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: True
+  Playlists:
     Disc 1:
       414: "Opening Movie: Setting out on a Journey in the Hoenn Region"
       442: "Opening Movie: Double Battles"
@@ -405,25 +516,29 @@ AXVE:
       395: "Pokémon Contest! (Multiplayer - Player 3)"
       396: "Pokémon Contest! (Multiplayer - Player 4)"
       467: "Unused - Team Rocket Appears!"
-AWAE:
-  Name: "Wario Land 4 (USA)"
-  Creator: "Nintendo"
-  SongTable: 0x98028
-  SongTableSize: 819
 AZLE:
   Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
   Creator: "Nintendo, Capcom"
-  SongTable: 0x3C3BBC
-  SongTableSize: 545
+  SongTableOffsets: 0x3C3BBC
+  SongTableSizes: 545
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 B24E:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   Creator: "Chunsoft"
-  SongTable: 0x1E866BC
-  SongTableSize: 940
-  Engine:
-    Volume: 14
-    Frequency: 18157
-  Music:
+  SongTableOffsets: 0x1E866BC
+  SongTableSizes: 940
+  SampleRate: 5
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 14
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+  Playlists:
     Disc 1:
       40: "Intro"
       43: "Title"
@@ -529,26 +644,35 @@ B24E:
       13: "Buried Relic"
 B24P:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
-  SongTable: 0x1E866BC
+  SongTableOffsets: 0x1E866BC
   Copy: "B24E"
 BMXE:
   Name: "Metroid: Zero Mission (USA)"
   Creator: "Nintendo"
-  SongTable: 0x8F2C0
-  SongTableSize: 708
+  SongTableOffsets: 0x8F2C0
+  SongTableSizes: 708
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 BPED:
   Name: "Pokémon Emerald Version (Germany)"
-  SongTable: 0x6C5BDC
+  SongTableOffsets: 0x6C5BDC
   Copy: "BPEE"
 BPEE:
   Name: "Pokémon Emerald Version (USA)"
   Creator: "Game Freak"
-  SongTable: 0x6B49F0
-  SongTableSize: 610
-  Engine:
-    Volume: 12
-    PokemonCompression: True
-  Music:
+  SongTableOffsets: 0x6B49F0
+  SongTableSizes: 610
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 12
+  HasGoldenSunSynths: False
+  HasPokemonCompression: True
+  Playlists:
     Music:
       350: "Unused - TETSUJI"
       351: "Unused - Route 38"
@@ -782,17 +906,20 @@ BPEE:
       553: "Battle! (Ho-Oh/Lugia)"
 BPGE:
   Name: "Pokémon Leaf Green Version (USA)"
-  SongTable: 0x4A2BA8
+  SongTableOffsets: 0x4A2BA8
   Copy: "BPRE"
 BPRE:
   Name: "Pokémon Fire Red Version (USA)"
   Creator: "Game Freak"
-  SongTable: 0x4A32CC
-  SongTableSize: 347
-  Engine:
-    Volume: 12
-    PokemonCompression: True
-  Music:
+  SongTableOffsets: 0x4A32CC
+  SongTableSizes: 347
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 12
+  HasGoldenSunSynths: False
+  HasPokemonCompression: True
+  Playlists:
     Disc 1:
       321: "Game Freak Logo"
       277: "Opening Movie"
@@ -890,30 +1017,45 @@ BPRE:
 BZME:
   Name: "The Legend of Zelda: The Minish Cap (USA)"
   Creator: "Capcom, Flagship"
-  SongTable: 0xA11DBC
-  SongTableSize: 546
+  SongTableOffsets: 0xA11DBC
+  SongTableSizes: 546
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 KERB:
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
-  SongTable: 0x100004C 0x1000B6C 0x100168C 0x10021AC
-  SongTableSize: 356 356 356 356
-  Engine:
-    Volume: 12
-    PokemonCompression: True
+  SongTableOffsets: 0x100004C 0x1000B6C 0x100168C 0x10021AC
+  SongTableSizes: 356 356 356 356
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 12
+  HasGoldenSunSynths: False
+  HasPokemonCompression: True
 KERH:
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
-  SongTable: 0x1000038 0x1000B78
-  SongTableSize: 360 360
+  SongTableOffsets: 0x1000038 0x1000B78
+  SongTableSizes: 360 360
   Remap: "HGSS"
-  Engine:
-    Volume: 12
-    PokemonCompression: True
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 12
+  HasGoldenSunSynths: False
+  HasPokemonCompression: True
 KERP:
   Name: "Kermalis's Test ROM"
   Creator: "Kermalis"
-  SongTable: 0x1000000 0x1001310 0x1002620 0x1003930
-  SongTableSize: 610 610 610 610
-  Engine:
-    Volume: 12
-    PokemonCompression: True
+  SongTableOffsets: 0x1000000 0x1001310 0x1002620 0x1003930
+  SongTableSizes: 610 610 610 610
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 12
+  HasGoldenSunSynths: False
+  HasPokemonCompression: True

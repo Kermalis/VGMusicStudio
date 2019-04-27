@@ -1,6 +1,4 @@
-﻿using Kermalis.EndianBinaryIO;
-using Kermalis.VGMusicStudio.Util;
-using System.IO;
+﻿using Kermalis.VGMusicStudio.Util;
 using System.Linq;
 using System.Threading;
 
@@ -9,8 +7,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     internal class M4APlayer : IPlayer
     {
         private readonly M4AMixer mixer;
-        private readonly byte[] rom;
-        private readonly EndianBinaryReader reader;
+        private readonly M4AConfig config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
         private int voiceTableOffset;
@@ -21,29 +18,26 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public M4APlayer(M4AMixer mixer, byte[] rom)
+        public M4APlayer(M4AMixer mixer, M4AConfig config)
         {
             this.mixer = mixer;
-            this.rom = rom;
-            reader = new EndianBinaryReader(new MemoryStream(rom));
+            this.config = config;
 
             time = new TimeBarrier(GBAUtils.AGB_FPS);
             thread = new Thread(Tick) { Name = "M4APlayer Tick" };
             thread.Start();
         }
 
-        public string LoadSong(int index)
+        public void LoadSong(int index)
         {
-            const int songTableOffset = 0x6B49F0; // TODO
-            SongEntry entry = reader.ReadObject<SongEntry>(songTableOffset + (index * 8));
-            SongHeader header = reader.ReadObject<SongHeader>(entry.HeaderOffset - GBAUtils.CartridgeOffset);
+            SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
+            SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBAUtils.CartridgeOffset);
             voiceTableOffset = header.VoiceTableOffset - GBAUtils.CartridgeOffset;
             tracks = new Track[header.NumTracks];
             for (byte i = 0; i < tracks.Length; i++)
             {
-                tracks[i] = new Track(i, rom, header.TrackOffsets[i] - GBAUtils.CartridgeOffset);
+                tracks[i] = new Track(i, config.ROM, header.TrackOffsets[i] - GBAUtils.CartridgeOffset);
             }
-            return index.ToString();
         }
         public void Play()
         {
@@ -129,11 +123,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 int offset = voiceTableOffset + (track.Voice * 12);
                 while (true)
                 {
-                    VoiceEntry v = reader.ReadObject<VoiceEntry>(offset);
+                    VoiceEntry v = config.Reader.ReadObject<VoiceEntry>(offset);
                     if (v.Type == (int)VoiceFlags.KeySplit)
                     {
                         fromDrum = false; // In case there is a multi within a drum
-                        byte inst = reader.ReadByte(v.Int8 - GBAUtils.CartridgeOffset + key);
+                        byte inst = config.Reader.ReadByte(v.Int8 - GBAUtils.CartridgeOffset + key);
                         offset = v.Int4 - GBAUtils.CartridgeOffset + (inst * 12);
                     }
                     else if (v.Type == (int)VoiceFlags.Drum)

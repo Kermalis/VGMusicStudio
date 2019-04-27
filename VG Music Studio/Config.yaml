@@ -1,7 +1,7 @@
-TaskbarProgress: True # True or False.
-RefreshRate: 30 # Value over 0. # Requires a song state change to update.
-CenterIndicators: False # True or False.
-PanpotIndicators: False # True or False.
+TaskbarProgress: True # True or False
+RefreshRate: 30 # Value > 0 and Value <= 1000
+CenterIndicators: False # True or False
+PanpotIndicators: False # True or False
 Colors:
   0: {H: 185, S: 240, L: 180}
   1: {H: 183, S: 240, L: 170}

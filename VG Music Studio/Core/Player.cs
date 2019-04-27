@@ -15,7 +15,7 @@
         PlayerState State { get; }
         event SongEndedEvent SongEnded;
 
-        string LoadSong(int index);
+        void LoadSong(int index);
         void Play();
         void Pause();
         void Stop();

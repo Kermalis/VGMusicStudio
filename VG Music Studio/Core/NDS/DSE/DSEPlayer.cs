@@ -31,7 +31,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             thread.Start();
         }
 
-        public string LoadSong(int index)
+        public void LoadSong(int index)
         {
             masterSWDL = new SWDL(Path.Combine(bgmPath, "bgm.swd"));
             localSWDL = new SWDL(Path.Combine(bgmPath, $"bgm{index:D4}.swd"));
@@ -67,8 +67,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         reader.BaseStream.Position++;
                     }
                 }
-                //return header.Label;
-                return index.ToString();
             }
         }
         public void Play()

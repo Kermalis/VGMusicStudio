@@ -104,10 +104,12 @@
     <Compile Include="Core\ADPCMDecoder.cs" />
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\GlobalConfig.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\GBA\GBAUtils.cs" />
     <Compile Include="Core\GBA\M4A\Channel.cs" />
     <Compile Include="Core\GBA\M4A\Enums.cs" />
+    <Compile Include="Core\GBA\M4A\M4AConfig.cs" />
     <Compile Include="Core\GBA\M4A\M4AMixer.cs" />
     <Compile Include="Core\GBA\M4A\M4APlayer.cs" />
     <Compile Include="Core\GBA\M4A\M4AUtils.cs" />
@@ -193,7 +195,7 @@
     <Content Include="Config.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="GBA.yaml">
+    <Content Include="M4A.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="midi2agb.exe">

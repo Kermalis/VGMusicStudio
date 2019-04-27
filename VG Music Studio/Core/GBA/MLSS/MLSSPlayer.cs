@@ -33,7 +33,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             thread.Start();
         }
 
-        public string LoadSong(int index)
+        public void LoadSong(int index)
         {
             const int songTableOffset = 0x21CB70; // TODO
             int songOffset = reader.ReadInt32(songTableOffset + (index * 4)) - GBAUtils.CartridgeOffset;
@@ -51,7 +51,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     tracks[i].StartOffset = 0;
                 }
             }
-            return index.ToString();
         }
         public void Play()
         {

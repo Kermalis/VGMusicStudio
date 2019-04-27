@@ -53,7 +53,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             thread.Start();
         }
 
-        public string LoadSong(int index)
+        public void LoadSong(int index)
         {
             Stop();
 
@@ -71,13 +71,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     }
                 }
                 Volume = seqInfo.Volume;
-                return sdat.GetLabelForSong(index);
             }
             else
             {
                 sseq = null;
                 sbnk = null;
-                return null;
             }
         }
         public void Play()
