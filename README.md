@@ -7,22 +7,6 @@ VG Music Studio is a music player and visualizer for the most common GBA music f
 Discord Server: https://discord.gg/q2pAw3x
 
 ----
-# Some Advantages Over Sappy:
-* Pause button & song position changing
-* You can play the in-game instruments with a MIDI-in keyboard
-* You can view and edit track events
-* You can import MIDI files without having to convert them yourself
-* You can save the voice tables to SF2 SoundFont files
-* You can save songs to ASM S files
-* You can play songs in a playlist like other music players
-* The UI scales to the desired window size
-* You can see representation of notes being played
-* It is not intimidating to use
-* Support for multiple song tables
-* Support for "Mario & Luigi: Superstar Saga"
-* Support for "Golden Sun" synth instruments
-
-----
 # To Do:
 ## General
 * MIDI saving - Preview the MIDI with the Sequencer class
@@ -39,7 +23,6 @@ Discord Server: https://discord.gg/q2pAw3x
 * Detachable piano
 * Tempo numerical (it fits)
 * Help dialog that explains the commands for each engine and config options
-* If I go insane I'll support the MOD music format
 
 ## M4A / MP2K Engine
 * Add Golden Sun 2 reverb effect
@@ -53,8 +36,8 @@ Discord Server: https://discord.gg/q2pAw3x
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 
 ## Mario & Luigi: Superstar Saga Engine
+* ADSR
 * Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
-* Find channel and track limits (most tracks is 9 in credits)
 
 ----
 # Special Thanks To:
