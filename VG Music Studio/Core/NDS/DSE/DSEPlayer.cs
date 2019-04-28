@@ -9,7 +9,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
     internal class DSEPlayer : IPlayer
     {
         private readonly DSEMixer mixer;
-        private readonly string bgmPath;
+        private readonly DSEConfig config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
         private SWDL masterSWDL;
@@ -21,10 +21,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public DSEPlayer(DSEMixer mixer, string bgmPath)
+        public DSEPlayer(DSEMixer mixer, DSEConfig config)
         {
             this.mixer = mixer;
-            this.bgmPath = bgmPath;
+            this.config = config;
 
             time = new TimeBarrier(192);
             thread = new Thread(Tick) { Name = "DSEPlayer Tick" };
@@ -33,9 +33,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public void LoadSong(long index)
         {
-            masterSWDL = new SWDL(Path.Combine(bgmPath, "bgm.swd"));
-            localSWDL = new SWDL(Path.Combine(bgmPath, $"bgm{index:D4}.swd"));
-            byte[] smdl = File.ReadAllBytes(Path.Combine(bgmPath, $"bgm{index:D4}.smd"));
+            masterSWDL = new SWDL(Path.Combine(config.BGMPath, "bgm.swd"));
+            string bgm = config.BGMFiles[index];
+            localSWDL = new SWDL(Path.ChangeExtension(bgm, "swd"));
+            byte[] smdl = File.ReadAllBytes(bgm);
             using (var reader = new EndianBinaryReader(new MemoryStream(smdl)))
             {
                 SMDL.Header header = reader.ReadObject<SMDL.Header>();

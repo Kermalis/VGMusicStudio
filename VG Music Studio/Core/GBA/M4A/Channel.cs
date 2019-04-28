@@ -97,7 +97,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             this.sampleOffset = sampleOffset + 0x10;
             this.bFixed = bFixed;
             this.bCompressed = bCompressed;
-            decompressedSample = bCompressed ? Samples.Decompress(mixer.Config.Reader, this.sampleOffset, sampleHeader.Length) : null;
+            decompressedSample = bCompressed ? Samples.Decompress(this.sampleOffset, sampleHeader.Length) : null;
             bGoldenSun = mixer.Config.HasGoldenSunSynths && sampleHeader.DoesLoop == 0x40000000 && sampleHeader.LoopOffset == 0 && sampleHeader.Length == 0;
             if (bGoldenSun)
             {
@@ -303,7 +303,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
                 do
                 {
-                    float samp = mixer.Config.Reader.ReadSByte(pos + sampleOffset) / (float)0x80;
+                    float samp = (sbyte)mixer.Config.ROM[pos + sampleOffset] / (float)0x80;
 
                     buffer[bufPos++] += samp * vol.LeftVol;
                     buffer[bufPos++] += samp * vol.RightVol;
@@ -652,8 +652,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public void Init(Track owner, Note note, ADSR env, int sampleOffset)
         {
             Init(owner, note, env);
-
-            sample = Samples.PCM4ToFloat(mixer.Config.Reader, sampleOffset);
+            sample = Samples.PCM4ToFloat(sampleOffset);
         }
 
         public override void SetPitch(int pitch)

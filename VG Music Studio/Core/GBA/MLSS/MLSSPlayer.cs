@@ -1,7 +1,5 @@
-﻿using Kermalis.EndianBinaryIO;
-using Kermalis.VGMusicStudio.Util;
+﻿using Kermalis.VGMusicStudio.Util;
 using System;
-using System.IO;
 using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
@@ -10,7 +8,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
     {
         private readonly Track[] tracks = new Track[0x10];
         private readonly MLSSMixer mixer;
-        private readonly EndianBinaryReader reader;
+        private readonly MLSSConfig config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
         private byte tempo;
@@ -19,14 +17,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public MLSSPlayer(MLSSMixer mixer, byte[] rom)
+        public MLSSPlayer(MLSSMixer mixer, MLSSConfig config)
         {
             for (byte i = 0; i < tracks.Length; i++)
             {
-                tracks[i] = new Track(i, rom, mixer);
+                tracks[i] = new Track(i, config.ROM, mixer);
             }
             this.mixer = mixer;
-            reader = new EndianBinaryReader(new MemoryStream(rom));
+            this.config = config;
 
             time = new TimeBarrier(GBAUtils.AGB_FPS);
             thread = new Thread(Tick) { Name = "MLSSPlayer Tick" };
@@ -35,15 +33,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 
         public void LoadSong(long index)
         {
-            const int songTableOffset = 0x21CB70; // TODO
-            int songOffset = reader.ReadInt32(songTableOffset + (index * 4)) - GBAUtils.CartridgeOffset;
-            ushort trackBits = reader.ReadUInt16(songOffset);
+            int songOffset = config.Reader.ReadInt32(config.SongTableOffsets[0] + (index * 4)) - GBAUtils.CartridgeOffset;
+            ushort trackBits = config.Reader.ReadUInt16(songOffset);
             for (int i = 0; i < 0x10; i++)
             {
                 if ((trackBits & (1 << i)) != 0)
                 {
                     tracks[i].Enabled = true;
-                    tracks[i].StartOffset = songOffset + reader.ReadUInt16();
+                    tracks[i].StartOffset = songOffset + config.Reader.ReadUInt16();
                 }
                 else
                 {
@@ -115,16 +112,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 
         private void PlayNote(Track track, byte key, byte duration)
         {
-            const int voiceTableOffset = 0x21D1CC; // TODO
-            const int sampleTableOffset = 0xA806B8; // TODO
-            short voiceOffset = reader.ReadInt16(voiceTableOffset + (track.Voice * 2));
-            short nextVoiceOffset = reader.ReadInt16(voiceTableOffset + ((track.Voice + 1) * 2));
+            short voiceOffset = config.Reader.ReadInt16(config.VoiceTableOffset + (track.Voice * 2));
+            short nextVoiceOffset = config.Reader.ReadInt16(config.VoiceTableOffset + ((track.Voice + 1) * 2));
             int numEntries = (nextVoiceOffset - voiceOffset) / 8; // Each entry is 8 bytes
             VoiceEntry entry = null;
-            reader.BaseStream.Position = voiceTableOffset + voiceOffset;
+            config.Reader.BaseStream.Position = config.VoiceTableOffset + voiceOffset;
             for (int i = 0; i < numEntries; i++)
             {
-                VoiceEntry e = reader.ReadObject<VoiceEntry>();
+                VoiceEntry e = config.Reader.ReadObject<VoiceEntry>();
                 if (e.MinKey <= key && e.MaxKey >= key)
                 {
                     entry = e;
@@ -145,13 +140,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 }
                 else
                 {
-                    int sampleOffset = reader.ReadInt32(sampleTableOffset + (entry.Sample * 4));
-                    if (sampleOffset != 0)
-                    {
-                        ((PCMChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, sampleTableOffset + sampleOffset, entry.IsFixedFrequency == 0x80);
-                        track.Channel.SetVolume(track.Volume, track.Panpot);
-                        track.Channel.SetPitch(track.GetPitch());
-                    }
+                    int sampleOffset = config.Reader.ReadInt32(config.SampleTableOffset + (entry.Sample * 4)); // Some entries are 0. If you play them, are they silent, or does it not care if they are 0?
+                    ((PCMChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, config.SampleTableOffset + sampleOffset, entry.IsFixedFrequency == 0x80);
+                    track.Channel.SetVolume(track.Volume, track.Panpot);
+                    track.Channel.SetPitch(track.GetPitch());
                 }
             }
         }

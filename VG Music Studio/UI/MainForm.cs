@@ -1,8 +1,11 @@
 ﻿using Kermalis.VGMusicStudio.Core;
 using Kermalis.VGMusicStudio.Core.GBA.M4A;
+using Kermalis.VGMusicStudio.Core.GBA.MLSS;
+using Kermalis.VGMusicStudio.Core.NDS.DSE;
 using Kermalis.VGMusicStudio.Core.NDS.SDAT;
 using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.Util;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.Collections.Generic;
@@ -94,7 +97,7 @@ namespace Kermalis.VGMusicStudio.UI
             pauseButton.Size = new Size(76, 23);
 
             // Numericals
-            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Minimum = ushort.MinValue };
+            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Minimum = ushort.MinValue, Visible = false };
 
             songNumerical.Size = new Size(45, 23);
             songNumerical.ValueChanged += SongNumerical_ValueChanged;
@@ -197,31 +200,18 @@ namespace Kermalis.VGMusicStudio.UI
             try
             {
                 Engine.Instance.Player.LoadSong(index);
-                switch (Engine.Instance.Type)
+                Config config = Engine.Instance.Config;
+                List<Config.Song> songs = config.Playlists[0].Songs; // Complete "Music" playlist is present in all configs at index 0
+                Config.Song song = songs.SingleOrDefault(s => s.Index == index);
+                if (song != null)
                 {
-                    case Engine.EngineType.GBA_M4A:
-                    {
-                        var config = (M4AConfig)Engine.Instance.Config;
-                        List<M4AConfig.Song> songs = config.Playlists[0].Songs;
-                        M4AConfig.Song song = songs.SingleOrDefault(s => s.Index == index);
-                        if (song != null)
-                        {
-                            Text = $"{Utils.ProgramName} - {song.Name}";
-                            songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the playlist is in the combobox as well
-                        }
-                        else
-                        {
-                            Text = Utils.ProgramName;
-                            songsComboBox.SelectedIndex = 0;
-                        }
-                        break;
-                    }
-                    default:
-                    {
-                        Text = Utils.ProgramName;
-                        songsComboBox.SelectedIndex = -1;
-                        break;
-                    }
+                    Text = $"{Utils.ProgramName} - {song.Name}";
+                    songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
+                }
+                else
+                {
+                    Text = Utils.ProgramName;
+                    songsComboBox.SelectedIndex = 0;
                 }
                 trackInfo.DeleteData();
                 if (autoplay)
@@ -239,53 +229,50 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            switch (Engine.Instance.Type)
+            var item = (ImageComboBoxItem)songsComboBox.SelectedItem;
+            if (item.Item is Config.Song song)
             {
-                case Engine.EngineType.GBA_M4A:
-                {
-                    var item = (ImageComboBoxItem)songsComboBox.SelectedItem;
-                    if (item.Item is M4AConfig.Song song)
-                    {
-                        songNumerical.Value = song.Index;
-                    }
-                    break;
-                }
+                songNumerical.Value = song.Index;
             }
         }
 
         private void OpenDSE(object sender, EventArgs e)
         {
-            try
+            var d = new CommonOpenFileDialog
             {
-                EngineShutDown();
-                new Engine(Engine.EngineType.NDS_DSE, @"D:\Emulation\NDS\Games\SDATs\PMD2\SOUND\BGM"); // TODO
-                const int numSequences = 202; // TODO
-                songNumerical.Maximum = numSequences - 1;
-                songsComboBox.Items.AddRange(Enumerable.Range(0, numSequences).Select(i => new ImageComboBoxItem(i.ToString(), Resources.IconSong, 0)).ToArray()); // TODO
-                FinishLoading(0);
-            }
-            catch (Exception ex)
+                Title = "Open DSE Folder",
+                IsFolderPicker = true
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Loading DSE");
+                try
+                {
+                    EngineShutDown();
+                    new Engine(Engine.EngineType.NDS_DSE, d.FileName);
+                    var config = (DSEConfig)Engine.Instance.Config;
+                    FinishLoading(false, config.BGMFiles.Length);
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex.Message, "Error Loading DSE");
+                }
             }
         }
         private void OpenM4A(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open GBA ROM (M4A/MP2K)", Filter = "GBA Files|*.gba" };
-            if (d.ShowDialog() == DialogResult.OK)
+            var d = new CommonOpenFileDialog
+            {
+                Title = "Open GBA ROM (M4A/MP2K)",
+                Filters = { new CommonFileDialogFilter("GBA Files", ".gba") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 try
                 {
                     EngineShutDown();
                     new Engine(Engine.EngineType.GBA_M4A, File.ReadAllBytes(d.FileName));
                     var config = (M4AConfig)Engine.Instance.Config;
-                    songNumerical.Maximum = config.SongTableSizes[0] - 1;
-                    foreach (M4AConfig.Playlist playlist in config.Playlists)
-                    {
-                        songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
-                        songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBoxItem(s, Resources.IconSong, 1)).ToArray());
-                    }
-                    FinishLoading(config.Playlists[0].Songs.Count == 0 ? 0 : config.Playlists[0].Songs[0].Index);
+                    FinishLoading(true, config.SongTableSizes[0]);
                 }
                 catch (Exception ex)
                 {
@@ -295,17 +282,19 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void OpenMLSS(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open GBA ROM (MLSS)", Filter = "GBA Files|*.gba" };
-            if (d.ShowDialog() == DialogResult.OK)
+            var d = new CommonOpenFileDialog
+            {
+                Title = "Open GBA ROM (M4A/MP2K)",
+                Filters = { new CommonFileDialogFilter("GBA Files", ".gba") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 try
                 {
                     EngineShutDown();
                     new Engine(Engine.EngineType.GBA_MLSS, File.ReadAllBytes(d.FileName));
-                    const int numSequences = 1000; // TODO
-                    songNumerical.Maximum = numSequences - 1;
-                    songsComboBox.Items.AddRange(Enumerable.Range(0, numSequences).Select(i => new ImageComboBoxItem(i.ToString(), Resources.IconSong, 0)).ToArray()); // TODO
-                    FinishLoading(0);
+                    var config = (MLSSConfig)Engine.Instance.Config;
+                    FinishLoading(true, config.SongTableSizes[0]);
                 }
                 catch (Exception ex)
                 {
@@ -315,17 +304,19 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void OpenSDAT(object sender, EventArgs e)
         {
-            var d = new OpenFileDialog { Title = "Open SDAT File", Filter = "SDAT Files|*.sdat" };
-            if (d.ShowDialog() == DialogResult.OK)
+            var d = new CommonOpenFileDialog
+            {
+                Title = "Open SDAT File",
+                Filters = { new CommonFileDialogFilter("SDAT Files", ".sdat") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 try
                 {
                     EngineShutDown();
                     var sdat = new SDAT(File.ReadAllBytes(d.FileName));
                     new Engine(Engine.EngineType.NDS_SDAT, sdat);
-                    songNumerical.Maximum = sdat.INFOBlock.SequenceInfos.NumEntries - 1;
-                    songsComboBox.Items.AddRange(Enumerable.Range(0, sdat.INFOBlock.SequenceInfos.NumEntries).Where(i => sdat.INFOBlock.SequenceInfos.Entries[i] != null).Select(i => new ImageComboBoxItem(sdat.GetLabelForSong(i), Resources.IconSong, 0)).ToArray());
-                    FinishLoading(0);
+                    FinishLoading(true, sdat.INFOBlock.SequenceInfos.NumEntries);
                 }
                 catch (Exception ex)
                 {
@@ -398,10 +389,18 @@ namespace Kermalis.VGMusicStudio.UI
             }
         }
 
-        private void FinishLoading(long landingSong)
+        private void FinishLoading(bool numericalVisible, long numSongs)
         {
-            Engine.Instance.Player.SongEnded += SongEnded;
             autoplay = false;
+            Engine.Instance.Player.SongEnded += SongEnded;
+            foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
+            {
+                songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
+                songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBoxItem(s, Resources.IconSong, 1)).ToArray());
+            }
+            long landingSong = Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index;
+            songNumerical.Visible = numericalVisible;
+            songNumerical.Maximum = numSongs - 1;
             if (songNumerical.Value == landingSong)
             {
                 SongNumerical_ValueChanged(null, null);
@@ -424,6 +423,7 @@ namespace Kermalis.VGMusicStudio.UI
             Text = Utils.ProgramName;
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             songNumerical.ValueChanged -= SongNumerical_ValueChanged;
+            songNumerical.Visible = false;
             songNumerical.Value = 0;
             songsComboBox.SelectedItem = null;
             songsComboBox.Items.Clear();

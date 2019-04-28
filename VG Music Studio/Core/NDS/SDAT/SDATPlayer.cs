@@ -23,7 +23,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private readonly SoundVar[] soundVars = new SoundVar[0x20]; // Unsure of the exact amount
         private readonly Track[] tracks = new Track[0x10];
         private readonly SDATMixer mixer;
-        private readonly SDAT sdat;
+        private readonly SDATConfig config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
         private SSEQ sseq;
@@ -35,7 +35,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public SDATPlayer(SDATMixer mixer, SDAT sdat)
+        public SDATPlayer(SDATMixer mixer, SDATConfig config)
         {
             for (byte i = 0; i < tracks.Length; i++)
             {
@@ -46,7 +46,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 soundVars[i] = new SoundVar();
             }
             this.mixer = mixer;
-            this.sdat = sdat;
+            this.config = config;
 
             time = new TimeBarrier(192);
             thread = new Thread(Tick) { Name = "SDATPlayer Tick" };
@@ -57,17 +57,17 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             Stop();
 
-            SDAT.INFO.SequenceInfo seqInfo = sdat.INFOBlock.SequenceInfos.Entries[index];
+            SDAT.INFO.SequenceInfo seqInfo = config.SDAT.INFOBlock.SequenceInfos.Entries[index];
             if (seqInfo != null)
             {
-                sseq = new SSEQ(sdat.FATBlock.Entries[seqInfo.FileId].Data);
-                SDAT.INFO.BankInfo bankInfo = sdat.INFOBlock.BankInfos.Entries[seqInfo.Bank];
-                sbnk = new SBNK(sdat.FATBlock.Entries[bankInfo.FileId].Data);
+                sseq = new SSEQ(config.SDAT.FATBlock.Entries[seqInfo.FileId].Data);
+                SDAT.INFO.BankInfo bankInfo = config.SDAT.INFOBlock.BankInfos.Entries[seqInfo.Bank];
+                sbnk = new SBNK(config.SDAT.FATBlock.Entries[bankInfo.FileId].Data);
                 for (int i = 0; i < 4; i++)
                 {
                     if (bankInfo.SWARs[i] != 0xFFFF)
                     {
-                        sbnk.SWARs[i] = new SWAR(sdat.FATBlock.Entries[sdat.INFOBlock.WaveArchiveInfos.Entries[bankInfo.SWARs[i]].FileId].Data);
+                        sbnk.SWARs[i] = new SWAR(config.SDAT.FATBlock.Entries[config.SDAT.INFOBlock.WaveArchiveInfos.Entries[bankInfo.SWARs[i]].FileId].Data);
                     }
                 }
                 Volume = seqInfo.Volume;

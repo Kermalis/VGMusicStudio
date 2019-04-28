@@ -54,7 +54,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             pos = 0; interPos = 0;
             Key = key;
             this.adsr = adsr;
-            sampleHeader = mixer.Reader.ReadObject<SampleHeader>(sampleOffset);
+            sampleHeader = mixer.Config.Reader.ReadObject<SampleHeader>(sampleOffset);
             this.sampleOffset = sampleOffset + 0x10;
             this.bFixed = bFixed;
             Stopped = false;
@@ -118,7 +118,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
             do
             {
-                float samp = (mixer.Reader.ReadByte(pos + sampleOffset) - 0x80) / (float)0x80;
+                float samp = (mixer.Config.ROM[pos + sampleOffset] - 0x80) / (float)0x80;
 
                 buffer[bufPos++] += samp * vol.LeftVol;
                 buffer[bufPos++] += samp * vol.RightVol;

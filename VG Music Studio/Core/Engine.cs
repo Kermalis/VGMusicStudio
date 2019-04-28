@@ -50,23 +50,31 @@ namespace Kermalis.VGMusicStudio.Core
                     {
                         throw new Exception($"ROM is too large. Maximum size is 0x{GBAUtils.CartridgeCapacity:X7} bytes.");
                     }
-                    var mixer = new MLSSMixer(rom);
+                    var config = new MLSSConfig(rom);
+                    Config = config;
+                    var mixer = new MLSSMixer(config);
                     Mixer = mixer;
-                    Player = new MLSSPlayer(mixer, rom);
+                    Player = new MLSSPlayer(mixer, config);
                     break;
                 }
                 case EngineType.NDS_DSE:
                 {
+                    string bgmPath = (string)playerArg;
+                    var config = new DSEConfig(bgmPath);
+                    Config = config;
                     var mixer = new DSEMixer();
                     Mixer = mixer;
-                    Player = new DSEPlayer(mixer, (string)playerArg);
+                    Player = new DSEPlayer(mixer, config);
                     break;
                 }
                 case EngineType.NDS_SDAT:
                 {
+                    var sdat = (SDAT)playerArg;
+                    var config = new SDATConfig(sdat);
+                    Config = config;
                     var mixer = new SDATMixer();
                     Mixer = mixer;
-                    Player = new SDATPlayer(mixer, (SDAT)playerArg);
+                    Player = new SDATPlayer(mixer, config);
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(type));
@@ -77,8 +85,8 @@ namespace Kermalis.VGMusicStudio.Core
 
         public void ShutDown()
         {
-            // TODO: Dispose
-            Config?.Dispose();
+            // TODO: Dispose mixer and player
+            Config.Dispose();
             Config = null;
             Mixer = null;
             Player.ShutDown();

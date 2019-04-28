@@ -230,10 +230,5 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 FATBlock = er.ReadObject<FAT>(FATOffset);
             }
         }
-
-        public string GetLabelForSong(int index)
-        {
-            return SYMBBlock == null ? index.ToString() : SYMBBlock.SequenceSymbols.Entries[index];
-        }
     }
 }

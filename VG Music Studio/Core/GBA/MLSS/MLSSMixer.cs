@@ -1,7 +1,5 @@
-﻿using Kermalis.EndianBinaryIO;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using System;
-using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
@@ -10,14 +8,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public readonly float SampleRateReciprocal, SamplesReciprocal;
         public readonly int SamplesPerBuffer;
 
-        public readonly EndianBinaryReader Reader;
+        public readonly MLSSConfig Config;
         private readonly WaveBuffer audio;
         private readonly float[][] trackBuffers = new float[0x10][];
         private readonly BufferedWaveProvider buffer;
 
-        public MLSSMixer(byte[] rom)
+        public MLSSMixer(MLSSConfig config)
         {
-            Reader = new EndianBinaryReader(new MemoryStream(rom));
+            Config = config;
             SamplesPerBuffer = 224; // TODO
             SampleRateReciprocal = 1f / 13379; // TODO: Actual frequency unknown
             SamplesReciprocal = 1f / SamplesPerBuffer;

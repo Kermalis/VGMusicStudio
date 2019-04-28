@@ -1,5 +1,4 @@
-﻿using Kermalis.EndianBinaryIO;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
@@ -67,14 +66,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
         }
 
-        public static float[] PCM4ToFloat(EndianBinaryReader reader, int sampleOffset)
+        public static float[] PCM4ToFloat(int sampleOffset)
         {
+            var config = (M4AConfig)Engine.Instance.Config;
             float[] sample = new float[0x20];
-            byte[] data = reader.ReadBytes(0x10, sampleOffset);
             float sum = 0;
             for (int i = 0; i < 0x10; i++)
             {
-                byte b = data[i];
+                byte b = config.ROM[sampleOffset + i];
                 float first = (b >> 4) / 16f;
                 float second = (b & 0xF) / 16f;
                 sum += sample[i * 2] = first;
@@ -90,15 +89,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 
         // Pokémon Only
         public static readonly sbyte[] CompressionLookup = { 0, 1, 4, 9, 16, 25, 36, 49, -64, -49, -36, -25, -16, -9, -4, -1 };
-        public static sbyte[] Decompress(EndianBinaryReader reader, int sampleOffset, int sampleLength)
+        public static sbyte[] Decompress(int sampleOffset, int sampleLength)
         {
+            var config = (M4AConfig)Engine.Instance.Config;
             var samples = new List<sbyte>();
             sbyte compressionLevel = 0;
             int compressionByte = 0, compressionIdx = 0;
 
             for (int i = 0; true; i++)
             {
-                byte b = reader.ReadByte(sampleOffset + i);
+                byte b = config.ROM[sampleOffset + i];
                 if (compressionByte == 0)
                 {
                     compressionByte = 0x20;

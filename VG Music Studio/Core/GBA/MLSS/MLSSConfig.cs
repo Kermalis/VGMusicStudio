@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using YamlDotNet.RepresentationModel;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.M4A
+namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
-    internal class M4AConfig : Config
+    internal class MLSSConfig : Config
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
@@ -16,17 +16,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public string Name;
         public int[] SongTableOffsets;
         public long[] SongTableSizes;
+        public int VoiceTableOffset;
+        public int SampleTableOffset;
+        public long SampleTableSize;
         public string Remap;
-        public ReverbType ReverbType;
-        public byte Reverb;
-        public byte Volume;
-        public int SampleRate;
-        public bool HasGoldenSunSynths;
-        public bool HasPokemonCompression;
 
-        public M4AConfig(byte[] rom)
+        public MLSSConfig(byte[] rom)
         {
-            const string configFile = "M4A.yaml";
+            const string configFile = "MLSS.yaml";
             using (StreamReader fileStream = File.OpenText(configFile))
             {
                 try
@@ -77,23 +74,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     SongTableSizes = new long[songTables.Length];
                     for (int i = 0; i < songTables.Length; i++)
                     {
-                        SongTableSizes[i] = Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
                         SongTableOffsets[i] = (int)Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - 1);
+                        SongTableSizes[i] = Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
                     }
-
-                    SampleRate = (int)game.GetValidValue(nameof(SampleRate), 0, M4AUtils.FrequencyTable.Length - 1);
-                    try
-                    {
-                        ReverbType = (ReverbType)Enum.Parse(typeof(ReverbType), game.Children.GetValue(nameof(ReverbType)).ToString());
-                    }
-                    catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
-                    {
-                        throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(ReverbType)}\" was invalid.");
-                    }
-                    Reverb = (byte)game.GetValidValue(nameof(Reverb), byte.MinValue, byte.MaxValue);
-                    Volume = (byte)game.GetValidValue(nameof(Volume), 0, 15);
-                    HasGoldenSunSynths = game.GetValidBoolean(nameof(HasGoldenSunSynths));
-                    HasPokemonCompression = game.GetValidBoolean(nameof(HasPokemonCompression));
+                    VoiceTableOffset = (int)game.GetValidValue(nameof(VoiceTableOffset), 0, rom.Length - 1);
+                    SampleTableOffset = (int)game.GetValidValue(nameof(SampleTableOffset), 0, rom.Length - 1);
+                    SampleTableSize = game.GetValidValue(nameof(SampleTableSize), 0, rom.Length - 1);
                     if (game.Children.TryGetValue(nameof(Remap), out YamlNode remap))
                     {
                         Remap = remap.ToString();
