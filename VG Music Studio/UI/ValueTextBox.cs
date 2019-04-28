@@ -43,7 +43,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 if (TextLength > 0)
                 {
-                    if (Utils.TryParseValue(Text, out long l))
+                    if (Utils.TryParseValue(Text, min, max, out long l))
                     {
                         return l;
                     }
@@ -87,7 +87,7 @@ namespace Kermalis.VGMusicStudio.UI
         protected override void OnTextChanged(EventArgs e)
         {
             base.OnTextChanged(e);
-            Value = Value.Clamp(min, max);
+            Value = Value;
         }
 
         private EventHandler onValueChanged = null;

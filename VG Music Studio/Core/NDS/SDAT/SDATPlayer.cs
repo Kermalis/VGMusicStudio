@@ -53,7 +53,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             thread.Start();
         }
 
-        public void LoadSong(int index)
+        public void LoadSong(long index)
         {
             Stop();
 

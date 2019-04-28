@@ -7,7 +7,7 @@
     <ProjectGuid>{97C8ACF8-66A3-4321-91D6-3E94EACA577F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Kermalis.VGMusicStudio</RootNamespace>
-    <AssemblyName>VGMusicStudio</AssemblyName>
+    <AssemblyName>VG Music Studio</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -175,6 +175,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\TrackInfoControl.cs" />
+    <Compile Include="Util\BetterExceptions.cs" />
     <Compile Include="Util\HSLColor.cs" />
     <Compile Include="Util\TimeBarrier.cs" />
     <Compile Include="Util\Utils.cs" />

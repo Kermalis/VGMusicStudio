@@ -28,7 +28,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             thread.Start();
         }
 
-        public void LoadSong(int index)
+        public void LoadSong(long index)
         {
             SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
             SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBAUtils.CartridgeOffset);

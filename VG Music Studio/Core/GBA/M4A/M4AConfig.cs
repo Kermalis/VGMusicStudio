@@ -13,21 +13,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     {
         public class Song
         {
-            public int Index;
+            public long Index;
             public string Name;
 
-            public Song(int index, string name)
+            public Song(long index, string name)
             {
                 Index = index; Name = name;
             }
 
             public override bool Equals(object obj)
             {
-                return !(obj is Song other) ? false : other.Index == Index && other.Name == Name;
+                return !(obj is Song other) ? false : other.Index == Index;
             }
             public override int GetHashCode()
             {
-                return unchecked(Index.GetHashCode() ^ Name.GetHashCode());
+                return Index.GetHashCode();
             }
             public override string ToString()
             {
@@ -37,16 +37,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public class Playlist
         {
             public string Name;
-            public Song[] Songs;
+            public List<Song> Songs;
 
-            public Playlist(string name, Song[] songs)
+            public Playlist(string name, List<Song> songs)
             {
                 Name = name; Songs = songs;
             }
 
             public override string ToString()
             {
-                int songCount = Songs.Length;
+                int songCount = Songs.Count;
                 CultureInfo cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
 
                 if (cul.Equals(CultureInfo.CreateSpecificCulture("it")) // Italian
@@ -69,9 +69,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public readonly EndianBinaryReader Reader;
         public string GameCode;
         public string Name;
-        public string Creator;
         public int[] SongTableOffsets;
-        public int[] SongTableSizes;
+        public long[] SongTableSizes;
         public List<Playlist> Playlists;
         public string Remap;
         public ReverbType ReverbType;
@@ -84,80 +83,123 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public M4AConfig(byte[] rom)
         {
             const string configFile = "M4A.yaml";
-            ROM = rom;
-            Reader = new EndianBinaryReader(new MemoryStream(rom));
-            GameCode = Reader.ReadString(4, 0xAC);
-            var yaml = new YamlStream();
-            yaml.Load(new StringReader(File.ReadAllText(configFile)));
-
-            var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            foreach (KeyValuePair<YamlNode, YamlNode> g in mapping)
+            using (StreamReader fileStream = File.OpenText(configFile))
             {
-                if (g.Key.ToString() == GameCode)
+                try
                 {
-                    var game = (YamlMappingNode)g.Value;
+                    ROM = rom;
+                    Reader = new EndianBinaryReader(new MemoryStream(rom));
+                    GameCode = Reader.ReadString(4, 0xAC);
+                    var yaml = new YamlStream();
+                    yaml.Load(fileStream);
 
-                    Name = game.Children[nameof(Name)].ToString();
-
-                    string[] songTables = game.Children[nameof(SongTableOffsets)].ToString().Split(' ');
-                    SongTableOffsets = new int[songTables.Length];
-                    SongTableSizes = new int[songTables.Length];
-                    for (int i = 0; i < songTables.Length; i++)
+                    var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
+                    YamlMappingNode game;
+                    try
                     {
-                        SongTableOffsets[i] = (int)Utils.ParseValue(songTables[i]);
+                        game = (YamlMappingNode)mapping.Children.GetValue(GameCode);
+                    }
+                    catch (BetterKeyNotFoundException)
+                    {
+                        throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}Game code \"{GameCode}\" is missing.");
+                    }
+
+                    Name = game.Children.GetValue(nameof(Name)).ToString();
+
+                    string[] songTables = game.Children.GetValue(nameof(SongTableOffsets)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (songTables.Length == 0)
+                    {
+                        throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(SongTableOffsets)}\" must have at least one entry.");
                     }
 
                     if (game.Children.TryGetValue("Copy", out YamlNode copy))
                     {
-                        game = (YamlMappingNode)mapping.Children[copy];
-                    }
-
-                    string[] sizes = game.Children[nameof(SongTableSizes)].ToString().Split(' ');
-                    for (int i = 0; i < songTables.Length; i++)
-                    {
-                        if (i < sizes.Length)
+                        try
                         {
-                            SongTableSizes[i] = (int)Utils.ParseValue(sizes[i]);
+                            game = (YamlMappingNode)mapping.Children.GetValue(copy);
+                        }
+                        catch (BetterKeyNotFoundException ex)
+                        {
+                            throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}Cannot copy invalid game code \"{ex.Key}\"");
                         }
                     }
 
-                    Creator = game.Children[nameof(Creator)].ToString();
-
-                    SampleRate = (int)Utils.ParseValue(game.Children[nameof(SampleRate)].ToString());
-                    ReverbType = (ReverbType)Enum.Parse(typeof(ReverbType), game.Children[nameof(ReverbType)].ToString());
-                    Reverb = (byte)Utils.ParseValue(game.Children[nameof(Reverb)].ToString());
-                    Volume = (byte)Utils.ParseValue(game.Children[nameof(Volume)].ToString());
-                    HasGoldenSunSynths = bool.Parse(game.Children[nameof(HasGoldenSunSynths)].ToString());
-                    HasPokemonCompression = bool.Parse(game.Children[nameof(HasPokemonCompression)].ToString());
-                    if (game.Children.TryGetValue(nameof(Remap), out YamlNode rmap))
+                    string[] sizes = game.Children.GetValue(nameof(SongTableSizes)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (sizes.Length != songTables.Length)
                     {
-                        Remap = rmap.ToString();
+                        throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(SongTableSizes)}\" count must be the same as \"{nameof(SongTableOffsets)}\" count.");
+                    }
+                    SongTableOffsets = new int[songTables.Length];
+                    SongTableSizes = new long[songTables.Length];
+                    for (int i = 0; i < songTables.Length; i++)
+                    {
+                        SongTableSizes[i] = Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length / 8); // A song entry is 8 bytes
+                        SongTableOffsets[i] = (int)Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - (SongTableSizes[i] * 8));
+                    }
+
+                    SampleRate = (int)game.GetValidValue(nameof(SampleRate), 0, M4AUtils.FrequencyTable.Length - 1);
+                    try
+                    {
+                        ReverbType = (ReverbType)Enum.Parse(typeof(ReverbType), game.Children.GetValue(nameof(ReverbType)).ToString());
+                    }
+                    catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
+                    {
+                        throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(ReverbType)}\" was invalid.");
+                    }
+                    Reverb = (byte)game.GetValidValue(nameof(Reverb), byte.MinValue, byte.MaxValue);
+                    Volume = (byte)game.GetValidValue(nameof(Volume), 0, 15);
+                    HasGoldenSunSynths = game.GetValidBoolean(nameof(HasGoldenSunSynths));
+                    HasPokemonCompression = game.GetValidBoolean(nameof(HasPokemonCompression));
+                    if (game.Children.TryGetValue(nameof(Remap), out YamlNode remap))
+                    {
+                        Remap = remap.ToString();
                     }
 
                     Playlists = new List<Playlist>();
-                    if (game.Children.TryGetValue(nameof(Playlists), out YamlNode ymusic))
+                    if (game.Children.TryGetValue(nameof(Playlists), out YamlNode _playlists))
                     {
-                        var music = (YamlMappingNode)ymusic;
-                        foreach (KeyValuePair<YamlNode, YamlNode> kvp in music)
+                        var playlists = (YamlMappingNode)_playlists;
+                        foreach (KeyValuePair<YamlNode, YamlNode> kvp in playlists)
                         {
+                            string name = kvp.Key.ToString();
                             var songs = new List<Song>();
-                            foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value) // No hex values. It prevents putting in duplicates by having one hex and one dec of the same song index
+                            foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
                             {
-                                songs.Add(new Song(int.Parse(song.Key.ToString()), song.Value.ToString()));
+                                long songIndex = Utils.ParseValue($"{nameof(Playlists)} key", song.Key.ToString(), 0, long.MaxValue);
+                                if (songs.Any(s => s.Index == songIndex))
+                                {
+                                    throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}Playlist \"{name}\" has song {songIndex} defined more than once between decimal and hexadecimal.");
+                                }
+                                songs.Add(new Song(songIndex, song.Value.ToString()));
                             }
-                            Playlists.Add(new Playlist(kvp.Key.ToString(), songs.ToArray()));
+                            Playlists.Add(new Playlist(name, songs));
                         }
                     }
 
                     // The complete playlist
                     if (!Playlists.Any(p => p.Name == "Music"))
                     {
-                        Playlists.Insert(0, new Playlist("Music", Playlists.Select(p => p.Songs).UniteAll().OrderBy(s => s.Index).ToArray()));
+                        Playlists.Insert(0, new Playlist("Music", Playlists.SelectMany(p => p.Songs).Distinct().OrderBy(s => s.Index).ToList()));
                     }
-                    return;
+                }
+                catch (BetterKeyNotFoundException ex)
+                {
+                    throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{ex.Key}\" is missing.");
+                }
+                catch (InvalidValueException ex)
+                {
+                    throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}{ex.Message}");
+                }
+                catch (YamlDotNet.Core.SyntaxErrorException ex)
+                {
+                    throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}{ex.Message}");
                 }
             }
-            throw new Exception($"Game code \"{GameCode}\" was not found in {configFile}");
+        }
+
+        public override void Dispose()
+        {
+            Reader.Dispose();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Kermalis.VGMusicStudio.Core.GBA.M4A;
+﻿using Kermalis.VGMusicStudio.Core.GBA;
+using Kermalis.VGMusicStudio.Core.GBA.M4A;
 using Kermalis.VGMusicStudio.Core.GBA.MLSS;
 using Kermalis.VGMusicStudio.Core.NDS.DSE;
 using Kermalis.VGMusicStudio.Core.NDS.SDAT;
@@ -31,6 +32,10 @@ namespace Kermalis.VGMusicStudio.Core
                 case EngineType.GBA_M4A:
                 {
                     byte[] rom = (byte[])playerArg;
+                    if (rom.Length > GBAUtils.CartridgeCapacity)
+                    {
+                        throw new Exception($"ROM is too large. Maximum size is 0x{GBAUtils.CartridgeCapacity:X7} bytes.");
+                    }
                     var config = new M4AConfig(rom);
                     Config = config;
                     var mixer = new M4AMixer(config);
@@ -41,6 +46,10 @@ namespace Kermalis.VGMusicStudio.Core
                 case EngineType.GBA_MLSS:
                 {
                     byte[] rom = (byte[])playerArg;
+                    if (rom.Length > GBAUtils.CartridgeCapacity)
+                    {
+                        throw new Exception($"ROM is too large. Maximum size is 0x{GBAUtils.CartridgeCapacity:X7} bytes.");
+                    }
                     var mixer = new MLSSMixer(rom);
                     Mixer = mixer;
                     Player = new MLSSPlayer(mixer, rom);
@@ -69,6 +78,7 @@ namespace Kermalis.VGMusicStudio.Core
         public void ShutDown()
         {
             // TODO: Dispose
+            Config?.Dispose();
             Config = null;
             Mixer = null;
             Player.ShutDown();

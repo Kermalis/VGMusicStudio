@@ -31,7 +31,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             thread.Start();
         }
 
-        public void LoadSong(int index)
+        public void LoadSong(long index)
         {
             masterSWDL = new SWDL(Path.Combine(bgmPath, "bgm.swd"));
             localSWDL = new SWDL(Path.Combine(bgmPath, $"bgm{index:D4}.swd"));

@@ -13,11 +13,9 @@ Discord Server: https://discord.gg/q2pAw3x
 * MIDI saving - UI with saving options, such as remapping
 * MIDI saving - Make errors more clear
 * Playlist mode - A way to exit playlist mode
-* Config - Exception handling
-* Config - Saving
 * Voice table editor - Tooltips which provide a huge chunk of information
 * Track editor - Offset for the event you're editing
-* Track editor - Put the event parameter as text in the parameter name label, so there is reference to the original value (or in MODT/Note's cases, text representation)
+* Track editor - Put the event parameter as text in the parameter name label, so there is reference to the original value (or in LFOType/Note's cases, text representation)
 * Maybe a nice waveform
 * Let the on-screen piano play notes or interact with a MIDI keyboard
 * Detachable piano

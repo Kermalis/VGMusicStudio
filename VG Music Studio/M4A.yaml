@@ -1,6 +1,5 @@
 A2UJ:
   Name: "Mother 1 + 2 (Japan)"
-  Creator: "Ape Inc., Nintendo Tokyo R&D Products, HAL Laboratory"
   SongTableOffsets: 0x10B530
   SongTableSizes: 451
   SampleRate: 2
@@ -11,7 +10,6 @@ A2UJ:
   HasPokemonCompression: False
 A3UJ:
   Name: "Mother 3 (Japan)"
-  Creator: "Brownie Brown, Nintendo, HAL Laboratory"
   SongTableOffsets: 0x120E94
   SongTableSizes: 1968
   SampleRate: 4
@@ -22,7 +20,6 @@ A3UJ:
   HasPokemonCompression: False
 A7KE:
   Name: "Kirby: Nightmare in Dream Land (USA)"
-  Creator: "Nintendo, HAL Laboratory"
   SongTableOffsets: 0x060B460
   SongTableSizes: 579
   SampleRate: 4
@@ -91,12 +88,10 @@ A7KE:
       56: "Nightmare Appears!"
 A7KP:
   Name: "Kirby: Nightmare in Dream Land (Europe)"
-  Creator: "Nintendo, HAL Laboratory"
   SongTableOffsets: 0x0843B50
   Copy: "A7KE"
 AE7E:
   Name: "Fire Emblem 7 (USA)"
-  Creator: "Intelligent Systems"
   SongTableOffsets: 0x69D6E0
   SongTableSizes: 1000
   SampleRate: 3
@@ -107,7 +102,6 @@ AE7E:
   HasPokemonCompression: False
 AGFE:
   Name: "Golden Sun: The Lost Age (USA)"
-  Creator: "Camelot"
   SongTableOffsets: 0x1C4530
   SongTableSizes: 800
   SampleRate: 8
@@ -118,7 +112,6 @@ AGFE:
   HasPokemonCompression: False
 AGLJ:
   Name: "Tomato Adventure (Japan)"
-  Creator: "AlphaDream"
   SongTableOffsets: 0x4B11A4
   SongTableSizes: 244
   SampleRate: 4
@@ -129,7 +122,6 @@ AGLJ:
   HasPokemonCompression: False
 AGSE:
   Name: "Golden Sun (USA)"
-  Creator: "Camelot"
   SongTableOffsets: 0xFC684
   SongTableSizes: 312
   SampleRate: 6
@@ -140,7 +132,6 @@ AGSE:
   HasPokemonCompression: False
 AINJ:
   Name: "Initial D: Another Stage (Japan)"
-  Creator: "Sammy Corporation"
   SongTableOffsets: 0x648B38
   SongTableSizes: 88
   SampleRate: 2
@@ -159,7 +150,6 @@ AMAJ:
   Copy: "AMZE"
 AMKE:
   Name: "Mario Kart: Super Circuit (USA)"
-  Creator: "Nintendo"
   SongTableOffsets: 0x102498
   SongTableSizes: 403
   SampleRate: 2
@@ -224,7 +214,6 @@ AMKE:
       60: "60"
 AMTE:
   Name: "Metroid Fusion (USA)"
-  Creator: "Nintendo"
   SongTableOffsets: 0xA8D3C
   SongTableSizes: 745
   SampleRate: 3
@@ -235,7 +224,6 @@ AMTE:
   HasPokemonCompression: False
 AMZE:
   Name: "Super Mario Advance (USA)"
-  Creator: "Nintendo"
   SongTableOffsets: 0xF40D4
   SongTableSizes: 447
   SampleRate: 2
@@ -246,7 +234,6 @@ AMZE:
   HasPokemonCompression: False
 AWAE:
   Name: "Wario Land 4 (USA)"
-  Creator: "Nintendo"
   SongTableOffsets: 0x98028
   SongTableSizes: 819
   SampleRate: 3
@@ -385,7 +372,6 @@ AXPE:
   Copy: "AXVE"
 AXVE:
   Name: "Pokémon Ruby Version (USA)"
-  Creator: "Game Freak"
   SongTableOffsets: 0x45548C
   SongTableSizes: 468
   SampleRate: 3
@@ -518,7 +504,6 @@ AXVE:
       467: "Unused - Team Rocket Appears!"
 AZLE:
   Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
-  Creator: "Nintendo, Capcom"
   SongTableOffsets: 0x3C3BBC
   SongTableSizes: 545
   SampleRate: 3
@@ -529,7 +514,6 @@ AZLE:
   HasPokemonCompression: False
 B24E:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
-  Creator: "Chunsoft"
   SongTableOffsets: 0x1E866BC
   SongTableSizes: 940
   SampleRate: 5
@@ -648,7 +632,6 @@ B24P:
   Copy: "B24E"
 BMXE:
   Name: "Metroid: Zero Mission (USA)"
-  Creator: "Nintendo"
   SongTableOffsets: 0x8F2C0
   SongTableSizes: 708
   SampleRate: 3
@@ -663,7 +646,6 @@ BPED:
   Copy: "BPEE"
 BPEE:
   Name: "Pokémon Emerald Version (USA)"
-  Creator: "Game Freak"
   SongTableOffsets: 0x6B49F0
   SongTableSizes: 610
   SampleRate: 3
@@ -910,7 +892,6 @@ BPGE:
   Copy: "BPRE"
 BPRE:
   Name: "Pokémon Fire Red Version (USA)"
-  Creator: "Game Freak"
   SongTableOffsets: 0x4A32CC
   SongTableSizes: 347
   SampleRate: 3
@@ -1016,7 +997,6 @@ BPRE:
       344: "Trainer Tower"
 BZME:
   Name: "The Legend of Zelda: The Minish Cap (USA)"
-  Creator: "Capcom, Flagship"
   SongTableOffsets: 0xA11DBC
   SongTableSizes: 546
   SampleRate: 3
@@ -1027,7 +1007,6 @@ BZME:
   HasPokemonCompression: False
 KERB:
   Name: "Kermalis's Test ROM"
-  Creator: "Kermalis"
   SongTableOffsets: 0x100004C 0x1000B6C 0x100168C 0x10021AC
   SongTableSizes: 356 356 356 356
   SampleRate: 3
@@ -1038,7 +1017,6 @@ KERB:
   HasPokemonCompression: True
 KERH:
   Name: "Kermalis's Test ROM"
-  Creator: "Kermalis"
   SongTableOffsets: 0x1000038 0x1000B78
   SongTableSizes: 360 360
   Remap: "HGSS"
@@ -1050,7 +1028,6 @@ KERH:
   HasPokemonCompression: True
 KERP:
   Name: "Kermalis's Test ROM"
-  Creator: "Kermalis"
   SongTableOffsets: 0x1000000 0x1001310 0x1002620 0x1003930
   SongTableSizes: 610 610 610 610
   SampleRate: 3

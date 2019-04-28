@@ -33,7 +33,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             thread.Start();
         }
 
-        public void LoadSong(int index)
+        public void LoadSong(long index)
         {
             const int songTableOffset = 0x21CB70; // TODO
             int songOffset = reader.ReadInt32(songTableOffset + (index * 4)) - GBAUtils.CartridgeOffset;
