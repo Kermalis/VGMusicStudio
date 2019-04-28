@@ -31,8 +31,20 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             thread.Start();
         }
 
+        private void DisposeTracks()
+        {
+            if (tracks != null)
+            {
+                for (int i = 0; i < tracks.Length; i++)
+                {
+                    tracks[i].Reader.Dispose();
+                }
+                tracks = null;
+            }
+        }
         public void LoadSong(long index)
         {
+            DisposeTracks();
             masterSWDL = new SWDL(Path.Combine(config.BGMPath, "bgm.swd"));
             string bgm = config.BGMFiles[index];
             localSWDL = new SWDL(Path.ChangeExtension(bgm, "swd"));
@@ -97,12 +109,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 tracks[i].StopAllChannels();
             }
         }
-        public void ShutDown()
+        public void Dispose()
         {
-            // TODO: Dispose tracks and track readers
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
+            DisposeTracks();
         }
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {

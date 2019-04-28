@@ -1,4 +1,6 @@
-﻿namespace Kermalis.VGMusicStudio.Core
+﻿using System;
+
+namespace Kermalis.VGMusicStudio.Core
 {
     internal enum PlayerState : byte
     {
@@ -10,7 +12,7 @@
 
     internal delegate void SongEndedEvent();
 
-    internal interface IPlayer
+    internal interface IPlayer : IDisposable
     {
         PlayerState State { get; }
         event SongEndedEvent SongEnded;
@@ -19,7 +21,6 @@
         void Play();
         void Pause();
         void Stop();
-        void ShutDown();
         void GetSongState(UI.TrackInfoControl.TrackInfo info);
     }
 }

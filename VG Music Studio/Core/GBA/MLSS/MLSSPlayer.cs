@@ -72,12 +72,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             }
             State = PlayerState.Stopped;
         }
-        public void ShutDown()
+        public void Dispose()
         {
-            // TODO: Dispose tracks and track readers
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
+            for (int i = 0; i < tracks.Length; i++)
+            {
+                tracks[i].Reader.Dispose();
+            }
         }
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {

@@ -37,6 +37,9 @@ Discord Server: https://discord.gg/q2pAw3x
 * ADSR
 * Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
 
+## SDAT Engine
+* Find proper formulas for LFO
+
 ## DSE Engine
 * ADSR
 * Ability to load SMDB and SWDB (Big Endian as opposed to SMDL and SWDL for Little Endian)

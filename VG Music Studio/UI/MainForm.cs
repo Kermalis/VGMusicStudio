@@ -247,7 +247,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 try
                 {
-                    EngineShutDown();
+                    DisposeEngine();
                     new Engine(Engine.EngineType.NDS_DSE, d.FileName);
                     var config = (DSEConfig)Engine.Instance.Config;
                     FinishLoading(false, config.BGMFiles.Length);
@@ -269,7 +269,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 try
                 {
-                    EngineShutDown();
+                    DisposeEngine();
                     new Engine(Engine.EngineType.GBA_M4A, File.ReadAllBytes(d.FileName));
                     var config = (M4AConfig)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
@@ -291,7 +291,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 try
                 {
-                    EngineShutDown();
+                    DisposeEngine();
                     new Engine(Engine.EngineType.GBA_MLSS, File.ReadAllBytes(d.FileName));
                     var config = (MLSSConfig)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
@@ -313,7 +313,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 try
                 {
-                    EngineShutDown();
+                    DisposeEngine();
                     var sdat = new SDAT(File.ReadAllBytes(d.FileName));
                     new Engine(Engine.EngineType.NDS_SDAT, sdat);
                     FinishLoading(true, sdat.INFOBlock.SequenceInfos.NumEntries);
@@ -412,12 +412,12 @@ namespace Kermalis.VGMusicStudio.UI
             songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = true;
             UpdateTaskbarButtons();
         }
-        private void EngineShutDown()
+        private void DisposeEngine()
         {
             if (Engine.Instance != null)
             {
                 Stop();
-                Engine.Instance.ShutDown();
+                Engine.Instance.Dispose();
             }
             prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = false;
             Text = Utils.ProgramName;
@@ -513,7 +513,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            EngineShutDown();
+            DisposeEngine();
             base.OnFormClosing(e);
         }
         private void OnResize(object sender, EventArgs e)

@@ -7,7 +7,7 @@ using System;
 
 namespace Kermalis.VGMusicStudio.Core
 {
-    internal class Engine
+    internal class Engine : IDisposable
     {
         public enum EngineType : byte
         {
@@ -83,13 +83,13 @@ namespace Kermalis.VGMusicStudio.Core
             Instance = this;
         }
 
-        public void ShutDown()
+        public void Dispose()
         {
-            // TODO: Dispose mixer and player
             Config.Dispose();
             Config = null;
+            Mixer.Dispose();
             Mixer = null;
-            Player.ShutDown();
+            Player.Dispose();
             Player = null;
             Instance = null;
         }

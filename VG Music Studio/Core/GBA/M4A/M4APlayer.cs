@@ -28,8 +28,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             thread.Start();
         }
 
+        private void DisposeTracks()
+        {
+            if (tracks != null)
+            {
+                for (int i = 0; i < tracks.Length; i++)
+                {
+                    tracks[i].Reader.Dispose();
+                }
+                tracks = null;
+            }
+        }
         public void LoadSong(long index)
         {
+            DisposeTracks();
             SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
             SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBAUtils.CartridgeOffset);
             voiceTableOffset = header.VoiceTableOffset - GBAUtils.CartridgeOffset;
@@ -66,12 +78,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 tracks[i].StopAllChannels();
             }
         }
-        public void ShutDown()
+        public void Dispose()
         {
-            // TODO: Dispose tracks and track readers
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
+            DisposeTracks();
         }
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {

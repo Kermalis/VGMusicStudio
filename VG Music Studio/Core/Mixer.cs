@@ -6,7 +6,7 @@ using System;
 
 namespace Kermalis.VGMusicStudio.Core
 {
-    internal abstract class Mixer : IAudioSessionEventsHandler
+    internal abstract class Mixer : IAudioSessionEventsHandler, IDisposable
     {
         public bool[] Mutes { get; protected set; }
         private IWavePlayer @out;
@@ -72,6 +72,13 @@ namespace Kermalis.VGMusicStudio.Core
         {
             ignoreVolChangeFromUI = true;
             appVolume.SimpleAudioVolume.Volume = volume;
+        }
+
+        public void Dispose()
+        {
+            @out.Stop();
+            @out.Dispose();
+            appVolume.Dispose();
         }
     }
 }

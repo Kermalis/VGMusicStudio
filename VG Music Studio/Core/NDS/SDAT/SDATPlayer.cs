@@ -137,7 +137,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 tracks[i].StopAllChannels();
             }
         }
-        public void ShutDown()
+        public void Dispose()
         {
             Stop();
             State = PlayerState.ShutDown;
