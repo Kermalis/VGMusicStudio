@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
-    internal class SDATPlayer : IPlayer
+    internal class Player : IPlayer
     {
         private class SoundVar
         {
@@ -22,8 +22,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         // Spirit Tracks song 18 uses variable 1 to help variable 19 check what segment the song should play next
         private readonly SoundVar[] soundVars = new SoundVar[0x20]; // Unsure of the exact amount
         private readonly Track[] tracks = new Track[0x10];
-        private readonly SDATMixer mixer;
-        private readonly SDATConfig config;
+        private readonly Mixer mixer;
+        private readonly Config config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
         private SSEQ sseq;
@@ -37,7 +37,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public SDATPlayer(SDATMixer mixer, SDATConfig config)
+        public Player(Mixer mixer, Config config)
         {
             for (byte i = 0; i < tracks.Length; i++)
             {
@@ -220,7 +220,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 {
                     short min = (short)(sseq.Data[track.DataOffset++] | (sseq.Data[track.DataOffset++] << 8));
                     short max = (short)(sseq.Data[track.DataOffset++] | (sseq.Data[track.DataOffset++] << 8));
-                    return SDATUtils.RNG.Next(min, max + 1);
+                    return Utils.RNG.Next(min, max + 1);
                 }
                 case ArgType.SoundVar: // GetSoundVarShort
                 {
@@ -241,7 +241,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
             else
             {
-                InstrumentData inst = sbnk.GetInstrumentData(track.Voice, key);
+                SBNK.InstrumentData inst = sbnk.GetInstrumentData(track.Voice, key);
                 if (inst != null)
                 {
                     channel = mixer.AllocateChannel(inst.Type, track);
@@ -262,10 +262,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         {
                             case InstrumentType.PCM:
                             {
-                                SWAVInfo wave = sbnk.GetWave(inst.Param.Info[1], inst.Param.Info[0]);
-                                if (wave != null)
+                                SWAR.SWAV swav = sbnk.GetSWAV(inst.Param.Info[1], inst.Param.Info[0]);
+                                if (swav != null)
                                 {
-                                    channel.StartPCM(wave, noteLength);
+                                    channel.StartPCM(swav, noteLength);
                                     started = true;
                                 }
                                 break;
@@ -506,7 +506,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     negate = true;
                                     mathArg = (short)-mathArg;
                                 }
-                                short val = (short)SDATUtils.RNG.Next(mathArg + 1);
+                                short val = (short)Utils.RNG.Next(mathArg + 1);
                                 if (negate)
                                 {
                                     val = (short)-val;

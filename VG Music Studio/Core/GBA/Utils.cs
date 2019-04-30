@@ -1,6 +1,6 @@
 ﻿namespace Kermalis.VGMusicStudio.Core.GBA
 {
-    internal static class GBAUtils
+    internal static class Utils
     {
         // All research says different values (60, 59.7, 59.73, 59.7275, 59.59), so I am unsure of the definitive fps. Check M4AUtils.FrequencyTable for a hint towards the actual value.
         //public const int AGB_FPS = 60;

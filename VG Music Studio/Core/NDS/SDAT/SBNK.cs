@@ -6,6 +6,24 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
     internal class SBNK
     {
+        public class InstrumentData
+        {
+            public class DataParam
+            {
+                [BinaryArrayFixedLength(2)]
+                public ushort[] Info { get; set; }
+                public byte BaseKey { get; set; }
+                public byte Attack { get; set; }
+                public byte Decay { get; set; }
+                public byte Sustain { get; set; }
+                public byte Release { get; set; }
+                public byte Pan { get; set; }
+            }
+
+            public InstrumentType Type { get; set; }
+            public byte Padding { get; set; }
+            public DataParam Param { get; set; }
+        }
         public class Instrument : IBinarySerializable
         {
             public class DefaultData
@@ -157,10 +175,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
         }
 
-        public SWAVInfo GetWave(int swarIndex, int swavIndex)
+        public SWAR.SWAV GetSWAV(int swarIndex, int swavIndex)
         {
             SWAR swar = SWARs[swarIndex];
-            return swar != null && swavIndex < swar.NumWaves ? swar.Waves[swavIndex] : null;
+            return swar == null || swavIndex >= swar.NumWaves ? null : swar.Waves[swavIndex];
         }
     }
 }

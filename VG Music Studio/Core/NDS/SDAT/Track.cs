@@ -1,4 +1,3 @@
-using Kermalis.VGMusicStudio.Util;
 using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
@@ -6,7 +5,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
     internal class Track
     {
         public readonly byte Index;
-        private readonly SDATPlayer player;
+        private readonly Player player;
 
         public bool Enabled, Stopped;
         public bool Tie, ShouldWaitForNotesToFinish, WaitingForNoteToFinishBeforeContinuingXD, Portamento;
@@ -29,24 +28,24 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public int GetPitch()
         {
-            int mod = LFOType == LFOType.Pitch ? (LFORange * SDATUtils.Sin(LFOPhase >> 8) * LFODepth) : 0;
+            int mod = LFOType == LFOType.Pitch ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
             mod = ((mod << 6) >> 14) | ((mod >> 26) << 18);
             return (Bend * BendRange / 2) + mod;
         }
         public int GetVolume()
         {
-            int mod = LFOType == LFOType.Volume ? (LFORange * SDATUtils.Sin(LFOPhase >> 8) * LFODepth) : 0;
+            int mod = LFOType == LFOType.Volume ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
             mod = (((mod << 6) >> 14) | ((mod >> 26) << 18)) << 6;
-            return SDATUtils.SustainTable[player.Volume] + SDATUtils.SustainTable[Volume] + SDATUtils.SustainTable[Expression] + mod;
+            return Utils.SustainTable[player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + mod;
         }
         public sbyte GetPan()
         {
-            int mod = LFOType == LFOType.Panpot ? (LFORange * SDATUtils.Sin(LFOPhase >> 8) * LFODepth) : 0;
+            int mod = LFOType == LFOType.Panpot ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
             mod = ((mod << 6) >> 14) | ((mod >> 26) << 18);
-            return (sbyte)Utils.Clamp(Pan + mod, -0x40, 0x3F);
+            return (sbyte)Util.Utils.Clamp(Pan + mod, -0x40, 0x3F);
         }
 
-        public Track(byte i, SDATPlayer player)
+        public Track(byte i, Player player)
         {
             Index = i;
             this.player = player;

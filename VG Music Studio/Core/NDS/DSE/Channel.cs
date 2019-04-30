@@ -1,6 +1,4 @@
-﻿using Kermalis.VGMusicStudio.Core.NDS.SDAT;
-
-namespace Kermalis.VGMusicStudio.Core.NDS.DSE
+﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
     internal class Channel
     {
@@ -24,7 +22,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         private short prevLeft, prevRight;
 
         // PCM8, PCM16, ADPCM
-        private SWDL.SampleBlock sample;
+        private SWD.SampleBlock sample;
         // PCM8, PCM16
         private int dataOffset;
         // ADPCM
@@ -37,20 +35,20 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             Index = i;
         }
 
-        public bool StartPCM(SWDL localswdl, SWDL masterswdl, byte voice, int key, uint noteLength)
+        public bool StartPCM(SWD localswd, SWD masterswd, byte voice, int key, uint noteLength)
         {
-            IProgramInfo programInfo = localswdl.Programs.ProgramInfos[voice];
+            SWD.IProgramInfo programInfo = localswd.Programs.ProgramInfos[voice];
             if (programInfo != null)
             {
                 for (int i = 0; i < programInfo.SplitEntries.Length; i++)
                 {
-                    ISplitEntry split = programInfo.SplitEntries[i];
+                    SWD.ISplitEntry split = programInfo.SplitEntries[i];
                     if (key >= split.LowKey && key <= split.HighKey)
                     {
-                        sample = masterswdl.Samples[split.SampleId];
+                        sample = masterswd.Samples[split.SampleId];
                         Key = (byte)key;
                         RootKey = split.SampleRootKey;
-                        BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / sample.WavInfo.SampleRate);
+                        BaseTimer = (ushort)(Utils.ARM7_CLOCK / sample.WavInfo.SampleRate);
                         SetAttack(0x7F - sample.WavInfo.Attack);
                         SetDecay(0x7F - sample.WavInfo.Decay);
                         SetSustain(sample.WavInfo.Sustain);
@@ -84,19 +82,19 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         // TODO
         public void SetAttack(int a)
         {
-            attack = SDATUtils.AttackTable[a];
+            attack = SDAT.Utils.AttackTable[a];
         }
         public void SetDecay(int d)
         {
-            decay = SDATUtils.DecayTable[d];
+            decay = SDAT.Utils.DecayTable[d];
         }
         public void SetSustain(byte s)
         {
-            sustain = SDATUtils.SustainTable[s];
+            sustain = SDAT.Utils.SustainTable[s];
         }
         public void SetRelease(int r)
         {
-            release = SDATUtils.DecayTable[r];
+            release = SDAT.Utils.DecayTable[r];
         }
         public void StepEnvelope()
         {

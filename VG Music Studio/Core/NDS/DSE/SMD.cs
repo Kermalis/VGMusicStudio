@@ -2,12 +2,12 @@
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
-    internal class SMDL
+    internal class SMD
     {
         public class Header
         {
             [BinaryStringFixedLength(4)]
-            public string Type { get; set; }
+            public string Type { get; set; } // "smdb" or "smdl"
             [BinaryArrayFixedLength(4)]
             public byte[] Unknown1 { get; set; }
             public uint Length { get; set; }

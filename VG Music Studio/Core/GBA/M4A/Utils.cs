@@ -3,13 +3,39 @@ using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
-    internal static class Samples
+    internal static class Utils
     {
+        public static byte[] ClockTable = new byte[49]
+        {
+            00, 01, 02, 03, 04, 05, 06, 07,
+            08, 09, 10, 11, 12, 13, 14, 15,
+            16, 17, 18, 19, 20, 21, 22, 23,
+            24, 28, 30, 32, 36, 40, 42, 44,
+            48, 52, 54, 56, 60, 64, 66, 68,
+            72, 76, 78, 80, 84, 88, 90, 92,
+            96
+        };
+        public static (int sampleRate, int samplesPerBuffer)[] FrequencyTable = new (int, int)[12]
+        {
+            (05734, 096), // 59.72916666666667
+            (07884, 132), // 59.72727272727273
+            (10512, 176), // 59.72727272727273
+            (13379, 224), // 59.72767857142857
+            (15768, 264), // 59.72727272727273
+            (18157, 304), // 59.72697368421053
+            (21024, 352), // 59.72727272727273
+            (26758, 448), // 59.72767857142857
+            (31536, 528), // 59.72727272727273
+            (36314, 608), // 59.72697368421053
+            (40137, 672), // 59.72767857142857
+            (42048, 704)  // 59.72727272727273
+        };
+
         // Squares
-        public static readonly float[] SquareD12 = new float[] {  0.500f,  0.500f,  0.500f,  0.500f, -0.500f, -0.500f, -0.500f, -0.500f };
-        public static readonly float[] SquareD25 = new float[] {  0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f };
-        public static readonly float[] SquareD50 = new float[] {  0.750f,  0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f };
-        public static readonly float[] SquareD75 = new float[] {  0.250f,  0.250f,  0.250f,  0.250f,  0.250f,  0.250f, -0.750f, -0.750f };
+        public static readonly float[] SquareD12 = new float[8] {  0.500f,  0.500f,  0.500f,  0.500f, -0.500f, -0.500f, -0.500f, -0.500f };
+        public static readonly float[] SquareD25 = new float[8] {  0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f };
+        public static readonly float[] SquareD50 = new float[8] {  0.750f,  0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f };
+        public static readonly float[] SquareD75 = new float[8] {  0.250f,  0.250f,  0.250f,  0.250f,  0.250f,  0.250f, -0.750f, -0.750f };
 
         // Noises
         private static BitArray noiseFine = null, noiseRough = null;
@@ -66,9 +92,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
         }
 
+        // PCM4
         public static float[] PCM4ToFloat(int sampleOffset)
         {
-            var config = (M4AConfig)Engine.Instance.Config;
+            var config = (Config)Engine.Instance.Config;
             float[] sample = new float[0x20];
             float sum = 0;
             for (int i = 0; i < 0x10; i++)
@@ -91,7 +118,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public static readonly sbyte[] CompressionLookup = { 0, 1, 4, 9, 16, 25, 36, 49, -64, -49, -36, -25, -16, -9, -4, -1 };
         public static sbyte[] Decompress(int sampleOffset, int sampleLength)
         {
-            var config = (M4AConfig)Engine.Instance.Config;
+            var config = (Config)Engine.Instance.Config;
             var samples = new List<sbyte>();
             sbyte compressionLevel = 0;
             int compressionByte = 0, compressionIdx = 0;
@@ -131,6 +158,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
 
             return samples.ToArray();
+        }
+
+        public static int Tri(int index)
+        {
+            index = (index - 64) & 0xFF;
+            return (index < 128) ? (index * 12) - 768 : 2304 - (index * 12);
         }
     }
 }

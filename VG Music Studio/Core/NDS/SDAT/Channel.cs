@@ -28,7 +28,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private short prevLeft, prevRight;
 
         // PCM8, PCM16, ADPCM
-        private SWAVInfo wave;
+        private SWAR.SWAV swav;
         // PCM8, PCM16
         private int dataOffset;
         // ADPCM
@@ -46,16 +46,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             Index = i;
         }
 
-        public void StartPCM(SWAVInfo wave, int noteLength)
+        public void StartPCM(SWAR.SWAV swav, int noteLength)
         {
             Type = InstrumentType.PCM;
             dataOffset = 0;
-            this.wave = wave;
-            if (wave.Format == SWAVFormat.ADPCM)
+            this.swav = swav;
+            if (swav.Format == SWAVFormat.ADPCM)
             {
-                adpcmDecoder = new ADPCMDecoder(wave.Samples);
+                adpcmDecoder = new ADPCMDecoder(swav.Samples);
             }
-            BaseTimer = wave.Timer;
+            BaseTimer = swav.Timer;
             Start(noteLength);
         }
         public void StartPSG(byte duty, int noteLength)
@@ -112,19 +112,19 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public void SetAttack(int a)
         {
-            attack = SDATUtils.AttackTable[a];
+            attack = Utils.AttackTable[a];
         }
         public void SetDecay(int d)
         {
-            decay = SDATUtils.DecayTable[d];
+            decay = Utils.DecayTable[d];
         }
         public void SetSustain(byte s)
         {
-            sustain = SDATUtils.SustainTable[s];
+            sustain = Utils.SustainTable[s];
         }
         public void SetRelease(int r)
         {
-            release = SDATUtils.DecayTable[r];
+            release = Utils.DecayTable[r];
         }
         public void StepEnvelope()
         {
@@ -180,16 +180,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     {
                         case InstrumentType.PCM:
                         {
-                            switch (wave.Format)
+                            switch (swav.Format)
                             {
                                 case SWAVFormat.PCM8:
                                 {
                                     // If hit end
-                                    if (dataOffset >= wave.Samples.Length)
+                                    if (dataOffset >= swav.Samples.Length)
                                     {
-                                        if (wave.DoesLoop)
+                                        if (swav.DoesLoop)
                                         {
-                                            dataOffset = wave.LoopOffset * 4;
+                                            dataOffset = swav.LoopOffset * 4;
                                         }
                                         else
                                         {
@@ -198,17 +198,17 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                             return;
                                         }
                                     }
-                                    samp = (short)((sbyte)wave.Samples[dataOffset++] << 8);
+                                    samp = (short)((sbyte)swav.Samples[dataOffset++] << 8);
                                     break;
                                 }
                                 case SWAVFormat.PCM16:
                                 {
                                     // If hit end
-                                    if (dataOffset >= wave.Samples.Length)
+                                    if (dataOffset >= swav.Samples.Length)
                                     {
-                                        if (wave.DoesLoop)
+                                        if (swav.DoesLoop)
                                         {
-                                            dataOffset = wave.LoopOffset * 4;
+                                            dataOffset = swav.LoopOffset * 4;
                                         }
                                         else
                                         {
@@ -217,23 +217,23 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                             return;
                                         }
                                     }
-                                    samp = (short)(wave.Samples[dataOffset++] | (wave.Samples[dataOffset++] << 8));
+                                    samp = (short)(swav.Samples[dataOffset++] | (swav.Samples[dataOffset++] << 8));
                                     break;
                                 }
                                 case SWAVFormat.ADPCM:
                                 {
                                     // If just looped
-                                    if (adpcmDecoder.DataOffset == wave.LoopOffset * 4 && !adpcmDecoder.OnSecondNibble)
+                                    if (adpcmDecoder.DataOffset == swav.LoopOffset * 4 && !adpcmDecoder.OnSecondNibble)
                                     {
                                         adpcmLoopLastSample = adpcmDecoder.LastSample;
                                         adpcmLoopStepIndex = adpcmDecoder.StepIndex;
                                     }
                                     // If hit end
-                                    if (adpcmDecoder.DataOffset >= wave.Samples.Length && !adpcmDecoder.OnSecondNibble)
+                                    if (adpcmDecoder.DataOffset >= swav.Samples.Length && !adpcmDecoder.OnSecondNibble)
                                     {
-                                        if (wave.DoesLoop)
+                                        if (swav.DoesLoop)
                                         {
-                                            adpcmDecoder.DataOffset = wave.LoopOffset * 4;
+                                            adpcmDecoder.DataOffset = swav.LoopOffset * 4;
                                             adpcmDecoder.StepIndex = adpcmLoopStepIndex;
                                             adpcmDecoder.LastSample = adpcmLoopLastSample;
                                             adpcmDecoder.OnSecondNibble = false;

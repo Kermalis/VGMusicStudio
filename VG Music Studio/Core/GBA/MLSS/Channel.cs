@@ -4,7 +4,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
     internal abstract class Channel
     {
-        protected readonly MLSSMixer mixer;
+        protected readonly Mixer mixer;
         public EnvelopeState State;
         public byte Key;
         public bool Stopped;
@@ -17,7 +17,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         protected float frequency;
         protected byte leftVol, rightVol;
 
-        protected Channel(MLSSMixer mixer)
+        protected Channel(Mixer mixer)
         {
             this.mixer = mixer;
         }
@@ -46,7 +46,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private int sampleOffset;
         private bool bFixed;
 
-        public PCMChannel(MLSSMixer mixer) : base(mixer) { }
+        public PCMChannel(Mixer mixer) : base(mixer) { }
         public void Init(byte key, ADSR adsr, int sampleOffset, bool bFixed)
         {
             velocity = adsr.A;
@@ -144,11 +144,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
     }
     internal class SquareChannel : Channel
     {
-        private readonly float[] pat =  new float[] {  0.750f,  0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f }; // TODO
+        private float[] pat;
 
-        public SquareChannel(MLSSMixer mixer) : base(mixer) { }
+        public SquareChannel(Mixer mixer) : base(mixer) { }
         public void Init(byte key, ADSR env, byte vol, sbyte pan, int pitch)
         {
+            pat = M4A.Utils.SquareD50; // TODO
             Key = key;
             adsr = env;
             SetVolume(vol, pan);

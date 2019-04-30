@@ -4,10 +4,10 @@ using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
-    internal class M4APlayer : IPlayer
+    internal class Player : IPlayer
     {
-        private readonly M4AMixer mixer;
-        private readonly M4AConfig config;
+        private readonly Mixer mixer;
+        private readonly Config config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
         private int voiceTableOffset;
@@ -20,12 +20,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public M4APlayer(M4AMixer mixer, M4AConfig config)
+        public Player(Mixer mixer, Config config)
         {
             this.mixer = mixer;
             this.config = config;
 
-            time = new TimeBarrier(GBAUtils.AGB_FPS);
+            time = new TimeBarrier(GBA.Utils.AGB_FPS);
             thread = new Thread(Tick) { Name = "M4APlayer Tick" };
             thread.Start();
         }
@@ -45,12 +45,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         {
             DisposeTracks();
             SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
-            SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBAUtils.CartridgeOffset);
-            voiceTableOffset = header.VoiceTableOffset - GBAUtils.CartridgeOffset;
+            SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
+            voiceTableOffset = header.VoiceTableOffset - GBA.Utils.CartridgeOffset;
             tracks = new Track[header.NumTracks];
             for (byte i = 0; i < tracks.Length; i++)
             {
-                tracks[i] = new Track(i, config.ROM, header.TrackOffsets[i] - GBAUtils.CartridgeOffset);
+                tracks[i] = new Track(i, config.ROM, header.TrackOffsets[i] - GBA.Utils.CartridgeOffset);
             }
         }
         public void Play()
@@ -143,19 +143,19 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     if (v.Type == (int)VoiceFlags.KeySplit)
                     {
                         fromDrum = false; // In case there is a multi within a drum
-                        byte inst = config.Reader.ReadByte(v.Int8 - GBAUtils.CartridgeOffset + key);
-                        offset = v.Int4 - GBAUtils.CartridgeOffset + (inst * 12);
+                        byte inst = config.Reader.ReadByte(v.Int8 - GBA.Utils.CartridgeOffset + key);
+                        offset = v.Int4 - GBA.Utils.CartridgeOffset + (inst * 12);
                     }
                     else if (v.Type == (int)VoiceFlags.Drum)
                     {
                         fromDrum = true;
-                        offset = v.Int4 - GBAUtils.CartridgeOffset + (key * 12);
+                        offset = v.Int4 - GBA.Utils.CartridgeOffset + (key * 12);
                     }
                     else
                     {
                         var note = new Note
                         {
-                            Duration = track.RunCmd == 0xCF ? -1 : M4AUtils.ClockTable[track.RunCmd - 0xCF] + addedDuration, // TIE gets -1 duration
+                            Duration = track.RunCmd == 0xCF ? -1 : Utils.ClockTable[track.RunCmd - 0xCF] + addedDuration, // TIE gets -1 duration
                             Velocity = velocity,
                             OriginalKey = key,
                             Key = fromDrum ? v.RootKey : key
@@ -169,7 +169,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                 bool bCompressed = false;//ROM.Instance.Game.Engine.HasPokemonCompression && (v.Type & (int)VoiceFlags.Compressed) == (int)VoiceFlags.Compressed;
                                 mixer.AllocPCM8Channel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
-                                    bFixed, bCompressed, v.Int4 - GBAUtils.CartridgeOffset);
+                                    bFixed, bCompressed, v.Int4 - GBA.Utils.CartridgeOffset);
                                 return;
                             }
                             case VoiceType.Square1:
@@ -184,7 +184,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             {
                                 mixer.AllocPSGChannel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
-                                    type, v.Int4 - GBAUtils.CartridgeOffset);
+                                    type, v.Int4 - GBA.Utils.CartridgeOffset);
                                 return;
                             }
                             case VoiceType.Noise:
@@ -252,7 +252,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 
             else if (cmd >= 0x80 && cmd <= 0xB0)
             {
-                track.Delay = M4AUtils.ClockTable[cmd - 0x80];
+                track.Delay = Utils.ClockTable[cmd - 0x80];
             }
 
             #endregion
@@ -298,13 +298,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     }
                     case 0xB2:
                     {
-                        track.Reader.BaseStream.Position = track.Reader.ReadInt32() - GBAUtils.CartridgeOffset;
+                        track.Reader.BaseStream.Position = track.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
                         loop = true;
                         break;
                     }
                     case 0xB3:
                     {
-                        int jump = track.Reader.ReadInt32() - GBAUtils.CartridgeOffset;
+                        int jump = track.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
                         track.EndOfPattern = track.Reader.BaseStream.Position;
                         track.Reader.BaseStream.Position = jump;
                         break;

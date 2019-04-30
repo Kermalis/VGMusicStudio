@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
-    internal class SDATConfig : Config
+    internal class Config : Core.Config
     {
         public SDAT SDAT;
 
-        public SDATConfig(SDAT sdat)
+        public Config(SDAT sdat)
         {
             SDAT = sdat;
             IEnumerable<Song> songs = Enumerable.Range(0, sdat.INFOBlock.SequenceInfos.NumEntries)

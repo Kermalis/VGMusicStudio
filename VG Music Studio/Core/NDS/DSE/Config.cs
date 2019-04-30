@@ -4,12 +4,12 @@ using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
-    internal class DSEConfig : Config
+    internal class Config : Core.Config
     {
         public string BGMPath;
         public string[] BGMFiles;
 
-        public DSEConfig(string bgmPath)
+        public Config(string bgmPath)
         {
             BGMPath = bgmPath;
             BGMFiles = Directory.GetFiles(bgmPath, "bgm*.smd", SearchOption.TopDirectoryOnly);
@@ -22,7 +22,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             {
                 using (var reader = new EndianBinaryReader(File.OpenRead(BGMFiles[i])))
                 {
-                    SMDL.Header header = reader.ReadObject<SMDL.Header>();
+                    SMD.Header header = reader.ReadObject<SMD.Header>();
                     songs[i] = new Song(i, header.Label);
                 }
             }

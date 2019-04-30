@@ -6,14 +6,14 @@ using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
-    internal class DSEPlayer : IPlayer
+    internal class Player : IPlayer
     {
-        private readonly DSEMixer mixer;
-        private readonly DSEConfig config;
+        private readonly Mixer mixer;
+        private readonly Config config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
-        private SWDL masterSWDL;
-        private SWDL localSWDL;
+        private SWD masterSWD;
+        private SWD localSWD;
         private Track[] tracks;
         private byte tempo;
         private int tempoStack;
@@ -23,7 +23,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public DSEPlayer(DSEMixer mixer, DSEConfig config)
+        public Player(Mixer mixer, Config config)
         {
             this.mixer = mixer;
             this.config = config;
@@ -47,24 +47,24 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public void LoadSong(long index)
         {
             DisposeTracks();
-            masterSWDL = new SWDL(Path.Combine(config.BGMPath, "bgm.swd"));
+            masterSWD = new SWD(Path.Combine(config.BGMPath, "bgm.swd"));
             string bgm = config.BGMFiles[index];
-            localSWDL = new SWDL(Path.ChangeExtension(bgm, "swd"));
+            localSWD = new SWD(Path.ChangeExtension(bgm, "swd"));
             byte[] smdl = File.ReadAllBytes(bgm);
             using (var reader = new EndianBinaryReader(new MemoryStream(smdl)))
             {
-                SMDL.Header header = reader.ReadObject<SMDL.Header>();
-                SMDL.ISongChunk songChunk;
+                SMD.Header header = reader.ReadObject<SMD.Header>();
+                SMD.ISongChunk songChunk;
                 switch (header.Version)
                 {
                     case 0x402:
                     {
-                        songChunk = reader.ReadObject<SMDL.SongChunk_V402>();
+                        songChunk = reader.ReadObject<SMD.SongChunk_V402>();
                         break;
                     }
                     case 0x415:
                     {
-                        songChunk = reader.ReadObject<SMDL.SongChunk_V415>();
+                        songChunk = reader.ReadObject<SMD.SongChunk_V415>();
                         break;
                     }
                     default: throw new InvalidDataException();
@@ -199,7 +199,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     Channel channel = mixer.AllocateChannel(track);
                     channel.Stop();
                     track.Octave += (byte)octave;
-                    if (channel.StartPCM(localSWDL, masterSWDL, track.Voice, note + (12 * track.Octave), duration))
+                    if (channel.StartPCM(localSWD, masterSWD, track.Voice, note + (12 * track.Octave), duration))
                     {
                         channel.NoteVelocity = cmd;
                         channel.Owner = track;

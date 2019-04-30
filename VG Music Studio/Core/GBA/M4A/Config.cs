@@ -8,7 +8,7 @@ using YamlDotNet.RepresentationModel;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
-    internal class M4AConfig : Config
+    internal class Config : Core.Config
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
@@ -24,7 +24,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public bool HasGoldenSunSynths;
         public bool HasPokemonCompression;
 
-        public M4AConfig(byte[] rom)
+        public Config(byte[] rom)
         {
             const string configFile = "M4A.yaml";
             using (StreamReader fileStream = File.OpenText(configFile))
@@ -77,11 +77,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     SongTableSizes = new long[songTables.Length];
                     for (int i = 0; i < songTables.Length; i++)
                     {
-                        SongTableSizes[i] = Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
-                        SongTableOffsets[i] = (int)Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - 1);
+                        SongTableSizes[i] = Util.Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
+                        SongTableOffsets[i] = (int)Util.Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - 1);
                     }
 
-                    SampleRate = (int)game.GetValidValue(nameof(SampleRate), 0, M4AUtils.FrequencyTable.Length - 1);
+                    SampleRate = (int)game.GetValidValue(nameof(SampleRate), 0, Utils.FrequencyTable.Length - 1);
                     try
                     {
                         ReverbType = (ReverbType)Enum.Parse(typeof(ReverbType), game.Children.GetValue(nameof(ReverbType)).ToString());
@@ -108,7 +108,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             var songs = new List<Song>();
                             foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
                             {
-                                long songIndex = Utils.ParseValue($"{nameof(Playlists)} key", song.Key.ToString(), 0, long.MaxValue);
+                                long songIndex = Util.Utils.ParseValue($"{nameof(Playlists)} key", song.Key.ToString(), 0, long.MaxValue);
                                 if (songs.Any(s => s.Index == songIndex))
                                 {
                                     throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}Playlist \"{name}\" has song {songIndex} defined more than once between decimal and hexadecimal.");

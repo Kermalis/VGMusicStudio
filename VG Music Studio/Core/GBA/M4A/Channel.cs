@@ -8,7 +8,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     {
         public EnvelopeState State = EnvelopeState.Dead;
         public Track Owner = null;
-        protected readonly M4AMixer mixer;
+        protected readonly Mixer mixer;
 
         public Note Note; // Must be a struct & field
         protected ADSR adsr;
@@ -18,7 +18,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         protected float interPos;
         protected float frequency;
 
-        protected Channel(M4AMixer mixer)
+        protected Channel(Mixer mixer)
         {
             this.mixer = mixer;
         }
@@ -80,7 +80,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private byte leftVol, rightVol;
         private sbyte[] decompressedSample;
 
-        public PCM8Channel(M4AMixer mixer) : base(mixer) { }
+        public PCM8Channel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR adsr, int sampleOffset, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed)
         {
             State = EnvelopeState.Initializing;
@@ -97,7 +97,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             this.sampleOffset = sampleOffset + 0x10;
             this.bFixed = bFixed;
             this.bCompressed = bCompressed;
-            decompressedSample = bCompressed ? Samples.Decompress(this.sampleOffset, sampleHeader.Length) : null;
+            decompressedSample = bCompressed ? Utils.Decompress(this.sampleOffset, sampleHeader.Length) : null;
             bGoldenSun = mixer.Config.HasGoldenSunSynths && sampleHeader.DoesLoop == 0x40000000 && sampleHeader.LoopOffset == 0 && sampleHeader.Length == 0;
             if (bGoldenSun)
             {
@@ -342,7 +342,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private byte peakVelocity, sustainVelocity;
         protected GBPan panpot = GBPan.Center;
 
-        public PSGChannel(M4AMixer mixer) : base(mixer) { }
+        public PSGChannel(Mixer mixer) : base(mixer) { }
         protected void Init(Track owner, Note note, ADSR env)
         {
             State = EnvelopeState.Initializing;
@@ -600,16 +600,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     {
         private float[] pat;
 
-        public SquareChannel(M4AMixer mixer) : base(mixer) { }
+        public SquareChannel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR env, SquarePattern pattern)
         {
             Init(owner, note, env);
             switch (pattern)
             {
-                default: pat = Samples.SquareD12; break;
-                case SquarePattern.D12: pat = Samples.SquareD25; break;
-                case SquarePattern.D25: pat = Samples.SquareD50; break;
-                case SquarePattern.D75: pat = Samples.SquareD75; break;
+                default: pat = Utils.SquareD12; break;
+                case SquarePattern.D12: pat = Utils.SquareD25; break;
+                case SquarePattern.D25: pat = Utils.SquareD50; break;
+                case SquarePattern.D75: pat = Utils.SquareD75; break;
             }
         }
 
@@ -648,11 +648,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     {
         private float[] sample;
 
-        public PCM4Channel(M4AMixer mixer) : base(mixer) { }
+        public PCM4Channel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR env, int sampleOffset)
         {
             Init(owner, note, env);
-            sample = Samples.PCM4ToFloat(sampleOffset);
+            sample = Utils.PCM4ToFloat(sampleOffset);
         }
 
         public override void SetPitch(int pitch)
@@ -690,11 +690,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     {
         private BitArray pat;
 
-        public NoiseChannel(M4AMixer mixer) : base(mixer) { }
+        public NoiseChannel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR env, NoisePattern pattern)
         {
             Init(owner, note, env);
-            pat = pattern == NoisePattern.Fine ? Samples.NoiseFine : Samples.NoiseRough;
+            pat = pattern == NoisePattern.Fine ? Utils.NoiseFine : Utils.NoiseRough;
         }
 
         public override void SetPitch(int pitch)

@@ -8,7 +8,7 @@ using YamlDotNet.RepresentationModel;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
-    internal class MLSSConfig : Config
+    internal class Config : Core.Config
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
@@ -21,7 +21,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public long SampleTableSize;
         public string Remap;
 
-        public MLSSConfig(byte[] rom)
+        public Config(byte[] rom)
         {
             const string configFile = "MLSS.yaml";
             using (StreamReader fileStream = File.OpenText(configFile))
@@ -74,8 +74,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     SongTableSizes = new long[songTables.Length];
                     for (int i = 0; i < songTables.Length; i++)
                     {
-                        SongTableOffsets[i] = (int)Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - 1);
-                        SongTableSizes[i] = Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
+                        SongTableOffsets[i] = (int)Util.Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - 1);
+                        SongTableSizes[i] = Util.Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
                     }
                     VoiceTableOffset = (int)game.GetValidValue(nameof(VoiceTableOffset), 0, rom.Length - 1);
                     SampleTableOffset = (int)game.GetValidValue(nameof(SampleTableOffset), 0, rom.Length - 1);
@@ -94,7 +94,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             var songs = new List<Song>();
                             foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
                             {
-                                long songIndex = Utils.ParseValue($"{nameof(Playlists)} key", song.Key.ToString(), 0, long.MaxValue);
+                                long songIndex = Util.Utils.ParseValue($"{nameof(Playlists)} key", song.Key.ToString(), 0, long.MaxValue);
                                 if (songs.Any(s => s.Index == songIndex))
                                 {
                                     throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}Playlist \"{name}\" has song {songIndex} defined more than once between decimal and hexadecimal.");

@@ -23,17 +23,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 
         public int GetPitch()
         {
-            int mod = LFOType == LFOType.Pitch ? (M4AUtils.Tri(LFOPhase) * LFODepth) >> 8 : 0;
+            int mod = LFOType == LFOType.Pitch ? (Utils.Tri(LFOPhase) * LFODepth) >> 8 : 0;
             return (Bend * BendRange) + Tune + mod;
         }
         public byte GetVolume()
         {
-            int mod = LFOType == LFOType.Volume ? (M4AUtils.Tri(LFOPhase) * LFODepth * 3 * Volume) >> 19 : 0;
+            int mod = LFOType == LFOType.Volume ? (Utils.Tri(LFOPhase) * LFODepth * 3 * Volume) >> 19 : 0;
             return (byte)(Volume + mod).Clamp(0, 0x7F);
         }
         public sbyte GetPanpot()
         {
-            int mod = LFOType == LFOType.Panpot ? (M4AUtils.Tri(LFOPhase) * LFODepth * 3) >> 12 : 0;
+            int mod = LFOType == LFOType.Panpot ? (Utils.Tri(LFOPhase) * LFODepth * 3) >> 12 : 0;
             return (sbyte)(Panpot + mod).Clamp(-0x40, 0x3F);
         }
 

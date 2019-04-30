@@ -3,7 +3,7 @@ using System;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
-    internal class MLSSMixer : Mixer
+    internal class Mixer : Core.Mixer
     {
         public readonly float SampleRateReciprocal;
         private readonly float samplesReciprocal;
@@ -12,12 +12,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private float fadePos;
         private float fadeStepPerMicroframe;
 
-        public readonly MLSSConfig Config;
+        public readonly Config Config;
         private readonly WaveBuffer audio;
         private readonly float[][] trackBuffers = new float[0x10][];
         private readonly BufferedWaveProvider buffer;
 
-        public MLSSMixer(MLSSConfig config)
+        public Mixer(Config config)
         {
             Config = config;
             const int sampleRate = 13379; // TODO: Actual value unknown
@@ -44,13 +44,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public void BeginFadeIn()
         {
             fadePos = 0f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
             fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
         }
         public void BeginFadeOut()
         {
             fadePos = 1f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
             fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
         }
         public bool IsFadeDone()

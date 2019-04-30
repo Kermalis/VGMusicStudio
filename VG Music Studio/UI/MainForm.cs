@@ -1,8 +1,4 @@
 ﻿using Kermalis.VGMusicStudio.Core;
-using Kermalis.VGMusicStudio.Core.GBA.M4A;
-using Kermalis.VGMusicStudio.Core.GBA.MLSS;
-using Kermalis.VGMusicStudio.Core.NDS.DSE;
-using Kermalis.VGMusicStudio.Core.NDS.SDAT;
 using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.Util;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -318,7 +314,7 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     DisposeEngine();
                     new Engine(Engine.EngineType.NDS_DSE, d.FileName);
-                    var config = (DSEConfig)Engine.Instance.Config;
+                    var config = (Core.NDS.DSE.Config)Engine.Instance.Config;
                     FinishLoading(false, config.BGMFiles.Length);
                 }
                 catch (Exception ex)
@@ -340,7 +336,7 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     DisposeEngine();
                     new Engine(Engine.EngineType.GBA_M4A, File.ReadAllBytes(d.FileName));
-                    var config = (M4AConfig)Engine.Instance.Config;
+                    var config = (Core.GBA.M4A.Config)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
                 }
                 catch (Exception ex)
@@ -362,7 +358,7 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     DisposeEngine();
                     new Engine(Engine.EngineType.GBA_MLSS, File.ReadAllBytes(d.FileName));
-                    var config = (MLSSConfig)Engine.Instance.Config;
+                    var config = (Core.GBA.MLSS.Config)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
                 }
                 catch (Exception ex)
@@ -383,7 +379,7 @@ namespace Kermalis.VGMusicStudio.UI
                 try
                 {
                     DisposeEngine();
-                    var sdat = new SDAT(File.ReadAllBytes(d.FileName));
+                    var sdat = new Core.NDS.SDAT.SDAT(File.ReadAllBytes(d.FileName));
                     new Engine(Engine.EngineType.NDS_SDAT, sdat);
                     FinishLoading(true, sdat.INFOBlock.SequenceInfos.NumEntries);
                 }

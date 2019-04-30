@@ -20,7 +20,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             return Bend * (BendRange / 2);
         }
 
-        public Track(byte i, byte[] rom, MLSSMixer mixer)
+        public Track(byte i, byte[] rom, Mixer mixer)
         {
             Index = i;
             Type = i >= 8 ? i % 2 == 0 ? "Square 1" : "Square 2" : "PCM8";

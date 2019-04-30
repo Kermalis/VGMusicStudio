@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
-    internal class M4AMixer : Mixer
+    internal class Mixer : Core.Mixer
     {
         public readonly int SampleRate;
         public readonly int SamplesPerBuffer;
@@ -15,7 +15,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private float fadePos;
         private float fadeStepPerMicroframe;
 
-        public readonly M4AConfig Config;
+        public readonly Config Config;
         private readonly WaveBuffer audio;
         private readonly float[][] trackBuffers;
         private readonly PCM8Channel[] pcm8Channels;
@@ -25,10 +25,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private readonly PSGChannel[] psgChannels;
         private readonly BufferedWaveProvider buffer;
 
-        public M4AMixer(M4AConfig config)
+        public Mixer(Config config)
         {
             Config = config;
-            (SampleRate, SamplesPerBuffer) = M4AUtils.FrequencyTable[config.SampleRate];
+            (SampleRate, SamplesPerBuffer) = Utils.FrequencyTable[config.SampleRate];
             SampleRateReciprocal = 1f / SampleRate;
             samplesReciprocal = 1f / SamplesPerBuffer;
             PCM8MasterVolume = config.Volume / 15f;
@@ -160,13 +160,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public void BeginFadeIn()
         {
             fadePos = 0f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBA.Utils.AGB_FPS);
             fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
         }
         public void BeginFadeOut()
         {
             fadePos = 1f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBA.Utils.AGB_FPS);
             fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
         }
         public bool IsFadeDone()

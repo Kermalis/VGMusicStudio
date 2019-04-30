@@ -3,7 +3,7 @@ using System;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
-    public static class SDATUtils
+    public static class Utils
     {
         public static readonly ushort[] PitchTable = new ushort[768]
         {
@@ -324,7 +324,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public static byte GetChannelVolume(int vol)
         {
-            return VolumeTable[Utils.Clamp(vol / 0x80, -723, 0) + 723];
+            return VolumeTable[Util.Utils.Clamp(vol / 0x80, -723, 0) + 723];
         }
     }
 }

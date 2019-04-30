@@ -1,9 +1,4 @@
-﻿using Kermalis.VGMusicStudio.Core.GBA;
-using Kermalis.VGMusicStudio.Core.GBA.M4A;
-using Kermalis.VGMusicStudio.Core.GBA.MLSS;
-using Kermalis.VGMusicStudio.Core.NDS.DSE;
-using Kermalis.VGMusicStudio.Core.NDS.SDAT;
-using System;
+﻿using System;
 
 namespace Kermalis.VGMusicStudio.Core
 {
@@ -32,49 +27,49 @@ namespace Kermalis.VGMusicStudio.Core
                 case EngineType.GBA_M4A:
                 {
                     byte[] rom = (byte[])playerArg;
-                    if (rom.Length > GBAUtils.CartridgeCapacity)
+                    if (rom.Length > GBA.Utils.CartridgeCapacity)
                     {
-                        throw new Exception($"ROM is too large. Maximum size is 0x{GBAUtils.CartridgeCapacity:X7} bytes.");
+                        throw new Exception($"ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
                     }
-                    var config = new M4AConfig(rom);
+                    var config = new GBA.M4A.Config(rom);
                     Config = config;
-                    var mixer = new M4AMixer(config);
+                    var mixer = new GBA.M4A.Mixer(config);
                     Mixer = mixer;
-                    Player = new M4APlayer(mixer, config);
+                    Player = new GBA.M4A.Player(mixer, config);
                     break;
                 }
                 case EngineType.GBA_MLSS:
                 {
                     byte[] rom = (byte[])playerArg;
-                    if (rom.Length > GBAUtils.CartridgeCapacity)
+                    if (rom.Length > GBA.Utils.CartridgeCapacity)
                     {
-                        throw new Exception($"ROM is too large. Maximum size is 0x{GBAUtils.CartridgeCapacity:X7} bytes.");
+                        throw new Exception($"ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
                     }
-                    var config = new MLSSConfig(rom);
+                    var config = new GBA.MLSS.Config(rom);
                     Config = config;
-                    var mixer = new MLSSMixer(config);
+                    var mixer = new GBA.MLSS.Mixer(config);
                     Mixer = mixer;
-                    Player = new MLSSPlayer(mixer, config);
+                    Player = new GBA.MLSS.Player(mixer, config);
                     break;
                 }
                 case EngineType.NDS_DSE:
                 {
                     string bgmPath = (string)playerArg;
-                    var config = new DSEConfig(bgmPath);
+                    var config = new NDS.DSE.Config(bgmPath);
                     Config = config;
-                    var mixer = new DSEMixer();
+                    var mixer = new NDS.DSE.Mixer();
                     Mixer = mixer;
-                    Player = new DSEPlayer(mixer, config);
+                    Player = new NDS.DSE.Player(mixer, config);
                     break;
                 }
                 case EngineType.NDS_SDAT:
                 {
-                    var sdat = (SDAT)playerArg;
-                    var config = new SDATConfig(sdat);
+                    var sdat = (NDS.SDAT.SDAT)playerArg;
+                    var config = new NDS.SDAT.Config(sdat);
                     Config = config;
-                    var mixer = new SDATMixer();
+                    var mixer = new NDS.SDAT.Mixer();
                     Mixer = mixer;
-                    Player = new SDATPlayer(mixer, config);
+                    Player = new NDS.SDAT.Player(mixer, config);
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(type));

@@ -4,11 +4,11 @@ using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
-    internal class MLSSPlayer : IPlayer
+    internal class Player : IPlayer
     {
         private readonly Track[] tracks = new Track[0x10];
-        private readonly MLSSMixer mixer;
-        private readonly MLSSConfig config;
+        private readonly Mixer mixer;
+        private readonly Config config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
         private byte tempo;
@@ -19,7 +19,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
-        public MLSSPlayer(MLSSMixer mixer, MLSSConfig config)
+        public Player(Mixer mixer, Config config)
         {
             for (byte i = 0; i < tracks.Length; i++)
             {
@@ -28,14 +28,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             this.mixer = mixer;
             this.config = config;
 
-            time = new TimeBarrier(GBAUtils.AGB_FPS);
+            time = new TimeBarrier(Utils.AGB_FPS);
             thread = new Thread(Tick) { Name = "MLSSPlayer Tick" };
             thread.Start();
         }
 
         public void LoadSong(long index)
         {
-            int songOffset = config.Reader.ReadInt32(config.SongTableOffsets[0] + (index * 4)) - GBAUtils.CartridgeOffset;
+            int songOffset = config.Reader.ReadInt32(config.SongTableOffsets[0] + (index * 4)) - Utils.CartridgeOffset;
             ushort trackBits = config.Reader.ReadUInt16(songOffset);
             for (int i = 0; i < 0x10; i++)
             {
