@@ -45,7 +45,7 @@ Discord Server: https://discord.gg/q2pAw3x
 
 ----
 # Special Thanks To:
-# General
+## General
 * tuku473
 * Stich991
 
@@ -55,14 +55,14 @@ Discord Server: https://discord.gg/q2pAw3x
 * mimi - Told me about a hidden feature of the engine
 * SomeShrug - Engine research and helped me understand more about the engine parameters
 
-# Mario & Luigi: Superstar Saga Engine
+## Mario & Luigi: Superstar Saga Engine
 * Jesse (jelle) - Engine research
 * Platinum Lucario - Engine research
 
-# SDAT Engine
+## SDAT Engine
 * kiwi.ds SDAT Specification - Extensive documentation
 
-# DSE Engine
+## DSE Engine
 * PsyCommando - Extensive research [(and his DSE music tools)](https://github.com/PsyCommando/ppmdu)
 
 ----
