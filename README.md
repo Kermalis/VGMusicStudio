@@ -12,7 +12,6 @@ Discord Server: https://discord.gg/q2pAw3x
 * MIDI saving - Preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * MIDI saving - Make errors more clear
-* Playlist mode - A way to exit playlist mode
 * Voice table editor - Tooltips which provide a huge chunk of information
 * Track editor - Offset for the event you're editing
 * Track editor - Put the event parameter as text in the parameter name label, so there is reference to the original value (or in LFOType/Note's cases, text representation)
@@ -27,7 +26,7 @@ Discord Server: https://discord.gg/q2pAw3x
 * Add reverse playback
 * Add SquareWave sweeping
 * XCMD command
-* Repeat command
+* REPT command
 * Nested PATT (3 is the maximum)
 * Support pret dissassembly projects
 * Running status in song disassembler

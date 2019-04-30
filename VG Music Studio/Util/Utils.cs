@@ -95,7 +95,7 @@ namespace Kermalis.VGMusicStudio.Util
             str += parenthesis ? " )" : "";
             return str;
         }
-        // Fisher-Yates Shuffle
+        /// <summary> Fisher-Yates Shuffle</summary>
         public static void Shuffle<T>(this IList<T> source)
         {
             for (int a = 0; a < source.Count - 1; a++)

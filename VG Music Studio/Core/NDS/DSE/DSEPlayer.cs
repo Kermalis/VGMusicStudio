@@ -17,6 +17,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         private Track[] tracks;
         private byte tempo;
         private int tempoStack;
+        private long loops;
+        private bool fadeOutBegan;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -85,8 +87,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public void Play()
         {
             Stop();
-            tempoStack = 0;
             tempo = 120;
+            tempoStack = 0;
+            loops = 0;
+            fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
                 tracks[i].Init();
@@ -161,7 +165,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         {
             96, 72, 64, 48, 36, 32, 24, 18, 16, 12, 9, 8, 6, 4, 3, 2
         };
-        private void ExecuteNext(Track track)
+        private void ExecuteNext(Track track, ref bool loop)
         {
             byte cmd = track.Reader.ReadByte();
             if (cmd >= 1 && cmd <= 0x7F) // Notes
@@ -250,6 +254,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         else
                         {
                             track.Reader.BaseStream.Position = track.LoopOffset;
+                            loop = true;
                         }
                         break;
                     }
@@ -361,19 +366,32 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     while (tempoStack >= 240)
                     {
                         tempoStack -= 240;
-                        bool allDone = true;
+                        bool allDone = true, loop = false;
                         for (int i = 0; i < tracks.Length; i++)
                         {
                             Track track = tracks[i];
                             track.Tick();
                             while (track.Delay == 0 && !track.Stopped)
                             {
-                                ExecuteNext(track);
+                                ExecuteNext(track, ref loop);
                             }
                             if (!track.Stopped || track.Channels.Count != 0)
                             {
                                 allDone = false;
                             }
+                        }
+                        if (loop)
+                        {
+                            loops++;
+                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && loops > GlobalConfig.Instance.PlaylistSongLoops)
+                            {
+                                fadeOutBegan = true;
+                                mixer.BeginFadeOut();
+                            }
+                        }
+                        if (fadeOutBegan && mixer.IsFadeDone())
+                        {
+                            allDone = true;
                         }
                         if (allDone)
                         {

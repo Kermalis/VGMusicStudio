@@ -1,7 +1,10 @@
-TaskbarProgress: True # True or False
-RefreshRate: 30 # Value > 0 and Value <= 1000
-CenterIndicators: False # True or False
-PanpotIndicators: False # True or False
+TaskbarProgress: True              # True or False
+RefreshRate: 30                    # RefreshRate >= 1 and RefreshRate <= 1000
+CenterIndicators: False            # True or False
+PanpotIndicators: False            # True or False
+PlaylistMode: "Random"             # "Random" or "Sequential"
+PlaylistSongLoops: 0               # Loops >= 0 and Loops <= 9223372036854775807
+PlaylistFadeOutMilliseconds: 10000 # Milliseconds >= 0 and Milliseconds <= 9223372036854775807
 Colors:
   0: {H: 185, S: 240, L: 180}
   1: {H: 183, S: 240, L: 170}

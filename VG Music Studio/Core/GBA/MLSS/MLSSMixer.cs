@@ -5,8 +5,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
     internal class MLSSMixer : Mixer
     {
-        public readonly float SampleRateReciprocal, SamplesReciprocal;
+        public readonly float SampleRateReciprocal;
+        private readonly float samplesReciprocal;
         public readonly int SamplesPerBuffer;
+        private long fadeMicroFramesLeft;
+        private float fadePos;
+        private float fadeStepPerMicroframe;
 
         public readonly MLSSConfig Config;
         private readonly WaveBuffer audio;
@@ -16,9 +20,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public MLSSMixer(MLSSConfig config)
         {
             Config = config;
+            const int sampleRate = 13379; // TODO: Actual value unknown
             SamplesPerBuffer = 224; // TODO
-            SampleRateReciprocal = 1f / 13379; // TODO: Actual frequency unknown
-            SamplesReciprocal = 1f / SamplesPerBuffer;
+            SampleRateReciprocal = 1f / sampleRate;
+            samplesReciprocal = 1f / SamplesPerBuffer;
 
             Mutes = new bool[0x10];
 
@@ -28,7 +33,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             {
                 trackBuffers[i] = new float[amt];
             }
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(13379, 2)) // TODO
+            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, 2)) // TODO
             {
                 DiscardOnBufferOverflow = true,
                 BufferLength = SamplesPerBuffer * 64
@@ -36,21 +41,54 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             Init(buffer);
         }
 
+        public void BeginFadeIn()
+        {
+            fadePos = 0f;
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+        }
+        public void BeginFadeOut()
+        {
+            fadePos = 1f;
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+        }
+        public bool IsFadeDone()
+        {
+            return fadeMicroFramesLeft == 0;
+        }
+        public void ResetFade()
+        {
+            fadeMicroFramesLeft = 0;
+        }
+
         public void Process(Track[] tracks)
         {
             audio.Clear();
+            float fromMaster = 1f, toMaster = 1f;
+            if (fadeMicroFramesLeft > 0)
+            {
+                const float scale = 10f / 6f;
+                fromMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
+                fadePos += fadeStepPerMicroframe;
+                toMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
+                fadeMicroFramesLeft--;
+            }
+            float masterStep = (toMaster - fromMaster) * samplesReciprocal;
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
                 if (track.Enabled && track.NoteDuration != 0 && !track.Channel.Stopped && !Mutes[i])
                 {
+                    float masterLevel = fromMaster;
                     float[] buf = trackBuffers[i];
                     Array.Clear(buf, 0, buf.Length);
                     track.Channel.Process(buf);
                     for (int j = 0; j < SamplesPerBuffer; j++)
                     {
-                        audio.FloatBuffer[j * 2] += buf[j * 2];
-                        audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1];
+                        audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
+                        audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * masterLevel;
+                        masterLevel += masterStep;
                     }
                 }
             }

@@ -112,8 +112,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             const float max = 0x10000;
             return new ChannelVolume
             {
-                LeftVol = leftVol * velocity / max * mixer.DSMasterVolume,
-                RightVol = rightVol * velocity / max * mixer.DSMasterVolume
+                LeftVol = leftVol * velocity / max * mixer.PCM8MasterVolume,
+                RightVol = rightVol * velocity / max * mixer.PCM8MasterVolume
             };
         }
         public override void SetVolume(byte vol, sbyte pan)

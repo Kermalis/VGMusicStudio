@@ -6,6 +6,12 @@ using YamlDotNet.RepresentationModel;
 
 namespace Kermalis.VGMusicStudio.Core
 {
+    public enum PlaylistMode : byte
+    {
+        Random,
+        Sequential
+    }
+
     internal class GlobalConfig
     {
         public static GlobalConfig Instance { get; private set; }
@@ -14,6 +20,9 @@ namespace Kermalis.VGMusicStudio.Core
         public ushort RefreshRate;
         public bool CenterIndicators;
         public bool PanpotIndicators;
+        public PlaylistMode PlaylistMode;
+        public long PlaylistSongLoops;
+        public long PlaylistFadeOutMilliseconds;
         public HSLColor[] Colors;
 
         private GlobalConfig()
@@ -31,6 +40,16 @@ namespace Kermalis.VGMusicStudio.Core
                     RefreshRate = (ushort)mapping.GetValidValue(nameof(RefreshRate), 1, 1000);
                     CenterIndicators = mapping.GetValidBoolean(nameof(CenterIndicators));
                     PanpotIndicators = mapping.GetValidBoolean(nameof(PanpotIndicators));
+                    try
+                    {
+                        PlaylistMode = (PlaylistMode)Enum.Parse(typeof(PlaylistMode), mapping.Children.GetValue(nameof(PlaylistMode)).ToString());
+                    }
+                    catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
+                    {
+                        throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}\"{nameof(PlaylistMode)}\" was invalid.");
+                    }
+                    PlaylistSongLoops = mapping.GetValidValue(nameof(PlaylistSongLoops), 0, long.MaxValue);
+                    PlaylistFadeOutMilliseconds = mapping.GetValidValue(nameof(PlaylistFadeOutMilliseconds), 0, long.MaxValue);
 
                     var cmap = (YamlMappingNode)mapping.Children[nameof(Colors)];
                     Colors = new HSLColor[256];
@@ -77,11 +96,7 @@ namespace Kermalis.VGMusicStudio.Core
                 {
                     throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}\"{ex.Key}\" is missing.");
                 }
-                catch (InvalidValueException ex)
-                {
-                    throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}{ex.Message}");
-                }
-                catch (YamlDotNet.Core.SyntaxErrorException ex)
+                catch (Exception ex) when (ex is InvalidValueException || ex is YamlDotNet.Core.SyntaxErrorException)
                 {
                     throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}{ex.Message}");
                 }

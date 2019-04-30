@@ -6,9 +6,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
     internal class M4AMixer : Mixer
     {
-        public readonly int SampleRate, SamplesPerBuffer;
+        public readonly int SampleRate;
+        public readonly int SamplesPerBuffer;
         public readonly float SampleRateReciprocal;
-        public readonly float DSMasterVolume;
+        private readonly float samplesReciprocal;
+        public readonly float PCM8MasterVolume;
+        private long fadeMicroFramesLeft;
+        private float fadePos;
+        private float fadeStepPerMicroframe;
 
         public readonly M4AConfig Config;
         private readonly WaveBuffer audio;
@@ -25,7 +30,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             Config = config;
             (SampleRate, SamplesPerBuffer) = M4AUtils.FrequencyTable[config.SampleRate];
             SampleRateReciprocal = 1f / SampleRate;
-            DSMasterVolume = config.Volume / 15f;
+            samplesReciprocal = 1f / SamplesPerBuffer;
+            PCM8MasterVolume = config.Volume / 15f;
 
             pcm8Channels = new PCM8Channel[24];
             for (int i = 0; i < pcm8Channels.Length; i++)
@@ -151,6 +157,27 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             return nChn;
         }
 
+        public void BeginFadeIn()
+        {
+            fadePos = 0f;
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+        }
+        public void BeginFadeOut()
+        {
+            fadePos = 1f;
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBAUtils.AGB_FPS);
+            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+        }
+        public bool IsFadeDone()
+        {
+            return fadeMicroFramesLeft == 0;
+        }
+        public void ResetFade()
+        {
+            fadeMicroFramesLeft = 0;
+        }
+
         public void Process()
         {
             for (int i = 0; i < trackBuffers.Length; i++)
@@ -178,19 +205,30 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 }
             }
 
-            for (int i = 0; i < Mutes.Length; i++)
+            float fromMaster = 1f, toMaster = 1f;
+            if (fadeMicroFramesLeft > 0)
+            {
+                const float scale = 10f / 6f;
+                fromMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
+                fadePos += fadeStepPerMicroframe;
+                toMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
+                fadeMicroFramesLeft--;
+            }
+            float masterStep = (toMaster - fromMaster) * samplesReciprocal;
+            for (int i = 0; i < trackBuffers.Length; i++)
             {
                 if (!Mutes[i])
                 {
+                    float masterLevel = fromMaster;
                     float[] buf = trackBuffers[i];
                     for (int j = 0; j < SamplesPerBuffer; j++)
                     {
-                        audio.FloatBuffer[j * 2] += buf[j * 2];
-                        audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1];
+                        audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
+                        audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * masterLevel;
+                        masterLevel += masterStep;
                     }
                 }
             }
-
             buffer.AddSamples(audio, 0, audio.ByteBufferCount);
         }
     }

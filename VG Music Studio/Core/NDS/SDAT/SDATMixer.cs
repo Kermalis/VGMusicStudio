@@ -1,15 +1,29 @@
 ﻿using Kermalis.VGMusicStudio.Util;
 using NAudio.Wave;
+using System;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
     internal class SDATMixer : Mixer
     {
+        private readonly float samplesReciprocal;
+        private readonly int samplesPerBuffer;
+        private long fadeMicroFramesLeft;
+        private float fadePos;
+        private float fadeStepPerMicroframe;
+
         public Channel[] Channels;
         private readonly BufferedWaveProvider buffer;
 
         public SDATMixer()
         {
+            // The sampling frequency of the mixer is 1.04876 MHz with an amplitude resolution of 24 bits, but the sampling frequency after mixing with PWM modulation is 32.768 kHz with an amplitude resolution of 10 bits.
+            // - gbatek
+            // I'm not using either of those because the samples per buffer leads to an overflow eventually
+            const int sampleRate = 65456;
+            samplesPerBuffer = 341; // TODO
+            samplesReciprocal = 1f / samplesPerBuffer;
+
             Channels = new Channel[0x10];
             for (byte i = 0; i < 0x10; i++)
             {
@@ -18,13 +32,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
             Mutes = new bool[0x10];
 
-            // The sampling frequency of the mixer is 1.04876 MHz with an amplitude resolution of 24 bits, but the sampling frequency after mixing with PWM modulation is 32.768 kHz with an amplitude resolution of 10 bits.
-            // - gbatek
-            // I'm not using either of those because the samples per buffer leads to an overflow eventually
-            buffer = new BufferedWaveProvider(new WaveFormat(65456, 16, 2))
+            buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
             {
                 DiscardOnBufferOverflow = true,
-                BufferLength = 21824 // SamplesPerBuffer * 64
+                BufferLength = samplesPerBuffer * 64
             };
             Init(buffer);
         }
@@ -96,10 +107,41 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
         }
 
-        // Called 192 times a second
+        public void BeginFadeIn()
+        {
+            fadePos = 0f;
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
+            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+        }
+        public void BeginFadeOut()
+        {
+            fadePos = 1f;
+            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
+            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+        }
+        public bool IsFadeDone()
+        {
+            return fadeMicroFramesLeft == 0;
+        }
+        public void ResetFade()
+        {
+            fadeMicroFramesLeft = 0;
+        }
+
         public void Process()
         {
-            for (int i = 0; i < 341; i++) // SamplesPerBuffer (SampleRate / 192)
+            float fromMaster = 1f, toMaster = 1f;
+            if (fadeMicroFramesLeft > 0)
+            {
+                const float scale = 10f / 6f;
+                fromMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
+                fadePos += fadeStepPerMicroframe;
+                toMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
+                fadeMicroFramesLeft--;
+            }
+            float masterStep = (toMaster - fromMaster) * samplesReciprocal;
+            float masterLevel = fromMaster;
+            for (int i = 0; i < samplesPerBuffer; i++)
             {
                 int left = 0, right = 0;
                 for (int j = 0; j < 0x10; j++)
@@ -116,8 +158,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         }
                     }
                 }
-                left = Utils.Clamp(left, short.MinValue, short.MaxValue);
-                right = Utils.Clamp(right, short.MinValue, short.MaxValue);
+                left = (int)Utils.Clamp(left * masterLevel, short.MinValue, short.MaxValue);
+                right = (int)Utils.Clamp(right * masterLevel, short.MinValue, short.MaxValue);
+                masterLevel += masterStep;
                 // Convert two shorts to four bytes
                 buffer.AddSamples(new byte[] { (byte)(left & 0xFF), (byte)((left >> 8) & 0xFF), (byte)(right & 0xFF), (byte)((right >> 8) & 0xFF) }, 0, 4);
             }

@@ -26,6 +26,12 @@ namespace Kermalis.VGMusicStudio.UI
         private readonly List<byte> pianoNotes = new List<byte>();
         public readonly bool[] PianoTracks = new bool[0x10];
 
+        public bool PlaylistPlaying;
+        private Config.Playlist curPlaylist;
+        private long curSong = -1;
+        private readonly List<long> playedSongs = new List<long>(),
+            remainingSongs = new List<long>();
+
         private const int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)
         private const float sfWidth = 2.35f; // Song combobox and volumebar width
         private const float spfHeight = 5.5f; // Split panel 1 height
@@ -34,7 +40,8 @@ namespace Kermalis.VGMusicStudio.UI
 
         private readonly IContainer components;
         private readonly MenuStrip mainMenu;
-        private readonly ToolStripMenuItem fileItem, openDSEItem, openM4AItem, openMLSSItem, openSDATItem;
+        private readonly ToolStripMenuItem fileItem, openDSEItem, openM4AItem, openMLSSItem, openSDATItem,
+            playlistItem, endPlaylistItem;
         private readonly Timer timer;
         private readonly ThemedNumeric songNumerical;
         private readonly ThemedButton playButton, pauseButton, stopButton;
@@ -80,9 +87,16 @@ namespace Kermalis.VGMusicStudio.UI
             fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
             fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openM4AItem, openMLSSItem, openSDATItem });
 
+            // Playlist Menu
+            endPlaylistItem = new ToolStripMenuItem { Text = "End Current Playlist", Enabled = false };
+            endPlaylistItem.Click += EndCurrentPlaylist;
+
+            playlistItem = new ToolStripMenuItem { Text = "Playlist" };
+            playlistItem.DropDownItems.AddRange(new ToolStripItem[] { endPlaylistItem });
+
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
-            mainMenu.Items.AddRange(new ToolStripItem[] { fileItem });
+            mainMenu.Items.AddRange(new ToolStripItem[] { fileItem, playlistItem });
 
             // Buttons
             playButton = new ThemedButton { ForeColor = Color.MediumSpringGreen, Location = new Point(5, 3), Text = Strings.PlayerPlay };
@@ -169,11 +183,11 @@ namespace Kermalis.VGMusicStudio.UI
             if (TaskbarManager.IsPlatformSupported)
             {
                 prevTButton = new ThumbnailToolBarButton(Resources.IconPrevious, Strings.PlayerPreviousSong);
-                prevTButton.Click += (o, e) => PlayPreviousSong();
+                prevTButton.Click += PlayPreviousSong;
                 toggleTButton = new ThumbnailToolBarButton(Resources.IconPlay, Strings.PlayerPlay);
-                toggleTButton.Click += (o, e) => TogglePlayback();
+                toggleTButton.Click += TogglePlayback;
                 nextTButton = new ThumbnailToolBarButton(Resources.IconNext, Strings.PlayerNextSong);
-                nextTButton.Click += (o, e) => PlayNextSong();
+                nextTButton.Click += PlayNextSong;
                 prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = false;
                 TaskbarManager.Instance.ThumbnailToolBars.AddButtons(Handle, prevTButton, toggleTButton, nextTButton);
             }
@@ -232,7 +246,62 @@ namespace Kermalis.VGMusicStudio.UI
             var item = (ImageComboBoxItem)songsComboBox.SelectedItem;
             if (item.Item is Config.Song song)
             {
-                songNumerical.Value = song.Index;
+                SetAndLoadSong(song.Index);
+            }
+            else if (item.Item is Config.Playlist playlist)
+            {
+                if (playlist.Songs.Count > 0
+                    && FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), "Playlist", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    ResetPlaylistStuff(false);
+                    curPlaylist = playlist;
+                    PlaylistPlaying = true;
+                    endPlaylistItem.Enabled = true;
+                    SetAndLoadNextPlaylistSong();
+                }
+            }
+        }
+        private void SetAndLoadSong(long index)
+        {
+            curSong = index;
+            if (songNumerical.Value == index)
+            {
+                SongNumerical_ValueChanged(null, null);
+            }
+            else
+            {
+                songNumerical.Value = index;
+            }
+        }
+        private void SetAndLoadNextPlaylistSong()
+        {
+            if (remainingSongs.Count == 0)
+            {
+                remainingSongs.AddRange(curPlaylist.Songs.Select(s => s.Index));
+                if (GlobalConfig.Instance.PlaylistMode == PlaylistMode.Random)
+                {
+                    remainingSongs.Shuffle();
+                }
+            }
+            long nextSong = remainingSongs[0];
+            remainingSongs.RemoveAt(0);
+            SetAndLoadSong(nextSong);
+        }
+        private void ResetPlaylistStuff(bool enableds)
+        {
+            PlaylistPlaying = false;
+            curPlaylist = null;
+            curSong = -1;
+            remainingSongs.Clear();
+            playedSongs.Clear();
+            endPlaylistItem.Enabled = false;
+            songNumerical.Enabled = songsComboBox.Enabled = enableds;
+        }
+        private void EndCurrentPlaylist(object sender, EventArgs e)
+        {
+            if (FlexibleMessageBox.Show("Would you like to stop playing the current playlist?", "Playlist", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                ResetPlaylistStuff(true);
             }
         }
 
@@ -363,7 +432,7 @@ namespace Kermalis.VGMusicStudio.UI
             trackInfo.DeleteData();
             UpdateTaskbarButtons();
         }
-        private void TogglePlayback()
+        private void TogglePlayback(object sender, EventArgs e)
         {
             if (Engine.Instance.Player.State == PlayerState.Stopped)
             {
@@ -374,18 +443,32 @@ namespace Kermalis.VGMusicStudio.UI
                 Pause();
             }
         }
-        private void PlayPreviousSong()
+        private void PlayPreviousSong(object sender, EventArgs e)
         {
-            if (songNumerical.Value > 0)
+            long prevSong;
+            if (PlaylistPlaying)
             {
-                songNumerical.Value--;
+                int index = playedSongs.Count - 1;
+                prevSong = playedSongs[index];
+                playedSongs.RemoveAt(index);
+                remainingSongs.Insert(0, curSong);
             }
-        }
-        private void PlayNextSong()
-        {
-            if (songNumerical.Value < songNumerical.Maximum)
+            else
             {
-                songNumerical.Value++;
+                prevSong = (long)songNumerical.Value - 1;
+            }
+            SetAndLoadSong(prevSong);
+        }
+        private void PlayNextSong(object sender, EventArgs e)
+        {
+            if (PlaylistPlaying)
+            {
+                playedSongs.Add(curSong);
+                SetAndLoadNextPlaylistSong();
+            }
+            else
+            {
+                SetAndLoadSong((long)songNumerical.Value + 1);
             }
         }
 
@@ -398,17 +481,9 @@ namespace Kermalis.VGMusicStudio.UI
                 songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
                 songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBoxItem(s, Resources.IconSong, 1)).ToArray());
             }
-            long landingSong = Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index;
             songNumerical.Visible = numericalVisible;
             songNumerical.Maximum = numSongs - 1;
-            if (songNumerical.Value == landingSong)
-            {
-                SongNumerical_ValueChanged(null, null);
-            }
-            else
-            {
-                songNumerical.Value = landingSong;
-            }
+            SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
             songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = true;
             UpdateTaskbarButtons();
         }
@@ -421,6 +496,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = false;
             Text = Utils.ProgramName;
+            ResetPlaylistStuff(false);
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             songNumerical.ValueChanged -= SongNumerical_ValueChanged;
             songNumerical.Visible = false;
@@ -454,7 +530,15 @@ namespace Kermalis.VGMusicStudio.UI
                 if (stopUI)
                 {
                     stopUI = false;
-                    Stop();
+                    if (PlaylistPlaying)
+                    {
+                        playedSongs.Add(curSong);
+                        SetAndLoadNextPlaylistSong();
+                    }
+                    else
+                    {
+                        Stop();
+                    }
                 }
                 // Draw
                 else
@@ -499,8 +583,16 @@ namespace Kermalis.VGMusicStudio.UI
         {
             if (TaskbarManager.IsPlatformSupported)
             {
-                prevTButton.Enabled = songNumerical.Value > 0;
-                nextTButton.Enabled = songNumerical.Value < songNumerical.Maximum;
+                if (PlaylistPlaying)
+                {
+                    prevTButton.Enabled = playedSongs.Count > 0;
+                    nextTButton.Enabled = true;
+                }
+                else
+                {
+                    prevTButton.Enabled = curSong > 0;
+                    nextTButton.Enabled = curSong < songNumerical.Maximum;
+                }
                 switch (Engine.Instance.Player.State)
                 {
                     case PlayerState.Stopped: toggleTButton.Icon = Resources.IconPlay; toggleTButton.Tooltip = Strings.PlayerPlay; break;

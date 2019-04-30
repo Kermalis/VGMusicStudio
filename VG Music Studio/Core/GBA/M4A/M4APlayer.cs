@@ -14,6 +14,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private Track[] tracks;
         private ushort tempo;
         private int tempoStack;
+        private long loops;
+        private bool fadeOutBegan;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -54,8 +56,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public void Play()
         {
             Stop();
-            tempoStack = 0;
             tempo = 150;
+            tempoStack = 0;
+            loops = 0;
+            fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
                 tracks[i].Init();
@@ -195,7 +199,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 }
             }
         }
-        private void ExecuteNext(Track track, ref bool update)
+        private void ExecuteNext(Track track, ref bool update, ref bool loop)
         {
             byte cmd = track.Reader.ReadByte();
             if (cmd >= 0xBD) // Commands that work within running status
@@ -292,7 +296,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                         // track.ReleaseAllTieingChannels();
                         break;
                     }
-                    case 0xB2: track.Reader.BaseStream.Position = track.Reader.ReadInt32() - GBAUtils.CartridgeOffset; break;
+                    case 0xB2:
+                    {
+                        track.Reader.BaseStream.Position = track.Reader.ReadInt32() - GBAUtils.CartridgeOffset;
+                        loop = true;
+                        break;
+                    }
                     case 0xB3:
                     {
                         int jump = track.Reader.ReadInt32() - GBAUtils.CartridgeOffset;
@@ -359,7 +368,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     while (tempoStack >= 150)
                     {
                         tempoStack -= 150;
-                        bool allDone = true;
+                        bool allDone = true, loop = false;
                         for (int i = 0; i < tracks.Length; i++)
                         {
                             Track track = tracks[i];
@@ -367,7 +376,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             bool update = false;
                             while (track.Delay == 0 && !track.Stopped)
                             {
-                                ExecuteNext(track, ref update);
+                                ExecuteNext(track, ref update, ref loop);
                             }
                             if (update || track.LFODepth > 0)
                             {
@@ -377,6 +386,19 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             {
                                 allDone = false;
                             }
+                        }
+                        if (loop)
+                        {
+                            loops++;
+                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && loops > GlobalConfig.Instance.PlaylistSongLoops)
+                            {
+                                fadeOutBegan = true;
+                                mixer.BeginFadeOut();
+                            }
+                        }
+                        if (fadeOutBegan && mixer.IsFadeDone())
+                        {
+                            allDone = true;
                         }
                         if (allDone)
                         {

@@ -13,6 +13,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private readonly Thread thread;
         private byte tempo;
         private int tempoStack;
+        private long loops;
+        private bool fadeOutBegan;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -52,8 +54,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public void Play()
         {
             Stop();
-            tempoStack = 0;
             tempo = 120;
+            tempoStack = 0;
+            loops = 0;
+            fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
                 tracks[i].Init();
@@ -150,7 +154,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 }
             }
         }
-        private void ExecuteNext(Track track, ref bool update)
+        private void ExecuteNext(Track track, ref bool update, ref bool loop)
         {
             byte cmd = track.Reader.ReadByte();
             switch (cmd)
@@ -180,6 +184,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 {
                     short offset = track.Reader.ReadInt16();
                     track.Reader.BaseStream.Position += offset;
+                    loop = true;
                     break;
                 }
                 case 0xF9: tempo = track.Reader.ReadByte(); break;
@@ -220,7 +225,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     while (tempoStack >= 75)
                     {
                         tempoStack -= 75;
-                        bool allDone = true;
+                        bool allDone = true, loop = false;
                         for (int i = 0; i < tracks.Length; i++)
                         {
                             Track track = tracks[i];
@@ -231,7 +236,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                 bool update = false;
                                 while (track.Delay == 0 && !track.Stopped)
                                 {
-                                    ExecuteNext(track, ref update);
+                                    ExecuteNext(track, ref update, ref loop);
                                 }
                                 if (prevDuration == 1 && track.NoteDuration == 0) // Note was not renewed
                                 {
@@ -247,6 +252,19 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     allDone = false;
                                 }
                             }
+                        }
+                        if (loop)
+                        {
+                            loops++;
+                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && loops > GlobalConfig.Instance.PlaylistSongLoops)
+                            {
+                                fadeOutBegan = true;
+                                mixer.BeginFadeOut();
+                            }
+                        }
+                        if (fadeOutBegan && mixer.IsFadeDone())
+                        {
+                            allDone = true;
                         }
                         if (allDone)
                         {

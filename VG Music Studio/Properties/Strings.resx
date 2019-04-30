@@ -353,9 +353,6 @@
     <value>Would you like to play the following playlist?{0}</value>
     <comment>{0} is newline follow by the playlist.</comment>
   </data>
-  <data name="PlayPlaylistTitle" xml:space="preserve">
-    <value>Play Playlist</value>
-  </data>
   <data name="PlayerNextSong" xml:space="preserve">
     <value>Next Song</value>
   </data>

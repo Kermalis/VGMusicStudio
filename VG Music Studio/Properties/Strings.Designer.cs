@@ -529,15 +529,6 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Play Playlist.
-        /// </summary>
-        internal static string PlayPlaylistTitle {
-            get {
-                return ResourceManager.GetString("PlayPlaylistTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ASM saved to {0}..
         /// </summary>
         internal static string SuccessSaveASM {
