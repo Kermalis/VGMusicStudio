@@ -349,24 +349,6 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Track Editor.
-        /// </summary>
-        internal static string MenuTrackEditor {
-            get {
-                return ResourceManager.GetString("MenuTrackEditor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VoiceTable Editor.
-        /// </summary>
-        internal static string MenuVoiceTableEditor {
-            get {
-                return ResourceManager.GetString("MenuVoiceTableEditor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to There was an error converting the MIDI file:{0}.
         /// </summary>
         internal static string MIDIConverterError {

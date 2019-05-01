@@ -18,7 +18,6 @@ namespace Kermalis.VGMusicStudio.UI
     {
         public static MainForm Instance { get; } = new MainForm();
 
-        private bool stopUI = false;
         private readonly List<byte> pianoNotes = new List<byte>();
         public readonly bool[] PianoTracks = new bool[0x10];
 
@@ -27,6 +26,8 @@ namespace Kermalis.VGMusicStudio.UI
         private long curSong = -1;
         private readonly List<long> playedSongs = new List<long>(),
             remainingSongs = new List<long>();
+
+        private TrackViewer trackViewer;
 
         private const int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)
         private const float sfWidth = 2.35f; // Song combobox and volumebar width
@@ -37,6 +38,7 @@ namespace Kermalis.VGMusicStudio.UI
         private readonly IContainer components;
         private readonly MenuStrip mainMenu;
         private readonly ToolStripMenuItem fileItem, openDSEItem, openM4AItem, openMLSSItem, openSDATItem,
+            dataItem, trackViewerItem,
             playlistItem, endPlaylistItem;
         private readonly Timer timer;
         private readonly ThemedNumeric songNumerical;
@@ -83,6 +85,13 @@ namespace Kermalis.VGMusicStudio.UI
             fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
             fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openM4AItem, openMLSSItem, openSDATItem });
 
+            // Data Menu
+            trackViewerItem = new ToolStripMenuItem { Text = "Track Viewer", ShortcutKeys = Keys.Control | Keys.T };
+            trackViewerItem.Click += OpenTrackViewer;
+
+            dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
+            dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem });
+
             // Playlist Menu
             endPlaylistItem = new ToolStripMenuItem { Text = "End Current Playlist", Enabled = false };
             endPlaylistItem.Click += EndCurrentPlaylist;
@@ -92,7 +101,7 @@ namespace Kermalis.VGMusicStudio.UI
 
 
             mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
-            mainMenu.Items.AddRange(new ToolStripItem[] { fileItem, playlistItem });
+            mainMenu.Items.AddRange(new ToolStripItem[] { fileItem, dataItem, playlistItem });
 
             // Buttons
             playButton = new ThemedButton { ForeColor = Color.MediumSpringGreen, Location = new Point(5, 3), Text = Strings.PlayerPlay };
@@ -200,7 +209,7 @@ namespace Kermalis.VGMusicStudio.UI
             volumeBar.ValueChanged += VolumeBar_ValueChanged;
         }
 
-        private bool autoplay;
+        private bool autoplay = false;
         private void SongNumerical_ValueChanged(object sender, EventArgs e)
         {
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
@@ -210,6 +219,7 @@ namespace Kermalis.VGMusicStudio.UI
             try
             {
                 Engine.Instance.Player.LoadSong(index);
+                trackViewer?.UpdateTracks();
                 Config config = Engine.Instance.Config;
                 List<Config.Song> songs = config.Playlists[0].Songs; // Complete "Music" playlist is present in all configs at index 0
                 Config.Song song = songs.SingleOrDefault(s => s.Index == index);
@@ -490,6 +500,7 @@ namespace Kermalis.VGMusicStudio.UI
                 Stop();
                 Engine.Instance.Dispose();
             }
+            trackViewer?.UpdateTracks();
             prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = false;
             Text = Utils.ProgramName;
             ResetPlaylistStuff(false);
@@ -514,6 +525,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             pianoNotes.Clear();
         }
+        private bool stopUI = false;
         private void UpdateUI(object sender, EventArgs e)
         {
             if (!System.Threading.Monitor.TryEnter(timer))
@@ -574,7 +586,6 @@ namespace Kermalis.VGMusicStudio.UI
         {
             stopUI = true;
         }
-
         private void UpdateTaskbarButtons()
         {
             if (TaskbarManager.IsPlatformSupported)
@@ -597,6 +608,18 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 toggleTButton.Enabled = true;
             }
+        }
+
+        private void OpenTrackViewer(object sender, EventArgs e)
+        {
+            if (trackViewer != null)
+            {
+                trackViewer.Focus();
+                return;
+            }
+            trackViewer = new TrackViewer { Owner = this };
+            trackViewer.FormClosed += (o, s) => trackViewer = null;
+            trackViewer.Show();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

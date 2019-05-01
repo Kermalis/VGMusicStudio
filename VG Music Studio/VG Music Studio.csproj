@@ -104,6 +104,7 @@
     <Compile Include="Core\ADPCMDecoder.cs" />
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\GBA\M4A\Commands.cs" />
     <Compile Include="Core\GBA\MLSS\Config.cs" />
     <Compile Include="Core\GlobalConfig.cs" />
     <Compile Include="Core\Engine.cs" />
@@ -145,6 +146,7 @@
     <Compile Include="Core\NDS\SDAT\SWAR.cs" />
     <Compile Include="Core\NDS\SDAT\Track.cs" />
     <Compile Include="Core\Player.cs" />
+    <Compile Include="Core\SongEvent.cs" />
     <Compile Include="Core\Test.cs" />
     <Compile Include="Properties\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -162,6 +164,7 @@
     </Compile>
     <Compile Include="UI\FlexibleMessageBox.cs" />
     <Compile Include="UI\Theme.cs" />
+    <Compile Include="UI\TrackViewer.cs" />
     <Compile Include="UI\ValueTextBox.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -1,5 +1,6 @@
 using Kermalis.VGMusicStudio.Util;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -34,6 +35,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private long loops;
         private bool fadeOutBegan;
 
+        public List<SongEvent>[] Events { get; private set; }
+
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
@@ -58,7 +61,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public void LoadSong(long index)
         {
             Stop();
-
             SDAT.INFO.SequenceInfo seqInfo = config.SDAT.INFOBlock.SequenceInfos.Entries[index];
             if (seqInfo != null)
             {
@@ -73,11 +75,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     }
                 }
                 Volume = seqInfo.Volume;
+
             }
             else
             {
                 sseq = null;
                 sbnk = null;
+                Events = null;
             }
         }
         public void Play()

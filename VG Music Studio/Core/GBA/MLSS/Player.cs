@@ -1,5 +1,6 @@
 ﻿using Kermalis.VGMusicStudio.Util;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
@@ -15,6 +16,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private int tempoStack;
         private long loops;
         private bool fadeOutBegan;
+
+        public List<SongEvent>[] Events { get; private set; }
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;

@@ -217,12 +217,6 @@
   <data name="MenuSaveSF2" xml:space="preserve">
     <value>Export VoiceTable To SF2</value>
   </data>
-  <data name="MenuTrackEditor" xml:space="preserve">
-    <value>Track Editor</value>
-  </data>
-  <data name="MenuVoiceTableEditor" xml:space="preserve">
-    <value>VoiceTable Editor</value>
-  </data>
   <data name="MIDIConverterError" xml:space="preserve">
     <value>There was an error converting the MIDI file:{0}</value>
     <comment>{0} is newline followed by the error.</comment>

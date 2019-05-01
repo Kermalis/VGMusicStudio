@@ -1,4 +1,6 @@
 ﻿using Kermalis.VGMusicStudio.Util;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -17,6 +19,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private long loops;
         private bool fadeOutBegan;
 
+        public List<SongEvent>[] Events { get; private set; }
+
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
@@ -30,28 +34,216 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             thread.Start();
         }
 
-        private void DisposeTracks()
+        private void SetTicks()
         {
-            if (tracks != null)
+            for (int trackIndex = 0; trackIndex < Events.Length; trackIndex++)
             {
-                for (int i = 0; i < tracks.Length; i++)
+                List<SongEvent> track = Events[trackIndex];
+                int ticks = 0, endOfPattern = -1;
+                for (int i = 0; i < track.Count; i++)
                 {
-                    tracks[i].Reader.Dispose();
+                    SongEvent e = track[i];
+                    if (endOfPattern == -1)
+                    {
+                        e.Ticks = ticks;
+                    }
+                    switch (e.Command)
+                    {
+                        case CallCommand call:
+                        {
+                            int callCmd = track.FindIndex(c => c.Offset == call.Offset);
+                            if (callCmd == -1)
+                            {
+                                throw new Exception($"A call event has an invalid call offset.");
+                            }
+                            endOfPattern = i;
+                            i = callCmd - 1;
+                            break;
+                        }
+                        case JumpCommand jump:
+                        {
+                            int jumpCmd = track.FindIndex(c => c.Offset == jump.Offset);
+                            if (jumpCmd == -1)
+                            {
+                                throw new Exception($"A jump event has an invalid jump offset.");
+                            }
+                            break;
+                        }
+                        case RestCommand rest: ticks += rest.Rest; break;
+                        case ReturnCommand _:
+                        {
+                            if (endOfPattern != -1)
+                            {
+                                i = endOfPattern;
+                                endOfPattern = -1;
+                            }
+                            break;
+                        }
+                    }
                 }
-                tracks = null;
             }
         }
         public void LoadSong(long index)
         {
-            DisposeTracks();
             SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
             SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
             voiceTableOffset = header.VoiceTableOffset - GBA.Utils.CartridgeOffset;
             tracks = new Track[header.NumTracks];
-            for (byte i = 0; i < tracks.Length; i++)
+            Events = new List<SongEvent>[header.NumTracks];
+            for (byte i = 0; i < header.NumTracks; i++)
             {
-                tracks[i] = new Track(i, config.ROM, header.TrackOffsets[i] - GBA.Utils.CartridgeOffset);
+                tracks[i] = new Track(i);
+                Events[i] = new List<SongEvent>();
+
+                config.Reader.BaseStream.Position = header.TrackOffsets[i] - GBA.Utils.CartridgeOffset;
+
+                byte cmd = 0, runCmd = 0, prevKey = 0, prevVelocity = 0x7F;
+                long totalTicks = 0;
+                while (cmd != 0xB1 && cmd != 0xB6)
+                {
+                    long offset = config.Reader.BaseStream.Position;
+                    long ticks = totalTicks;
+                    ICommand command = null;
+
+                    void AddNoteEvent(byte key, byte velocity, byte addedDuration)
+                    {
+                        command = new NoteCommand
+                        {
+                            Key = prevKey = key,
+                            Velocity = prevVelocity = velocity,
+                            Duration = runCmd == 0xCF ? -1 : (Utils.ClockTable[runCmd - 0xCF] + addedDuration)
+                        };
+                    }
+
+                    cmd = config.Reader.ReadByte();
+                    if (cmd >= 0xBD) // Commands that work within running status
+                    {
+                        runCmd = cmd;
+                    }
+
+                    #region TIE & Notes
+
+                    if (runCmd >= 0xCF && cmd <= 0x7F) // Within running status
+                    {
+                        byte[] peek = config.Reader.PeekBytes(2);
+                        if (peek[0] > 0x7F)
+                        {
+                            AddNoteEvent(cmd, prevVelocity, 0);
+                        }
+                        else if (peek[1] > 3)
+                        {
+                            AddNoteEvent(cmd, config.Reader.ReadByte(), 0);
+                        }
+                        else
+                        {
+                            AddNoteEvent(cmd, config.Reader.ReadByte(), config.Reader.ReadByte());
+                        }
+                    }
+                    else if (cmd >= 0xCF)
+                    {
+                        byte[] peek = config.Reader.PeekBytes(3);
+                        if (peek[0] > 0x7F)
+                        {
+                            AddNoteEvent(prevKey, prevVelocity, 0);
+                        }
+                        else if (peek[1] > 0x7F)
+                        {
+                            AddNoteEvent(config.Reader.ReadByte(), prevVelocity, 0);
+                        }
+                        // TIE (0xCF) cannot have an added duration so it needs to stop here
+                        else if (cmd == 0xCF || peek[2] > 3)
+                        {
+                            AddNoteEvent(config.Reader.ReadByte(), config.Reader.ReadByte(), 0);
+                        }
+                        else
+                        {
+                            AddNoteEvent(config.Reader.ReadByte(), config.Reader.ReadByte(), config.Reader.ReadByte());
+                        }
+                    }
+
+                    #endregion
+
+                    #region Rests
+
+                    else if (cmd >= 0x80 && cmd <= 0xB0)
+                    {
+                        command = new RestCommand { Rest = Utils.ClockTable[cmd - 0x80] };
+                    }
+
+                    #endregion
+
+                    #region Commands
+
+                    else if (runCmd < 0xCF && cmd <= 0x7F)
+                    {
+                        switch (runCmd)
+                        {
+                            case 0xBD: command = new VoiceCommand { Voice = cmd }; break;
+                            case 0xBE: command = new VolumeCommand { Volume = cmd }; break;
+                            case 0xBF: command = new PanpotCommand { Panpot = (sbyte)(cmd - 0x40) }; break;
+                            case 0xC0: command = new PitchBendCommand { Bend = (sbyte)(cmd - 0x40) }; break;
+                            case 0xC1: command = new PitchBendRangeCommand { Range = cmd }; break;
+                            case 0xC2: command = new LFOSpeedCommand { Speed = cmd }; break;
+                            case 0xC3: command = new LFODelayCommand { Delay = cmd }; break;
+                            case 0xC4: command = new LFODepthCommand { Depth = cmd }; break;
+                            case 0xC5: command = new LFOTypeCommand { Type = cmd }; break;
+                            case 0xC8: command = new TuneCommand { Tune = (sbyte)(cmd - 0x40) }; break;
+                            case 0xCD: command = new LibraryCommand { Command = cmd, Argument = config.Reader.ReadByte() }; break;
+                            case 0xCE: command = new EndOfTieCommand { Key = (sbyte)cmd }; prevKey = cmd; break;
+                            default: Console.WriteLine("Invalid running status command at 0x{0:X7}: 0x{1:X}", offset, runCmd); break;
+                        }
+                    }
+                    else if (cmd > 0xB0 && cmd < 0xCF)
+                    {
+                        switch (cmd)
+                        {
+                            case 0xB1:
+                            case 0xB6: command = new FinishCommand { Type = cmd }; break;
+                            case 0xB2: command = new JumpCommand { Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }; break;
+                            case 0xB3: command = new CallCommand { Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }; break;
+                            case 0xB4: command = new ReturnCommand(); break;
+                            case 0xB5: command = new RepeatCommand { Times = config.Reader.ReadByte(), Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }; break;
+                            case 0xB9: command = new MemoryAccessCommand { Operator = config.Reader.ReadByte(), Address = config.Reader.ReadByte(), Data = config.Reader.ReadByte() }; break;
+                            case 0xBA: command = new PriorityCommand { Priority = config.Reader.ReadByte() }; break;
+                            case 0xBB: command = new TempoCommand { Tempo = (ushort)(config.Reader.ReadByte() * 2) }; break;
+                            case 0xBC: command = new TransposeCommand { Transpose = config.Reader.ReadSByte() }; break;
+                            // Commands that work within running status:
+                            case 0xBD: command = new VoiceCommand { Voice = config.Reader.ReadByte() }; break;
+                            case 0xBE: command = new VolumeCommand { Volume = config.Reader.ReadByte() }; break;
+                            case 0xBF: command = new PanpotCommand { Panpot = (sbyte)(config.Reader.ReadByte() - 0x40) }; break;
+                            case 0xC0: command = new PitchBendCommand { Bend = (sbyte)(config.Reader.ReadByte() - 0x40) }; break;
+                            case 0xC1: command = new PitchBendRangeCommand { Range = config.Reader.ReadByte() }; break;
+                            case 0xC2: command = new LFOSpeedCommand { Speed = config.Reader.ReadByte() }; break;
+                            case 0xC3: command = new LFODelayCommand { Delay = config.Reader.ReadByte() }; break;
+                            case 0xC4: command = new LFODepthCommand { Depth = config.Reader.ReadByte() }; break;
+                            case 0xC5: command = new LFOTypeCommand { Type = config.Reader.ReadByte() }; break;
+                            case 0xC8: command = new TuneCommand { Tune = (sbyte)(config.Reader.ReadByte() - 0x40) }; break;
+                            case 0xCD: command = new LibraryCommand { Command = config.Reader.ReadByte(), Argument = config.Reader.ReadByte() }; break;
+                            case 0xCE:
+                            {
+                                int key;
+                                if (config.Reader.PeekByte() <= 0x7F)
+                                {
+                                    key = config.Reader.ReadSByte();
+                                    prevKey = (byte)key;
+                                }
+                                else
+                                {
+                                    key = -1;
+                                }
+                                command = new EndOfTieCommand { Key = key };
+                                break;
+                            }
+                            default: Console.WriteLine("Invalid command at 0x{0:X7}: 0x{1:X}", offset, cmd); break;
+                        }
+                    }
+
+                    #endregion
+
+                    Events[i].Add(new SongEvent(offset, command));
+                }
             }
+            SetTicks();
         }
         public void Play()
         {
@@ -87,7 +279,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
-            DisposeTracks();
         }
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
@@ -95,7 +286,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             for (int i = 0; i < tracks.Length; i++)
             {
                 Track track = tracks[i];
-                info.Positions[i] = track.Reader.BaseStream.Position;
+                info.Positions[i] = Events[i][track.CurEvent].Offset;
                 info.Delays[i] = track.Delay;
                 info.Voices[i] = track.Voice;
                 info.Mods[i] = track.LFODepth;
@@ -128,11 +319,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
         }
 
-        private void PlayNote(Track track, byte key, byte velocity, byte addedDuration)
+        private void PlayNote(Track track, byte key, byte velocity, int duration)
         {
             key = (byte)(key + track.Transpose).Clamp(0, 0x7F);
             track.PrevKey = key;
-            track.PrevVelocity = velocity;
             if (track.Ready)
             {
                 bool fromDrum = false;
@@ -155,7 +345,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     {
                         var note = new Note
                         {
-                            Duration = track.RunCmd == 0xCF ? -1 : Utils.ClockTable[track.RunCmd - 0xCF] + addedDuration, // TIE gets -1 duration
+                            Duration = duration,
                             Velocity = velocity,
                             OriginalKey = key,
                             Key = fromDrum ? v.RootKey : key
@@ -199,162 +389,78 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 }
             }
         }
-        private void ExecuteNext(Track track, ref bool update, ref bool loop)
+        private void ExecuteNext(int i, ref bool update, ref bool loop)
         {
-            byte cmd = track.Reader.ReadByte();
-            if (cmd >= 0xBD) // Commands that work within running status
+            bool increment = true;
+            List<SongEvent> ev = Events[i];
+            Track track = tracks[i];
+            switch (ev[track.CurEvent].Command)
             {
-                track.RunCmd = cmd;
+                case CallCommand call:
+                {
+                    int callCmd = ev.FindIndex(c => c.Offset == call.Offset);
+                    track.EndOfPattern = track.CurEvent + 1;
+                    track.CurEvent = callCmd;
+                    increment = false;
+                    break;
+                }
+                case EndOfTieCommand eot:
+                {
+                    if (eot.Key == -1)
+                    {
+                        track.ReleaseChannels(track.PrevKey);
+                    }
+                    else
+                    {
+                        track.ReleaseChannels((byte)(eot.Key + track.Transpose).Clamp(0, 0x7F));
+                    }
+                    break;
+                }
+                case FinishCommand _:
+                {
+                    track.Stopped = true;
+                    increment = false;
+                    //track.ReleaseAllTieingChannels();
+                    break;
+                }
+                case JumpCommand jump:
+                {
+                    int jumpCmd = ev.FindIndex(c => c.Offset == jump.Offset);
+                    track.CurEvent = jumpCmd;
+                    loop = true;
+                    increment = false;
+                    break;
+                }
+                case LFODelayCommand lfodl: track.LFODelay = lfodl.Delay; track.LFOPhase = track.LFODelayCount = 0; update = true; break;
+                case LFODepthCommand lfo: track.LFODepth = lfo.Depth; update = true; break;
+                case LFOSpeedCommand lfos: track.LFOSpeed = lfos.Speed; track.LFOPhase = track.LFODelayCount = 0; update = true; break;
+                case LFOTypeCommand lfot: track.LFOType = (LFOType)lfot.Type; update = true; break;
+                case NoteCommand note: PlayNote(track, note.Key, note.Velocity, note.Duration); break;
+                case PanpotCommand pan: track.Panpot = pan.Panpot; update = true; break;
+                case PitchBendCommand bend: track.PitchBend = bend.Bend; update = true; break;
+                case PitchBendRangeCommand bendr: track.PitchBendRange = bendr.Range; update = true; break;
+                case PriorityCommand priority: track.Priority = priority.Priority; break;
+                case RestCommand rest: track.Delay = rest.Rest; break;
+                case ReturnCommand _:
+                {
+                    if (track.EndOfPattern != -1)
+                    {
+                        track.CurEvent = track.EndOfPattern;
+                        track.EndOfPattern = -1;
+                        increment = false;
+                    }
+                    break;
+                }
+                case TempoCommand tempo: this.tempo = tempo.Tempo; break;
+                case TransposeCommand transpose: track.Transpose = transpose.Transpose; break;
+                case TuneCommand tune: track.Tune = tune.Tune; update = true; break;
+                case VoiceCommand voice: track.Voice = voice.Voice; track.Ready = true; break;
+                case VolumeCommand volume: track.Volume = volume.Volume; update = true; break;
             }
-            #region TIE & Notes
-
-            if (track.RunCmd >= 0xCF && cmd <= 0x7F) // Within running status
+            if (increment)
             {
-                byte[] peek = track.Reader.PeekBytes(2);
-                if (peek[0] > 0x7F)
-                {
-                    PlayNote(track, cmd, track.PrevVelocity, 0);
-                }
-                else if (peek[1] > 3)
-                {
-                    PlayNote(track, cmd, track.Reader.ReadByte(), 0);
-                }
-                else
-                {
-                    PlayNote(track, cmd, track.Reader.ReadByte(), track.Reader.ReadByte());
-                }
+                track.CurEvent++;
             }
-            else if (cmd >= 0xCF)
-            {
-                byte[] peek = track.Reader.PeekBytes(3);
-                if (peek[0] > 0x7F)
-                {
-                    PlayNote(track, track.PrevKey, track.PrevVelocity, 0);
-                }
-                else if (peek[1] > 0x7F)
-                {
-                    PlayNote(track, track.Reader.ReadByte(), track.PrevVelocity, 0);
-                }
-                // TIE (0xCF) cannot have an added duration so it needs to stop here
-                else if (cmd == 0xCF || peek[2] > 3)
-                {
-                    PlayNote(track, track.Reader.ReadByte(), track.Reader.ReadByte(), 0);
-                }
-                else
-                {
-                    PlayNote(track, track.Reader.ReadByte(), track.Reader.ReadByte(), track.Reader.ReadByte());
-                }
-            }
-
-            #endregion
-
-            #region Rests
-
-            else if (cmd >= 0x80 && cmd <= 0xB0)
-            {
-                track.Delay = Utils.ClockTable[cmd - 0x80];
-            }
-
-            #endregion
-
-            #region Commands
-
-            else if (track.RunCmd < 0xCF && cmd <= 0x7F) // Commands within running status
-            {
-                switch (track.RunCmd)
-                {
-                    case 0xBD: track.Voice = cmd; break;
-                    case 0xBE: track.Volume = cmd; update = true; break;
-                    case 0xBF: track.Panpot = (sbyte)(cmd - 0x40); update = true; break;
-                    case 0xC0: track.Bend = (sbyte)(cmd - 0x40); update = true; break;
-                    case 0xC1: track.BendRange = cmd; update = true; break;
-                    case 0xC2: track.LFOSpeed = cmd; update = true; break;
-                    case 0xC3: track.LFODelay = cmd; update = true; break;
-                    case 0xC4: track.LFODepth = cmd; update = true; break;
-                    case 0xC5: track.LFOType = (LFOType)cmd; update = true; break;
-                    case 0xC8: track.Tune = (sbyte)(cmd - 0x40); update = true; break;
-                    case 0xCD: track.Reader.ReadByte(); break; // Argument
-                    case 0xCE:
-                    {
-                        track.ReleaseChannels(track.PrevKey = (byte)(cmd + track.Transpose).Clamp(0, 0x7F));
-                        break;
-                    }
-                    default: // Invalid Command
-                    {
-                        break;
-                    }
-                }
-            }
-            else if (cmd > 0xB0 && cmd < 0xCF)
-            {
-                switch (cmd)
-                {
-                    case 0xB1: // FINE & PREV
-                    case 0xB6:
-                    {
-                        track.Stopped = true;
-                        // track.ReleaseAllTieingChannels();
-                        break;
-                    }
-                    case 0xB2:
-                    {
-                        track.Reader.BaseStream.Position = track.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
-                        loop = true;
-                        break;
-                    }
-                    case 0xB3:
-                    {
-                        int jump = track.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
-                        track.EndOfPattern = track.Reader.BaseStream.Position;
-                        track.Reader.BaseStream.Position = jump;
-                        break;
-                    }
-                    case 0xB4:
-                    {
-                        if (track.EndOfPattern != -1)
-                        {
-                            track.Reader.BaseStream.Position = track.EndOfPattern;
-                            track.EndOfPattern = -1;
-                        }
-                        break;
-                    }
-                    case 0xB5: track.Reader.ReadBytes(2); break; // Times, Offset
-                    case 0xB9: track.Reader.ReadBytes(3); break; // Operator, Address, Data
-                    case 0xBA: track.Priority = track.Reader.ReadByte(); break;
-                    case 0xBB: tempo = (ushort)(track.Reader.ReadByte() * 2); break;
-                    case 0xBC: track.Transpose = track.Reader.ReadSByte(); break;
-                    // Commands that work within running status:
-                    case 0xBD: track.Voice = track.Reader.ReadByte(); track.Ready = true; break;
-                    case 0xBE: track.Volume = track.Reader.ReadByte(); update = true; break;
-                    case 0xBF: track.Panpot = (sbyte)(track.Reader.ReadByte() - 0x40); update = true; break;
-                    case 0xC0: track.Bend = (sbyte)(track.Reader.ReadByte() - 0x40); update = true; break;
-                    case 0xC1: track.BendRange = track.Reader.ReadByte(); update = true; break;
-                    case 0xC2: track.LFOSpeed = track.Reader.ReadByte(); update = true; break;
-                    case 0xC3: track.LFODelay = track.Reader.ReadByte(); update = true; break;
-                    case 0xC4: track.LFODepth = track.Reader.ReadByte(); update = true; break;
-                    case 0xC5: track.LFOType = (LFOType)track.Reader.ReadByte(); update = true; break;
-                    case 0xC8: track.Tune = (sbyte)(track.Reader.ReadByte() - 0x40); update = true; break;
-                    case 0xCD: track.Reader.ReadBytes(2); break; // Command, Argument
-                    case 0xCE:
-                    {
-                        if (track.Reader.PeekByte() <= 0x7F)
-                        {
-                            track.ReleaseChannels(track.PrevKey = (byte)(track.Reader.ReadByte() + track.Transpose).Clamp(0, 0x7F));
-                        }
-                        else
-                        {
-                            track.ReleaseChannels(track.PrevKey);
-                        }
-                        break;
-                    }
-                    default: // Invalid Command
-                    {
-                        break;
-                    }
-                }
-            }
-
-            #endregion
         }
 
         private void Tick()
@@ -376,7 +482,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             bool update = false;
                             while (track.Delay == 0 && !track.Stopped)
                             {
-                                ExecuteNext(track, ref update, ref loop);
+                                ExecuteNext(i, ref update, ref loop);
                             }
                             if (update || track.LFODepth > 0)
                             {

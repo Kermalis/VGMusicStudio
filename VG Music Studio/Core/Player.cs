@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core
 {
@@ -14,6 +15,8 @@ namespace Kermalis.VGMusicStudio.Core
 
     internal interface IPlayer : IDisposable
     {
+        List<SongEvent>[] Events { get; }
+
         PlayerState State { get; }
         event SongEndedEvent SongEnded;
 

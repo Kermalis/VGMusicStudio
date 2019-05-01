@@ -1,5 +1,6 @@
 ﻿using Kermalis.EndianBinaryIO;
 using Kermalis.VGMusicStudio.Util;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,6 +20,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         private int tempoStack;
         private long loops;
         private bool fadeOutBegan;
+
+        public List<SongEvent>[] Events { get; private set; }
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;

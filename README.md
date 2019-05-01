@@ -12,14 +12,10 @@ Discord Server: https://discord.gg/q2pAw3x
 * MIDI saving - Preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * MIDI saving - Make errors more clear
-* Voice table editor - Tooltips which provide a huge chunk of information
-* Track editor - Offset for the event you're editing
-* Track editor - Put the event parameter as text in the parameter name label, so there is reference to the original value (or in LFOType/Note's cases, text representation)
-* Maybe a nice waveform
-* Let the on-screen piano play notes or interact with a MIDI keyboard
+* Voice table viewer - Tooltips which provide a huge chunk of information
 * Detachable piano
 * Tempo numerical (it fits)
-* Help dialog that explains the commands for each engine and config options
+* Help dialog that explains the commands and config for each engine
 
 ## M4A / MP2K Engine
 * Add Golden Sun 2 reverb effect

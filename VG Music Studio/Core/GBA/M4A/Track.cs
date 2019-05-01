@@ -1,30 +1,25 @@
-﻿using Kermalis.EndianBinaryIO;
-using Kermalis.VGMusicStudio.Util;
+﻿using Kermalis.VGMusicStudio.Util;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 {
     internal class Track
     {
         public readonly byte Index;
-        public readonly EndianBinaryReader Reader;
-        public readonly long StartOffset;
 
-        public byte Voice, BendRange, Priority, Volume,
-            Delay, RunCmd, PrevKey, PrevVelocity,
+        public byte Voice, PitchBendRange, Priority, Volume, Delay, PrevKey,
             LFOPhase, LFODelayCount, LFOSpeed, LFODelay, LFODepth;
         public LFOType LFOType;
-        public sbyte Bend, Tune, Panpot, Transpose;
-        public long EndOfPattern;
+        public sbyte PitchBend, Tune, Panpot, Transpose;
         public bool Ready, Stopped;
+        public int CurEvent, EndOfPattern;
 
         public readonly List<Channel> Channels = new List<Channel>();
 
         public int GetPitch()
         {
             int mod = LFOType == LFOType.Pitch ? (Utils.Tri(LFOPhase) * LFODepth) >> 8 : 0;
-            return (Bend * BendRange) + Tune + mod;
+            return (PitchBend * PitchBendRange) + Tune + mod;
         }
         public byte GetVolume()
         {
@@ -37,24 +32,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             return (sbyte)(Panpot + mod).Clamp(-0x40, 0x3F);
         }
 
-        public Track(byte i, byte[] rom, long startOffset)
+        public Track(byte i)
         {
             Index = i;
-            Reader = new EndianBinaryReader(new MemoryStream(rom));
-            StartOffset = startOffset;
         }
         public void Init()
         {
-            Reader.BaseStream.Position = StartOffset;
-            Voice = Priority = RunCmd = PrevKey = Delay = LFODelay = LFODelayCount = LFOPhase = LFODepth = 0;
-            Bend = Tune = Panpot = Transpose = 0;
+            Voice = Priority = PrevKey = Delay = LFODelay = LFODelayCount = LFOPhase = LFODepth = 0;
+            PitchBend = Tune = Panpot = Transpose = 0;
+            CurEvent = 0;
             EndOfPattern = -1;
-            BendRange = 2;
+            PitchBendRange = 2;
             LFOType = LFOType.Pitch;
             Ready = Stopped = false;
             LFOSpeed = 22;
             Volume = 100;
-            PrevVelocity = 0x7F;
             StopAllChannels();
         }
         public void Tick()
