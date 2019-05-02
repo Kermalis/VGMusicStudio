@@ -52,6 +52,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     {
                         throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(SongTableOffsets)}\" must have at least one entry.");
                     }
+                    VoiceTableOffset = (int)game.GetValidValue(nameof(VoiceTableOffset), 0, rom.Length - 1);
+                    SampleTableOffset = (int)game.GetValidValue(nameof(SampleTableOffset), 0, rom.Length - 1);
 
                     if (game.Children.TryGetValue("Copy", out YamlNode copy))
                     {
@@ -77,8 +79,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         SongTableOffsets[i] = (int)Util.Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - 1);
                         SongTableSizes[i] = Util.Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
                     }
-                    VoiceTableOffset = (int)game.GetValidValue(nameof(VoiceTableOffset), 0, rom.Length - 1);
-                    SampleTableOffset = (int)game.GetValidValue(nameof(SampleTableOffset), 0, rom.Length - 1);
                     SampleTableSize = game.GetValidValue(nameof(SampleTableSize), 0, rom.Length - 1);
                     if (game.Children.TryGetValue(nameof(Remap), out YamlNode remap))
                     {
