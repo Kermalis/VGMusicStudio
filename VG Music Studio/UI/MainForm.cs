@@ -216,10 +216,24 @@ namespace Kermalis.VGMusicStudio.UI
 
             long index = (long)songNumerical.Value;
             Stop();
+            Text = Utils.ProgramName;
+            songsComboBox.SelectedIndex = 0;
+            trackInfo.DeleteData();
+            bool success;
             try
             {
                 Engine.Instance.Player.LoadSong(index);
-                trackViewer?.UpdateTracks();
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, songNumerical.Value));
+                success = false;
+            }
+
+            trackViewer?.UpdateTracks();
+            if (success)
+            {
                 Config config = Engine.Instance.Config;
                 List<Config.Song> songs = config.Playlists[0].Songs; // Complete "Music" playlist is present in all configs at index 0
                 Config.Song song = songs.SingleOrDefault(s => s.Index == index);
@@ -228,20 +242,10 @@ namespace Kermalis.VGMusicStudio.UI
                     Text = $"{Utils.ProgramName} - {song.Name}";
                     songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
                 }
-                else
-                {
-                    Text = Utils.ProgramName;
-                    songsComboBox.SelectedIndex = 0;
-                }
-                trackInfo.DeleteData();
                 if (autoplay)
                 {
                     Play();
                 }
-            }
-            catch (Exception ex)
-            {
-                FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, songNumerical.Value));
             }
 
             autoplay = true;
@@ -320,16 +324,22 @@ namespace Kermalis.VGMusicStudio.UI
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
+                DisposeEngine();
+                bool success;
                 try
                 {
-                    DisposeEngine();
                     new Engine(Engine.EngineType.NDS_DSE, d.FileName);
-                    var config = (Core.NDS.DSE.Config)Engine.Instance.Config;
-                    FinishLoading(false, config.BGMFiles.Length);
+                    success = true;
                 }
                 catch (Exception ex)
                 {
                     FlexibleMessageBox.Show(ex.Message, "Error Loading DSE");
+                    success = false;
+                }
+                if (success)
+                {
+                    var config = (Core.NDS.DSE.Config)Engine.Instance.Config;
+                    FinishLoading(false, config.BGMFiles.Length);
                 }
             }
         }
@@ -342,16 +352,22 @@ namespace Kermalis.VGMusicStudio.UI
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
+                DisposeEngine();
+                bool success;
                 try
                 {
-                    DisposeEngine();
                     new Engine(Engine.EngineType.GBA_M4A, File.ReadAllBytes(d.FileName));
-                    var config = (Core.GBA.M4A.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SongTableSizes[0]);
+                    success = true;
                 }
                 catch (Exception ex)
                 {
                     FlexibleMessageBox.Show(ex.Message, "Error Loading GBA ROM (M4A/MP2K)");
+                    success = false;
+                }
+                if (success)
+                {
+                    var config = (Core.GBA.M4A.Config)Engine.Instance.Config;
+                    FinishLoading(true, config.SongTableSizes[0]);
                 }
             }
         }
@@ -364,16 +380,22 @@ namespace Kermalis.VGMusicStudio.UI
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
+                DisposeEngine();
+                bool success;
                 try
                 {
-                    DisposeEngine();
                     new Engine(Engine.EngineType.GBA_MLSS, File.ReadAllBytes(d.FileName));
-                    var config = (Core.GBA.MLSS.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SongTableSizes[0]);
+                    success = true;
                 }
                 catch (Exception ex)
                 {
                     FlexibleMessageBox.Show(ex.Message, "Error Loading GBA ROM (MLSS)");
+                    success = false;
+                }
+                if (success)
+                {
+                    var config = (Core.GBA.MLSS.Config)Engine.Instance.Config;
+                    FinishLoading(true, config.SongTableSizes[0]);
                 }
             }
         }
@@ -386,16 +408,22 @@ namespace Kermalis.VGMusicStudio.UI
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
+                DisposeEngine();
+                bool success;
                 try
                 {
-                    DisposeEngine();
-                    var sdat = new Core.NDS.SDAT.SDAT(File.ReadAllBytes(d.FileName));
-                    new Engine(Engine.EngineType.NDS_SDAT, sdat);
-                    FinishLoading(true, sdat.INFOBlock.SequenceInfos.NumEntries);
+                    new Engine(Engine.EngineType.NDS_SDAT, new Core.NDS.SDAT.SDAT(File.ReadAllBytes(d.FileName)));
+                    success = true;
                 }
                 catch (Exception ex)
                 {
                     FlexibleMessageBox.Show(ex.Message, "Error Loading SDAT File");
+                    success = false;
+                }
+                if (success)
+                {
+                    var config = (Core.NDS.SDAT.Config)Engine.Instance.Config;
+                    FinishLoading(true, config.SDAT.INFOBlock.SequenceInfos.NumEntries);
                 }
             }
         }
@@ -480,17 +508,20 @@ namespace Kermalis.VGMusicStudio.UI
 
         private void FinishLoading(bool numericalVisible, long numSongs)
         {
-            autoplay = false;
             Engine.Instance.Player.SongEnded += SongEnded;
             foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
             {
                 songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
                 songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBoxItem(s, Resources.IconSong, 1)).ToArray());
             }
-            songNumerical.Visible = numericalVisible;
             songNumerical.Maximum = numSongs - 1;
+#if DEBUG
+            //Debug.EventScan(numSongs);
+#endif
+            autoplay = false;
             SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
             songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = true;
+            songNumerical.Visible = numericalVisible;
             UpdateTaskbarButtons();
         }
         private void DisposeEngine()
@@ -507,7 +538,7 @@ namespace Kermalis.VGMusicStudio.UI
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             songNumerical.ValueChanged -= SongNumerical_ValueChanged;
             songNumerical.Visible = false;
-            songNumerical.Value = 0;
+            songNumerical.Value = songNumerical.Maximum = 0;
             songsComboBox.SelectedItem = null;
             songsComboBox.Items.Clear();
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;

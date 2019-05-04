@@ -7,8 +7,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public readonly byte Index;
         private readonly Player player;
 
-        public bool Enabled, Stopped;
-        public bool Tie, ShouldWaitForNotesToFinish, WaitingForNoteToFinishBeforeContinuingXD, Portamento;
+        public bool Allocated, Enabled, Stopped;
+        public bool Tie, Mono, Portamento,
+            WaitingForNoteToFinishBeforeContinuingXD; // Is this necessary?
         public bool VariableFlag; // Set by variable commands (0xB0 - 0xBD)
         public byte Voice, Priority, Volume, Expression,
             LFORange, BendRange, LFOSpeed, LFODepth;
@@ -52,9 +53,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public void Init()
         {
-            Enabled = Stopped = Tie = WaitingForNoteToFinishBeforeContinuingXD = Portamento = false;
+            Stopped = Tie = WaitingForNoteToFinishBeforeContinuingXD = Portamento = false;
+            Allocated = Enabled = Index == 0;
             DataOffset = 0;
-            ShouldWaitForNotesToFinish = VariableFlag = true;
+            Mono = VariableFlag = true;
             CallStackDepth = 0;
             Voice = LFODepth = 0;
             Bend = Pan = KeyShift = 0;
@@ -84,9 +86,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 for (int i = 0; i < Channels.Count; i++)
                 {
                     Channel c = Channels[i];
-                    if (c.NoteLength > 0)
+                    if (c.NoteDuration > 0)
                     {
-                        c.NoteLength--;
+                        c.NoteDuration--;
                     }
                     if (!c.AutoSweep && c.SweepCounter < c.SweepLength)
                     {

@@ -38,7 +38,7 @@ namespace Kermalis.VGMusicStudio.UI
             c1 = new OLVColumn(Strings.TrackEditorEvent, "Command.Label");
             c2 = new OLVColumn(Strings.TrackEditorArguments, "Command.Arguments") { UseFiltering = false };
             c3 = new OLVColumn(Strings.TrackEditorOffset, "Offset") { AspectToStringFormat = "0x{0:X4}", UseFiltering = false };
-            c4 = new OLVColumn(Strings.TrackEditorTicks, "Ticks") { UseFiltering = false };
+            c4 = new OLVColumn(Strings.TrackEditorTicks, "Ticks") { AspectGetter = (o) => string.Join(", ", ((SongEvent)o).Ticks), UseFiltering = false };
             c1.Width = c2.Width = c3.Width = 72;
             c4.Width = 47;
             c1.Hideable = c2.Hideable = c3.Hideable = c4.Hideable = false;
@@ -61,7 +61,7 @@ namespace Kermalis.VGMusicStudio.UI
             Controls.AddRange(new Control[] { listView, panel1 });
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
-            Text = $"{Utils.ProgramName} ― {Strings.TrackEditorTitle}";
+            Text = $"{Utils.ProgramName} ― Track Viewer";
 
             UpdateTracks();
         }
@@ -87,8 +87,8 @@ namespace Kermalis.VGMusicStudio.UI
             bool tracks = numTracks > 0;
             tracksBox.Enabled = tracks;
 
-            // Track 1, Track 2, ...
-            tracksBox.DataSource = Enumerable.Range(1, numTracks).Select(i => string.Format(Strings.TrackEditorTrackX, i)).ToList();
+            // Track 0, Track 1, ...
+            tracksBox.DataSource = Enumerable.Range(0, numTracks).Select(i => string.Format(Strings.TrackEditorTrackX, i)).ToList();
 
             if (!tracks)
             {

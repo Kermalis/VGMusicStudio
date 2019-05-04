@@ -691,15 +691,6 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Track Editor.
-        /// </summary>
-        internal static string TrackEditorTitle {
-            get {
-                return ResourceManager.GetString("TrackEditorTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to To.
         /// </summary>
         internal static string TrackEditorTo {
@@ -723,15 +714,6 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string VoiceTableEditorAddress {
             get {
                 return ResourceManager.GetString("VoiceTableEditorAddress", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VoiceTable Editor.
-        /// </summary>
-        internal static string VoiceTableEditorTitle {
-            get {
-                return ResourceManager.GetString("VoiceTableEditorTitle", resourceCulture);
             }
         }
     }

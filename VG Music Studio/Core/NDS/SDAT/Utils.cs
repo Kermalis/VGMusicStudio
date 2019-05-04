@@ -256,8 +256,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             -1280, -1024, -896, -768, -512, -384, -128, 0
         };
 
-        public static readonly Random RNG = new Random();
-
         private static readonly sbyte[] sinTable = new sbyte[33]
         {
             000, 006, 012, 019, 025, 031, 037, 043,

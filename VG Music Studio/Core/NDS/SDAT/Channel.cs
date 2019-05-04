@@ -17,7 +17,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public int Velocity; // The SEQ Player treats 0 as the 100% amplitude value and -92544 (-723*128) as the 0% amplitude value. The starting ampltitude is 0% (-92544).
         public byte Volume; // From 0x00-0x7F (Calculated from Utils)
         public ushort BaseTimer, Timer;
-        public int NoteLength;
+        public int NoteDuration;
 
         private byte attack;
         private int sustain;
@@ -46,7 +46,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             Index = i;
         }
 
-        public void StartPCM(SWAR.SWAV swav, int noteLength)
+        public void StartPCM(SWAR.SWAV swav, int noteDuration)
         {
             Type = InstrumentType.PCM;
             dataOffset = 0;
@@ -56,15 +56,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 adpcmDecoder = new ADPCMDecoder(swav.Samples);
             }
             BaseTimer = swav.Timer;
-            Start(noteLength);
+            Start(noteDuration);
         }
-        public void StartPSG(byte duty, int noteLength)
+        public void StartPSG(byte duty, int noteDuration)
         {
             Type = InstrumentType.PSG;
             psgCounter = 0;
             psgDuty = duty;
             BaseTimer = 8006;
-            Start(noteLength);
+            Start(noteDuration);
         }
         public void StartNoise(int noteLength)
         {
@@ -74,13 +74,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             Start(noteLength);
         }
 
-        private void Start(int noteLength)
+        private void Start(int noteDuration)
         {
             State = EnvelopeState.Attack;
             Velocity = -92544;
             pos = 0;
             prevLeft = prevRight = 0;
-            NoteLength = noteLength;
+            NoteDuration = noteDuration;
         }
 
         public void Stop()

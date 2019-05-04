@@ -327,9 +327,6 @@
   <data name="TrackEditorTicks" xml:space="preserve">
     <value>Ticks</value>
   </data>
-  <data name="TrackEditorTitle" xml:space="preserve">
-    <value>Track Editor</value>
-  </data>
   <data name="TrackEditorTo" xml:space="preserve">
     <value>To</value>
   </data>
@@ -339,9 +336,6 @@
   </data>
   <data name="VoiceTableEditorAddress" xml:space="preserve">
     <value>Address</value>
-  </data>
-  <data name="VoiceTableEditorTitle" xml:space="preserve">
-    <value>VoiceTable Editor</value>
   </data>
   <data name="PlayPlaylistBody" xml:space="preserve">
     <value>Would you like to play the following playlist?{0}</value>

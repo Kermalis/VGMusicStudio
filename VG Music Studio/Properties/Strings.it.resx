@@ -291,9 +291,6 @@
   <data name="TrackEditorRemoveEvent" xml:space="preserve">
     <value>Rimuovi Evento</value>
   </data>
-  <data name="TrackEditorTitle" xml:space="preserve">
-    <value>Editor Traccia</value>
-  </data>
   <data name="TrackEditorTo" xml:space="preserve">
     <value>a</value>
   </data>
@@ -302,9 +299,6 @@
   </data>
   <data name="VoiceTableEditorAddress" xml:space="preserve">
     <value>Indirizzo</value>
-  </data>
-  <data name="VoiceTableEditorTitle" xml:space="preserve">
-    <value>Editor VoiceTable</value>
   </data>
   <data name="PlayPlaylistBody" xml:space="preserve">
     <value>Desideri riprodurre la seguente Playlist?{0}</value>

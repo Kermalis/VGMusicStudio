@@ -1,11 +1,20 @@
 ﻿namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
-    internal enum EnvelopeState
+    internal enum EnvelopeState : byte
     {
         Attack,
         Decay,
         Sustain,
         Release
+    }
+    internal enum ArgType : byte
+    {
+        None,
+        Byte,
+        Short,
+        VarLen,
+        Rand,
+        PlayerVar
     }
 
     internal enum LFOType : byte

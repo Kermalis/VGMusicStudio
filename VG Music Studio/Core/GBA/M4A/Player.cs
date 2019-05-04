@@ -39,22 +39,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             for (int trackIndex = 0; trackIndex < Events.Length; trackIndex++)
             {
                 List<SongEvent> track = Events[trackIndex];
-                int ticks = 0, endOfPattern = -1;
+                long ticks = 0;
+                int endOfPattern = -1;
                 for (int i = 0; i < track.Count; i++)
                 {
                     SongEvent e = track[i];
-                    if (endOfPattern == -1)
-                    {
-                        e.Ticks = ticks;
-                    }
+                    e.Ticks.Add(ticks);
                     switch (e.Command)
                     {
+                        // TODO: REPT and Nested PATT
                         case CallCommand call:
                         {
                             int callCmd = track.FindIndex(c => c.Offset == call.Offset);
                             if (callCmd == -1)
                             {
-                                throw new Exception($"A call event has an invalid call offset.");
+                                throw new Exception("A call event has an invalid call offset.");
                             }
                             endOfPattern = i;
                             i = callCmd - 1;
@@ -65,7 +64,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                             int jumpCmd = track.FindIndex(c => c.Offset == jump.Offset);
                             if (jumpCmd == -1)
                             {
-                                throw new Exception($"A jump event has an invalid jump offset.");
+                                throw new Exception("A jump event has an invalid jump offset.");
                             }
                             break;
                         }
@@ -98,21 +97,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 config.Reader.BaseStream.Position = header.TrackOffsets[i] - GBA.Utils.CartridgeOffset;
 
                 byte cmd = 0, runCmd = 0, prevKey = 0, prevVelocity = 0x7F;
-                long totalTicks = 0;
                 while (cmd != 0xB1 && cmd != 0xB6)
                 {
                     long offset = config.Reader.BaseStream.Position;
-                    long ticks = totalTicks;
-                    ICommand command = null;
-
+                    void AddEvent(ICommand command)
+                    {
+                        Events[i].Add(new SongEvent(offset, command));
+                    }
                     void AddNoteEvent(byte key, byte velocity, byte addedDuration)
                     {
-                        command = new NoteCommand
+                        AddEvent(new NoteCommand
                         {
                             Key = prevKey = key,
                             Velocity = prevVelocity = velocity,
                             Duration = runCmd == 0xCF ? -1 : (Utils.ClockTable[runCmd - 0xCF] + addedDuration)
-                        };
+                        });
                     }
 
                     cmd = config.Reader.ReadByte();
@@ -167,7 +166,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 
                     else if (cmd >= 0x80 && cmd <= 0xB0)
                     {
-                        command = new RestCommand { Rest = Utils.ClockTable[cmd - 0x80] };
+                        AddEvent(new RestCommand { Rest = Utils.ClockTable[cmd - 0x80] });
                     }
 
                     #endregion
@@ -178,18 +177,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     {
                         switch (runCmd)
                         {
-                            case 0xBD: command = new VoiceCommand { Voice = cmd }; break;
-                            case 0xBE: command = new VolumeCommand { Volume = cmd }; break;
-                            case 0xBF: command = new PanpotCommand { Panpot = (sbyte)(cmd - 0x40) }; break;
-                            case 0xC0: command = new PitchBendCommand { Bend = (sbyte)(cmd - 0x40) }; break;
-                            case 0xC1: command = new PitchBendRangeCommand { Range = cmd }; break;
-                            case 0xC2: command = new LFOSpeedCommand { Speed = cmd }; break;
-                            case 0xC3: command = new LFODelayCommand { Delay = cmd }; break;
-                            case 0xC4: command = new LFODepthCommand { Depth = cmd }; break;
-                            case 0xC5: command = new LFOTypeCommand { Type = cmd }; break;
-                            case 0xC8: command = new TuneCommand { Tune = (sbyte)(cmd - 0x40) }; break;
-                            case 0xCD: command = new LibraryCommand { Command = cmd, Argument = config.Reader.ReadByte() }; break;
-                            case 0xCE: command = new EndOfTieCommand { Key = (sbyte)cmd }; prevKey = cmd; break;
+                            case 0xBD: AddEvent(new VoiceCommand { Voice = cmd }); break;
+                            case 0xBE: AddEvent(new VolumeCommand { Volume = cmd }); break;
+                            case 0xBF: AddEvent(new PanpotCommand { Panpot = (sbyte)(cmd - 0x40) }); break;
+                            case 0xC0: AddEvent(new PitchBendCommand { Bend = (sbyte)(cmd - 0x40) }); break;
+                            case 0xC1: AddEvent(new PitchBendRangeCommand { Range = cmd }); break;
+                            case 0xC2: AddEvent(new LFOSpeedCommand { Speed = cmd }); break;
+                            case 0xC3: AddEvent(new LFODelayCommand { Delay = cmd }); break;
+                            case 0xC4: AddEvent(new LFODepthCommand { Depth = cmd }); break;
+                            case 0xC5: AddEvent(new LFOTypeCommand { Type = cmd }); break;
+                            case 0xC8: AddEvent(new TuneCommand { Tune = (sbyte)(cmd - 0x40) }); break;
+                            case 0xCD: AddEvent(new LibraryCommand { Command = cmd, Argument = config.Reader.ReadByte() }); break;
+                            case 0xCE: AddEvent(new EndOfTieCommand { Key = (sbyte)cmd }); prevKey = cmd; break;
                             default: Console.WriteLine("Invalid running status command at 0x{0:X7}: 0x{1:X}", offset, runCmd); break;
                         }
                     }
@@ -198,27 +197,27 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                         switch (cmd)
                         {
                             case 0xB1:
-                            case 0xB6: command = new FinishCommand { Type = cmd }; break;
-                            case 0xB2: command = new JumpCommand { Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }; break;
-                            case 0xB3: command = new CallCommand { Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }; break;
-                            case 0xB4: command = new ReturnCommand(); break;
-                            case 0xB5: command = new RepeatCommand { Times = config.Reader.ReadByte(), Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }; break;
-                            case 0xB9: command = new MemoryAccessCommand { Operator = config.Reader.ReadByte(), Address = config.Reader.ReadByte(), Data = config.Reader.ReadByte() }; break;
-                            case 0xBA: command = new PriorityCommand { Priority = config.Reader.ReadByte() }; break;
-                            case 0xBB: command = new TempoCommand { Tempo = (ushort)(config.Reader.ReadByte() * 2) }; break;
-                            case 0xBC: command = new TransposeCommand { Transpose = config.Reader.ReadSByte() }; break;
+                            case 0xB6: AddEvent(new FinishCommand { Type = cmd }); break;
+                            case 0xB2: AddEvent(new JumpCommand { Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }); break;
+                            case 0xB3: AddEvent(new CallCommand { Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }); break;
+                            case 0xB4: AddEvent(new ReturnCommand()); break;
+                            case 0xB5: AddEvent(new RepeatCommand { Times = config.Reader.ReadByte(), Offset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset }); break;
+                            case 0xB9: AddEvent(new MemoryAccessCommand { Operator = config.Reader.ReadByte(), Address = config.Reader.ReadByte(), Data = config.Reader.ReadByte() }); break;
+                            case 0xBA: AddEvent(new PriorityCommand { Priority = config.Reader.ReadByte() }); break;
+                            case 0xBB: AddEvent(new TempoCommand { Tempo = (ushort)(config.Reader.ReadByte() * 2) }); break;
+                            case 0xBC: AddEvent(new TransposeCommand { Transpose = config.Reader.ReadSByte() }); break;
                             // Commands that work within running status:
-                            case 0xBD: command = new VoiceCommand { Voice = config.Reader.ReadByte() }; break;
-                            case 0xBE: command = new VolumeCommand { Volume = config.Reader.ReadByte() }; break;
-                            case 0xBF: command = new PanpotCommand { Panpot = (sbyte)(config.Reader.ReadByte() - 0x40) }; break;
-                            case 0xC0: command = new PitchBendCommand { Bend = (sbyte)(config.Reader.ReadByte() - 0x40) }; break;
-                            case 0xC1: command = new PitchBendRangeCommand { Range = config.Reader.ReadByte() }; break;
-                            case 0xC2: command = new LFOSpeedCommand { Speed = config.Reader.ReadByte() }; break;
-                            case 0xC3: command = new LFODelayCommand { Delay = config.Reader.ReadByte() }; break;
-                            case 0xC4: command = new LFODepthCommand { Depth = config.Reader.ReadByte() }; break;
-                            case 0xC5: command = new LFOTypeCommand { Type = config.Reader.ReadByte() }; break;
-                            case 0xC8: command = new TuneCommand { Tune = (sbyte)(config.Reader.ReadByte() - 0x40) }; break;
-                            case 0xCD: command = new LibraryCommand { Command = config.Reader.ReadByte(), Argument = config.Reader.ReadByte() }; break;
+                            case 0xBD: AddEvent(new VoiceCommand { Voice = config.Reader.ReadByte() }); break;
+                            case 0xBE: AddEvent(new VolumeCommand { Volume = config.Reader.ReadByte() }); break;
+                            case 0xBF: AddEvent(new PanpotCommand { Panpot = (sbyte)(config.Reader.ReadByte() - 0x40) }); break;
+                            case 0xC0: AddEvent(new PitchBendCommand { Bend = (sbyte)(config.Reader.ReadByte() - 0x40) }); break;
+                            case 0xC1: AddEvent(new PitchBendRangeCommand { Range = config.Reader.ReadByte() }); break;
+                            case 0xC2: AddEvent(new LFOSpeedCommand { Speed = config.Reader.ReadByte() }); break;
+                            case 0xC3: AddEvent(new LFODelayCommand { Delay = config.Reader.ReadByte() }); break;
+                            case 0xC4: AddEvent(new LFODepthCommand { Depth = config.Reader.ReadByte() }); break;
+                            case 0xC5: AddEvent(new LFOTypeCommand { Type = config.Reader.ReadByte() }); break;
+                            case 0xC8: AddEvent(new TuneCommand { Tune = (sbyte)(config.Reader.ReadByte() - 0x40) }); break;
+                            case 0xCD: AddEvent(new LibraryCommand { Command = config.Reader.ReadByte(), Argument = config.Reader.ReadByte() }); break;
                             case 0xCE:
                             {
                                 int key;
@@ -231,7 +230,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                 {
                                     key = -1;
                                 }
-                                command = new EndOfTieCommand { Key = key };
+                                AddEvent(new EndOfTieCommand { Key = key });
                                 break;
                             }
                             default: Console.WriteLine("Invalid command at 0x{0:X7}: 0x{1:X}", offset, cmd); break;
@@ -239,8 +238,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     }
 
                     #endregion
-
-                    Events[i].Add(new SongEvent(offset, command));
                 }
             }
             SetTicks();
