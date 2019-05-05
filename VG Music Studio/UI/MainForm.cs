@@ -16,6 +16,9 @@ namespace Kermalis.VGMusicStudio.UI
     [DesignerCategory("")]
     internal class MainForm : ThemedForm
     {
+        private const int intendedWidth = 675,
+            intendedHeight = 675 + 1 + 125 + 24;
+
         public static MainForm Instance { get; } = new MainForm();
 
         private readonly List<byte> pianoNotes = new List<byte>();
@@ -28,10 +31,6 @@ namespace Kermalis.VGMusicStudio.UI
             remainingSongs = new List<long>();
 
         private TrackViewer trackViewer;
-
-        private const int iWidth = 528, iHeight = 800 + 25; // +25 for menustrip (24) and splitcontainer separator (1)
-        private const float sfWidth = 2.35f; // Song combobox and volumebar width
-        private const float spfHeight = 5.5f; // Split panel 1 height
 
         #region Controls
 
@@ -69,56 +68,44 @@ namespace Kermalis.VGMusicStudio.UI
 
             components = new Container();
 
-            // Main Menu
+            // File Menu
             openDSEItem = new ToolStripMenuItem { Text = "Open DSE Folder" };
             openDSEItem.Click += OpenDSE;
-
             openM4AItem = new ToolStripMenuItem { Text = "Open GBA ROM (M4A/MP2K)" };
             openM4AItem.Click += OpenM4A;
-
             openMLSSItem = new ToolStripMenuItem { Text = "Open GBA ROM (MLSS)" };
             openMLSSItem.Click += OpenMLSS;
-
             openSDATItem = new ToolStripMenuItem { Text = "Open SDAT File" };
             openSDATItem.Click += OpenSDAT;
-
             fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
             fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openM4AItem, openMLSSItem, openSDATItem });
 
             // Data Menu
-            trackViewerItem = new ToolStripMenuItem { Text = "Track Viewer", ShortcutKeys = Keys.Control | Keys.T };
+            trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = "Track Viewer" };
             trackViewerItem.Click += OpenTrackViewer;
-
             dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
             dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem });
 
             // Playlist Menu
-            endPlaylistItem = new ToolStripMenuItem { Text = "End Current Playlist", Enabled = false };
+            endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = "End Current Playlist" };
             endPlaylistItem.Click += EndCurrentPlaylist;
-
             playlistItem = new ToolStripMenuItem { Text = "Playlist" };
             playlistItem.DropDownItems.AddRange(new ToolStripItem[] { endPlaylistItem });
 
-
-            mainMenu = new MenuStrip { Size = new Size(iWidth, 24) };
+            // Main Menu
+            mainMenu = new MenuStrip { Size = new Size(intendedWidth, 24) };
             mainMenu.Items.AddRange(new ToolStripItem[] { fileItem, dataItem, playlistItem });
 
             // Buttons
-            playButton = new ThemedButton { ForeColor = Color.MediumSpringGreen, Location = new Point(5, 3), Text = Strings.PlayerPlay };
+            playButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumSpringGreen, Text = Strings.PlayerPlay };
             playButton.Click += (o, e) => Play();
-            pauseButton = new ThemedButton { ForeColor = Color.DeepSkyBlue, Location = new Point(85, 3), Text = Strings.PlayerPause };
+            pauseButton = new ThemedButton { Enabled = false, ForeColor = Color.DeepSkyBlue, Text = Strings.PlayerPause };
             pauseButton.Click += (o, e) => Pause();
-            stopButton = new ThemedButton { ForeColor = Color.MediumVioletRed, Location = new Point(166, 3), Text = Strings.PlayerStop };
+            stopButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumVioletRed, Text = Strings.PlayerStop };
             stopButton.Click += (o, e) => Stop();
 
-            playButton.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
-            playButton.Size = stopButton.Size = new Size(75, 23);
-            pauseButton.Size = new Size(76, 23);
-
-            // Numericals
-            songNumerical = new ThemedNumeric { Enabled = false, Location = new Point(246, 4), Minimum = ushort.MinValue, Visible = false };
-
-            songNumerical.Size = new Size(45, 23);
+            // Numerical
+            songNumerical = new ThemedNumeric { Enabled = false, Minimum = 0, Visible = false };
             songNumerical.ValueChanged += SongNumerical_ValueChanged;
 
             // Timer
@@ -126,61 +113,29 @@ namespace Kermalis.VGMusicStudio.UI
             timer.Tick += UpdateUI;
 
             // Piano
-            piano = new PianoControl { Anchor = AnchorStyles.Bottom, Location = new Point(0, 125 - 50 - 1), Size = new Size(iWidth, 50) };
+            piano = new PianoControl { HighNoteID = 127, LowNoteID = 0 };
 
             // Volume bar
-            int sWidth = (int)(iWidth / sfWidth);
-            int sX = iWidth - sWidth - 4;
-            volumeBar = new ColorSlider
-            {
-                Enabled = false,
-                LargeChange = 20,
-                Location = new Point(83, 45),
-                Maximum = 100,
-                Size = new Size(155, 27),
-                SmallChange = 5
-            };
+            volumeBar = new ColorSlider { Enabled = false, LargeChange = 20, Maximum = 100, SmallChange = 5 };
             volumeBar.ValueChanged += VolumeBar_ValueChanged;
 
             // Playlist box
-            songsComboBox = new ImageComboBox
-            {
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                Enabled = false,
-                Location = new Point(sX, 4),
-                Size = new Size(sWidth, 23)
-            };
+            songsComboBox = new ImageComboBox { Enabled = false };
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
 
             // Track info
-            trackInfo = new TrackInfoControl
-            {
-                Dock = DockStyle.Fill,
-                Size = new Size(iWidth, 690)
-            };
+            trackInfo = new TrackInfoControl { Dock = DockStyle.Fill };
 
             // Split container
-            splitContainer = new SplitContainer
-            {
-                BackColor = Theme.TitleBar,
-                Dock = DockStyle.Fill,
-                FixedPanel = FixedPanel.Panel1,
-                IsSplitterFixed = true,
-                Orientation = Orientation.Horizontal,
-                Size = new Size(iWidth, iHeight),
-                SplitterDistance = 125,
-                SplitterWidth = 1
-            };
+            splitContainer = new SplitContainer { BackColor = Theme.TitleBar, Dock = DockStyle.Fill, IsSplitterFixed = true, Orientation = Orientation.Horizontal, SplitterWidth = 1 };
             splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, pauseButton, stopButton, songNumerical, songsComboBox, piano, volumeBar });
             splitContainer.Panel2.Controls.Add(trackInfo);
 
             // MainForm
-            AutoScaleDimensions = new SizeF(6, 13);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(iWidth, iHeight);
+            ClientSize = new Size(intendedWidth, intendedHeight);
             Controls.AddRange(new Control[] { splitContainer, mainMenu });
             MainMenuStrip = mainMenu;
-            MinimumSize = new Size(8 + iWidth + 8, 30 + iHeight + 8); // Borders
+            MinimumSize = new Size(intendedWidth + (Width - intendedWidth), intendedHeight + (Height - intendedHeight)); // Borders
             Resize += OnResize;
             Text = Utils.ProgramName;
 
@@ -196,6 +151,8 @@ namespace Kermalis.VGMusicStudio.UI
                 prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = false;
                 TaskbarManager.Instance.ThumbnailToolBars.AddButtons(Handle, prevTButton, toggleTButton, nextTButton);
             }
+
+            OnResize(null, null);
         }
 
         private void VolumeBar_ValueChanged(object sender, EventArgs e)
@@ -660,47 +617,52 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void OnResize(object sender, EventArgs e)
         {
-            if (WindowState == FormWindowState.Minimized)
+            if (WindowState != FormWindowState.Minimized)
             {
-                return;
+                splitContainer.SplitterDistance = (int)(ClientSize.Height / 5.5) - 25; // -25 for menustrip (24) and itself (1)
+
+                int w1 = (int)(splitContainer.Panel1.Width / 2.35);
+                int h1 = (int)(splitContainer.Panel1.Height / 5.0);
+
+                int xoff = splitContainer.Panel1.Width / 83;
+                int yoff = splitContainer.Panel1.Height / 25;
+                int a, b, c;
+
+                // Buttons
+                a = (w1 / 3) - xoff;
+                b = (xoff / 2) + 1;
+                playButton.Location = new Point(xoff + b, yoff);
+                pauseButton.Location = new Point((xoff * 2) + a + b, yoff);
+                stopButton.Location = new Point((xoff * 3) + (a * 2) + b, yoff);
+                playButton.Size = pauseButton.Size = stopButton.Size = new Size(a, h1);
+                c = yoff + ((h1 - 21) / 2);
+                songNumerical.Location = new Point((xoff * 4) + (a * 3) + b, c);
+                songNumerical.Size = new Size((int)(a / 1.175), 21);
+                // Song combobox
+                songsComboBox.Location = new Point(splitContainer.Panel1.Width - w1 - xoff, c);
+                songsComboBox.Size = new Size(w1, 21);
+
+                // Volume bar
+                volumeBar.Location = new Point(xoff, (int)(splitContainer.Panel1.Height / 3.5));
+                volumeBar.Size = new Size(w1, h1);
+
+                // Piano
+                piano.Size = new Size(splitContainer.Panel1.Width, (int)(splitContainer.Panel1.Height / 2.5)); // Force it to initialize piano keys again
+                piano.Location = new Point((splitContainer.Panel1.Width - (piano[0].Width * piano.WhiteKeyCount)) / 2, splitContainer.Panel1.Height - piano.Height - 1);
+                piano.Invalidate(true);
             }
-
-            // Song combobox
-            int sWidth = (int)(splitContainer.Width / sfWidth);
-            int sX = splitContainer.Width - sWidth - 4;
-            songsComboBox.Location = new Point(sX, 4);
-            songsComboBox.Size = new Size(sWidth, 23);
-
-            splitContainer.SplitterDistance = (int)((Height - 38) / spfHeight) - 24 - 1;
-
-            // Piano
-            piano.Size = new Size(splitContainer.Width, (int)(splitContainer.Panel1.Height / 2.5f)); // Force it to initialize piano keys again
-            int targetWhites = piano.Width / 10; // Minimum width of a white key is 10 pixels
-            int targetAmount = (targetWhites / 7 * 12).Clamp(1, 128); // 7 white keys per octave
-            int offset = (targetAmount / 2) - (targetWhites / 7 % 2);
-            piano.LowNoteID = Math.Max(0, 60 - offset);
-            piano.HighNoteID = (60 + offset - 1) >= 120 ? 127 : (60 + offset - 1);
-
-            int wWidth = piano[0].Width; // White key width
-            int dif = splitContainer.Width - (wWidth * piano.WhiteKeyCount);
-            piano.Location = new Point(dif / 2, splitContainer.Panel1.Height - piano.Height - 1);
-            piano.Invalidate(true);
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (playButton.Enabled && !songsComboBox.Focused && keyData == Keys.Space)
+            if (keyData == Keys.Space && playButton.Enabled && !songsComboBox.Focused)
             {
-                if (Engine.Instance.Player.State == PlayerState.Stopped)
-                {
-                    Play();
-                }
-                else
-                {
-                    Pause();
-                }
+                TogglePlayback(null, null);
                 return true;
             }
-            return base.ProcessCmdKey(ref msg, keyData);
+            else
+            {
+                return base.ProcessCmdKey(ref msg, keyData);
+            }
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Kermalis.VGMusicStudio.UI
             OLVColumn c1, c2, c3, c4;
             c1 = new OLVColumn(Strings.TrackEditorEvent, "Command.Label");
             c2 = new OLVColumn(Strings.TrackEditorArguments, "Command.Arguments") { UseFiltering = false };
-            c3 = new OLVColumn(Strings.TrackEditorOffset, "Offset") { AspectToStringFormat = "0x{0:X4}", UseFiltering = false };
+            c3 = new OLVColumn(Strings.TrackEditorOffset, "Offset") { AspectToStringFormat = "0x{0:X}", UseFiltering = false };
             c4 = new OLVColumn(Strings.TrackEditorTicks, "Ticks") { AspectGetter = (o) => string.Join(", ", ((SongEvent)o).Ticks), UseFiltering = false };
             c1.Width = c2.Width = c3.Width = 72;
             c4.Width = 47;

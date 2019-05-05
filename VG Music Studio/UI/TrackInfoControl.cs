@@ -48,8 +48,8 @@ namespace Kermalis.VGMusicStudio.UI
         public TrackInfoControl()
         {
             DoubleBuffered = true;
-            Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
-            Size = new Size(525, 675);
+            Font = new Font("Segoe UI", 10.5f, FontStyle.Regular, GraphicsUnit.Point);
+            Size = new Size(675, 675);
 
             pianos = new CheckBox[0x11]; // Index 0x10 is master
             mutes = new CheckBox[0x11];
@@ -73,7 +73,6 @@ namespace Kermalis.VGMusicStudio.UI
             Controls.AddRange(pianos);
             Controls.AddRange(mutes);
 
-            Resize += (o, s) => Invalidate();
             DeleteData();
         }
 
@@ -178,6 +177,7 @@ namespace Kermalis.VGMusicStudio.UI
             tempoX = barCenterX - (TextRenderer.MeasureText("Tempo - 999", Font).Width / 2);
 
             base.OnResize(e);
+            Invalidate();
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -185,7 +185,7 @@ namespace Kermalis.VGMusicStudio.UI
             e.Graphics.FillRectangle(bg, e.ClipRectangle);
 
             mutes[0x10].Location = new Point(checkboxOffset, (int)infoY + checkboxOffset);
-            pianos[0x10].Location = new Point(checkboxSize + checkboxOffset * 2, (int)infoY + checkboxOffset);
+            pianos[0x10].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)infoY + checkboxOffset);
             e.Graphics.DrawString("Position", Font, Brushes.Lime, positionX, infoY);
             e.Graphics.DrawString("Delay", Font, Brushes.Crimson, delayX, infoY);
             e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, notesX, infoY);
@@ -211,7 +211,7 @@ namespace Kermalis.VGMusicStudio.UI
                 mutes[i].Location = new Point(checkboxOffset, (int)r1y + checkboxOffset);
                 pianos[i].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)r1y + checkboxOffset);
 
-                e.Graphics.DrawString(string.Format("0x{0:X4}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
+                e.Graphics.DrawString(string.Format("0x{0:X}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
                 e.Graphics.DrawString(Info.Delays[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
 
                 e.Graphics.DrawString(Info.Voices[i].ToString(), Font, brush, voicesX, r2y);

@@ -148,7 +148,7 @@
     <Compile Include="Core\NDS\SDAT\Track.cs" />
     <Compile Include="Core\Player.cs" />
     <Compile Include="Core\SongEvent.cs" />
-    <Compile Include="Core\Test.cs" />
+    <Compile Include="Core\Debug.cs" />
     <Compile Include="Properties\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
