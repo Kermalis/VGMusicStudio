@@ -57,6 +57,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         private void SetTicks()
         {
+            for (int i = 0; i < 0x10; i++)
+            {
+                if (Events[i] != null)
+                {
+                    Events[i] = Events[i].OrderBy(e => e.Offset).ToList();
+                }
+            }
             InitEmulation();
             SetTicks(0, 0, 0);
             // TODO: Tie means that we cannot know exactly how many ticks something will last (NSMB 83)
@@ -161,21 +168,23 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             if (doCmdWork && track.CallStackDepth != 0)
                             {
                                 byte count = track.CallStackLoops[track.CallStackDepth - 1];
-                                if (count != 0)
+                                if (count == 0) // Break from permanent loop
+                                {
+                                    cont = false;
+                                }
+                                else
                                 {
                                     count--;
                                     if (count == 0)
                                     {
                                         track.CallStackDepth--;
-                                        break;
+                                    }
+                                    else
+                                    {
+                                        track.CallStackLoops[track.CallStackDepth - 1] = count;
+                                        i = track.CallStack[track.CallStackDepth - 1];
                                     }
                                 }
-                                else
-                                {
-                                    cont = false;
-                                }
-                                track.CallStackLoops[track.CallStackDepth - 1] = count;
-                                i = track.CallStack[track.CallStackDepth - 1];
                             }
                             break;
                         }
@@ -432,6 +441,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     }
                     int callStackDepth = 0;
                     AddEvents(trackStartOffset);
+                    bool EventExists(long offset)
+                    {
+                        return Events[i].Any(e => e.Offset == offset);
+                    }
                     void AddEvents(int startOffset)
                     {
                         int dataOffset = startOffset;
@@ -483,13 +496,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             byte cmd = sseq.Data[dataOffset++];
                             void AddEvent<T>(T command) where T : SDATCommand, ICommand
                             {
-                                // Some overhead, but the simplicity is worth it
-                                if (!Events[i].Any(e => e.Offset == offset))
-                                {
-                                    command.RandMod = argOverrideType == ArgType.Rand;
-                                    command.VarMod = argOverrideType == ArgType.PlayerVar;
-                                    Events[i].Add(new SongEvent(offset, command));
-                                }
+                                command.RandMod = argOverrideType == ArgType.Rand;
+                                command.VarMod = argOverrideType == ArgType.PlayerVar;
+                                Events[i].Add(new SongEvent(offset, command));
                             }
                             void Invalid()
                             {
@@ -500,7 +509,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             {
                                 byte velocity = sseq.Data[dataOffset++];
                                 int duration = ReadArg(argOverrideType == ArgType.None ? ArgType.VarLen : argOverrideType);
-                                AddEvent(new NoteComand { Key = cmd, Velocity = velocity, Duration = duration });
+                                if (!EventExists(offset))
+                                {
+                                    AddEvent(new NoteComand { Key = cmd, Velocity = velocity, Duration = duration });
+                                }
                             }
                             else
                             {
@@ -512,12 +524,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0x80:
                                         {
-                                            AddEvent(new RestCommand { Rest = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new RestCommand { Rest = arg });
+                                            }
                                             break;
                                         }
                                         case 0x81: // RAND PROGRAM: [BW2 (2249)]
                                         {
-                                            AddEvent(new VoiceCommand { Voice = arg }); // TODO: Bank change
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VoiceCommand { Voice = arg }); // TODO: Bank change
+                                            }
                                             break;
                                         }
                                         default: Invalid(); break;
@@ -531,7 +549,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         {
                                             int trackIndex = sseq.Data[dataOffset++];
                                             int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
-                                            AddEvent(new OpenTrackCommand { Track = trackIndex, Offset = offset24bit });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new OpenTrackCommand { Track = trackIndex, Offset = offset24bit });
+                                            }
                                             if (i != 0)
                                             {
                                                 throw new Exception($"Track {i} has a \"{nameof(OpenTrackCommand)}\".");
@@ -542,8 +563,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         case 0x94:
                                         {
                                             int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
-                                            AddEvent(new JumpCommand { Offset = offset24bit });
-                                            if (!Events[i].Any(e => e.Offset == offset24bit))
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new JumpCommand { Offset = offset24bit });
+                                            }
+                                            if (!EventExists(offset24bit))
                                             {
                                                 AddEvents(offset24bit);
                                             }
@@ -556,10 +580,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         case 0x95:
                                         {
                                             int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
-                                            AddEvent(new CallCommand { Offset = offset24bit });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new CallCommand { Offset = offset24bit });
+                                            }
                                             if (callStackDepth < 3)
                                             {
-                                                if (!Events[i].Any(e => e.Offset == offset24bit))
+                                                if (!EventExists(offset24bit))
                                                 {
                                                     callStackDepth++;
                                                     AddEvents(offset24bit);
@@ -580,21 +607,30 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0xA0: // [New Super Mario Bros (BGM_AMB_CHIKA)] [BW2 (1917, 1918)]
                                         {
-                                            AddEvent(new ModRandCommand());
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ModRandCommand());
+                                            }
                                             argOverrideType = ArgType.Rand;
                                             offset++;
                                             goto again;
                                         }
                                         case 0xA1: // [New Super Mario Bros (BGM_AMB_SABAKU)]
                                         {
-                                            AddEvent(new ModVarCommand());
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ModVarCommand());
+                                            }
                                             argOverrideType = ArgType.PlayerVar;
                                             offset++;
                                             goto again;
                                         }
                                         case 0xA2: // [Mario Kart DS (75)] [BW2 (1917, 1918)]
                                         {
-                                            AddEvent(new ModIfCommand());
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ModIfCommand());
+                                            }
                                             @if = true;
                                             offset++;
                                             goto again;
@@ -610,67 +646,106 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0xB0:
                                         {
-                                            AddEvent(new VarSetCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarSetCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB1:
                                         {
-                                            AddEvent(new VarAddCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarAddCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB2:
                                         {
-                                            AddEvent(new VarSubCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarSubCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB3:
                                         {
-                                            AddEvent(new VarMulCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarMulCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB4:
                                         {
-                                            AddEvent(new VarDivCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarDivCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB5:
                                         {
-                                            AddEvent(new VarShiftCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarShiftCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB6: // [Mario Kart DS (75)]
                                         {
-                                            AddEvent(new VarRandCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarRandCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB8:
                                         {
-                                            AddEvent(new VarCmpEECommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarCmpEECommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xB9:
                                         {
-                                            AddEvent(new VarCmpGECommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarCmpGECommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xBA:
                                         {
-                                            AddEvent(new VarCmpGGCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarCmpGGCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xBB:
                                         {
-                                            AddEvent(new VarCmpLECommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarCmpLECommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xBC:
                                         {
-                                            AddEvent(new VarCmpLLCommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarCmpLLCommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         case 0xBD:
                                         {
-                                            AddEvent(new VarCmpNECommand { Variable = varIndex, Argument = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarCmpNECommand { Variable = varIndex, Argument = arg });
+                                            }
                                             break;
                                         }
                                         default: Invalid(); break;
@@ -683,117 +758,186 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0xC0:
                                         {
-                                            AddEvent(new PanpotCommand { Panpot = arg - (argOverrideType == ArgType.None ? 0x40 : 0) });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PanpotCommand { Panpot = arg - (argOverrideType == ArgType.None ? 0x40 : 0) });
+                                            }
                                             break;
                                         }
                                         case 0xC1:
                                         {
-                                            AddEvent(new TrackVolumeCommand { Volume = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new TrackVolumeCommand { Volume = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC2:
                                         {
-                                            AddEvent(new PlayerVolumeCommand { Volume = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PlayerVolumeCommand { Volume = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC3:
                                         {
-                                            AddEvent(new TransposeCommand { Transpose = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new TransposeCommand { Transpose = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC4:
                                         {
-                                            AddEvent(new PitchBendCommand { Bend = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PitchBendCommand { Bend = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC5:
                                         {
-                                            AddEvent(new PitchBendRangeCommand { Range = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PitchBendRangeCommand { Range = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC6:
                                         {
-                                            AddEvent(new PriorityCommand { Priority = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PriorityCommand { Priority = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC7:
                                         {
-                                            AddEvent(new MonophonyCommand { Mono = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new MonophonyCommand { Mono = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC8:
                                         {
-                                            AddEvent(new TieCommand { Tie = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new TieCommand { Tie = arg });
+                                            }
                                             break;
                                         }
                                         case 0xC9:
                                         {
-                                            AddEvent(new PortamentoControlCommand { Portamento = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PortamentoControlCommand { Portamento = arg });
+                                            }
                                             break;
                                         }
                                         case 0xCA:
                                         {
-                                            AddEvent(new LFODepthCommand { Depth = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new LFODepthCommand { Depth = arg });
+                                            }
                                             break;
                                         }
                                         case 0xCB:
                                         {
-                                            AddEvent(new LFOSpeedCommand { Speed = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new LFOSpeedCommand { Speed = arg });
+                                            }
                                             break;
                                         }
                                         case 0xCC:
                                         {
-                                            AddEvent(new LFOTypeCommand { Type = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new LFOTypeCommand { Type = arg });
+                                            }
                                             break;
                                         }
                                         case 0xCD:
                                         {
-                                            AddEvent(new LFORangeCommand { Range = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new LFORangeCommand { Range = arg });
+                                            }
                                             break;
                                         }
                                         case 0xCE:
                                         {
-                                            AddEvent(new PortamentoToggleCommand { Portamento = arg == 1 });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PortamentoToggleCommand { Portamento = arg });
+                                            }
                                             break;
                                         }
                                         case 0xCF:
                                         {
-                                            AddEvent(new PortamentoTimeCommand { Time = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new PortamentoTimeCommand { Time = arg });
+                                            }
                                             break;
                                         }
                                         case 0xD0:
                                         {
-                                            AddEvent(new ForceAttackCommand { Attack = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ForceAttackCommand { Attack = arg });
+                                            }
                                             break;
                                         }
                                         case 0xD1:
                                         {
-                                            AddEvent(new ForceDecayCommand { Decay = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ForceDecayCommand { Decay = arg });
+                                            }
                                             break;
                                         }
                                         case 0xD2:
                                         {
-                                            AddEvent(new ForceSustainCommand { Sustain = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ForceSustainCommand { Sustain = arg });
+                                            }
                                             break;
                                         }
                                         case 0xD3:
                                         {
-                                            AddEvent(new ForceReleaseCommand { Release = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ForceReleaseCommand { Release = arg });
+                                            }
                                             break;
                                         }
                                         case 0xD4:
                                         {
-                                            AddEvent(new LoopStartCommand { NumLoops = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new LoopStartCommand { NumLoops = arg });
+                                            }
                                             break;
                                         }
                                         case 0xD5:
                                         {
-                                            AddEvent(new TrackExpressionCommand { Expression = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new TrackExpressionCommand { Expression = arg });
+                                            }
                                             break;
                                         }
                                         case 0xD6:
                                         {
-                                            AddEvent(new VarPrintCommand { Variable = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VarPrintCommand { Variable = arg });
+                                            }
                                             break;
                                         }
                                         default: Invalid(); break;
@@ -806,17 +950,26 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0xE0:
                                         {
-                                            AddEvent(new LFODelayCommand { Delay = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new LFODelayCommand { Delay = arg });
+                                            }
                                             break;
                                         }
                                         case 0xE1:
                                         {
-                                            AddEvent(new TempoCommand { Tempo = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new TempoCommand { Tempo = arg });
+                                            }
                                             break;
                                         }
                                         case 0xE3:
                                         {
-                                            AddEvent(new SweepPitchCommand { Pitch = arg });
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new SweepPitchCommand { Pitch = arg });
+                                            }
                                             break;
                                         }
                                         default: Invalid(); break;
@@ -828,12 +981,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0xFC: // [HGSS(1353)]
                                         {
-                                            AddEvent(new LoopEndCommand());
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new LoopEndCommand());
+                                            }
                                             break;
                                         }
                                         case 0xFD:
                                         {
-                                            AddEvent(new ReturnCommand());
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new ReturnCommand());
+                                            }
                                             if (!@if && callStackDepth != 0)
                                             {
                                                 cont = false;
@@ -843,8 +1002,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         }
                                         case 0xFE:
                                         {
-                                            int bits = ReadArg(ArgType.Short);
-                                            AddEvent(new AllocTracksCommand { Tracks = (ushort)bits });
+                                            ushort bits = (ushort)ReadArg(ArgType.Short);
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new AllocTracksCommand { Tracks = bits });
+                                            }
                                             if (i != 0)
                                             {
                                                 throw new Exception($"Track {i} has a \"{nameof(AllocTracksCommand)}\".");
@@ -853,7 +1015,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         }
                                         case 0xFF:
                                         {
-                                            AddEvent(new FinishCommand());
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new FinishCommand());
+                                            }
                                             if (!@if)
                                             {
                                                 cont = false;
@@ -865,13 +1030,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 }
                             }
                         }
-                    }
-                }
-                for (int i = 0; i < 0x10; i++)
-                {
-                    if (Events[i] != null)
-                    {
-                        Events[i] = Events[i].OrderBy(e => e.Offset).ToList();
                     }
                 }
                 SetTicks();
@@ -1180,13 +1338,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                             break;
                         }
-                        case 0x94: // Goto
+                        case 0x94: // Jump
                         {
                             int offset24bit = sseq.Data[track.DataOffset++] | (sseq.Data[track.DataOffset++] << 8) | (sseq.Data[track.DataOffset++] << 16);
                             if (doCmdWork)
                             {
                                 track.DataOffset = offset24bit;
-                                loop = true;
+                                loop = true; // TODO: Check context of the jump (were we in this tick before?)
                             }
                             break;
                         }

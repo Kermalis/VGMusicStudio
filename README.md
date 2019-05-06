@@ -23,7 +23,6 @@ Discord Server: https://discord.gg/q2pAw3x
 * Add SquareWave sweeping
 * XCMD command
 * REPT command
-* Nested PATT (3 is the maximum)
 * Support pret dissassembly projects
 * Running status in song disassembler
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information

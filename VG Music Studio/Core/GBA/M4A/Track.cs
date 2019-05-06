@@ -12,7 +12,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public LFOType LFOType;
         public sbyte PitchBend, Tune, Panpot, Transpose;
         public bool Ready, Stopped;
-        public int CurEvent, EndOfPattern;
+        public int CurEvent;
+        public int[] CallStack = new int[3];
+        public byte CallStackDepth;
 
         public readonly List<Channel> Channels = new List<Channel>();
 
@@ -38,10 +40,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         }
         public void Init()
         {
-            Voice = Priority = PrevKey = Delay = LFODelay = LFODelayCount = LFOPhase = LFODepth = 0;
+            Voice = Priority = PrevKey = Delay = LFODelay = LFODelayCount = LFOPhase = LFODepth = CallStackDepth = 0;
             PitchBend = Tune = Panpot = Transpose = 0;
             CurEvent = 0;
-            EndOfPattern = -1;
             PitchBendRange = 2;
             LFOType = LFOType.Pitch;
             Ready = Stopped = false;

@@ -221,9 +221,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
     {
         public Color Color => Color.HotPink;
         public string Label => "Portamento Toggle";
-        public string Arguments => Portamento.ToString();
+        public string Arguments => GetValues(Portamento, (Portamento == 1).ToString());
 
-        public bool Portamento { get; set; }
+        public int Portamento { get; set; }
     }
     internal class PortamentoTimeCommand : SDATCommand, ICommand
     {
