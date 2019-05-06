@@ -205,7 +205,7 @@ namespace Kermalis.VGMusicStudio.UI
                 Color color = GlobalConfig.Instance.Colors[Info.Voices[i]];
                 var pen = new Pen(color);
                 var brush = new SolidBrush(color);
-                byte velocity = (byte)((Info.Lefts[i] + Info.Rights[i]) * byte.MaxValue);
+                byte velocity = (byte)(Math.Min(1f, Info.Lefts[i] + Info.Rights[i]) * byte.MaxValue);
                 var lBrush = new LinearGradientBrush(new Point(barStartX, by), new Point(barStartX + barWidth, by + barHeight), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 3, 0xFF), color));
 
                 mutes[i].Location = new Point(checkboxOffset, (int)r1y + checkboxOffset);
