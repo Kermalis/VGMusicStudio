@@ -105,6 +105,7 @@
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\GBA\M4A\Commands.cs" />
+    <Compile Include="Core\GBA\MLSS\Commands.cs" />
     <Compile Include="Core\GBA\MLSS\Config.cs" />
     <Compile Include="Core\GlobalConfig.cs" />
     <Compile Include="Core\Engine.cs" />

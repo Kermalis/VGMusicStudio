@@ -70,6 +70,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             // We can either stop counting ticks after a tie note or we can emulate the channel as well
             // TODO: Notes with 0 length have the same issue (MKDS 75)
             // TODO: (NSMB 81) (Spirit Tracks 18) does not count all ticks because the song keeps jumping backwards while changing vars and then using if mod
+            // TODO: Rand will not be fully accurate until all events that have the possibility of being randomized are emulated here
             void SetTicks(int trackIndex, int startOffset, long startTicks)
             {
                 Track track = tracks[trackIndex];
@@ -415,7 +416,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             Stop();
             SDAT.INFO.SequenceInfo seqInfo = config.SDAT.INFOBlock.SequenceInfos.Entries[index];
-            if (seqInfo != null)
+            if (seqInfo == null)
+            {
+                sseq = null;
+                sbnk = null;
+                Events = null;
+            }
+            else
             {
                 sseq = new SSEQ(config.SDAT.FATBlock.Entries[seqInfo.FileId].Data);
                 SDAT.INFO.BankInfo bankInfo = config.SDAT.INFOBlock.BankInfos.Entries[seqInfo.Bank];
@@ -547,17 +554,17 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0x93:
                                         {
+                                            if (i != 0)
+                                            {
+                                                throw new Exception($"Track {i} has a \"{nameof(OpenTrackCommand)}\".");
+                                            }
                                             int trackIndex = sseq.Data[dataOffset++];
                                             int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
                                             if (!EventExists(offset))
                                             {
                                                 AddEvent(new OpenTrackCommand { Track = trackIndex, Offset = offset24bit });
+                                                AddTrackEvents(trackIndex, offset24bit);
                                             }
-                                            if (i != 0)
-                                            {
-                                                throw new Exception($"Track {i} has a \"{nameof(OpenTrackCommand)}\".");
-                                            }
-                                            AddTrackEvents(trackIndex, offset24bit);
                                             break;
                                         }
                                         case 0x94:
@@ -566,10 +573,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                             if (!EventExists(offset))
                                             {
                                                 AddEvent(new JumpCommand { Offset = offset24bit });
-                                            }
-                                            if (!EventExists(offset24bit))
-                                            {
-                                                AddEvents(offset24bit);
+                                                if (!EventExists(offset24bit))
+                                                {
+                                                    AddEvents(offset24bit);
+                                                }
                                             }
                                             if (!@if)
                                             {
@@ -1034,12 +1041,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 SetTicks();
             }
-            else
-            {
-                sseq = null;
-                sbnk = null;
-                Events = null;
-            }
         }
         public void Play()
         {
@@ -1233,7 +1234,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 channel.SweepCounter = 0;
             }
         }
-
         private void ExecuteNext(Track track, ref bool loop)
         {
             int ReadArg(ArgType type)

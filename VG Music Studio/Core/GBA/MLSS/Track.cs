@@ -13,7 +13,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public byte Voice, BendRange, Volume, Delay, PrevCmd, NoteDuration;
         public sbyte Bend, Panpot;
         public bool Enabled, Stopped;
-        public long StartOffset;
+        public int StartOffset;
 
         public int GetPitch()
         {

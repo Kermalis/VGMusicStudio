@@ -1,6 +1,7 @@
 ﻿using Kermalis.VGMusicStudio.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
@@ -36,22 +37,225 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             thread.Start();
         }
 
+        private void SetTicks()
+        {
+            for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
+            {
+                if (Events[trackIndex] != null)
+                {
+                    Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
+                    List<SongEvent> evs = Events[trackIndex];
+                    long ticks = 0;
+                    bool cont = true;
+                    int i = 0;
+                    while (cont)
+                    {
+                        SongEvent e = evs[i++];
+                        e.Ticks.Add(ticks);
+                        switch (e.Command)
+                        {
+                            case FinishCommand _:
+                            {
+                                cont = false;
+                                break;
+                            }
+                            case FreeNoteCommand freeNote:
+                            {
+                                ticks += freeNote.Duration;
+                                break;
+                            }
+                            case JumpCommand jump:
+                            {
+                                int jumpCmd = evs.FindIndex(c => c.Offset == jump.Offset);
+                                if (evs[jumpCmd].Offset > e.Offset || evs[jumpCmd].Ticks.Count == 0)
+                                {
+                                    i = jumpCmd;
+                                }
+                                else
+                                {
+                                    cont = false;
+                                }
+                                break;
+                            }
+                            case NoteCommand note:
+                            {
+                                ticks += note.Duration;
+                                break;
+                            }
+                            case RestCommand rest:
+                            {
+                                ticks += rest.Rest;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
         public void LoadSong(long index)
         {
-            int songOffset = config.Reader.ReadInt32(config.SongTableOffsets[0] + (index * 4)) - Utils.CartridgeOffset;
-            ushort trackBits = config.Reader.ReadUInt16(songOffset);
-            for (int i = 0; i < 0x10; i++)
+            int songOffset = config.Reader.ReadInt32(config.SongTableOffsets[0] + (index * 4));
+            if (songOffset == 0)
             {
-                if ((trackBits & (1 << i)) != 0)
+                Events = null;
+            }
+            else
+            {
+                Events = new List<SongEvent>[0x10];
+                songOffset -= Utils.CartridgeOffset;
+                ushort trackBits = config.Reader.ReadUInt16(songOffset);
+                for (int i = 0, usedTracks = 0; i < 0x10; i++)
                 {
-                    tracks[i].Enabled = true;
-                    tracks[i].StartOffset = songOffset + config.Reader.ReadUInt16();
+                    Track track = tracks[i];
+                    if ((trackBits & (1 << i)) != 0)
+                    {
+                        track.Enabled = true;
+                        track.StartOffset = songOffset + config.Reader.ReadInt16(songOffset + 2 + (2 * usedTracks++));
+                        Events[i] = new List<SongEvent>();
+                        bool EventExists(long offset)
+                        {
+                            return Events[i].Any(e => e.Offset == offset);
+                        }
+
+                        AddEvents(track.StartOffset);
+                        void AddEvents(int startOffset)
+                        {
+                            config.Reader.BaseStream.Position = startOffset;
+                            bool cont = true;
+                            while (cont)
+                            {
+                                long offset = config.Reader.BaseStream.Position;
+                                void AddEvent(ICommand command)
+                                {
+                                    Events[i].Add(new SongEvent(offset, command));
+                                }
+                                byte cmd = config.Reader.ReadByte();
+                                switch (cmd)
+                                {
+                                    case 0x00:
+                                    {
+                                        byte keyArg = config.Reader.ReadByte();
+                                        byte duration = config.Reader.ReadByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                        }
+                                        break;
+                                    }
+                                    case 0xF0:
+                                    {
+                                        byte voice = config.Reader.ReadByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new VoiceCommand { Voice = voice });
+                                        }
+                                        break;
+                                    }
+                                    case 0xF1:
+                                    {
+                                        byte volume = config.Reader.ReadByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new VolumeCommand { Volume = volume });
+                                        }
+                                        break;
+                                    }
+                                    case 0xF2:
+                                    {
+                                        byte panArg = config.Reader.ReadByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new PanpotCommand { Panpot = (sbyte)(panArg - 0x80) });
+                                        }
+                                        break;
+                                    }
+                                    case 0xF4:
+                                    {
+                                        byte range = config.Reader.ReadByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new PitchBendRangeCommand { Range = range });
+                                        }
+                                        break;
+                                    }
+                                    case 0xF5:
+                                    {
+                                        sbyte bend = config.Reader.ReadSByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new PitchBendCommand { Bend = bend });
+                                        }
+                                        break;
+                                    }
+                                    case 0xF6:
+                                    {
+                                        byte rest = config.Reader.ReadByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new RestCommand { Rest = rest });
+                                        }
+                                        break;
+                                    }
+                                    case 0xF8:
+                                    {
+                                        short jumpOffset = config.Reader.ReadInt16();
+                                        if (!EventExists(offset))
+                                        {
+                                            int off = (int)(config.Reader.BaseStream.Position + jumpOffset);
+                                            AddEvent(new JumpCommand { Offset = off });
+                                            if (!EventExists(off))
+                                            {
+                                                AddEvents(off);
+                                            }
+                                        }
+                                        cont = false;
+                                        break;
+                                    }
+                                    case 0xF9:
+                                    {
+                                        byte tempoArg = config.Reader.ReadByte();
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new TempoCommand { Tempo = tempoArg });
+                                        }
+                                        break;
+                                    }
+                                    case 0xFF:
+                                    {
+                                        if (!EventExists(offset))
+                                        {
+                                            AddEvent(new FinishCommand());
+                                        }
+                                        cont = false;
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        if (cmd <= 0xEF)
+                                        {
+                                            byte key = config.Reader.ReadByte();
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                            }
+                                        }
+                                        else
+                                        {
+                                            throw new Exception($"Unknown command at 0x{offset:X7}: 0x{cmd:X}");
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        track.Enabled = false;
+                        track.StartOffset = 0;
+                    }
                 }
-                else
-                {
-                    tracks[i].Enabled = false;
-                    tracks[i].StartOffset = 0;
-                }
+                SetTicks();
             }
         }
         public void Play()
@@ -61,7 +265,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             tempoStack = 0;
             loops = 0;
             fadeOutBegan = false;
-            for (int i = 0; i < tracks.Length; i++)
+            for (int i = 0; i < 0x10; i++)
             {
                 tracks[i].Init();
             }
@@ -84,7 +288,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
-            for (int i = 0; i < tracks.Length; i++)
+            for (int i = 0; i < 0x10; i++)
             {
                 tracks[i].Reader.Dispose();
             }
@@ -187,32 +391,32 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 {
                     short offset = track.Reader.ReadInt16();
                     track.Reader.BaseStream.Position += offset;
-                    loop = true;
+                    loop = true; // TODO: Check context of the jump (were we in this tick before?)
                     break;
                 }
                 case 0xF9: tempo = track.Reader.ReadByte(); break;
                 case 0xFF: track.Stopped = true; break;
-                default: // (0x01-0xEF)
+                default:
                 {
-                    byte key = track.Reader.ReadByte();
-                    track.Delay += cmd;
-                    if (track.PrevCmd == 0x00 && track.Channel.Key == key)
+                    if (cmd <= 0xEF)
                     {
-                        track.NoteDuration += cmd;
+                        byte key = track.Reader.ReadByte();
+                        track.Delay += cmd;
+                        if (track.PrevCmd == 0x00 && track.Channel.Key == key)
+                        {
+                            track.NoteDuration += cmd;
+                        }
+                        else
+                        {
+                            PlayNote(track, key, cmd);
+                        }
                     }
                     else
                     {
-                        PlayNote(track, key, cmd);
+                        Console.WriteLine("Unknown command at 0x{0:X7}: 0x{1:X}", track.Reader.BaseStream.Position - 1, cmd);
                     }
                     break;
                 }
-                case 0xF3:
-                case 0xF7:
-                case 0xFA:
-                case 0xFB:
-                case 0xFC:
-                case 0xFD:
-                case 0xFE: Console.WriteLine("Unknown command at 0x{0:X}: 0x{1:X}", track.Reader.BaseStream.Position, cmd); break;
             }
             track.PrevCmd = cmd;
         }
@@ -229,7 +433,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     {
                         tempoStack -= 75;
                         bool allDone = true, loop = false;
-                        for (int i = 0; i < tracks.Length; i++)
+                        for (int i = 0; i < 0x10; i++)
                         {
                             Track track = tracks[i];
                             if (track.Enabled)

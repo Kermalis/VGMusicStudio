@@ -323,7 +323,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                     }
                                     break;
                                 }
-                                default: Console.WriteLine("Invalid running status command at 0x{0:X7}: 0x{1:X}", offset, runCmd); break;
+                                default: throw new Exception($"Invalid running status command at 0x{offset:X7}: 0x{runCmd:X}");
                             }
                         }
                         else if (cmd > 0xB0 && cmd < 0xCF)
@@ -346,10 +346,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new JumpCommand { Offset = jumpOffset });
-                                    }
-                                    if (!EventExists(jumpOffset))
-                                    {
-                                        AddEvents(jumpOffset);
+                                        if (!EventExists(jumpOffset))
+                                        {
+                                            AddEvents(jumpOffset);
+                                        }
                                     }
                                     cont = false;
                                     break;
@@ -545,7 +545,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                     }
                                     break;
                                 }
-                                default: Console.WriteLine("Invalid command at 0x{0:X7}: 0x{1:X}", offset, cmd); break;
+                                default: throw new Exception($"Invalid command at 0x{offset:X7}: 0x{cmd:X}");
                             }
                         }
 
