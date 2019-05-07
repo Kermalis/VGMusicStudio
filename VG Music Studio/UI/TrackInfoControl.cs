@@ -23,7 +23,7 @@ namespace Kermalis.VGMusicStudio.UI
             public sbyte[] Panpots = new sbyte[0x10];
             public float[] Lefts = new float[0x10];
             public float[] Rights = new float[0x10];
-            public int[] Pitches = new int[0x10];
+            public int[] PitchBends = new int[0x10];
             public byte[] Extras = new byte[0x10];
             public string[] Types = new string[0x10];
             public byte[][] Notes = new byte[0x10][];
@@ -218,7 +218,7 @@ namespace Kermalis.VGMusicStudio.UI
                 e.Graphics.DrawString(Info.Panpots[i].ToString(), Font, Brushes.OrangeRed, voicesX + row2ElementAdditionX, r2y);
                 e.Graphics.DrawString(Info.Volumes[i].ToString(), Font, Brushes.LightSeaGreen, voicesX + (row2ElementAdditionX * 2), r2y);
                 e.Graphics.DrawString(Info.Mods[i].ToString(), Font, Brushes.SkyBlue, voicesX + (row2ElementAdditionX * 3), r2y);
-                e.Graphics.DrawString(Info.Pitches[i].ToString(), Font, Brushes.Purple, voicesX + (row2ElementAdditionX * 4), r2y);
+                e.Graphics.DrawString(Info.PitchBends[i].ToString(), Font, Brushes.Purple, voicesX + (row2ElementAdditionX * 4), r2y);
                 e.Graphics.DrawString(Info.Extras[i].ToString(), Font, Brushes.HotPink, voicesX + (row2ElementAdditionX * 5), r2y);
 
                 e.Graphics.DrawLine(Pens.GreenYellow, barStartX, by, barStartX, by + barHeight); // Left bar bound line

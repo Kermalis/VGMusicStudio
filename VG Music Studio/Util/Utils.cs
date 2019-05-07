@@ -108,13 +108,22 @@ namespace Kermalis.VGMusicStudio.Util
         }
 
         private static string[] notes = null;
-        public static string GetNoteName(byte note)
+        private static void SetNotes()
         {
             if (notes == null)
             {
                 notes = Strings.Notes.Split(';');
             }
-            return notes[note % 12] + ((note / 12) - 2);
+        }
+        public static string GetPianoKeyName(int key)
+        {
+            SetNotes();
+            return notes[key];
+        }
+        public static string GetNoteName(int key)
+        {
+            SetNotes();
+            return notes[key % 12] + ((key / 12) - 2);
         }
     }
 }

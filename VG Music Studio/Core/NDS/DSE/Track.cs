@@ -14,10 +14,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public byte Voice;
         public byte Expression, Volume;
         public sbyte Panpot;
-        public uint LastDelay, Delay;
+        public uint LastDelay, Delay, LastNoteDuration;
+        public ushort PitchBend;
         public long LoopOffset;
         public bool Stopped;
-        public uint LastNoteDuration;
 
         public readonly List<Channel> Channels = new List<Channel>(0x10);
 
@@ -40,6 +40,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             Expression = Voice = Octave = Volume = 0;
             Panpot = 0;
             LastDelay = Delay = LastNoteDuration = 0;
+            PitchBend = 0;
             LoopOffset = -1;
             Stopped = false;
             StopAllChannels();

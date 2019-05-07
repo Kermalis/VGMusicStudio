@@ -1,5 +1,6 @@
 ﻿using Kermalis.EndianBinaryIO;
 using Kermalis.VGMusicStudio.Util;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,6 +48,35 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 tracks = null;
             }
         }
+        private void SetTicks()
+        {
+            for (int trackIndex = 0; trackIndex < Events.Length; trackIndex++)
+            {
+                Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
+                List<SongEvent> evs = Events[trackIndex];
+                long ticks = 0;
+                bool cont = true;
+                int i = 0;
+                while (cont)
+                {
+                    SongEvent e = evs[i++];
+                    e.Ticks.Add(ticks);
+                    switch (e.Command)
+                    {
+                        case FinishCommand _:
+                        {
+                            cont = false;
+                            break;
+                        }
+                        case RestCommand rest:
+                        {
+                            ticks += rest.Rest;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         public void LoadSong(long index)
         {
             DisposeTracks();
@@ -73,11 +103,268 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     default: throw new InvalidDataException();
                 }
                 tracks = new Track[songChunk.NumTracks];
-                for (byte i = 0; i < tracks.Length; i++)
+                Events = new List<SongEvent>[songChunk.NumTracks];
+                for (byte i = 0; i < songChunk.NumTracks; i++)
                 {
-                    tracks[i] = new Track(i, smdl, reader.BaseStream.Position);
-                    reader.BaseStream.Position += 0xC;
-                    uint chunkLength = reader.ReadUInt32();
+                    Events[i] = new List<SongEvent>();
+                    bool EventExists(long offset)
+                    {
+                        return Events[i].Any(e => e.Offset == offset);
+                    }
+
+                    long startPosition = reader.BaseStream.Position;
+                    reader.BaseStream.Position += 0x14;
+                    uint lastNoteDuration = 0, lastRest = 0;
+                    bool cont = true;
+                    while (cont)
+                    {
+                        long offset = reader.BaseStream.Position;
+                        void AddEvent(ICommand command)
+                        {
+                            Events[i].Add(new SongEvent(offset, command));
+                        }
+                        byte cmd = reader.ReadByte();
+                        if (cmd >= 1 && cmd <= 0x7F)
+                        {
+                            byte arg = reader.ReadByte();
+                            int numParams = (arg & 0xC0) >> 6;
+                            int oct = ((arg & 0x30) >> 4) - 2;
+                            int k = arg & 0xF;
+                            if (k < 12)
+                            {
+                                uint duration;
+                                switch (numParams)
+                                {
+                                    case 0:
+                                    {
+                                        duration = lastNoteDuration;
+                                        break;
+                                    }
+                                    default: // Big Endian reading of 8, 16, or 24 bits
+                                    {
+                                        duration = 0;
+                                        for (int b = 0; b < numParams; b++)
+                                        {
+                                            duration = (duration << 8) | reader.ReadByte();
+                                        }
+                                        lastNoteDuration = duration;
+                                        break;
+                                    }
+                                }
+                                if (!EventExists(offset))
+                                {
+                                    AddEvent(new NoteCommand { Key = (byte)k, OctaveChange = (sbyte)oct, Velocity = cmd, Duration = duration });
+                                }
+                            }
+                            else
+                            {
+                                throw new Exception($"Invalid key at 0x{offset:X}: {k}");
+                            }
+                        }
+                        else if (cmd >= 0x80 && cmd <= 0x8F)
+                        {
+                            lastRest = fixedRests[cmd - 0x80];
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new RestCommand { Rest = lastRest });
+                            }
+                        }
+                        else // 0, 0x90-0xFF
+                        {
+                            switch (cmd)
+                            {
+                                case 0x90:
+                                {
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new RestCommand { Rest = lastRest });
+                                    }
+                                    break;
+                                }
+                                case 0x91:
+                                {
+                                    lastRest += reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new RestCommand { Rest = lastRest });
+                                    }
+                                    break;
+                                }
+                                case 0x92:
+                                {
+                                    lastRest = reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new RestCommand { Rest = lastRest });
+                                    }
+                                    break;
+                                }
+                                case 0x93:
+                                {
+                                    lastRest = reader.ReadUInt16();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new RestCommand { Rest = lastRest });
+                                    }
+                                    break;
+                                }
+                                case 0x94:
+                                {
+                                    lastRest = (uint)(reader.ReadByte() | (reader.ReadByte() << 8) | (reader.ReadByte() << 16));
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new RestCommand { Rest = lastRest });
+                                    }
+                                    break;
+                                }
+                                case 0x98:
+                                {
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new FinishCommand());
+                                    }
+                                    cont = false;
+                                    break;
+                                }
+                                case 0x99:
+                                {
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new LoopStartCommand { Offset = reader.BaseStream.Position });
+                                    }
+                                    break;
+                                }
+                                case 0xA0:
+                                {
+                                    byte octave = reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new OctaveCommand { Octave = octave });
+                                    }
+                                    break;
+                                }
+                                case 0xA4:
+                                {
+                                    byte tempoArg = reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new TempoCommand { Tempo = tempoArg });
+                                    }
+                                    break;
+                                }
+                                case 0xAC:
+                                {
+                                    byte voice = reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new VoiceCommand { Voice = voice });
+                                    }
+                                    break;
+                                }
+                                case 0xD7:
+                                {
+                                    ushort bend = reader.ReadUInt16();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new PitchBendCommand { Bend = bend });
+                                    }
+                                    break;
+                                }
+                                case 0xE0:
+                                {
+                                    byte volume = reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new VolumeCommand { Volume = volume });
+                                    }
+                                    break;
+                                }
+                                case 0xE3:
+                                {
+                                    byte expression = reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new ExpressionCommand { Expression = expression });
+                                    }
+                                    break;
+                                }
+                                case 0xE8:
+                                {
+                                    byte panArg = reader.ReadByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new PanpotCommand { Panpot = (sbyte)(panArg - 0x40) });
+                                    }
+                                    break;
+                                }
+                                case 0x9D: // bgm0113
+                                case 0xC0: // bgm0100
+                                {
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new UnknownCommand { Command = cmd, Args = Array.Empty<byte>() });
+                                    }
+                                    break;
+                                }
+                                case 0x9C: // bgm0113
+                                case 0xA5: // bgm0001
+                                case 0xA9: // bgm0000
+                                case 0xAA: // bgm0000
+                                case 0xB2: // bgm0100
+                                case 0xB5: // bgm0100
+                                case 0xBE: // bgm0003
+                                case 0xBF: // bgm0151
+                                case 0xD0: // bgm0100
+                                case 0xD1: // bgm0113
+                                case 0xD2: // bgm0116
+                                case 0xD8: // bgm0000
+                                case 0xDB: // bgm0000
+                                case 0xF6: // bgm0001
+                                {
+                                    byte[] args = reader.ReadBytes(1);
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new UnknownCommand { Command = cmd, Args = args });
+                                    }
+                                    break;
+                                }
+                                case 0xA8: // bgm0001
+                                case 0xB4: // bgm0180
+                                case 0xD6: // bgm0101
+                                {
+                                    byte[] args = reader.ReadBytes(2);
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new UnknownCommand { Command = cmd, Args = args });
+                                    }
+                                    break;
+                                }
+                                case 0xD4: // bgm0100
+                                case 0xE2: // bgm0100
+                                case 0xEA: // bgm0100
+                                {
+                                    byte[] args = reader.ReadBytes(3);
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new UnknownCommand { Command = cmd, Args = args });
+                                    }
+                                    break;
+                                }
+                                case 0xDC: // bgm0182
+                                {
+                                    byte[] args = reader.ReadBytes(5);
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new UnknownCommand { Command = cmd, Args = args });
+                                    }
+                                    break;
+                                }
+                                default: throw new Exception($"Invalid command at 0x{offset:X}: 0x{cmd:X}");
+                            }
+                        }
+                    }
+                    tracks[i] = new Track(i, smdl, startPosition);
+                    uint chunkLength = reader.ReadUInt32(startPosition + 0xC);
                     reader.BaseStream.Position += chunkLength;
                     // Align 4
                     while (reader.BaseStream.Position % 4 != 0)
@@ -85,6 +372,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         reader.BaseStream.Position++;
                     }
                 }
+                SetTicks();
             }
         }
         public void Play()
@@ -133,10 +421,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 info.Positions[i] = track.Reader.BaseStream.Position;
                 info.Delays[i] = track.Delay;
                 info.Voices[i] = track.Voice;
-                //info.Mods[i] = track.LFODepth * track.LFORange;
                 info.Types[i] = "PCM";
                 info.Volumes[i] = track.Volume;
-                //info.Pitches[i] = track.GetPitch();
+                info.PitchBends[i] = track.PitchBend;
                 info.Extras[i] = track.Octave;
                 info.Panpots[i] = track.Panpot;
 
@@ -164,7 +451,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
         }
 
-        private static readonly byte[] fixedDelays = new byte[0x10]
+        private static readonly byte[] fixedRests = new byte[0x10]
         {
             96, 72, 64, 48, 36, 32, 24, 18, 16, 12, 9, 8, 6, 4, 3, 2
         };
@@ -184,14 +471,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     {
                         case 0:
                         {
-
                             duration = track.LastNoteDuration;
                             break;
                         }
                         default: // Big Endian reading of 8, 16, or 24 bits
                         {
                             duration = 0;
-                            for (int cntby = 0; cntby < numParams; ++cntby)
+                            for (int i = 0; i < numParams; i++)
                             {
                                 duration = (duration << 8) | track.Reader.ReadByte();
                             }
@@ -217,7 +503,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
             else if (cmd >= 0x80 && cmd <= 0x8F) // Fixed delays
             {
-                track.LastDelay = track.Delay = fixedDelays[cmd - 0x80];
+                track.LastDelay = track.Delay = fixedRests[cmd - 0x80];
             }
             else // 0, 0x90-0xFF
             {
@@ -281,10 +567,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         track.Voice = track.Reader.ReadByte();
                         break;
                     }
-                    case 0xD7:
+                    case 0xD7: // Pitch Bend
                     {
-                        track.Reader.ReadUInt16();
-                        //sb.AppendLine(string.Format("Bend: {0}", reader.ReadUInt16()));
+                        track.PitchBend = track.Reader.ReadUInt16();
                         break;
                     }
                     case 0xE0: // Volume

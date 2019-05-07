@@ -293,7 +293,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                 {
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new LFOTypeCommand { Type = cmd });
+                                        AddEvent(new LFOTypeCommand { Type = (LFOType)cmd });
                                     }
                                     break;
                                 }
@@ -513,7 +513,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                     byte type = config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new LFOTypeCommand { Type = type });
+                                        AddEvent(new LFOTypeCommand { Type = (LFOType)type });
                                     }
                                     break;
                                 }
@@ -602,7 +602,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 info.Mods[i] = track.LFODepth;
                 //info.Types[i] = "PCM";
                 info.Volumes[i] = track.GetVolume();
-                info.Pitches[i] = track.GetPitch();
+                info.PitchBends[i] = track.GetPitch();
                 info.Panpots[i] = track.GetPanpot();
 
                 Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)

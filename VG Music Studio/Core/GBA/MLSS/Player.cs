@@ -306,7 +306,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     info.Voices[i] = track.Voice;
                     info.Types[i] = track.Type;
                     info.Volumes[i] = track.Volume;
-                    info.Pitches[i] = track.GetPitch();
+                    info.PitchBends[i] = track.GetPitch();
                     info.Panpots[i] = track.Panpot;
                     if (track.NoteDuration != 0 && !track.Channel.Stopped)
                     {

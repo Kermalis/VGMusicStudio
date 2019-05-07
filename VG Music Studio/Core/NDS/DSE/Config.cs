@@ -1,6 +1,7 @@
 ﻿using Kermalis.EndianBinaryIO;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
@@ -23,7 +24,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 using (var reader = new EndianBinaryReader(File.OpenRead(BGMFiles[i])))
                 {
                     SMD.Header header = reader.ReadObject<SMD.Header>();
-                    songs[i] = new Song(i, header.Label);
+                    songs[i] = new Song(i, $"{Path.GetFileNameWithoutExtension(BGMFiles[i])} - {new string(header.Label.TakeWhile(c => c != '\0').ToArray())}");
                 }
             }
             Playlists.Add(new Playlist("Music", songs));

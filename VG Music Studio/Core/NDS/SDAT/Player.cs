@@ -1095,7 +1095,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     info.Mods[i] = track.LFODepth * track.LFORange;
                     info.Types[i] = sbnk.NumInstruments <= track.Voice ? "???" : sbnk.Instruments[track.Voice].Type.ToString();
                     info.Volumes[i] = track.Volume;
-                    info.Pitches[i] = track.GetPitch();
+                    info.PitchBends[i] = track.GetPitch();
                     info.Extras[i] = track.Portamento ? track.PortamentoTime : (byte)0;
                     info.Panpots[i] = track.GetPan();
 

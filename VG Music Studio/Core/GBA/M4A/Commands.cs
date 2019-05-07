@@ -15,7 +15,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     {
         public Color Color => Color.SkyBlue;
         public string Label => "End Of Tie";
-        public string Arguments => key == -1 ? "All Ties" : Util.Utils.GetNoteName((byte)key);
+        public string Arguments => key == -1 ? "All Ties" : Util.Utils.GetNoteName(key);
 
         private int key;
         public int Key { get => key; set => key = Util.Utils.Clamp(value, -1, 0x7F); }
@@ -69,7 +69,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public string Arguments => type.ToString();
 
         private LFOType type;
-        public byte Type { get => (byte)type; set => type = (LFOType)Util.Utils.Clamp(value, 0, 2); }
+        public LFOType Type { get => type; set => type = (LFOType)Util.Utils.Clamp((byte)value, 0, 2); }
     }
     internal class LibraryCommand : ICommand
     {

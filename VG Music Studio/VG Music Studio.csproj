@@ -126,6 +126,7 @@
     <Compile Include="Core\GBA\MLSS\Track.cs" />
     <Compile Include="Core\Mixer.cs" />
     <Compile Include="Core\NDS\DSE\Channel.cs" />
+    <Compile Include="Core\NDS\DSE\Commands.cs" />
     <Compile Include="Core\NDS\DSE\Config.cs" />
     <Compile Include="Core\NDS\DSE\Mixer.cs" />
     <Compile Include="Core\NDS\DSE\Player.cs" />
