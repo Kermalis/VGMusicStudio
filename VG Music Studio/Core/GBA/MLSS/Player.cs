@@ -41,6 +41,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 
         private void SetTicks()
         {
+            NumTicks = 0;
             for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
             {
                 if (Events[trackIndex] != null)
