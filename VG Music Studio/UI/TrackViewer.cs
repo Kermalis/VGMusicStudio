@@ -68,7 +68,11 @@ namespace Kermalis.VGMusicStudio.UI
 
         private void ListView_ItemActivate(object sender, EventArgs e)
         {
-            //SongPlayer.Instance.SetSongPosition(((SongEvent)listView.SelectedItem.RowObject).Ticks);
+            List<long> list = ((SongEvent)listView.SelectedItem.RowObject).Ticks;
+            if (list.Count > 0)
+            {
+                Engine.Instance?.Player.SetCurrentPosition(list[0]);
+            }
         }
 
         private void RowColorer(OLVListItem item)
