@@ -184,7 +184,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                 }
                                 case 0x91:
                                 {
-                                    lastRest += reader.ReadByte();
+                                    lastRest = (uint)(lastRest + reader.ReadSByte());
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new RestCommand { Rest = lastRest });
