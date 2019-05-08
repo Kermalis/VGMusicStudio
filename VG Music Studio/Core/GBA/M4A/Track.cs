@@ -7,7 +7,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
     {
         public readonly byte Index;
 
-        public byte Voice, PitchBendRange, Priority, Volume, Delay, PrevKey,
+        public byte Voice, PitchBendRange, Priority, Volume, Rest, PrevKey,
             LFOPhase, LFODelayCount, LFOSpeed, LFODelay, LFODepth;
         public LFOType LFOType;
         public sbyte PitchBend, Tune, Panpot, Transpose;
@@ -40,7 +40,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         }
         public void Init()
         {
-            Voice = Priority = PrevKey = Delay = LFODelay = LFODelayCount = LFOPhase = LFODepth = CallStackDepth = 0;
+            Voice = Priority = PrevKey = Rest = LFODelay = LFODelayCount = LFOPhase = LFODepth = CallStackDepth = 0;
             PitchBend = Tune = Panpot = Transpose = 0;
             CurEvent = 0;
             PitchBendRange = 2;
@@ -52,9 +52,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         }
         public void Tick()
         {
-            if (Delay != 0)
+            if (Rest != 0)
             {
-                Delay--;
+                Rest--;
             }
             int active = 0;
             Channel[] chans = Channels.ToArray();
@@ -74,7 +74,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 }
                 else
                 {
-                    LFOPhase = (byte)(LFOPhase + LFOSpeed);
+                    LFOPhase += LFOSpeed;
                 }
             }
             else

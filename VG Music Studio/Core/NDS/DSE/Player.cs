@@ -19,10 +19,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         private Track[] tracks;
         private byte tempo;
         private int tempoStack;
-        private long loops;
+        private long elapsedLoops, elapsedTicks;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
+        public long NumTicks { get; private set; }
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -100,7 +101,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         songChunk = reader.ReadObject<SMD.SongChunk_V415>();
                         break;
                     }
-                    default: throw new InvalidDataException();
+                    default: throw new Exception($"Unknown header version: 0x{header.Version:X}");
                 }
                 tracks = new Track[songChunk.NumTracks];
                 Events = new List<SongEvent>[songChunk.NumTracks];
@@ -375,12 +376,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 SetTicks();
             }
         }
+        public void SetCurrentPosition(long ticks)
+        {
+
+        }
         public void Play()
         {
             Stop();
             tempo = 120;
             tempoStack = 0;
-            loops = 0;
+            elapsedLoops = elapsedTicks = 0;
             fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
@@ -414,6 +419,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
+            info.Ticks = elapsedTicks;
             // TODO: Longest song is actually 18 tracks (bgm0168)
             for (int i = 0; i < tracks.Length - 1; i++)
             {
@@ -670,8 +676,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         }
                         if (loop)
                         {
-                            loops++;
-                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && loops > GlobalConfig.Instance.PlaylistSongLoops)
+                            elapsedLoops++;
+                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
                             {
                                 fadeOutBegan = true;
                                 mixer.BeginFadeOut();

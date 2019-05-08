@@ -44,7 +44,7 @@ namespace Kermalis.VGMusicStudio.UI
         private readonly ThemedButton playButton, pauseButton, stopButton;
         private readonly SplitContainer splitContainer;
         private readonly PianoControl piano;
-        private readonly ColorSlider volumeBar;
+        private readonly ColorSlider volumeBar, positionBar;
         private readonly TrackInfoControl trackInfo;
         private readonly ImageComboBox songsComboBox;
         private readonly ThumbnailToolBarButton prevTButton, toggleTButton, nextTButton;
@@ -119,6 +119,11 @@ namespace Kermalis.VGMusicStudio.UI
             volumeBar = new ColorSlider { Enabled = false, LargeChange = 20, Maximum = 100, SmallChange = 5 };
             volumeBar.ValueChanged += VolumeBar_ValueChanged;
 
+            // Position bar
+            positionBar = new ColorSlider { Enabled = false, Maximum = 0 };
+            positionBar.MouseUp += PositionBar_MouseUp;
+            positionBar.MouseDown += PositionBar_MouseDown;
+
             // Playlist box
             songsComboBox = new ImageComboBox { Enabled = false };
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -128,7 +133,7 @@ namespace Kermalis.VGMusicStudio.UI
 
             // Split container
             splitContainer = new SplitContainer { BackColor = Theme.TitleBar, Dock = DockStyle.Fill, IsSplitterFixed = true, Orientation = Orientation.Horizontal, SplitterWidth = 1 };
-            splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, pauseButton, stopButton, songNumerical, songsComboBox, piano, volumeBar });
+            splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, pauseButton, stopButton, songNumerical, songsComboBox, piano, volumeBar, positionBar });
             splitContainer.Panel2.Controls.Add(trackInfo);
 
             // MainForm
@@ -165,6 +170,16 @@ namespace Kermalis.VGMusicStudio.UI
             volumeBar.Value = (int)(volume * volumeBar.Maximum);
             volumeBar.ValueChanged += VolumeBar_ValueChanged;
         }
+        private bool positionBarFree = true;
+        private void PositionBar_MouseUp(object sender, EventArgs e)
+        {
+            Engine.Instance.Player.SetCurrentPosition(positionBar.Value);
+            positionBarFree = true;
+        }
+        private void PositionBar_MouseDown(object sender, EventArgs e)
+        {
+            positionBarFree = false;
+        }
 
         private bool autoplay = false;
         private void SongNumerical_ValueChanged(object sender, EventArgs e)
@@ -199,11 +214,15 @@ namespace Kermalis.VGMusicStudio.UI
                     Text = $"{Utils.ProgramName} - {song.Name}";
                     songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
                 }
+                positionBar.Maximum = (int)Engine.Instance.Player.NumTicks;
+                positionBar.LargeChange = positionBar.Maximum / 10;
+                positionBar.SmallChange = positionBar.LargeChange / 4;
                 if (autoplay)
                 {
                     Play();
                 }
             }
+            positionBar.Enabled = success;
 
             autoplay = true;
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -388,10 +407,11 @@ namespace Kermalis.VGMusicStudio.UI
         private void Play()
         {
             Engine.Instance.Player.Play();
-            pauseButton.Enabled = stopButton.Enabled = true;
+            positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = true;
             pauseButton.Text = Strings.PlayerPause;
             timer.Interval = (int)(1000.0 / GlobalConfig.Instance.RefreshRate);
             timer.Start();
+            UpdateTaskbarState();
             UpdateTaskbarButtons();
         }
         private void Pause()
@@ -411,16 +431,19 @@ namespace Kermalis.VGMusicStudio.UI
                 System.Threading.Monitor.Enter(timer);
                 ClearPianoNotes();
             }
+            UpdateTaskbarState();
             UpdateTaskbarButtons();
         }
         private void Stop()
         {
             Engine.Instance.Player.Stop();
-            pauseButton.Enabled = stopButton.Enabled = false;
+            positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
             timer.Stop();
             System.Threading.Monitor.Enter(timer);
             ClearPianoNotes();
             trackInfo.DeleteData();
+            UpdatePositionIndicators(0);
+            UpdateTaskbarState();
             UpdateTaskbarButtons();
         }
         private void TogglePlayback(object sender, EventArgs e)
@@ -492,6 +515,8 @@ namespace Kermalis.VGMusicStudio.UI
             prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = false;
             Text = Utils.ProgramName;
             ResetPlaylistStuff(false);
+            UpdatePositionIndicators(0);
+            UpdateTaskbarState();
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             songNumerical.ValueChanged -= SongNumerical_ValueChanged;
             songNumerical.Visible = false;
@@ -561,6 +586,7 @@ namespace Kermalis.VGMusicStudio.UI
                             }
                         }
                     }
+                    UpdatePositionIndicators((int)info.Ticks);
                     // Draw trackinfo
                     trackInfo.Invalidate();
                 }
@@ -573,6 +599,31 @@ namespace Kermalis.VGMusicStudio.UI
         private void SongEnded()
         {
             stopUI = true;
+        }
+        private void UpdatePositionIndicators(int ticks)
+        {
+            if (positionBarFree)
+            {
+                positionBar.Value = ticks;
+            }
+            if (GlobalConfig.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
+            {
+                TaskbarManager.Instance.SetProgressValue(ticks, positionBar.Maximum);
+            }
+        }
+        private void UpdateTaskbarState()
+        {
+            if (GlobalConfig.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
+            {
+                TaskbarProgressBarState state;
+                switch (Engine.Instance?.Player.State)
+                {
+                    case PlayerState.Playing: state = TaskbarProgressBarState.Normal; break;
+                    case PlayerState.Paused: state = TaskbarProgressBarState.Paused; break;
+                    default: state = TaskbarProgressBarState.NoProgress; break;
+                }
+                TaskbarManager.Instance.SetProgressState(state);
+            }
         }
         private void UpdateTaskbarButtons()
         {
@@ -626,7 +677,7 @@ namespace Kermalis.VGMusicStudio.UI
 
                 int xoff = splitContainer.Panel1.Width / 83;
                 int yoff = splitContainer.Panel1.Height / 25;
-                int a, b, c;
+                int a, b, c, d;
 
                 // Buttons
                 a = (w1 / 3) - xoff;
@@ -639,12 +690,17 @@ namespace Kermalis.VGMusicStudio.UI
                 songNumerical.Location = new Point((xoff * 4) + (a * 3) + b, c);
                 songNumerical.Size = new Size((int)(a / 1.175), 21);
                 // Song combobox
-                songsComboBox.Location = new Point(splitContainer.Panel1.Width - w1 - xoff, c);
+                d = splitContainer.Panel1.Width - w1 - xoff;
+                songsComboBox.Location = new Point(d, c);
                 songsComboBox.Size = new Size(w1, 21);
 
                 // Volume bar
-                volumeBar.Location = new Point(xoff, (int)(splitContainer.Panel1.Height / 3.5));
+                c = (int)(splitContainer.Panel1.Height / 3.5);
+                volumeBar.Location = new Point(xoff, c);
                 volumeBar.Size = new Size(w1, h1);
+                // Position bar
+                positionBar.Location = new Point(d, c);
+                positionBar.Size = new Size(w1, h1);
 
                 // Piano
                 piano.Size = new Size(splitContainer.Panel1.Width, (int)(splitContainer.Panel1.Height / 2.5)); // Force it to initialize piano keys again

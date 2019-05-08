@@ -15,10 +15,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private readonly Thread thread;
         private byte tempo;
         private int tempoStack;
-        private long loops;
+        private long elapsedLoops, elapsedTicks;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
+        public long NumTicks { get; private set; }
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -258,12 +259,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 SetTicks();
             }
         }
+        public void SetCurrentPosition(long ticks)
+        {
+
+        }
         public void Play()
         {
             Stop();
             tempo = 120;
             tempoStack = 0;
-            loops = 0;
+            elapsedLoops = elapsedTicks = 0;
             fadeOutBegan = false;
             for (int i = 0; i < 0x10; i++)
             {
@@ -296,6 +301,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
+            info.Ticks = elapsedTicks;
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
@@ -462,8 +468,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         }
                         if (loop)
                         {
-                            loops++;
-                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && loops > GlobalConfig.Instance.PlaylistSongLoops)
+                            elapsedLoops++;
+                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
                             {
                                 fadeOutBegan = true;
                                 mixer.BeginFadeOut();

@@ -15,6 +15,7 @@ namespace Kermalis.VGMusicStudio.UI
         public class TrackInfo
         {
             public ushort Tempo;
+            public long Ticks;
             public long[] Positions = new long[0x10];
             public byte[] Voices = new byte[0x10];
             public byte[] Volumes = new byte[0x10];

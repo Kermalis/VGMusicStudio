@@ -16,10 +16,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private Track[] tracks;
         private ushort tempo;
         private int tempoStack;
-        private long loops;
+        private long elapsedLoops, elapsedTicks;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
+        public long NumTicks { get; private set; }
+        private int longestTrack;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -37,6 +39,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         private void SetTicks()
         {
             // TODO: REPT
+            NumTicks = 0;
             for (int trackIndex = 0; trackIndex < Events.Length; trackIndex++)
             {
                 Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
@@ -48,52 +51,61 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 int[] callStack = new int[3];
                 while (cont)
                 {
-                    SongEvent e = evs[i++];
-                    e.Ticks.Add(ticks);
-                    switch (e.Command)
+                    void SetNumTicks()
                     {
-                        case CallCommand call:
+                        if (ticks > NumTicks)
                         {
-                            int callCmd = evs.FindIndex(c => c.Offset == call.Offset);
-                            if (callStackDepth < 3)
-                            {
-                                callStack[callStackDepth] = i;
-                                callStackDepth++;
-                                i = callCmd;
-                            }
-                            break;
+                            longestTrack = trackIndex;
+                            NumTicks = ticks;
                         }
-                        case FinishCommand _:
+                    }
+                    SongEvent e = evs[i++];
+                    if (callStackDepth == 0 && e.Ticks.Count > 0)
+                    {
+                        SetNumTicks();
+                        break;
+                    }
+                    else
+                    {
+                        e.Ticks.Add(ticks);
+                        switch (e.Command)
                         {
-                            cont = false;
-                            break;
-                        }
-                        case JumpCommand jump:
-                        {
-                            int jumpCmd = evs.FindIndex(c => c.Offset == jump.Offset);
-                            if (evs[jumpCmd].Offset > e.Offset || evs[jumpCmd].Ticks.Count == 0)
+                            case CallCommand call:
                             {
-                                i = jumpCmd;
+                                int callCmd = evs.FindIndex(c => c.Offset == call.Offset);
+                                if (callStackDepth < 3)
+                                {
+                                    callStack[callStackDepth] = i;
+                                    callStackDepth++;
+                                    i = callCmd;
+                                }
+                                break;
                             }
-                            else
+                            case FinishCommand _:
                             {
+                                SetNumTicks();
                                 cont = false;
+                                break;
                             }
-                            break;
-                        }
-                        case RestCommand rest:
-                        {
-                            ticks += rest.Rest;
-                            break;
-                        }
-                        case ReturnCommand _:
-                        {
-                            if (callStackDepth != 0)
+                            case JumpCommand jump:
                             {
-                                callStackDepth--;
-                                i = callStack[callStackDepth];
+                                i = evs.FindIndex(c => c.Offset == jump.Offset);
+                                break;
                             }
-                            break;
+                            case RestCommand rest:
+                            {
+                                ticks += rest.Rest;
+                                break;
+                            }
+                            case ReturnCommand _:
+                            {
+                                if (callStackDepth != 0)
+                                {
+                                    callStackDepth--;
+                                    i = callStack[callStackDepth];
+                                }
+                                break;
+                            }
                         }
                     }
                 }
@@ -115,7 +127,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     return Events[i].Any(e => e.Offset == offset);
                 }
 
-                byte runCmd = 0, prevKey = 0, prevVelocity = 0x7F;
+                byte runCmd = 0, prevKey = 0, prevVelocity = 0x7F; // TODO: https://github.com/Kermalis/VGMusicStudio/issues/37
                 int callStackDepth = 0;
                 AddEvents(header.TrackOffsets[i] - GBA.Utils.CartridgeOffset);
                 void AddEvents(int startOffset)
@@ -555,12 +567,54 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             }
             SetTicks();
         }
+        public void SetCurrentPosition(long ticks)
+        {
+            if (State == PlayerState.Playing || State == PlayerState.Paused)
+            {
+                bool autoplay = State == PlayerState.Playing;
+                if (autoplay)
+                {
+                    Pause();
+                }
+                elapsedTicks = ticks;
+                for (int i = Events.Length - 1; i >= 0; i--)
+                {
+                    Track track = tracks[i];
+                    track.Init();
+                    long elapsed = 0;
+                    bool u = false;
+                    while (!track.Stopped)
+                    {
+                        track.Tick();
+                        while (track.Rest == 0 && !track.Stopped)
+                        {
+                            ExecuteNext(i, ref u);
+                        }
+                        // elapsed == 400, track.Rest == 4, ticks == 402
+                        if (elapsed <= ticks && elapsed + track.Rest >= ticks)
+                        {
+                            track.Rest -= (byte)(ticks - elapsed);
+                            track.StopAllChannels();
+                            break;
+                        }
+                        else
+                        {
+                            elapsed++;
+                        }
+                    }
+                }
+                if (autoplay)
+                {
+                    Pause();
+                }
+            }
+        }
         public void Play()
         {
             Stop();
             tempo = 150;
             tempoStack = 0;
-            loops = 0;
+            elapsedLoops = elapsedTicks = 0;
             fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
@@ -593,11 +647,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
+            info.Ticks = elapsedTicks;
             for (int i = 0; i < tracks.Length; i++)
             {
                 Track track = tracks[i];
                 info.Positions[i] = Events[i][track.CurEvent].Offset;
-                info.Delays[i] = track.Delay;
+                info.Delays[i] = track.Rest;
                 info.Voices[i] = track.Voice;
                 info.Mods[i] = track.LFODepth;
                 //info.Types[i] = "PCM";
@@ -699,7 +754,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 }
             }
         }
-        private void ExecuteNext(int i, ref bool update, ref bool loop)
+        private void ExecuteNext(int i, ref bool update)
         {
             bool increment = true;
             List<SongEvent> ev = Events[i];
@@ -741,20 +796,19 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 {
                     int jumpCmd = ev.FindIndex(c => c.Offset == jump.Offset);
                     track.CurEvent = jumpCmd;
-                    loop = true; // TODO: Check context of the jump (were we in this tick before?)
                     increment = false;
                     break;
                 }
                 case LFODelayCommand lfodl: track.LFODelay = lfodl.Delay; track.LFOPhase = track.LFODelayCount = 0; update = true; break;
                 case LFODepthCommand lfo: track.LFODepth = lfo.Depth; update = true; break;
                 case LFOSpeedCommand lfos: track.LFOSpeed = lfos.Speed; track.LFOPhase = track.LFODelayCount = 0; update = true; break;
-                case LFOTypeCommand lfot: track.LFOType = (LFOType)lfot.Type; update = true; break;
+                case LFOTypeCommand lfot: track.LFOType = lfot.Type; update = true; break;
                 case NoteCommand note: PlayNote(track, note.Key, note.Velocity, note.Duration); break;
                 case PanpotCommand pan: track.Panpot = pan.Panpot; update = true; break;
                 case PitchBendCommand bend: track.PitchBend = bend.Bend; update = true; break;
                 case PitchBendRangeCommand bendr: track.PitchBendRange = bendr.Range; update = true; break;
                 case PriorityCommand priority: track.Priority = priority.Priority; break;
-                case RestCommand rest: track.Delay = rest.Rest; break;
+                case RestCommand rest: track.Rest = rest.Rest; break;
                 case ReturnCommand _:
                 {
                     if (track.CallStackDepth != 0)
@@ -788,32 +842,47 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     while (tempoStack >= 150)
                     {
                         tempoStack -= 150;
-                        bool allDone = true, loop = false;
+                        bool allDone = true;
                         for (int i = 0; i < tracks.Length; i++)
                         {
                             Track track = tracks[i];
                             track.Tick();
                             bool update = false;
-                            while (track.Delay == 0 && !track.Stopped)
+                            while (track.Rest == 0 && !track.Stopped)
                             {
-                                ExecuteNext(i, ref update, ref loop);
+                                ExecuteNext(i, ref update);
                             }
-                            if (update || track.LFODepth > 0)
+                            if (i == longestTrack)
                             {
-                                track.UpdateChannels();
+                                if (elapsedTicks == NumTicks)
+                                {
+                                    if (!track.Stopped)
+                                    {
+                                        elapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                        elapsedLoops++;
+                                        if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
+                                        {
+                                            fadeOutBegan = true;
+                                            mixer.BeginFadeOut();
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    elapsedTicks++;
+                                }
                             }
-                            if (!track.Stopped || track.Channels.Count != 0)
+                            if (!track.Stopped)
                             {
                                 allDone = false;
                             }
-                        }
-                        if (loop)
-                        {
-                            loops++;
-                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && loops > GlobalConfig.Instance.PlaylistSongLoops)
+                            if (track.Channels.Count > 0)
                             {
-                                fadeOutBegan = true;
-                                mixer.BeginFadeOut();
+                                allDone = false;
+                                if (update || track.LFODepth > 0)
+                                {
+                                    track.UpdateChannels();
+                                }
                             }
                         }
                         if (fadeOutBegan && mixer.IsFadeDone())

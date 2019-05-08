@@ -21,10 +21,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public byte Volume; // This is only set in LoadSong(). It should probably be set in Play() as well.
         private ushort tempo;
         private int tempoStack;
-        private long loops;
+        private long elapsedLoops, elapsedTicks;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
+        public long NumTicks { get; private set; }
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -1042,6 +1043,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 SetTicks();
             }
         }
+        public void SetCurrentPosition(long ticks)
+        {
+
+        }
         public void Play()
         {
             Stop();
@@ -1049,7 +1054,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             {
                 tempo = 120; // Confirmed: default tempo is 120 (MKDS 75)
                 tempoStack = 0;
-                loops = 0;
+                elapsedLoops = elapsedTicks = 0;
                 fadeOutBegan = false;
                 InitEmulation();
                 State = PlayerState.Playing;
@@ -1084,6 +1089,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
+            info.Ticks = elapsedTicks;
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
@@ -1723,8 +1729,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         }
                         if (loop)
                         {
-                            loops++;
-                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && loops > GlobalConfig.Instance.PlaylistSongLoops)
+                            elapsedLoops++;
+                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
                             {
                                 fadeOutBegan = true;
                                 mixer.BeginFadeOut();
