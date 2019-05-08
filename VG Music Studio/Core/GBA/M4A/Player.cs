@@ -38,77 +38,43 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 
         private void SetTicks()
         {
-            // TODO: REPT
             NumTicks = 0;
             for (int trackIndex = 0; trackIndex < Events.Length; trackIndex++)
             {
                 Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
                 List<SongEvent> evs = Events[trackIndex];
+                Track track = tracks[trackIndex];
+                track.Init();
                 long ticks = 0;
-                bool cont = true;
-                int i = 0;
-                byte callStackDepth = 0;
-                int[] callStack = new int[3];
-                while (cont)
+                bool u = false;
+                while (true)
                 {
-                    void SetNumTicks()
+                    SongEvent e = evs[track.CurEvent];
+                    if (track.CallStackDepth == 0 && e.Ticks.Count > 0)
                     {
-                        if (ticks > NumTicks)
-                        {
-                            longestTrack = trackIndex;
-                            NumTicks = ticks;
-                        }
-                    }
-                    SongEvent e = evs[i++];
-                    if (callStackDepth == 0 && e.Ticks.Count > 0)
-                    {
-                        SetNumTicks();
                         break;
                     }
                     else
                     {
                         e.Ticks.Add(ticks);
-                        switch (e.Command)
+                        ExecuteNext(trackIndex, ref u);
+                        if (track.Stopped)
                         {
-                            case CallCommand call:
-                            {
-                                int callCmd = evs.FindIndex(c => c.Offset == call.Offset);
-                                if (callStackDepth < 3)
-                                {
-                                    callStack[callStackDepth] = i;
-                                    callStackDepth++;
-                                    i = callCmd;
-                                }
-                                break;
-                            }
-                            case FinishCommand _:
-                            {
-                                SetNumTicks();
-                                cont = false;
-                                break;
-                            }
-                            case JumpCommand jump:
-                            {
-                                i = evs.FindIndex(c => c.Offset == jump.Offset);
-                                break;
-                            }
-                            case RestCommand rest:
-                            {
-                                ticks += rest.Rest;
-                                break;
-                            }
-                            case ReturnCommand _:
-                            {
-                                if (callStackDepth != 0)
-                                {
-                                    callStackDepth--;
-                                    i = callStack[callStackDepth];
-                                }
-                                break;
-                            }
+                            break;
+                        }
+                        else
+                        {
+                            ticks += track.Rest;
+                            track.Rest = 0;
                         }
                     }
                 }
+                if (ticks > NumTicks)
+                {
+                    longestTrack = trackIndex;
+                    NumTicks = ticks;
+                }
+                track.StopAllChannels();
             }
         }
         public void LoadSong(long index)
@@ -577,7 +543,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                     Pause();
                 }
                 elapsedTicks = ticks;
-                for (int i = Events.Length - 1; i >= 0; i--)
+                for (int i = 0; i < Events.Length; i++)
                 {
                     Track track = tracks[i];
                     track.Init();
@@ -590,7 +556,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                         {
                             ExecuteNext(i, ref u);
                         }
-                        // elapsed == 400, track.Rest == 4, ticks == 402
                         if (elapsed <= ticks && elapsed + track.Rest >= ticks)
                         {
                             track.Rest -= (byte)(ticks - elapsed);
@@ -754,11 +719,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 }
             }
         }
-        private void ExecuteNext(int i, ref bool update)
+        private void ExecuteNext(int trackIndex, ref bool update)
         {
             bool increment = true;
-            List<SongEvent> ev = Events[i];
-            Track track = tracks[i];
+            List<SongEvent> ev = Events[trackIndex];
+            Track track = tracks[trackIndex];
             switch (ev[track.CurEvent].Command)
             {
                 case CallCommand call:
