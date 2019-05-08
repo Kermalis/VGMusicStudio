@@ -1,46 +1,42 @@
-﻿using Kermalis.EndianBinaryIO;
-using System.IO;
-
-namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+﻿namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 {
     internal class Track
     {
         public readonly byte Index;
         public readonly string Type;
-        public readonly EndianBinaryReader Reader;
         public readonly Channel Channel;
 
-        public byte Voice, BendRange, Volume, Delay, PrevCmd, NoteDuration;
+        public byte Voice, BendRange, Volume, Rest, NoteDuration;
         public sbyte Bend, Panpot;
         public bool Enabled, Stopped;
-        public int StartOffset;
+        public int CurEvent;
+        public ICommand PrevCommand;
 
         public int GetPitch()
         {
             return Bend * (BendRange / 2);
         }
 
-        public Track(byte i, byte[] rom, Mixer mixer)
+        public Track(byte i, Mixer mixer)
         {
             Index = i;
             Type = i >= 8 ? i % 2 == 0 ? "Square 1" : "Square 2" : "PCM8";
-            Reader = new EndianBinaryReader(new MemoryStream(rom));
             Channel = i >= 8 ? (Channel)new SquareChannel(mixer) : new PCMChannel(mixer);
         }
         public void Init()
         {
-            Reader.BaseStream.Position = StartOffset;
-            Voice = Delay = BendRange = NoteDuration = 0;
+            Voice = Rest = BendRange = NoteDuration = 0;
             Bend = Panpot = 0;
+            CurEvent = 0;
             Stopped = false;
             Volume = 0x7F;
-            PrevCmd = 0xFF;
+            PrevCommand = null;
         }
         public void Tick()
         {
-            if (Delay != 0)
+            if (Rest != 0)
             {
-                Delay--;
+                Rest--;
             }
             if (NoteDuration > 0)
             {
