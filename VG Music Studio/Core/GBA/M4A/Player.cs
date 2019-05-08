@@ -117,7 +117,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                                 {
                                     Key = key,
                                     Velocity = velocity,
-                                    Duration = runCmd == 0xCF ? -1 : (Utils.ClockTable[runCmd - 0xCF] + addedDuration)
+                                    Duration = runCmd == 0xCF ? -1 : (Utils.RestTable[runCmd - 0xCF] + addedDuration)
                                 });
                             }
                         }
@@ -191,7 +191,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                         {
                             if (!EventExists(offset))
                             {
-                                AddEvent(new RestCommand { Rest = Utils.ClockTable[cmd - 0x80] });
+                                AddEvent(new RestCommand { Rest = Utils.RestTable[cmd - 0x80] });
                             }
                         }
 
@@ -617,7 +617,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             {
                 Track track = tracks[i];
                 info.Positions[i] = Events[i][track.CurEvent].Offset;
-                info.Delays[i] = track.Rest;
+                info.Rests[i] = track.Rest;
                 info.Voices[i] = track.Voice;
                 info.Mods[i] = track.LFODepth;
                 //info.Types[i] = "PCM";
@@ -625,7 +625,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
                 info.PitchBends[i] = track.GetPitch();
                 info.Panpots[i] = track.GetPanpot();
 
-                Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
+                Channel[] channels = track.Channels.ToArray();
                 if (channels.Length == 0)
                 {
                     info.Notes[i] = new byte[0];

@@ -12,14 +12,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             WaitingForNoteToFinishBeforeContinuingXD; // Is this necessary?
         public bool VariableFlag; // Set by variable commands (0xB0 - 0xBD)
         public byte Voice, Priority, Volume, Expression,
-            LFORange, BendRange, LFOSpeed, LFODepth;
+            LFORange, PitchBendRange, LFOSpeed, LFODepth;
         public ushort LFODelay, LFOPhase, LFODelayCount;
         public LFOType LFOType;
-        public sbyte Bend, Pan, KeyShift;
+        public sbyte PitchBend, Panpot, KeyShift;
         public byte Attack, Decay, Sustain, Release;
         public byte PortamentoKey, PortamentoTime;
         public short SweepPitch;
-        public int Delay;
+        public int Rest;
         public int DataOffset;
         public int[] CallStack = new int[3];
         public byte[] CallStackLoops = new byte[3];
@@ -31,7 +31,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             int mod = LFOType == LFOType.Pitch ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
             mod = ((mod << 6) >> 14) | ((mod >> 26) << 18);
-            return (Bend * BendRange / 2) + mod;
+            return (PitchBend * PitchBendRange / 2) + mod;
         }
         public int GetVolume()
         {
@@ -43,7 +43,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             int mod = LFOType == LFOType.Panpot ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
             mod = ((mod << 6) >> 14) | ((mod >> 26) << 18);
-            return (sbyte)Util.Utils.Clamp(Pan + mod, -0x40, 0x3F);
+            return (sbyte)Util.Utils.Clamp(Panpot + mod, -0x40, 0x3F);
         }
 
         public Track(byte i, Player player)
@@ -59,26 +59,26 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             Mono = VariableFlag = true;
             CallStackDepth = 0;
             Voice = LFODepth = 0;
-            Bend = Pan = KeyShift = 0;
+            PitchBend = Panpot = KeyShift = 0;
             LFOPhase = LFODelay = LFODelayCount = 0;
             LFORange = 1;
             LFOSpeed = 0x10;
             Priority = 0x40;
             Volume = Expression = 0x7F;
             Attack = Decay = Sustain = Release = 0xFF;
-            BendRange = 2;
+            PitchBendRange = 2;
             PortamentoKey = 60;
             PortamentoTime = 0;
             SweepPitch = 0;
             LFOType = LFOType.Pitch;
-            Delay = 0;
+            Rest = 0;
             StopAllChannels();
         }
         public void Tick()
         {
-            if (Delay > 0)
+            if (Rest > 0)
             {
-                Delay--;
+                Rest--;
             }
             if (Channels.Count != 0)
             {

@@ -1096,7 +1096,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 if (track.Enabled)
                 {
                     info.Positions[i] = track.DataOffset;
-                    info.Delays[i] = track.Delay;
+                    info.Rests[i] = track.Rest;
                     info.Voices[i] = track.Voice;
                     info.Mods[i] = track.LFODepth * track.LFORange;
                     info.Types[i] = sbnk.NumInstruments <= track.Voice ? "???" : sbnk.Instruments[track.Voice].Type.ToString();
@@ -1105,7 +1105,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     info.Extras[i] = track.Portamento ? track.PortamentoTime : (byte)0;
                     info.Panpots[i] = track.GetPan();
 
-                    Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
+                    Channel[] channels = track.Channels.ToArray();
                     if (channels.Length == 0)
                     {
                         info.Notes[i] = new byte[0];
@@ -1297,7 +1297,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     track.PortamentoKey = key;
                     if (track.Mono)
                     {
-                        track.Delay = duration;
+                        track.Rest = duration;
                         if (duration == 0)
                         {
                             track.WaitingForNoteToFinishBeforeContinuingXD = true;
@@ -1317,7 +1317,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         {
                             case 0x80:
                             {
-                                track.Delay = arg;
+                                track.Rest = arg;
                                 break;
                             }
                             case 0x81:
@@ -1490,7 +1490,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         {
                             case 0xC0: // Panpot
                             {
-                                track.Pan = (sbyte)(arg - 0x40);
+                                track.Panpot = (sbyte)(arg - 0x40);
                                 break;
                             }
                             case 0xC1: // Volume
@@ -1510,12 +1510,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                             case 0xC4: // Pitch Bend
                             {
-                                track.Bend = (sbyte)arg;
+                                track.PitchBend = (sbyte)arg;
                                 break;
                             }
                             case 0xC5: // Pitch Bend Range
                             {
-                                track.BendRange = (byte)arg;
+                                track.PitchBendRange = (byte)arg;
                                 break;
                             }
                             case 0xC6: // Priority
@@ -1717,7 +1717,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             if (track.Enabled)
                             {
                                 track.Tick();
-                                while (track.Delay == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
+                                while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
                                 {
                                     ExecuteNext(track, ref loop);
                                 }

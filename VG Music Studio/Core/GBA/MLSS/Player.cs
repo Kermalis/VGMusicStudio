@@ -332,7 +332,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 if (track.Enabled)
                 {
                     info.Positions[i] = Events[i][track.CurEvent].Offset;
-                    info.Delays[i] = track.Rest;
+                    info.Rests[i] = track.Rest;
                     info.Voices[i] = track.Voice;
                     info.Types[i] = track.Type;
                     info.Volumes[i] = track.Volume;
@@ -416,12 +416,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 case VolumeCommand volume: track.Volume = volume.Volume; update = true; break;
                 case PanpotCommand panpot: track.Panpot = panpot.Panpot; update = true; break;
                 case PitchBendRangeCommand bendRange: track.BendRange = bendRange.Range; update = true; break;
-                case PitchBendCommand bend: track.Bend = bend.Bend; update = true; break;
+                case PitchBendCommand bend: track.PitchBend = bend.Bend; update = true; break;
                 case RestCommand rest: track.Rest = rest.Rest; break;
                 case JumpCommand jump:
                 {
-                    int jumpCmd = ev.FindIndex(c => c.Offset == jump.Offset);
-                    track.CurEvent = jumpCmd;
+                    track.CurEvent = ev.FindIndex(c => c.Offset == jump.Offset);
                     increment = false;
                     break;
                 }

@@ -48,7 +48,7 @@
                         sample = masterswd.Samples[split.SampleId];
                         Key = (byte)key;
                         RootKey = split.SampleRootKey;
-                        BaseTimer = (ushort)(Utils.ARM7_CLOCK / sample.WavInfo.SampleRate);
+                        BaseTimer = (ushort)(NDS.Utils.ARM7_CLOCK / sample.WavInfo.SampleRate);
                         SetAttack(0x7F - sample.WavInfo.Attack);
                         SetDecay(0x7F - sample.WavInfo.Decay);
                         SetSustain(sample.WavInfo.Sustain);

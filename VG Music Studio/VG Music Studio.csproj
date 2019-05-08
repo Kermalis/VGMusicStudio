@@ -134,6 +134,7 @@
     <Compile Include="Core\NDS\DSE\SMD.cs" />
     <Compile Include="Core\NDS\DSE\SWD.cs" />
     <Compile Include="Core\NDS\DSE\Track.cs" />
+    <Compile Include="Core\NDS\DSE\Utils.cs" />
     <Compile Include="Core\NDS\SDAT\Commands.cs" />
     <Compile Include="Core\NDS\Utils.cs" />
     <Compile Include="Core\NDS\SDAT\Channel.cs" />

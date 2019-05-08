@@ -39,12 +39,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             Init(buffer);
         }
 
-        public Channel AllocateChannel(Track track)
+        public Channel AllocateChannel()
         {
             int GetScore(Channel c)
             {
-                // Free channels should be used before releasing channels which should be used before track priority
-                return c.Owner == null ? -2 : c.State == EnvelopeState.Release ? -1 : c.Owner.Priority;
+                // Free channels should be used before releasing channels
+                return c.Owner == null ? -2 : c.State == EnvelopeState.Release ? -1 : 0;
             }
             Channel nChan = null;
             for (int i = 0; i < Channels.Length; i++)
@@ -64,7 +64,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     nChan = c;
                 }
             }
-            return nChan != null && track.Priority >= GetScore(nChan) ? nChan : null;
+            return nChan != null && 0 >= GetScore(nChan) ? nChan : null;
         }
 
         public void ChannelTick()

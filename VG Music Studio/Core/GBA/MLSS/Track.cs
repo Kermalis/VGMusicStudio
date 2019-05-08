@@ -7,14 +7,14 @@
         public readonly Channel Channel;
 
         public byte Voice, BendRange, Volume, Rest, NoteDuration;
-        public sbyte Bend, Panpot;
+        public sbyte PitchBend, Panpot;
         public bool Enabled, Stopped;
         public int CurEvent;
         public ICommand PrevCommand;
 
         public int GetPitch()
         {
-            return Bend * (BendRange / 2);
+            return PitchBend * (BendRange / 2);
         }
 
         public Track(byte i, Mixer mixer)
@@ -26,7 +26,7 @@
         public void Init()
         {
             Voice = Rest = BendRange = NoteDuration = 0;
-            Bend = Panpot = 0;
+            PitchBend = Panpot = 0;
             CurEvent = 0;
             Stopped = false;
             Volume = 0x7F;

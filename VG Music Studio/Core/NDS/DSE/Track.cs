@@ -1,56 +1,44 @@
-﻿using Kermalis.EndianBinaryIO;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
     internal class Track
     {
         public readonly byte Index;
-        public readonly EndianBinaryReader Reader;
-        public readonly long StartOffset;
-        public int Priority; // Unused
         public byte Octave;
         public byte Voice;
         public byte Expression, Volume;
         public sbyte Panpot;
-        public uint LastDelay, Delay, LastNoteDuration;
+        public uint Rest;
         public ushort PitchBend;
         public long LoopOffset;
         public bool Stopped;
+        public int CurEvent;
 
         public readonly List<Channel> Channels = new List<Channel>(0x10);
 
-        public Track(byte i, byte[] smdl, long startOffset)
+        public Track(byte i)
         {
             Index = i;
-            Reader = new EndianBinaryReader(new MemoryStream(smdl));
-            StartOffset = startOffset;
-
-            //Reader.BaseStream.Position = startOffset + 0x10;
-            //Reader.ReadByte(); // Track Id
-            //Reader.ReadByte(); // Channel Id
-            //Reader.ReadBytes(2); // Unknown
         }
 
         public void Init()
         {
-            Reader.BaseStream.Position = StartOffset + 0x14;
-            Priority = 0;
             Expression = Voice = Octave = Volume = 0;
             Panpot = 0;
-            LastDelay = Delay = LastNoteDuration = 0;
+            Rest = 0;
             PitchBend = 0;
             LoopOffset = -1;
             Stopped = false;
+            CurEvent = 0;
             StopAllChannels();
         }
 
         public void Tick()
         {
-            if (Delay > 0)
+            if (Rest > 0)
             {
-                Delay--;
+                Rest--;
             }
             for (int i = 0; i < Channels.Count; i++)
             {

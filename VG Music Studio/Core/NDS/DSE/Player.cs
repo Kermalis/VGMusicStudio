@@ -24,6 +24,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public List<SongEvent>[] Events { get; private set; }
         public long NumTicks { get; private set; }
+        private int longestTrack;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -38,54 +39,53 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             thread.Start();
         }
 
-        private void DisposeTracks()
-        {
-            if (tracks != null)
-            {
-                for (int i = 0; i < tracks.Length; i++)
-                {
-                    tracks[i].Reader.Dispose();
-                }
-                tracks = null;
-            }
-        }
         private void SetTicks()
         {
+            NumTicks = 0;
             for (int trackIndex = 0; trackIndex < Events.Length; trackIndex++)
             {
                 Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
                 List<SongEvent> evs = Events[trackIndex];
+                Track track = tracks[trackIndex];
+                track.Init();
                 long ticks = 0;
-                bool cont = true;
-                int i = 0;
-                while (cont)
+                while (true)
                 {
-                    SongEvent e = evs[i++];
-                    e.Ticks.Add(ticks);
-                    switch (e.Command)
+                    SongEvent e = evs[track.CurEvent];
+                    if (e.Ticks.Count > 0)
                     {
-                        case FinishCommand _:
+                        break;
+                    }
+                    else
+                    {
+                        e.Ticks.Add(ticks);
+                        ExecuteNext(trackIndex);
+                        if (track.Stopped)
                         {
-                            cont = false;
                             break;
                         }
-                        case RestCommand rest:
+                        else
                         {
-                            ticks += rest.Rest;
-                            break;
+                            ticks += track.Rest;
+                            track.Rest = 0;
                         }
                     }
                 }
+                if (ticks > NumTicks)
+                {
+                    longestTrack = trackIndex;
+                    NumTicks = ticks;
+                }
+                track.StopAllChannels();
             }
         }
         public void LoadSong(long index)
         {
-            DisposeTracks();
+            tracks = null;
             masterSWD = new SWD(Path.Combine(config.BGMPath, "bgm.swd"));
             string bgm = config.BGMFiles[index];
             localSWD = new SWD(Path.ChangeExtension(bgm, "swd"));
-            byte[] smdl = File.ReadAllBytes(bgm);
-            using (var reader = new EndianBinaryReader(new MemoryStream(smdl)))
+            using (var reader = new EndianBinaryReader(new MemoryStream(File.ReadAllBytes(bgm))))
             {
                 SMD.Header header = reader.ReadObject<SMD.Header>();
                 SMD.ISongChunk songChunk;
@@ -115,7 +115,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
                     long startPosition = reader.BaseStream.Position;
                     reader.BaseStream.Position += 0x14;
-                    uint lastNoteDuration = 0, lastRest = 0;
+                    uint lastNoteDuration = 0, lastRest = 0; // TODO: https://github.com/Kermalis/VGMusicStudio/issues/37
                     bool cont = true;
                     while (cont)
                     {
@@ -164,7 +164,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         }
                         else if (cmd >= 0x80 && cmd <= 0x8F)
                         {
-                            lastRest = fixedRests[cmd - 0x80];
+                            lastRest = Utils.FixedRests[cmd - 0x80];
                             if (!EventExists(offset))
                             {
                                 AddEvent(new RestCommand { Rest = lastRest });
@@ -364,7 +364,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                             }
                         }
                     }
-                    tracks[i] = new Track(i, smdl, startPosition);
+                    tracks[i] = new Track(i);
                     uint chunkLength = reader.ReadUInt32(startPosition + 0xC);
                     reader.BaseStream.Position += chunkLength;
                     // Align 4
@@ -378,7 +378,43 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         }
         public void SetCurrentPosition(long ticks)
         {
-
+            if (State == PlayerState.Playing || State == PlayerState.Paused)
+            {
+                bool autoplay = State == PlayerState.Playing;
+                if (autoplay)
+                {
+                    Pause();
+                }
+                elapsedTicks = ticks;
+                for (int i = 0; i < Events.Length; i++)
+                {
+                    Track track = tracks[i];
+                    track.Init();
+                    long elapsed = 0;
+                    while (!track.Stopped)
+                    {
+                        track.Tick();
+                        while (track.Rest == 0 && !track.Stopped)
+                        {
+                            ExecuteNext(i);
+                        }
+                        if (elapsed <= ticks && elapsed + track.Rest >= ticks)
+                        {
+                            track.Rest -= (uint)(ticks - elapsed);
+                            track.StopAllChannels();
+                            break;
+                        }
+                        else
+                        {
+                            elapsed++;
+                        }
+                    }
+                }
+                if (autoplay)
+                {
+                    Pause();
+                }
+            }
         }
         public void Play()
         {
@@ -414,7 +450,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             Stop();
             State = PlayerState.ShutDown;
             thread.Join();
-            DisposeTracks();
         }
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
@@ -424,8 +459,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             for (int i = 0; i < tracks.Length - 1; i++)
             {
                 Track track = tracks[i + 1];
-                info.Positions[i] = track.Reader.BaseStream.Position;
-                info.Delays[i] = track.Delay;
+                info.Positions[i] = Events[i + 1][track.CurEvent].Offset;
+                info.Rests[i] = track.Rest;
                 info.Voices[i] = track.Voice;
                 info.Types[i] = "PCM";
                 info.Volumes[i] = track.Volume;
@@ -433,7 +468,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 info.Extras[i] = track.Octave;
                 info.Panpots[i] = track.Panpot;
 
-                Channel[] channels = track.Channels.ToArray(); // Copy so adding and removing from the other thread doesn't interrupt (plus Array looping is faster than List looping)
+                Channel[] channels = track.Channels.ToArray();
                 if (channels.Length == 0)
                 {
                     info.Notes[i] = new byte[0];
@@ -457,195 +492,52 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
         }
 
-        private static readonly byte[] fixedRests = new byte[0x10]
+        private void ExecuteNext(int trackIndex)
         {
-            96, 72, 64, 48, 36, 32, 24, 18, 16, 12, 9, 8, 6, 4, 3, 2
-        };
-        private void ExecuteNext(Track track, ref bool loop)
-        {
-            byte cmd = track.Reader.ReadByte();
-            if (cmd >= 1 && cmd <= 0x7F) // Notes
+            bool increment = true;
+            List<SongEvent> ev = Events[trackIndex];
+            Track track = tracks[trackIndex];
+            switch (ev[track.CurEvent].Command)
             {
-                byte arg = track.Reader.ReadByte();
-                int numParams = (arg & 0xC0) >> 6;
-                int octave = ((arg & 0x30) >> 4) - 2;
-                int note = arg & 0xF;
-                if (note < 12)
+                case ExpressionCommand expression: track.Expression = expression.Expression; break;
+                case FinishCommand _:
                 {
-                    uint duration;
-                    switch (numParams)
+                    if (track.LoopOffset == -1)
                     {
-                        case 0:
-                        {
-                            duration = track.LastNoteDuration;
-                            break;
-                        }
-                        default: // Big Endian reading of 8, 16, or 24 bits
-                        {
-                            duration = 0;
-                            for (int i = 0; i < numParams; i++)
-                            {
-                                duration = (duration << 8) | track.Reader.ReadByte();
-                            }
-                            track.LastNoteDuration = duration;
-                            break;
-                        }
+                        track.Stopped = true;
                     }
-                    Channel channel = mixer.AllocateChannel(track);
-                    channel.Stop();
-                    track.Octave += (byte)octave;
-                    if (channel.StartPCM(localSWD, masterSWD, track.Voice, note + (12 * track.Octave), duration))
+                    else
                     {
-                        channel.NoteVelocity = cmd;
+                        track.CurEvent = ev.FindIndex(c => c.Offset == track.LoopOffset);
+                    }
+                    increment = false;
+                    break;
+                }
+                case LoopStartCommand loop: track.LoopOffset = loop.Offset; break;
+                case NoteCommand note:
+                {
+                    Channel channel = mixer.AllocateChannel();
+                    channel.Stop();
+                    track.Octave += (byte)note.OctaveChange;
+                    if (channel.StartPCM(localSWD, masterSWD, track.Voice, note.Key + (12 * track.Octave), note.Duration))
+                    {
+                        channel.NoteVelocity = note.Velocity;
                         channel.Owner = track;
                         track.Channels.Add(channel);
                     }
+                    break;
                 }
-                else
-                {
-                    ;
-                }
-                //sb.AppendLine(string.Format("Note: V_{0}, O_{1}, N_{2}, D_{3}", cmd, octave, noteNames[note], duration));
+                case OctaveCommand octave: track.Octave = octave.Octave; break;
+                case PanpotCommand panpot: track.Panpot = panpot.Panpot; break;
+                case PitchBendCommand bend: track.PitchBend = bend.Bend; break;
+                case RestCommand rest: track.Rest = rest.Rest; break;
+                case TempoCommand tem: tempo = tem.Tempo; break;
+                case VoiceCommand voice: track.Voice = voice.Voice; break;
+                case VolumeCommand volume: track.Volume = volume.Volume; break;
             }
-            else if (cmd >= 0x80 && cmd <= 0x8F) // Fixed delays
+            if (increment)
             {
-                track.LastDelay = track.Delay = fixedRests[cmd - 0x80];
-            }
-            else // 0, 0x90-0xFF
-            {
-                switch (cmd)
-                {
-                    case 0x90: // Repeat last delay
-                    {
-                        track.Delay = track.LastDelay;
-                        break;
-                    }
-                    case 0x91: // Add to last delay
-                    {
-                        track.LastDelay = track.Delay = track.LastDelay + track.Reader.ReadByte();
-                        break;
-                    }
-                    case 0x92: // Delay 8bit
-                    {
-                        track.LastDelay = track.Delay = track.Reader.ReadByte();
-                        break;
-                    }
-                    case 0x93: // Delay 16bit
-                    {
-                        track.LastDelay = track.Delay = track.Reader.ReadUInt16();
-                        break;
-                    }
-                    case 0x94: // Delay 24bit
-                    {
-                        track.LastDelay = track.Delay = (uint)(track.Reader.ReadByte() | (track.Reader.ReadByte() << 8) | (track.Reader.ReadByte() << 16));
-                        break;
-                    }
-                    case 0x98: // End
-                    {
-                        if (track.LoopOffset == -1)
-                        {
-                            track.Stopped = true;
-                        }
-                        else
-                        {
-                            track.Reader.BaseStream.Position = track.LoopOffset;
-                            loop = true;
-                        }
-                        break;
-                    }
-                    case 0x99: // Loop Position
-                    {
-                        track.LoopOffset = track.Reader.BaseStream.Position;
-                        break;
-                    }
-                    case 0xA0: // Set octave
-                    {
-                        track.Octave = track.Reader.ReadByte();
-                        break;
-                    }
-                    case 0xA4: // Tempo
-                    {
-                        tempo = track.Reader.ReadByte();
-                        break;
-                    }
-                    case 0xAC: // Program
-                    {
-                        track.Voice = track.Reader.ReadByte();
-                        break;
-                    }
-                    case 0xD7: // Pitch Bend
-                    {
-                        track.PitchBend = track.Reader.ReadUInt16();
-                        break;
-                    }
-                    case 0xE0: // Volume
-                    {
-                        track.Volume = track.Reader.ReadByte();
-                        break;
-                    }
-                    case 0xE3: // Expression
-                    {
-                        track.Expression = track.Reader.ReadByte();
-                        break;
-                    }
-                    case 0xE8: // Panpot
-                    {
-                        track.Panpot = (sbyte)(track.Reader.ReadByte() - 0x40);
-                        break;
-                    }
-                    // Unknown commands with no params
-                    case 0x9D: // bgm0113
-                    case 0xC0: // bgm0100
-                    {
-                        break;
-                    }
-                    // Unknown commands with one param
-                    case 0x9C: // bgm0113
-                    case 0xA5: // bgm0001
-                    case 0xA9: // bgm0000
-                    case 0xAA: // bgm0000
-                    case 0xB2: // bgm0100
-                    case 0xB5: // bgm0100
-                    case 0xBE: // bgm0003
-                    case 0xBF: // bgm0151
-                    case 0xD0: // bgm0100
-                    case 0xD1: // bgm0113
-                    case 0xD2: // bgm0116
-                    case 0xD8: // bgm0000
-                    case 0xDB: // bgm0000
-                    case 0xF6: // bgm0001
-                    {
-                        track.Reader.ReadBytes(1);
-                        break;
-                    }
-                    // Unknown commands with two params
-                    case 0xA8: // bgm0001
-                    case 0xB4: // bgm0180
-                    case 0xD6: // bgm0101
-                    {
-                        track.Reader.ReadBytes(2);
-                        break;
-                    }
-                    // Unknown commands with three params
-                    case 0xD4: // bgm0100
-                    case 0xE2: // bgm0100
-                    case 0xEA: // bgm0100
-                    {
-                        track.Reader.ReadBytes(3);
-                        break;
-                    }
-                    // Unknown commands with five params
-                    case 0xDC: // bgm0182
-                    {
-                        track.Reader.ReadBytes(5);
-                        break;
-                    }
-                    // Unknown commands with an unknown amount of params
-                    default:
-                    {
-                        break;
-                    }
-                }
+                track.CurEvent++;
             }
         }
 
@@ -660,27 +552,38 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     while (tempoStack >= 240)
                     {
                         tempoStack -= 240;
-                        bool allDone = true, loop = false;
+                        bool allDone = true;
                         for (int i = 0; i < tracks.Length; i++)
                         {
                             Track track = tracks[i];
                             track.Tick();
-                            while (track.Delay == 0 && !track.Stopped)
+                            while (track.Rest == 0 && !track.Stopped)
                             {
-                                ExecuteNext(track, ref loop);
+                                ExecuteNext(i);
+                            }
+                            if (i == longestTrack)
+                            {
+                                if (elapsedTicks == NumTicks)
+                                {
+                                    if (!track.Stopped)
+                                    {
+                                        elapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                        elapsedLoops++;
+                                        if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
+                                        {
+                                            fadeOutBegan = true;
+                                            mixer.BeginFadeOut();
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    elapsedTicks++;
+                                }
                             }
                             if (!track.Stopped || track.Channels.Count != 0)
                             {
                                 allDone = false;
-                            }
-                        }
-                        if (loop)
-                        {
-                            elapsedLoops++;
-                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
-                            {
-                                fadeOutBegan = true;
-                                mixer.BeginFadeOut();
                             }
                         }
                         if (fadeOutBegan && mixer.IsFadeDone())

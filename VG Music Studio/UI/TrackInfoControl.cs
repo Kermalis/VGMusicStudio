@@ -20,7 +20,7 @@ namespace Kermalis.VGMusicStudio.UI
             public byte[] Voices = new byte[0x10];
             public byte[] Volumes = new byte[0x10];
             public int[] Mods = new int[0x10];
-            public long[] Delays = new long[0x10];
+            public long[] Rests = new long[0x10];
             public sbyte[] Panpots = new sbyte[0x10];
             public float[] Lefts = new float[0x10];
             public float[] Rights = new float[0x10];
@@ -215,7 +215,7 @@ namespace Kermalis.VGMusicStudio.UI
                     pianos[i].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)r1y + checkboxOffset);
 
                     e.Graphics.DrawString(string.Format("0x{0:X}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
-                    e.Graphics.DrawString(Info.Delays[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
+                    e.Graphics.DrawString(Info.Rests[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
 
                     e.Graphics.DrawString(Info.Voices[i].ToString(), Font, brush, voicesX, r2y);
                     e.Graphics.DrawString(Info.Panpots[i].ToString(), Font, Brushes.OrangeRed, voicesX + row2ElementAdditionX, r2y);
