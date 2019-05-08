@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.M4A
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
     internal static class Utils
     {

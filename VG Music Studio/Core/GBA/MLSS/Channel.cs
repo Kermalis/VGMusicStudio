@@ -149,7 +149,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public SquareChannel(Mixer mixer) : base(mixer) { }
         public void Init(byte key, ADSR env, byte vol, sbyte pan, int pitch)
         {
-            pat = M4A.Utils.SquareD50; // TODO
+            pat = MP2K.Utils.SquareD50; // TODO
             Key = key;
             adsr = env;
             SetVolume(vol, pan);

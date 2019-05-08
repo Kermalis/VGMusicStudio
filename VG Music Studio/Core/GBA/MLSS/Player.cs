@@ -35,7 +35,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             this.config = config;
 
             time = new TimeBarrier(Utils.AGB_FPS);
-            thread = new Thread(Tick) { Name = "MLSSPlayer Tick" };
+            thread = new Thread(Tick) { Name = "MLSS Player Tick" };
             thread.Start();
         }
 

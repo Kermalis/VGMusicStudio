@@ -35,7 +35,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             this.config = config;
 
             time = new TimeBarrier(192);
-            thread = new Thread(Tick) { Name = "DSEPlayer Tick" };
+            thread = new Thread(Tick) { Name = "DSE Player Tick" };
             thread.Start();
         }
 

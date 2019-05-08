@@ -1,6 +1,6 @@
 # Kermalis's VG Music Studio
 
-VG Music Studio is a music player and visualizer for the most common GBA music format (M4A/MP2K), Mario & Luigi: Superstar Saga, the most common NDS music format (SDAT), and a more rare NDS/WII music format (DSE) [found in PMD2 among others].
+VG Music Studio is a music player and visualizer for the most common GBA music format (MP2K), Mario & Luigi: Superstar Saga, the most common NDS music format (SDAT), and a more rare NDS/WII music format (DSE) [found in PMD2 among others].
 
 ![Preview](https://i.imgur.com/BJI8GU3.gif)
 
@@ -17,7 +17,7 @@ Discord Server: https://discord.gg/q2pAw3x
 * Tempo numerical (it fits)
 * Help dialog that explains the commands and config for each engine
 
-## M4A / MP2K Engine
+## MP2K Engine
 * Add Golden Sun 2 reverb effect
 * Add reverse playback
 * Add SquareWave sweeping
@@ -44,8 +44,8 @@ Discord Server: https://discord.gg/q2pAw3x
 * tuku473
 * Stich991
 
-## M4A/MP2K Engine
-* Ipatix - Engine research, help, [(and his M4A/MP2K music player)](https://github.com/ipatix/agbplay) from which some of my code is based on
+## MP2K Engine
+* Ipatix - Engine research, help, [(and his MP2K music player)](https://github.com/ipatix/agbplay) from which some of my code is based on
 * Bregalad - Extensive documentation
 * mimi - Told me about a hidden feature of the engine
 * SomeShrug - Engine research and helped me understand more about the engine parameters

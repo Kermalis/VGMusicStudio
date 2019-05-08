@@ -104,20 +104,20 @@
     <Compile Include="Core\ADPCMDecoder.cs" />
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
-    <Compile Include="Core\GBA\M4A\Commands.cs" />
+    <Compile Include="Core\GBA\MP2K\Commands.cs" />
     <Compile Include="Core\GBA\MLSS\Commands.cs" />
     <Compile Include="Core\GBA\MLSS\Config.cs" />
     <Compile Include="Core\GlobalConfig.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\GBA\Utils.cs" />
-    <Compile Include="Core\GBA\M4A\Channel.cs" />
-    <Compile Include="Core\GBA\M4A\Enums.cs" />
-    <Compile Include="Core\GBA\M4A\Config.cs" />
-    <Compile Include="Core\GBA\M4A\Mixer.cs" />
-    <Compile Include="Core\GBA\M4A\Player.cs" />
-    <Compile Include="Core\GBA\M4A\Utils.cs" />
-    <Compile Include="Core\GBA\M4A\Structs.cs" />
-    <Compile Include="Core\GBA\M4A\Track.cs" />
+    <Compile Include="Core\GBA\MP2K\Channel.cs" />
+    <Compile Include="Core\GBA\MP2K\Enums.cs" />
+    <Compile Include="Core\GBA\MP2K\Config.cs" />
+    <Compile Include="Core\GBA\MP2K\Mixer.cs" />
+    <Compile Include="Core\GBA\MP2K\Player.cs" />
+    <Compile Include="Core\GBA\MP2K\Utils.cs" />
+    <Compile Include="Core\GBA\MP2K\Structs.cs" />
+    <Compile Include="Core\GBA\MP2K\Track.cs" />
     <Compile Include="Core\GBA\MLSS\Channel.cs" />
     <Compile Include="Core\GBA\MLSS\Enums.cs" />
     <Compile Include="Core\GBA\MLSS\Mixer.cs" />
@@ -203,7 +203,7 @@
     <Content Include="Config.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="M4A.yaml">
+    <Content Include="MP2K.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="midi2agb.exe">

@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.M4A
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
     internal abstract class Channel
     {

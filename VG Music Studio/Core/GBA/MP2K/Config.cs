@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using YamlDotNet.RepresentationModel;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.M4A
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
     internal class Config : Core.Config
     {
@@ -26,7 +26,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
 
         public Config(byte[] rom)
         {
-            const string configFile = "M4A.yaml";
+            const string configFile = "MP2K.yaml";
             using (StreamReader fileStream = File.OpenText(configFile))
             {
                 try

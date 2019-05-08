@@ -36,7 +36,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         private readonly IContainer components;
         private readonly MenuStrip mainMenu;
-        private readonly ToolStripMenuItem fileItem, openDSEItem, openM4AItem, openMLSSItem, openSDATItem,
+        private readonly ToolStripMenuItem fileItem, openDSEItem, openMLSSItem, openMP2KItem, openSDATItem,
             dataItem, trackViewerItem,
             playlistItem, endPlaylistItem;
         private readonly Timer timer;
@@ -71,14 +71,14 @@ namespace Kermalis.VGMusicStudio.UI
             // File Menu
             openDSEItem = new ToolStripMenuItem { Text = "Open DSE Folder" };
             openDSEItem.Click += OpenDSE;
-            openM4AItem = new ToolStripMenuItem { Text = "Open GBA ROM (M4A/MP2K)" };
-            openM4AItem.Click += OpenM4A;
             openMLSSItem = new ToolStripMenuItem { Text = "Open GBA ROM (MLSS)" };
             openMLSSItem.Click += OpenMLSS;
+            openMP2KItem = new ToolStripMenuItem { Text = "Open GBA ROM (MP2K)" };
+            openMP2KItem.Click += OpenMP2K;
             openSDATItem = new ToolStripMenuItem { Text = "Open SDAT File" };
             openSDATItem.Click += OpenSDAT;
             fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
-            fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openM4AItem, openMLSSItem, openSDATItem });
+            fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openMLSSItem, openMP2KItem, openSDATItem });
 
             // Data Menu
             trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = "Track Viewer" };
@@ -319,39 +319,11 @@ namespace Kermalis.VGMusicStudio.UI
                 }
             }
         }
-        private void OpenM4A(object sender, EventArgs e)
-        {
-            var d = new CommonOpenFileDialog
-            {
-                Title = "Open GBA ROM (M4A/MP2K)",
-                Filters = { new CommonFileDialogFilter("GBA Files", ".gba") }
-            };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                DisposeEngine();
-                bool success;
-                try
-                {
-                    new Engine(Engine.EngineType.GBA_M4A, File.ReadAllBytes(d.FileName));
-                    success = true;
-                }
-                catch (Exception ex)
-                {
-                    FlexibleMessageBox.Show(ex.Message, "Error Loading GBA ROM (M4A/MP2K)");
-                    success = false;
-                }
-                if (success)
-                {
-                    var config = (Core.GBA.M4A.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SongTableSizes[0]);
-                }
-            }
-        }
         private void OpenMLSS(object sender, EventArgs e)
         {
             var d = new CommonOpenFileDialog
             {
-                Title = "Open GBA ROM (M4A/MP2K)",
+                Title = "Open GBA ROM (MLSS)",
                 Filters = { new CommonFileDialogFilter("GBA Files", ".gba") }
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
@@ -371,6 +343,34 @@ namespace Kermalis.VGMusicStudio.UI
                 if (success)
                 {
                     var config = (Core.GBA.MLSS.Config)Engine.Instance.Config;
+                    FinishLoading(true, config.SongTableSizes[0]);
+                }
+            }
+        }
+        private void OpenMP2K(object sender, EventArgs e)
+        {
+            var d = new CommonOpenFileDialog
+            {
+                Title = "Open GBA ROM (MP2K)",
+                Filters = { new CommonFileDialogFilter("GBA Files", ".gba") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                DisposeEngine();
+                bool success;
+                try
+                {
+                    new Engine(Engine.EngineType.GBA_MP2K, File.ReadAllBytes(d.FileName));
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex.Message, "Error Loading GBA ROM (MP2K)");
+                    success = false;
+                }
+                if (success)
+                {
+                    var config = (Core.GBA.MP2K.Config)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
                 }
             }

@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.M4A
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
     internal class CallCommand : ICommand
     {

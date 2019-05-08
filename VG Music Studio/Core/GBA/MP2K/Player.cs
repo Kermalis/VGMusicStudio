@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.M4A
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
     internal class Player : IPlayer
     {
@@ -32,7 +32,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.M4A
             this.config = config;
 
             time = new TimeBarrier(GBA.Utils.AGB_FPS);
-            thread = new Thread(Tick) { Name = "M4APlayer Tick" };
+            thread = new Thread(Tick) { Name = "MP2K Player Tick" };
             thread.Start();
         }
 

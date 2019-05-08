@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.M4A
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
     internal class Mixer : Core.Mixer
     {

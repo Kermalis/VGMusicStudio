@@ -7,8 +7,8 @@ namespace Kermalis.VGMusicStudio.Core
         public enum EngineType : byte
         {
             None,
-            GBA_M4A,
             GBA_MLSS,
+            GBA_MP2K,
             NDS_DSE,
             NDS_SDAT
         }
@@ -24,32 +24,32 @@ namespace Kermalis.VGMusicStudio.Core
         {
             switch (type)
             {
-                case EngineType.GBA_M4A:
-                {
-                    byte[] rom = (byte[])playerArg;
-                    if (rom.Length > GBA.Utils.CartridgeCapacity)
-                    {
-                        throw new Exception($"ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
-                    }
-                    var config = new GBA.M4A.Config(rom);
-                    Config = config;
-                    var mixer = new GBA.M4A.Mixer(config);
-                    Mixer = mixer;
-                    Player = new GBA.M4A.Player(mixer, config);
-                    break;
-                }
                 case EngineType.GBA_MLSS:
                 {
                     byte[] rom = (byte[])playerArg;
                     if (rom.Length > GBA.Utils.CartridgeCapacity)
                     {
-                        throw new Exception($"ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
+                        throw new Exception($"The ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
                     }
                     var config = new GBA.MLSS.Config(rom);
                     Config = config;
                     var mixer = new GBA.MLSS.Mixer(config);
                     Mixer = mixer;
                     Player = new GBA.MLSS.Player(mixer, config);
+                    break;
+                }
+                case EngineType.GBA_MP2K:
+                {
+                    byte[] rom = (byte[])playerArg;
+                    if (rom.Length > GBA.Utils.CartridgeCapacity)
+                    {
+                        throw new Exception($"The ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
+                    }
+                    var config = new GBA.MP2K.Config(rom);
+                    Config = config;
+                    var mixer = new GBA.MP2K.Mixer(config);
+                    Mixer = mixer;
+                    Player = new GBA.MP2K.Player(mixer, config);
                     break;
                 }
                 case EngineType.NDS_DSE:

@@ -40,7 +40,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             this.config = config;
 
             time = new TimeBarrier(192);
-            thread = new Thread(Tick) { Name = "SDATPlayer Tick" };
+            thread = new Thread(Tick) { Name = "SDAT Player Tick" };
             thread.Start();
         }
 
