@@ -37,7 +37,7 @@ namespace Kermalis.VGMusicStudio.UI
         private readonly IContainer components;
         private readonly MenuStrip mainMenu;
         private readonly ToolStripMenuItem fileItem, openDSEItem, openMLSSItem, openMP2KItem, openSDATItem,
-            dataItem, trackViewerItem,
+            dataItem, trackViewerItem, exportMIDIItem,
             playlistItem, endPlaylistItem;
         private readonly Timer timer;
         private readonly ThemedNumeric songNumerical;
@@ -83,8 +83,10 @@ namespace Kermalis.VGMusicStudio.UI
             // Data Menu
             trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = "Track Viewer" };
             trackViewerItem.Click += OpenTrackViewer;
+            exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = "Export Song as MIDI" };
+            exportMIDIItem.Click += ExportMIDI;
             dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
-            dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem });
+            dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem, exportMIDIItem });
 
             // Playlist Menu
             endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = "End Current Playlist" };
@@ -224,6 +226,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
             }
             positionBar.Enabled = success;
+            exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && Engine.Instance.Player.Events.Length > 0;
 
             autoplay = true;
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -401,6 +404,37 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     var config = (Core.NDS.SDAT.Config)Engine.Instance.Config;
                     FinishLoading(true, config.SDAT.INFOBlock.SequenceInfos.NumEntries);
+                }
+            }
+        }
+
+        private void ExportMIDI(object sender, EventArgs e)
+        {
+            var d = new CommonSaveFileDialog
+            {
+                Title = "Export Song as MIDI File",
+                Filters = { new CommonFileDialogFilter("MIDI Files", ".mid;.midi") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                var p = (Core.GBA.MP2K.Player)Engine.Instance.Player;
+                var args = new Core.GBA.MP2K.Player.MIDISaveArgs
+                {
+                    SaveCommandsBeforeTranspose = true,
+                    ReverseVolume = false,
+                    TimeSignatures = new List<(int AbsoluteTick, (byte Numerator, byte Denominator))>
+                    {
+                        (0, (4, 4))
+                    }
+                };
+                try
+                {
+                    p.SaveAsMIDI(d.FileName, args);
+                    FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDI, d.FileName), Text);
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveMIDI);
                 }
             }
         }

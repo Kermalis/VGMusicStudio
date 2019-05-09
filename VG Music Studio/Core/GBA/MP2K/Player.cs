@@ -1,4 +1,5 @@
 ﻿using Kermalis.VGMusicStudio.Util;
+using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -605,6 +606,226 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 Pause();
             }
+        }
+        public class MIDISaveArgs
+        {
+            public bool SaveCommandsBeforeTranspose;
+            public bool ReverseVolume;
+            public List<(int AbsoluteTick, (byte Numerator, byte Denominator))> TimeSignatures;
+        }
+        public void SaveAsMIDI(string fileName, MIDISaveArgs args)
+        {
+            // TODO: FINE vs PREV
+            // TODO: https://github.com/Kermalis/VGMusicStudio/issues/36
+            // TODO: Nested calls
+            // TODO: REPT
+            byte baseVolume = 0x7F;
+            if (args.ReverseVolume)
+            {
+                baseVolume = Events.SelectMany(e => e).Where(e => e.Command is VolumeCommand).Select(e => ((VolumeCommand)e.Command).Volume).Max();
+                Console.WriteLine("Reversing volume back from {0}.", baseVolume);
+            }
+
+            var midi = new Sequence(24) { Format = 1 };
+            var metaTrack = new Sanford.Multimedia.Midi.Track();
+            midi.Add(metaTrack);
+            var ts = new TimeSignatureBuilder();
+            foreach ((int AbsoluteTick, (byte Numerator, byte Denominator)) e in args.TimeSignatures)
+            {
+                ts.Numerator = e.Item2.Numerator;
+                ts.Denominator = e.Item2.Denominator;
+                ts.ClocksPerMetronomeClick = 24;
+                ts.ThirtySecondNotesPerQuarterNote = 8;
+                ts.Build();
+                metaTrack.Insert(e.AbsoluteTick, ts.Result);
+            }
+
+            for (int i = 0; i < Events.Length; i++)
+            {
+                var track = new Sanford.Multimedia.Midi.Track();
+                midi.Add(track);
+
+                bool foundTranspose = false;
+                int endOfPattern = 0;
+                long startOfPatternTicks = 0, endOfPatternTicks = 0;
+                sbyte transpose = 0;
+                var playing = new List<NoteCommand>();
+                for (int j = 0; j < Events[i].Count; j++)
+                {
+                    SongEvent e = Events[i][j];
+                    int ticks = (int)(e.Ticks[0] + (endOfPatternTicks - startOfPatternTicks));
+
+                    // Preliminary check for saving events before transpose
+                    switch (e.Command)
+                    {
+                        case TransposeCommand keysh: foundTranspose = true; break;
+                        default: // If we should not save before transpose then skip this event
+                        {
+                            if (!args.SaveCommandsBeforeTranspose && !foundTranspose)
+                            {
+                                continue;
+                            }
+                            break;
+                        }
+                    }
+                    // Now do the event magic...
+                    switch (e.Command)
+                    {
+                        case CallCommand patt:
+                        {
+                            int callCmd = Events[i].FindIndex(c => c.Offset == patt.Offset);
+                            endOfPattern = j;
+                            endOfPatternTicks = e.Ticks[0];
+                            j = callCmd - 1; // -1 for incoming ++
+                            startOfPatternTicks = Events[i][callCmd].Ticks[0];
+                            break;
+                        }
+                        case EndOfTieCommand eot:
+                        {
+                            NoteCommand nc = eot.Key == -1 ? playing.LastOrDefault() : playing.LastOrDefault(no => no.Key == eot.Key);
+                            if (nc != null)
+                            {
+                                int n = (nc.Key + transpose).Clamp(0, 0x7F);
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                                playing.Remove(nc);
+                            }
+                            break;
+                        }
+                        case FinishCommand _:
+                        {
+                            // If the track is not only the finish command, place the finish command at the correct tick
+                            if (track.Count > 1)
+                            {
+                                track.EndOfTrackOffset = (int)(e.Ticks[0] - track.GetMidiEvent(track.Count - 2).AbsoluteTicks);
+                            }
+                            goto endOfTrack;
+                        }
+                        case JumpCommand goTo:
+                        {
+                            if (i == 0)
+                            {
+                                int jumpCmd = Events[i].FindIndex(c => c.Offset == goTo.Offset);
+                                metaTrack.Insert((int)Events[i][jumpCmd].Ticks[0], new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                                metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                            }
+                            break;
+                        }
+                        case LFODelayCommand lfodl:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 26, lfodl.Delay));
+                            break;
+                        }
+                        case LFODepthCommand mod:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.ModulationWheel, mod.Depth));
+                            break;
+                        }
+                        case LFOSpeedCommand lfos:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 21, lfos.Speed));
+                            break;
+                        }
+                        case LFOTypeCommand modt:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 22, (byte)modt.Type));
+                            break;
+                        }
+                        case LibraryCommand xcmd:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 30, xcmd.Command));
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 29, xcmd.Argument));
+                            break;
+                        }
+                        case MemoryAccessCommand memacc:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 13, memacc.Operator));
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 14, memacc.Address));
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 12, memacc.Data));
+                            break;
+                        }
+                        case NoteCommand note:
+                        {
+                            int n = (note.Key + transpose).Clamp(0, 0x7F);
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
+                            if (note.Duration != -1)
+                            {
+                                track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                            }
+                            else
+                            {
+                                playing.Add(note);
+                            }
+                            break;
+                        }
+                        case PanpotCommand pan:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
+                            break;
+                        }
+                        case PitchBendCommand bend:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend + 0x40));
+                            break;
+                        }
+                        case PitchBendRangeCommand bendr:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range));
+                            break;
+                        }
+                        case PriorityCommand prio:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.VolumeFine, prio.Priority));
+                            break;
+                        }
+                        case ReturnCommand _:
+                        {
+                            if (endOfPattern != 0)
+                            {
+                                j = endOfPattern;
+                                endOfPattern = 0;
+                                startOfPatternTicks = endOfPatternTicks = 0;
+                            }
+                            break;
+                        }
+                        case TempoCommand tempo:
+                        {
+                            var change = new TempoChangeBuilder { Tempo = 60000000 / tempo.Tempo };
+                            change.Build();
+                            metaTrack.Insert(ticks, change.Result);
+                            break;
+                        }
+                        case TransposeCommand keysh:
+                        {
+                            transpose = keysh.Transpose;
+                            break;
+                        }
+                        case TuneCommand tune:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
+                            break;
+                        }
+                        case VoiceCommand voice:
+                        {
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
+                            break;
+                        }
+                        case VolumeCommand vol:
+                        {
+                            double d = baseVolume / (double)0x7F;
+                            int volume = (int)(vol.Volume / d);
+                            // If there are rounding errors, fix them (happens if baseVolume is not 127 and baseVolume is not vol.Volume)
+                            if (volume * baseVolume / 0x7F == vol.Volume - 1)
+                            {
+                                volume++;
+                            }
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, volume));
+                            break;
+                        }
+                    }
+                }
+            endOfTrack:;
+            }
+            midi.Save(fileName);
         }
         public void Play()
         {
