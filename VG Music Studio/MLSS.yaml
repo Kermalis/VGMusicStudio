@@ -1,0 +1,66 @@
+A88E:
+  Name: "Mario & Luigi - Superstar Saga (USA)"
+  SongTableOffsets: 0x21CB70
+  SongTableSizes: 407
+  VoiceTableOffset: 0x21D1CC
+  SampleTableOffset: 0xA806B8
+  SampleTableSize: 236
+  Remap: "MLSS"
+  Playlists:
+    Music:
+      1: "1"
+      2: "2"
+      3: "Mini Game"
+      4: "Border Jump"
+      5: "Star 'Stache Smash"
+      6: "6"
+      7: "7"
+      8: "Stardust Fields"
+      9: "Hoohoo Mountain"
+      10: "Battle"
+      11: "Victory"
+      12: "Beanbean Fields"
+      13: "Chucklehuck Woods"
+      14: "Seabed"
+      15: "Beanbean Castle"
+      16: "Boss Battle"
+      17: "Woohoo Hooniversity"
+      18: "Teehee Valley"
+      19: "Joke's End"
+      20: "Little Fungitown"
+      21: "Gwarhar Lagoon"
+      22: "Underground"
+      23: "Toad Town Square"
+      24: "Bowser's Castle"
+      25: "Warp Pipe"
+      26: "Special Item"
+      27: "Royal Welcome"
+      28: "Prince Peasley's Theme"
+      29: "Cackletta's Theme"
+      30: "File Select"
+      31: "Hoohoo Village"
+      32: "Devastation"
+      33: "Panic!"
+      34: "Koopa Cruiser"
+      35: "Danger!"
+      36: "Popple Battle"
+      37: "Cackletta Battle"
+      38: "Bowletta Battle"
+      39: "Ending"
+      40: "Credits"
+      41: "Title"
+      42: "Chateau de Chucklehuck"
+      43: "43"
+      44: "Final Cackletta Battle"
+      45: "45"
+      46: "46"
+      47: "47"
+      48: "Professor E Gadd"
+      49: "Ghostly Encounter"
+      50: "Bean Time!"
+A88P:
+  Name: "Mario & Luigi - Superstar Saga (Europe)"
+  SongTableOffsets: 0x21DC50
+  VoiceTableOffset: 0x21E2AC
+  SampleTableOffset: 0xA82088
+  Copy: "A88E"
