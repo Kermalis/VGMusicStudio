@@ -12,15 +12,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         private readonly Config config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
-        private int voiceTableOffset;
+        private int voiceTableOffset = -1;
         private Track[] tracks;
         private ushort tempo;
         private int tempoStack;
-        private long elapsedLoops, elapsedTicks;
+        private long elapsedLoops;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
+        public long ElapsedTicks { get; private set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -40,7 +41,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         {
             tempo = 150;
             tempoStack = 0;
-            elapsedLoops = elapsedTicks = 0;
+            elapsedLoops = ElapsedTicks = 0;
             fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
@@ -57,7 +58,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 List<SongEvent> evs = Events[trackIndex];
                 Track track = tracks[trackIndex];
                 track.Init();
-                elapsedTicks = 0;
+                ElapsedTicks = 0;
                 while (true)
                 {
                     SongEvent e = evs[track.CurEvent];
@@ -67,7 +68,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     else
                     {
-                        e.Ticks.Add(elapsedTicks);
+                        e.Ticks.Add(ElapsedTicks);
                         ExecuteNext(trackIndex, ref u);
                         if (track.Stopped)
                         {
@@ -75,25 +76,31 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         }
                         else
                         {
-                            elapsedTicks += track.Rest;
+                            ElapsedTicks += track.Rest;
                             track.Rest = 0;
                         }
                     }
                 }
-                if (elapsedTicks > MaxTicks)
+                if (ElapsedTicks > MaxTicks)
                 {
                     longestTrack = trackIndex;
-                    MaxTicks = elapsedTicks;
+                    MaxTicks = ElapsedTicks;
                 }
                 track.StopAllChannels();
             }
         }
         public void LoadSong(long index)
         {
+            tracks = null;
             Events = null;
             SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
             SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
+            int oldVoiceTableOffset = voiceTableOffset;
             voiceTableOffset = header.VoiceTableOffset - GBA.Utils.CartridgeOffset;
+            if (oldVoiceTableOffset != voiceTableOffset)
+            {
+                voiceTypeCache = new string[byte.MaxValue + 1];
+            }
             tracks = new Track[header.NumTracks];
             Events = new List<SongEvent>[header.NumTracks];
             for (byte i = 0; i < header.NumTracks; i++)
@@ -561,7 +568,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 bool u = false;
                 while (true)
                 {
-                    if (elapsedTicks == ticks)
+                    if (ElapsedTicks == ticks)
                     {
                         goto finish;
                     }
@@ -582,8 +589,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                 }
                             }
-                            elapsedTicks++;
-                            if (elapsedTicks == ticks)
+                            ElapsedTicks++;
+                            if (ElapsedTicks == ticks)
                             {
                                 goto finish;
                             }
@@ -643,10 +650,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 thread.Join();
             }
         }
+        private string[] voiceTypeCache;
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
-            info.Ticks = elapsedTicks;
             for (int i = 0; i < tracks.Length; i++)
             {
                 Track track = tracks[i];
@@ -654,7 +661,33 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 info.Rests[i] = track.Rest;
                 info.Voices[i] = track.Voice;
                 info.Mods[i] = track.LFODepth;
-                //info.Types[i] = "PCM";
+                if (voiceTypeCache[track.Voice] == null)
+                {
+                    byte t = config.ROM[voiceTableOffset + (track.Voice * 0xC)]; // Don't use config.Reader because it is not thread-safe
+                    if (t == (byte)VoiceFlags.KeySplit)
+                    {
+                        voiceTypeCache[track.Voice] = "Key Split";
+                    }
+                    else if (t == (byte)VoiceFlags.Drum)
+                    {
+                        voiceTypeCache[track.Voice] = "Drum";
+                    }
+                    else
+                    {
+                        switch ((VoiceType)(t & 0x7))
+                        {
+                            case VoiceType.PCM8: voiceTypeCache[track.Voice] = "PCM8"; break; // TODO: Golden Sun
+                            case VoiceType.Square1: voiceTypeCache[track.Voice] = "Square 1"; break;
+                            case VoiceType.Square2: voiceTypeCache[track.Voice] = "Square 2"; break;
+                            case VoiceType.PCM4: voiceTypeCache[track.Voice] = "PCM4"; break;
+                            case VoiceType.Noise: voiceTypeCache[track.Voice] = "Noise"; break;
+                            case VoiceType.Invalid5: voiceTypeCache[track.Voice] = "Invalid 5"; break;
+                            case VoiceType.Invalid6: voiceTypeCache[track.Voice] = "Invalid 6"; break;
+                            case VoiceType.Invalid7: voiceTypeCache[track.Voice] = "Invalid 7"; break;
+                        }
+                    }
+                }
+                info.Types[i] = voiceTypeCache[track.Voice];
                 info.Volumes[i] = track.GetVolume();
                 info.PitchBends[i] = track.GetPitch();
                 info.Panpots[i] = track.GetPanpot();
@@ -852,11 +885,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             if (i == longestTrack)
                             {
-                                if (elapsedTicks == MaxTicks)
+                                if (ElapsedTicks == MaxTicks)
                                 {
                                     if (!track.Stopped)
                                     {
-                                        elapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                        ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
                                         elapsedLoops++;
                                         if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
                                         {
@@ -867,7 +900,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 else
                                 {
-                                    elapsedTicks++;
+                                    ElapsedTicks++;
                                 }
                             }
                             if (!track.Stopped)

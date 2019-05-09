@@ -22,11 +22,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public byte Volume;
         private ushort tempo;
         private int tempoStack;
-        private long elapsedLoops, elapsedTicks;
+        private long elapsedLoops;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
+        public long ElapsedTicks { get; private set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -50,7 +51,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             tempo = 120; // Confirmed: default tempo is 120 (MKDS 75)
             tempoStack = 0;
-            elapsedLoops = elapsedTicks = 0;
+            elapsedLoops = ElapsedTicks = 0;
             fadeOutBegan = false;
             Volume = seqInfo.Volume;
             rand = new Random(randSeed);
@@ -94,21 +95,21 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 ExecuteNext(i);
                                 if (!done[i])
                                 {
-                                    ev[e].Ticks.Add(elapsedTicks);
+                                    ev[e].Ticks.Add(ElapsedTicks);
                                     if (track.Stopped || (track.CallStackDepth == 0 && ev[track.CurEvent].Ticks.Count > 0))
                                     {
                                         done[i] = true;
-                                        if (elapsedTicks > MaxTicks)
+                                        if (ElapsedTicks > MaxTicks)
                                         {
                                             longestTrack = i;
-                                            MaxTicks = elapsedTicks;
+                                            MaxTicks = ElapsedTicks;
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    elapsedTicks++;
+                    ElapsedTicks++;
                 }
                 tempoStack += tempo;
                 mixer.ChannelTick();
@@ -122,6 +123,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public void LoadSong(long index)
         {
             Stop();
+            SDAT.INFO.SequenceInfo oldSeqInfo = seqInfo;
             seqInfo = config.SDAT.INFOBlock.SequenceInfos.Entries[index];
             if (seqInfo == null)
             {
@@ -131,6 +133,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
             else
             {
+                if (oldSeqInfo == null || seqInfo.Bank != oldSeqInfo.Bank)
+                {
+                    voiceTypeCache = new string[byte.MaxValue + 1];
+                }
                 sseq = new SSEQ(config.SDAT.FATBlock.Entries[seqInfo.FileId].Data);
                 SDAT.INFO.BankInfo bankInfo = config.SDAT.INFOBlock.BankInfos.Entries[seqInfo.Bank];
                 sbnk = new SBNK(config.SDAT.FATBlock.Entries[bankInfo.FileId].Data);
@@ -763,7 +769,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 InitEmulation();
                 while (true)
                 {
-                    if (elapsedTicks == ticks)
+                    if (ElapsedTicks == ticks)
                     {
                         goto finish;
                     }
@@ -784,8 +790,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     }
                                 }
                             }
-                            elapsedTicks++;
-                            if (elapsedTicks == ticks)
+                            ElapsedTicks++;
+                            if (ElapsedTicks == ticks)
                             {
                                 goto finish;
                             }
@@ -847,10 +853,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 thread.Join();
             }
         }
+        private string[] voiceTypeCache;
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
-            info.Ticks = elapsedTicks;
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
@@ -860,7 +866,27 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     info.Rests[i] = track.Rest;
                     info.Voices[i] = track.Voice;
                     info.Mods[i] = track.LFODepth * track.LFORange;
-                    info.Types[i] = sbnk.NumInstruments <= track.Voice ? "???" : sbnk.Instruments[track.Voice].Type.ToString();
+                    if (voiceTypeCache[track.Voice] == null)
+                    {
+                        if (sbnk.NumInstruments <= track.Voice)
+                        {
+                            voiceTypeCache[track.Voice] = "Empty";
+                        }
+                        else
+                        {
+                            InstrumentType t = sbnk.Instruments[track.Voice].Type;
+                            switch (t)
+                            {
+                                case InstrumentType.PCM: voiceTypeCache[track.Voice] = "PCM"; break;
+                                case InstrumentType.PSG: voiceTypeCache[track.Voice] = "PSG"; break;
+                                case InstrumentType.Noise: voiceTypeCache[track.Voice] = "Noise"; break;
+                                case InstrumentType.Drum: voiceTypeCache[track.Voice] = "Drum"; break;
+                                case InstrumentType.KeySplit: voiceTypeCache[track.Voice] = "Key Split"; break;
+                                default: voiceTypeCache[track.Voice] = string.Format("Invalid {0}", (byte)t); break;
+                            }
+                        }
+                    }
+                    info.Types[i] = voiceTypeCache[track.Voice];
                     info.Volumes[i] = track.Volume;
                     info.PitchBends[i] = track.GetPitch();
                     info.Extras[i] = track.Portamento ? track.PortamentoTime : (byte)0;
@@ -1580,12 +1606,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 }
                                 if (i == longestTrack)
                                 {
-                                    if (elapsedTicks == MaxTicks)
+                                    if (ElapsedTicks == MaxTicks)
                                     {
                                         if (!track.Stopped)
                                         {
                                             List<long> t = Events[i][track.CurEvent].Ticks;
-                                            elapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
+                                            ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
                                             elapsedLoops++;
                                             if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
                                             {
@@ -1596,7 +1622,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     }
                                     else
                                     {
-                                        elapsedTicks++;
+                                        ElapsedTicks++;
                                     }
                                 }
                                 if (!track.Stopped || track.Channels.Count != 0)

@@ -15,7 +15,6 @@ namespace Kermalis.VGMusicStudio.UI
         public class TrackInfo
         {
             public ushort Tempo;
-            public long Ticks;
             public long[] Positions = new long[0x10];
             public byte[] Voices = new byte[0x10];
             public byte[] Volumes = new byte[0x10];
@@ -182,89 +181,86 @@ namespace Kermalis.VGMusicStudio.UI
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (ParentForm.WindowState != FormWindowState.Minimized)
+            var bg = new SolidBrush(Theme.PlayerColor);
+            e.Graphics.FillRectangle(bg, e.ClipRectangle);
+
+            mutes[0x10].Location = new Point(checkboxOffset, (int)infoY + checkboxOffset);
+            pianos[0x10].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)infoY + checkboxOffset);
+            e.Graphics.DrawString("Position", Font, Brushes.Lime, positionX, infoY);
+            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, delayX, infoY);
+            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, notesX, infoY);
+            e.Graphics.DrawString("L", Font, Brushes.GreenYellow, barStartX - 5, infoY);
+            e.Graphics.DrawString("Tempo - " + Info.Tempo, Font, Brushes.Cyan, tempoX, infoY);
+            e.Graphics.DrawString("R", Font, Brushes.GreenYellow, barRightBoundX - 5, infoY);
+            e.Graphics.DrawString("Type", Font, Brushes.DeepPink, typeX, infoY);
+            e.Graphics.DrawLine(Pens.Gold, 0, infoHeight, Width, infoHeight);
+
+            for (int i = 0; i < 0x10; i++)
             {
-                var bg = new SolidBrush(Theme.PlayerColor);
-                e.Graphics.FillRectangle(bg, e.ClipRectangle);
+                float r1y = infoHeight + yMargin + (i * trackHeight); // Row 1 y
+                float r2y = r1y + row2Offset; // Row 2 y
+                int by = (int)(r1y + yMargin); // Bar y
+                int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (Info.Panpots[i] / (float)0x40))); // Pan line x
 
-                mutes[0x10].Location = new Point(checkboxOffset, (int)infoY + checkboxOffset);
-                pianos[0x10].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)infoY + checkboxOffset);
-                e.Graphics.DrawString("Position", Font, Brushes.Lime, positionX, infoY);
-                e.Graphics.DrawString("Delay", Font, Brushes.Crimson, delayX, infoY);
-                e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, notesX, infoY);
-                e.Graphics.DrawString("L", Font, Brushes.GreenYellow, barStartX - 5, infoY);
-                e.Graphics.DrawString("Tempo - " + Info.Tempo, Font, Brushes.Cyan, tempoX, infoY);
-                e.Graphics.DrawString("R", Font, Brushes.GreenYellow, barRightBoundX - 5, infoY);
-                e.Graphics.DrawString("Type", Font, Brushes.DeepPink, typeX, infoY);
-                e.Graphics.DrawLine(Pens.Gold, 0, infoHeight, Width, infoHeight);
+                Color color = GlobalConfig.Instance.Colors[Info.Voices[i]];
+                var pen = new Pen(color);
+                var brush = new SolidBrush(color);
+                byte velocity = (byte)(Math.Min(1f, Info.Lefts[i] + Info.Rights[i]) * byte.MaxValue);
+                var lBrush = new LinearGradientBrush(new Point(barStartX, by), new Point(barStartX + barWidth, by + barHeight), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 3, 0xFF), color));
 
-                for (int i = 0; i < 0x10; i++)
+                mutes[i].Location = new Point(checkboxOffset, (int)r1y + checkboxOffset);
+                pianos[i].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)r1y + checkboxOffset);
+
+                e.Graphics.DrawString(string.Format("0x{0:X}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
+                e.Graphics.DrawString(Info.Rests[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
+
+                e.Graphics.DrawString(Info.Voices[i].ToString(), Font, brush, voicesX, r2y);
+                e.Graphics.DrawString(Info.Panpots[i].ToString(), Font, Brushes.OrangeRed, voicesX + row2ElementAdditionX, r2y);
+                e.Graphics.DrawString(Info.Volumes[i].ToString(), Font, Brushes.LightSeaGreen, voicesX + (row2ElementAdditionX * 2), r2y);
+                e.Graphics.DrawString(Info.Mods[i].ToString(), Font, Brushes.SkyBlue, voicesX + (row2ElementAdditionX * 3), r2y);
+                e.Graphics.DrawString(Info.PitchBends[i].ToString(), Font, Brushes.Purple, voicesX + (row2ElementAdditionX * 4), r2y);
+                e.Graphics.DrawString(Info.Extras[i].ToString(), Font, Brushes.HotPink, voicesX + (row2ElementAdditionX * 5), r2y);
+
+                e.Graphics.DrawLine(Pens.GreenYellow, barStartX, by, barStartX, by + barHeight); // Left bar bound line
+                if (GlobalConfig.Instance.CenterIndicators)
                 {
-                    float r1y = infoHeight + yMargin + (i * trackHeight); // Row 1 y
-                    float r2y = r1y + row2Offset; // Row 2 y
-                    int by = (int)(r1y + yMargin); // Bar y
-                    int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (Info.Panpots[i] / (float)0x40))); // Pan line x
+                    e.Graphics.DrawLine(pen, barCenterX, by, barCenterX, by + barHeight); // Center line
+                }
+                if (GlobalConfig.Instance.PanpotIndicators)
+                {
+                    e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, by + barHeight); // Pan line
+                }
+                e.Graphics.DrawLine(Pens.GreenYellow, barRightBoundX, by, barRightBoundX, by + barHeight); // Right bar bound line
 
-                    Color color = GlobalConfig.Instance.Colors[Info.Voices[i]];
-                    var pen = new Pen(color);
-                    var brush = new SolidBrush(color);
-                    byte velocity = (byte)(Math.Min(1f, Info.Lefts[i] + Info.Rights[i]) * byte.MaxValue);
-                    var lBrush = new LinearGradientBrush(new Point(barStartX, by), new Point(barStartX + barWidth, by + barHeight), Color.FromArgb(velocity, color), Color.FromArgb(Math.Min(velocity * 3, 0xFF), color));
-
-                    mutes[i].Location = new Point(checkboxOffset, (int)r1y + checkboxOffset);
-                    pianos[i].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)r1y + checkboxOffset);
-
-                    e.Graphics.DrawString(string.Format("0x{0:X}", Info.Positions[i]), Font, Brushes.Lime, positionX, r1y);
-                    e.Graphics.DrawString(Info.Rests[i].ToString(), Font, Brushes.Crimson, delayX, r1y);
-
-                    e.Graphics.DrawString(Info.Voices[i].ToString(), Font, brush, voicesX, r2y);
-                    e.Graphics.DrawString(Info.Panpots[i].ToString(), Font, Brushes.OrangeRed, voicesX + row2ElementAdditionX, r2y);
-                    e.Graphics.DrawString(Info.Volumes[i].ToString(), Font, Brushes.LightSeaGreen, voicesX + (row2ElementAdditionX * 2), r2y);
-                    e.Graphics.DrawString(Info.Mods[i].ToString(), Font, Brushes.SkyBlue, voicesX + (row2ElementAdditionX * 3), r2y);
-                    e.Graphics.DrawString(Info.PitchBends[i].ToString(), Font, Brushes.Purple, voicesX + (row2ElementAdditionX * 4), r2y);
-                    e.Graphics.DrawString(Info.Extras[i].ToString(), Font, Brushes.HotPink, voicesX + (row2ElementAdditionX * 5), r2y);
-
-                    e.Graphics.DrawLine(Pens.GreenYellow, barStartX, by, barStartX, by + barHeight); // Left bar bound line
-                    if (GlobalConfig.Instance.CenterIndicators)
-                    {
-                        e.Graphics.DrawLine(pen, barCenterX, by, barCenterX, by + barHeight); // Center line
-                    }
-                    if (GlobalConfig.Instance.PanpotIndicators)
-                    {
-                        e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, by + barHeight); // Pan line
-                    }
-                    e.Graphics.DrawLine(Pens.GreenYellow, barRightBoundX, by, barRightBoundX, by + barHeight); // Right bar bound line
-
-                    var rect = new Rectangle((int)(barStartX + (barWidth / 2) - (Info.Lefts[i] * barWidth / 2)) + bwd,
+                var rect = new Rectangle((int)(barStartX + (barWidth / 2) - (Info.Lefts[i] * barWidth / 2)) + bwd,
                     by,
                     (int)((Info.Lefts[i] + Info.Rights[i]) * barWidth / 2),
                     barHeight);
-                    e.Graphics.FillRectangle(lBrush, rect);
-                    e.Graphics.DrawRectangle(pen, rect);
+                e.Graphics.FillRectangle(lBrush, rect);
+                e.Graphics.DrawRectangle(pen, rect);
 
-                    string theseNotes = string.Join(" ", Info.Notes[i].Select(n => Utils.GetNoteName(n)));
-                    bool empty = string.IsNullOrEmpty(theseNotes);
-                    theseNotes = empty ? string.Empty : theseNotes;
-                    if (empty && previousNotes.Item1[i]++ < GlobalConfig.Instance.RefreshRate * 10)
-                    {
-                        theseNotes = previousNotes.Item2[i];
-                    }
-                    else if (!empty || previousNotes.Item2[i] != theseNotes)
-                    {
-                        previousNotes.Item1[i] = 0;
-                        previousNotes.Item2[i] = theseNotes;
-                    }
-                    e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, notesX, r1y);
-
-                    e.Graphics.DrawString(Info.Types[i], Font, Brushes.DeepPink, typeEndX - e.Graphics.MeasureString(Info.Types[i], Font).Width, by + (row2Offset / (Font.Size / 2.5f)));
-
-                    bg.Dispose();
-                    pen.Dispose();
-                    brush.Dispose();
-                    lBrush.Dispose();
+                string theseNotes = string.Join(" ", Info.Notes[i].Select(n => Utils.GetNoteName(n)));
+                bool empty = string.IsNullOrEmpty(theseNotes);
+                theseNotes = empty ? string.Empty : theseNotes;
+                if (empty && previousNotes.Item1[i]++ < GlobalConfig.Instance.RefreshRate * 10)
+                {
+                    theseNotes = previousNotes.Item2[i];
                 }
-                base.OnPaint(e);
+                else if (!empty || previousNotes.Item2[i] != theseNotes)
+                {
+                    previousNotes.Item1[i] = 0;
+                    previousNotes.Item2[i] = theseNotes;
+                }
+                e.Graphics.DrawString(theseNotes, Font, Brushes.Turquoise, notesX, r1y);
+
+                e.Graphics.DrawString(Info.Types[i], Font, Brushes.DeepPink, typeEndX - e.Graphics.MeasureString(Info.Types[i], Font).Width, by + (row2Offset / (Font.Size / 2.5f)));
+
+                bg.Dispose();
+                pen.Dispose();
+                brush.Dispose();
+                lBrush.Dispose();
             }
+            base.OnPaint(e);
         }
     }
 }

@@ -9,6 +9,7 @@ Discord Server: https://discord.gg/q2pAw3x
 ----
 # To Do:
 ## General
+* Create lightweight versions of ColorSlider and PianoControl
 * MIDI saving - Preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * MIDI saving - Make errors more clear

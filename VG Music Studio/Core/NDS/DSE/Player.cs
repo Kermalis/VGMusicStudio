@@ -19,11 +19,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         private Track[] tracks;
         private byte tempo;
         private int tempoStack;
-        private long elapsedLoops, elapsedTicks;
+        private long elapsedLoops;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
+        public long ElapsedTicks { get; private set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -43,7 +44,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         {
             tempo = 120;
             tempoStack = 0;
-            elapsedLoops = elapsedTicks = 0;
+            elapsedLoops = ElapsedTicks = 0;
             fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
@@ -59,7 +60,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 List<SongEvent> evs = Events[trackIndex];
                 Track track = tracks[trackIndex];
                 track.Init();
-                elapsedTicks = 0;
+                ElapsedTicks = 0;
                 while (true)
                 {
                     SongEvent e = evs[track.CurEvent];
@@ -69,7 +70,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     }
                     else
                     {
-                        e.Ticks.Add(elapsedTicks);
+                        e.Ticks.Add(ElapsedTicks);
                         ExecuteNext(trackIndex);
                         if (track.Stopped)
                         {
@@ -77,15 +78,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         }
                         else
                         {
-                            elapsedTicks += track.Rest;
+                            ElapsedTicks += track.Rest;
                             track.Rest = 0;
                         }
                     }
                 }
-                if (elapsedTicks > MaxTicks)
+                if (ElapsedTicks > MaxTicks)
                 {
                     longestTrack = trackIndex;
-                    MaxTicks = elapsedTicks;
+                    MaxTicks = ElapsedTicks;
                 }
                 track.StopAllChannels();
             }
@@ -402,7 +403,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 InitEmulation();
                 while (true)
                 {
-                    if (elapsedTicks == ticks)
+                    if (ElapsedTicks == ticks)
                     {
                         goto finish;
                     }
@@ -423,8 +424,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                 }
                             }
-                            elapsedTicks++;
-                            if (elapsedTicks == ticks)
+                            ElapsedTicks++;
+                            if (ElapsedTicks == ticks)
                             {
                                 goto finish;
                             }
@@ -487,7 +488,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
-            info.Ticks = elapsedTicks;
             // TODO: Longest song is actually 18 tracks (bgm0168)
             for (int i = 0; i < tracks.Length - 1; i++)
             {
@@ -595,11 +595,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                             }
                             if (i == longestTrack)
                             {
-                                if (elapsedTicks == MaxTicks)
+                                if (ElapsedTicks == MaxTicks)
                                 {
                                     if (!track.Stopped)
                                     {
-                                        elapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                        ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
                                         elapsedLoops++;
                                         if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
                                         {
@@ -610,7 +610,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                 }
                                 else
                                 {
-                                    elapsedTicks++;
+                                    ElapsedTicks++;
                                 }
                             }
                             if (!track.Stopped || track.Channels.Count != 0)

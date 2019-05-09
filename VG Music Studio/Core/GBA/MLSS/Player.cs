@@ -15,11 +15,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private readonly Thread thread;
         private byte tempo;
         private int tempoStack;
-        private long elapsedLoops, elapsedTicks;
+        private long elapsedLoops;
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
+        public long ElapsedTicks { get; private set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -43,7 +44,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         {
             tempo = 120;
             tempoStack = 0;
-            elapsedLoops = elapsedTicks = 0;
+            elapsedLoops = ElapsedTicks = 0;
             fadeOutBegan = false;
             for (int i = 0; i < 0x10; i++)
             {
@@ -62,7 +63,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     List<SongEvent> evs = Events[trackIndex];
                     Track track = tracks[trackIndex];
                     track.Init();
-                    elapsedTicks = 0;
+                    ElapsedTicks = 0;
                     while (true)
                     {
                         SongEvent e = evs[track.CurEvent];
@@ -72,7 +73,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         }
                         else
                         {
-                            e.Ticks.Add(elapsedTicks);
+                            e.Ticks.Add(ElapsedTicks);
                             ExecuteNext(trackIndex, ref u);
                             if (track.Stopped)
                             {
@@ -80,15 +81,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             }
                             else
                             {
-                                elapsedTicks += track.Rest;
+                                ElapsedTicks += track.Rest;
                                 track.Rest = 0;
                             }
                         }
                     }
-                    if (elapsedTicks > MaxTicks)
+                    if (ElapsedTicks > MaxTicks)
                     {
                         longestTrack = trackIndex;
-                        MaxTicks = elapsedTicks;
+                        MaxTicks = ElapsedTicks;
                     }
                     track.NoteDuration = 0;
                 }
@@ -274,7 +275,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 bool u = false;
                 while (true)
                 {
-                    if (elapsedTicks == ticks)
+                    if (ElapsedTicks == ticks)
                     {
                         goto finish;
                     }
@@ -295,8 +296,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                 }
                             }
-                            elapsedTicks++;
-                            if (elapsedTicks == ticks)
+                            ElapsedTicks++;
+                            if (ElapsedTicks == ticks)
                             {
                                 goto finish;
                             }
@@ -355,7 +356,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
             info.Tempo = tempo;
-            info.Ticks = elapsedTicks;
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
@@ -502,11 +502,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                 }
                                 if (i == longestTrack)
                                 {
-                                    if (elapsedTicks == MaxTicks)
+                                    if (ElapsedTicks == MaxTicks)
                                     {
                                         if (!track.Stopped)
                                         {
-                                            elapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                            ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
                                             elapsedLoops++;
                                             if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
                                             {
@@ -517,7 +517,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     else
                                     {
-                                        elapsedTicks++;
+                                        ElapsedTicks++;
                                     }
                                 }
                                 if (prevDuration == 1 && track.NoteDuration == 0) // Note was not renewed

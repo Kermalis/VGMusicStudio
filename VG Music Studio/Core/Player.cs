@@ -17,6 +17,7 @@ namespace Kermalis.VGMusicStudio.Core
     {
         List<SongEvent>[] Events { get; }
         long MaxTicks { get; }
+        long ElapsedTicks { get; }
 
         PlayerState State { get; }
         event SongEndedEvent SongEnded;

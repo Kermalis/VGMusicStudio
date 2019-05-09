@@ -549,13 +549,8 @@ namespace Kermalis.VGMusicStudio.UI
         private bool stopUI = false;
         private void UpdateUI(object sender, EventArgs e)
         {
-            if (!System.Threading.Monitor.TryEnter(timer))
+            if (System.Threading.Monitor.TryEnter(timer))
             {
-                return;
-            }
-            try
-            {
-                // Song ended
                 if (stopUI)
                 {
                     stopUI = false;
@@ -569,38 +564,34 @@ namespace Kermalis.VGMusicStudio.UI
                         Stop();
                     }
                 }
-                // Draw
                 else
                 {
-                    // Draw piano notes
-                    ClearPianoNotes();
-                    TrackInfoControl.TrackInfo info = trackInfo.Info;
-                    Engine.Instance.Player.GetSongState(info);
-                    for (int i = PianoTracks.Length - 1; i >= 0; i--)
+                    if (WindowState != FormWindowState.Minimized)
                     {
-                        if (!PianoTracks[i])
+                        TrackInfoControl.TrackInfo info = trackInfo.Info;
+                        Engine.Instance.Player.GetSongState(info);
+                        ClearPianoNotes();
+                        for (int i = PianoTracks.Length - 1; i >= 0; i--)
                         {
-                            continue;
-                        }
-
-                        byte[] notes = info.Notes[i];
-                        pianoNotes.AddRange(notes);
-                        foreach (byte n in notes)
-                        {
-                            if (n >= piano.LowNoteID && n <= piano.HighNoteID)
+                            if (PianoTracks[i])
                             {
-                                piano[n - piano.LowNoteID].NoteOnColor = GlobalConfig.Instance.Colors[info.Voices[i]];
-                                piano.PressPianoKey(n);
+                                byte[] notes = info.Notes[i];
+                                pianoNotes.AddRange(notes);
+                                for (int j = 0; j < notes.Length; j++)
+                                {
+                                    byte n = notes[j];
+                                    if (n >= piano.LowNoteID && n <= piano.HighNoteID)
+                                    {
+                                        piano[n - piano.LowNoteID].NoteOnColor = GlobalConfig.Instance.Colors[info.Voices[i]];
+                                        piano.PressPianoKey(n);
+                                    }
+                                }
                             }
                         }
+                        trackInfo.Invalidate();
                     }
-                    UpdatePositionIndicators((int)info.Ticks);
-                    // Draw trackinfo
-                    trackInfo.Invalidate();
+                    UpdatePositionIndicators((int)Engine.Instance.Player.ElapsedTicks);
                 }
-            }
-            finally
-            {
                 System.Threading.Monitor.Exit(timer);
             }
         }
