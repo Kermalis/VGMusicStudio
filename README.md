@@ -37,13 +37,14 @@ Discord Server: https://discord.gg/q2pAw3x
 
 ## DSE Engine
 * ADSR
+* Pitch bend
 * Ability to load SMDB and SWDB (Big Endian as opposed to SMDL and SWDL for Little Endian)
 
 ----
 # Special Thanks To:
 ## General
-* tuku473
-* Stich991
+* tuku473 - Design suggestions, colors, Spanish translation
+* Stich991 - Italian translation
 
 ## MP2K Engine
 * Ipatix - Engine research, help, [(and his MP2K music player)](https://github.com/ipatix/agbplay) from which some of my code is based on
