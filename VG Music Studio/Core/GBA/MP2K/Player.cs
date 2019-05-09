@@ -90,6 +90,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public void LoadSong(long index)
         {
+            Events = null;
             SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
             SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
             voiceTableOffset = header.VoiceTableOffset - GBA.Utils.CartridgeOffset;
@@ -546,7 +547,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public void SetCurrentPosition(long ticks)
         {
-            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
+            if (Events == null)
+            {
+                SongEnded?.Invoke();
+            }
+            else if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 if (State == PlayerState.Playing)
                 {
@@ -596,7 +601,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public void Play()
         {
-            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
+            if (Events == null)
+            {
+                SongEnded?.Invoke();
+            }
+            else if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 Stop();
                 InitEmulation();

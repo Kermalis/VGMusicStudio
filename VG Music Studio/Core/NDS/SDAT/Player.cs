@@ -16,9 +16,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private readonly Thread thread;
         private int randSeed;
         private Random rand;
+        private SDAT.INFO.SequenceInfo seqInfo;
         private SSEQ sseq;
         private SBNK sbnk;
-        public byte Volume; // TODO: https://github.com/Kermalis/VGMusicStudio/issues/33
+        public byte Volume;
         private ushort tempo;
         private int tempoStack;
         private long elapsedLoops, elapsedTicks;
@@ -51,6 +52,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             tempoStack = 0;
             elapsedLoops = elapsedTicks = 0;
             fadeOutBegan = false;
+            Volume = seqInfo.Volume;
             rand = new Random(randSeed);
             for (int i = 0; i < 0x10; i++)
             {
@@ -120,7 +122,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public void LoadSong(long index)
         {
             Stop();
-            SDAT.INFO.SequenceInfo seqInfo = config.SDAT.INFOBlock.SequenceInfos.Entries[index];
+            seqInfo = config.SDAT.INFOBlock.SequenceInfos.Entries[index];
             if (seqInfo == null)
             {
                 sseq = null;
@@ -139,7 +141,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         sbnk.SWARs[i] = new SWAR(config.SDAT.FATBlock.Entries[config.SDAT.INFOBlock.WaveArchiveInfos.Entries[bankInfo.SWARs[i]].FileId].Data);
                     }
                 }
-                Volume = seqInfo.Volume;
                 randSeed = new Random().Next();
 
                 // RECURSION INCOMING
@@ -749,7 +750,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public void SetCurrentPosition(long ticks)
         {
-            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
+            if (seqInfo == null)
+            {
+                SongEnded?.Invoke();
+            }
+            else if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 if (State == PlayerState.Playing)
                 {
@@ -800,18 +805,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public void Play()
         {
-            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
+            if (seqInfo == null)
+            {
+                SongEnded?.Invoke();
+            }
+            else if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 Stop();
-                if (sseq != null)
-                {
-                    InitEmulation();
-                    State = PlayerState.Playing;
-                }
-                else
-                {
-                    SongEnded?.Invoke();
-                }
+                InitEmulation();
+                State = PlayerState.Playing;
             }
         }
         public void Pause()

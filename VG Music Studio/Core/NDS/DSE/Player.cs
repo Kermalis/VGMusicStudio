@@ -389,7 +389,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         }
         public void SetCurrentPosition(long ticks)
         {
-            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
+            if (tracks == null)
+            {
+                SongEnded?.Invoke();
+            }
+            else if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 if (State == PlayerState.Playing)
                 {
@@ -438,7 +442,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         }
         public void Play()
         {
-            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
+            if (tracks == null)
+            {
+                SongEnded?.Invoke();
+            }
+            else if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 Stop();
                 InitEmulation();
