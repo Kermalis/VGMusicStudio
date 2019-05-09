@@ -15,12 +15,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             LFORange, PitchBendRange, LFOSpeed, LFODepth;
         public ushort LFODelay, LFOPhase, LFODelayCount;
         public LFOType LFOType;
-        public sbyte PitchBend, Panpot, KeyShift;
+        public sbyte PitchBend, Panpot, Transpose;
         public byte Attack, Decay, Sustain, Release;
         public byte PortamentoKey, PortamentoTime;
         public short SweepPitch;
         public int Rest;
-        public int DataOffset;
+        public int CurEvent;
         public int[] CallStack = new int[3];
         public byte[] CallStackLoops = new byte[3];
         public byte CallStackDepth;
@@ -55,11 +55,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             Stopped = Tie = WaitingForNoteToFinishBeforeContinuingXD = Portamento = false;
             Allocated = Enabled = Index == 0;
-            DataOffset = 0;
+            CurEvent = 0;
             Mono = VariableFlag = true;
             CallStackDepth = 0;
             Voice = LFODepth = 0;
-            PitchBend = Panpot = KeyShift = 0;
+            PitchBend = Panpot = Transpose = 0;
             LFOPhase = LFODelay = LFODelayCount = 0;
             LFORange = 1;
             LFOSpeed = 0x10;

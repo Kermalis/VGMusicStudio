@@ -161,21 +161,75 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
         }
 
+        /// <summary>EmulateProcess doesn't care about samples that loop; it only cares about ones that force the track to wait for them to end</summary>
+        public void EmulateProcess()
+        {
+            if (Timer != 0)
+            {
+                int numSamples = (pos + 0x100) / Timer;
+                pos = (pos + 0x100) % Timer;
+                for (int i = 0; i < numSamples; i++)
+                {
+                    if (Type == InstrumentType.PCM && !swav.DoesLoop)
+                    {
+                        switch (swav.Format)
+                        {
+                            case SWAVFormat.PCM8:
+                            {
+                                if (dataOffset >= swav.Samples.Length)
+                                {
+                                    Stop();
+                                }
+                                else
+                                {
+                                    dataOffset++;
+                                }
+                                return;
+                            }
+                            case SWAVFormat.PCM16:
+                            {
+                                if (dataOffset >= swav.Samples.Length)
+                                {
+                                    Stop();
+                                }
+                                else
+                                {
+                                    dataOffset += 2;
+                                }
+                                return;
+                            }
+                            case SWAVFormat.ADPCM:
+                            {
+                                if (adpcmDecoder.DataOffset >= swav.Samples.Length && !adpcmDecoder.OnSecondNibble)
+                                {
+                                    Stop();
+                                }
+                                else
+                                {
+                                    // This is a faster emulation of adpcmDecoder.GetSample() without caring about the sample
+                                    if (adpcmDecoder.OnSecondNibble)
+                                    {
+                                        adpcmDecoder.DataOffset++;
+                                    }
+                                    adpcmDecoder.OnSecondNibble = !adpcmDecoder.OnSecondNibble;
+                                }
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
         public void Process(out short left, out short right)
         {
-            if (Timer == 0)
-            {
-                left = prevLeft;
-                right = prevRight;
-            }
-            else
+            if (Timer != 0)
             {
                 int numSamples = (pos + 0x100) / Timer;
                 pos = (pos + 0x100) % Timer;
                 // prevLeft and prevRight are stored because numSamples can be 0.
                 for (int i = 0; i < numSamples; i++)
                 {
-                    short samp = 0;
+                    short samp;
                     switch (Type)
                     {
                         case InstrumentType.PCM:
@@ -223,7 +277,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 case SWAVFormat.ADPCM:
                                 {
                                     // If just looped
-                                    if (adpcmDecoder.DataOffset == swav.LoopOffset * 4 && !adpcmDecoder.OnSecondNibble)
+                                    if (swav.DoesLoop && adpcmDecoder.DataOffset == swav.LoopOffset * 4 && !adpcmDecoder.OnSecondNibble)
                                     {
                                         adpcmLoopLastSample = adpcmDecoder.LastSample;
                                         adpcmLoopStepIndex = adpcmDecoder.StepIndex;
@@ -248,6 +302,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     samp = adpcmDecoder.GetSample();
                                     break;
                                 }
+                                default: samp = 0; break;
                             }
                             break;
                         }
@@ -275,14 +330,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                             break;
                         }
+                        default: samp = 0; break;
                     }
                     samp = (short)(samp * Volume / 0x7F);
                     prevLeft = (short)(samp * (-Pan + 0x40) / 0x80);
                     prevRight = (short)(samp * (Pan + 0x40) / 0x80);
                 }
-                left = prevLeft;
-                right = prevRight;
             }
+            left = prevLeft;
+            right = prevRight;
         }
     }
 }

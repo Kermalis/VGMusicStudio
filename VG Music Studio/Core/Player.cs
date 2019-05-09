@@ -16,7 +16,7 @@ namespace Kermalis.VGMusicStudio.Core
     internal interface IPlayer : IDisposable
     {
         List<SongEvent>[] Events { get; }
-        long NumTicks { get; }
+        long MaxTicks { get; }
 
         PlayerState State { get; }
         event SongEndedEvent SongEnded;

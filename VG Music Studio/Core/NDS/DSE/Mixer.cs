@@ -5,13 +5,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
     internal class Mixer : Core.Mixer
     {
+        private const int numChannels = 0x20;
         private readonly float samplesReciprocal;
         private readonly int samplesPerBuffer;
         private long fadeMicroFramesLeft;
         private float fadePos;
         private float fadeStepPerMicroframe;
 
-        public Channel[] Channels;
+        private readonly Channel[] channels;
         private readonly BufferedWaveProvider buffer;
 
         public Mixer()
@@ -23,10 +24,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             samplesPerBuffer = 341; // TODO
             samplesReciprocal = 1f / samplesPerBuffer;
 
-            Channels = new Channel[0x20];
-            for (byte i = 0; i < Channels.Length; i++)
+            channels = new Channel[numChannels];
+            for (byte i = 0; i < numChannels; i++)
             {
-                Channels[i] = new Channel(i);
+                channels[i] = new Channel(i);
             }
 
             Mutes = new bool[0x10];
@@ -47,9 +48,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 return c.Owner == null ? -2 : c.State == EnvelopeState.Release ? -1 : 0;
             }
             Channel nChan = null;
-            for (int i = 0; i < Channels.Length; i++)
+            for (int i = 0; i < numChannels; i++)
             {
-                Channel c = Channels[i];
+                Channel c = channels[i];
                 if (nChan != null)
                 {
                     int nScore = GetScore(nChan);
@@ -69,9 +70,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public void ChannelTick()
         {
-            for (int i = 0; i < Channels.Length; i++)
+            for (int i = 0; i < numChannels; i++)
             {
-                Channel chan = Channels[i];
+                Channel chan = channels[i];
                 if (chan.Owner != null)
                 {
                     chan.StepEnvelope();
@@ -130,16 +131,19 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
             float masterStep = (toMaster - fromMaster) * samplesReciprocal;
             float masterLevel = fromMaster;
+            int left, right;
+            short channelLeft, channelRight;
             for (int i = 0; i < samplesPerBuffer; i++)
             {
-                int left = 0, right = 0;
-                for (int j = 0; j < Channels.Length; j++)
+                left = 0;
+                right = 0;
+                for (int j = 0; j < numChannels; j++)
                 {
-                    Channel chan = Channels[j];
+                    Channel chan = channels[j];
                     if (chan.Owner != null)
                     {
                         bool muted = Mutes[chan.Owner.Index - 1]; // Get mute first because chan.Process() can call chan.Stop() which sets chan.Owner to null
-                        chan.Process(out short channelLeft, out short channelRight);
+                        chan.Process(out channelLeft, out channelRight);
                         if (!muted)
                         {
                             left += channelLeft;

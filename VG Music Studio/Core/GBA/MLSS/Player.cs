@@ -19,7 +19,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private bool fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
-        public long NumTicks { get; private set; }
+        public long MaxTicks { get; private set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -39,9 +39,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             thread.Start();
         }
 
+        private void InitEmulation()
+        {
+            tempo = 120;
+            tempoStack = 0;
+            elapsedLoops = elapsedTicks = 0;
+            fadeOutBegan = false;
+            for (int i = 0; i < 0x10; i++)
+            {
+                tracks[i].Init();
+            }
+        }
         private void SetTicks()
         {
-            NumTicks = 0;
+            MaxTicks = 0;
+            bool u = false;
             for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
             {
                 if (Events[trackIndex] != null)
@@ -50,8 +62,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     List<SongEvent> evs = Events[trackIndex];
                     Track track = tracks[trackIndex];
                     track.Init();
-                    long ticks = 0;
-                    bool u = false;
+                    elapsedTicks = 0;
                     while (true)
                     {
                         SongEvent e = evs[track.CurEvent];
@@ -61,7 +72,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         }
                         else
                         {
-                            e.Ticks.Add(ticks);
+                            e.Ticks.Add(elapsedTicks);
                             ExecuteNext(trackIndex, ref u);
                             if (track.Stopped)
                             {
@@ -69,15 +80,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             }
                             else
                             {
-                                ticks += track.Rest;
+                                elapsedTicks += track.Rest;
                                 track.Rest = 0;
                             }
                         }
                     }
-                    if (ticks > NumTicks)
+                    if (elapsedTicks > MaxTicks)
                     {
                         longestTrack = trackIndex;
-                        NumTicks = ticks;
+                        MaxTicks = elapsedTicks;
                     }
                     track.NoteDuration = 0;
                 }
@@ -249,78 +260,89 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         }
         public void SetCurrentPosition(long ticks)
         {
-            if (State == PlayerState.Playing || State == PlayerState.Paused)
+            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
-                bool autoplay = State == PlayerState.Playing;
-                if (autoplay)
+                if (State == PlayerState.Playing)
                 {
                     Pause();
                 }
-                elapsedTicks = ticks;
-                for (int i = 0; i < Events.Length; i++)
+                InitEmulation();
+                bool u = false;
+                while (true)
                 {
-                    Track track = tracks[i];
-                    if (track.Enabled)
+                    if (elapsedTicks == ticks)
                     {
-                        track.Init();
-                        long elapsed = 0;
-                        bool u = false;
-                        while (!track.Stopped)
+                        goto finish;
+                    }
+                    else
+                    {
+                        while (tempoStack >= 75)
                         {
-                            track.Tick();
-                            while (track.Rest == 0 && !track.Stopped)
+                            tempoStack -= 75;
+                            for (int i = 0; i < 0x10; i++)
                             {
-                                ExecuteNext(i, ref u);
+                                Track track = tracks[i];
+                                if (track.Enabled && !track.Stopped)
+                                {
+                                    track.Tick();
+                                    while (track.Rest == 0 && !track.Stopped)
+                                    {
+                                        ExecuteNext(i, ref u);
+                                    }
+                                }
                             }
-                            if (elapsed <= ticks && elapsed + track.Rest >= ticks)
+                            elapsedTicks++;
+                            if (elapsedTicks == ticks)
                             {
-                                track.Rest -= (byte)(ticks - elapsed);
-                                track.NoteDuration = 0;
-                                break;
-                            }
-                            else
-                            {
-                                elapsed++;
+                                goto finish;
                             }
                         }
+                        tempoStack += tempo;
                     }
                 }
-                if (autoplay)
+            finish:
+                for (int i = 0; i < 0x10; i++)
                 {
-                    Pause();
+                    tracks[i].NoteDuration = 0;
                 }
+                Pause();
             }
         }
         public void Play()
         {
-            Stop();
-            tempo = 120;
-            tempoStack = 0;
-            elapsedLoops = elapsedTicks = 0;
-            fadeOutBegan = false;
-            for (int i = 0; i < 0x10; i++)
+            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
-                tracks[i].Init();
+                Stop();
+                InitEmulation();
+                State = PlayerState.Playing;
             }
-            State = PlayerState.Playing;
         }
         public void Pause()
         {
-            State = State == PlayerState.Paused ? PlayerState.Playing : PlayerState.Paused;
+            if (State == PlayerState.Playing)
+            {
+                State = PlayerState.Paused;
+            }
+            else if (State == PlayerState.Paused || State == PlayerState.Stopped)
+            {
+                State = PlayerState.Playing;
+            }
         }
         public void Stop()
         {
-            if (State == PlayerState.Stopped)
+            if (State == PlayerState.Playing || State == PlayerState.Paused)
             {
-                return;
+                State = PlayerState.Stopped;
             }
-            State = PlayerState.Stopped;
         }
         public void Dispose()
         {
-            Stop();
-            State = PlayerState.ShutDown;
-            thread.Join();
+            if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
+            {
+                Stop();
+                State = PlayerState.ShutDown;
+                thread.Join();
+            }
         }
         public void GetSongState(UI.TrackInfoControl.TrackInfo info)
         {
@@ -454,7 +476,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             {
                 if (State == PlayerState.Playing)
                 {
-                    tempoStack += tempo;
                     while (tempoStack >= 75)
                     {
                         tempoStack -= 75;
@@ -473,7 +494,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                 }
                                 if (i == longestTrack)
                                 {
-                                    if (elapsedTicks == NumTicks)
+                                    if (elapsedTicks == MaxTicks)
                                     {
                                         if (!track.Stopped)
                                         {
@@ -520,6 +541,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             SongEnded?.Invoke();
                         }
                     }
+                    tempoStack += tempo;
                     mixer.Process(tracks);
                 }
                 time.Wait();

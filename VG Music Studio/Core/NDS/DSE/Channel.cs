@@ -133,19 +133,14 @@
 
         public void Process(out short left, out short right)
         {
-            if (Timer == 0)
-            {
-                left = prevLeft;
-                right = prevRight;
-            }
-            else
+            if (Timer != 0)
             {
                 int numSamples = (pos + 0x100) / Timer;
                 pos = (pos + 0x100) % Timer;
                 // prevLeft and prevRight are stored because numSamples can be 0.
                 for (int i = 0; i < numSamples; i++)
                 {
-                    short samp = 0;
+                    short samp;
                     switch (sample.WavInfo.SampleFormat)
                     {
                         case SampleFormat.PCM8:
@@ -214,14 +209,15 @@
                             samp = adpcmDecoder.GetSample();
                             break;
                         }
+                        default: samp = 0; break;
                     }
                     samp = (short)(samp * Volume / 0x7F);
                     prevLeft = (short)(samp * (-Panpot + 0x40) / 0x80);
                     prevRight = (short)(samp * (Panpot + 0x40) / 0x80);
                 }
-                left = prevLeft;
-                right = prevRight;
             }
+            left = prevLeft;
+            right = prevRight;
         }
     }
 }

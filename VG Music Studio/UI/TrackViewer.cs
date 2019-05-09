@@ -72,6 +72,7 @@ namespace Kermalis.VGMusicStudio.UI
             if (list.Count > 0)
             {
                 Engine.Instance?.Player.SetCurrentPosition(list[0]);
+                MainForm.Instance.LetUIKnowPlayerIsPlaying();
             }
         }
 

@@ -127,6 +127,20 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             fadeMicroFramesLeft = 0;
         }
 
+        public void EmulateProcess()
+        {
+            for (int i = 0; i < samplesPerBuffer; i++)
+            {
+                for (int j = 0; j < 0x10; j++)
+                {
+                    Channel chan = Channels[j];
+                    if (chan.Owner != null)
+                    {
+                        chan.EmulateProcess();
+                    }
+                }
+            }
+        }
         public void Process()
         {
             float fromMaster = 1f, toMaster = 1f;
@@ -140,16 +154,19 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
             float masterStep = (toMaster - fromMaster) * samplesReciprocal;
             float masterLevel = fromMaster;
+            int left, right;
+            short channelLeft, channelRight;
             for (int i = 0; i < samplesPerBuffer; i++)
             {
-                int left = 0, right = 0;
+                left = 0;
+                right = 0;
                 for (int j = 0; j < 0x10; j++)
                 {
                     Channel chan = Channels[j];
                     if (chan.Owner != null)
                     {
                         bool muted = Mutes[chan.Owner.Index]; // Get mute first because chan.Process() can call chan.Stop() which sets chan.Owner to null
-                        chan.Process(out short channelLeft, out short channelRight);
+                        chan.Process(out channelLeft, out channelRight);
                         if (!muted)
                         {
                             left += channelLeft;

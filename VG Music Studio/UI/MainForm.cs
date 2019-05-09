@@ -175,6 +175,7 @@ namespace Kermalis.VGMusicStudio.UI
         {
             Engine.Instance.Player.SetCurrentPosition(positionBar.Value);
             positionBarFree = true;
+            LetUIKnowPlayerIsPlaying();
         }
         private void PositionBar_MouseDown(object sender, EventArgs e)
         {
@@ -214,7 +215,7 @@ namespace Kermalis.VGMusicStudio.UI
                     Text = $"{Utils.ProgramName} - {song.Name}";
                     songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
                 }
-                positionBar.Maximum = (int)Engine.Instance.Player.NumTicks;
+                positionBar.Maximum = (int)Engine.Instance.Player.MaxTicks;
                 positionBar.LargeChange = positionBar.Maximum / 10;
                 positionBar.SmallChange = positionBar.LargeChange / 4;
                 if (autoplay)
@@ -404,15 +405,22 @@ namespace Kermalis.VGMusicStudio.UI
             }
         }
 
+        public void LetUIKnowPlayerIsPlaying()
+        {
+            if (!timer.Enabled)
+            {
+                pauseButton.Enabled = stopButton.Enabled = true;
+                pauseButton.Text = Strings.PlayerPause;
+                timer.Interval = (int)(1000.0 / GlobalConfig.Instance.RefreshRate);
+                timer.Start();
+                UpdateTaskbarState();
+                UpdateTaskbarButtons();
+            }
+        }
         private void Play()
         {
             Engine.Instance.Player.Play();
-            positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = true;
-            pauseButton.Text = Strings.PlayerPause;
-            timer.Interval = (int)(1000.0 / GlobalConfig.Instance.RefreshRate);
-            timer.Start();
-            UpdateTaskbarState();
-            UpdateTaskbarButtons();
+            LetUIKnowPlayerIsPlaying();
         }
         private void Pause()
         {
@@ -437,7 +445,7 @@ namespace Kermalis.VGMusicStudio.UI
         private void Stop()
         {
             Engine.Instance.Player.Stop();
-            positionBar.Enabled = pauseButton.Enabled = stopButton.Enabled = false;
+            pauseButton.Enabled = stopButton.Enabled = false;
             timer.Stop();
             System.Threading.Monitor.Enter(timer);
             ClearPianoNotes();
@@ -512,7 +520,7 @@ namespace Kermalis.VGMusicStudio.UI
                 Engine.Instance.Dispose();
             }
             trackViewer?.UpdateTracks();
-            prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = false;
+            prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = positionBar.Enabled = false;
             Text = Utils.ProgramName;
             ResetPlaylistStuff(false);
             UpdatePositionIndicators(0);
