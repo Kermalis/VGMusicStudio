@@ -92,12 +92,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 ExecuteNext(i);
                                 if (!done[i])
                                 {
-                                    // Here we add ticks for every event emulated in ExecuteNext (more than one can be emulated with ModIfCommand/ModVarCommand/ModRandCommand)
-                                    // It is "do while" because you can jump backwards, and e will not be < track.CurEvent in that case
-                                    do
-                                    {
-                                        ev[e++].Ticks.Add(elapsedTicks);
-                                    } while (e < track.CurEvent);
+                                    ev[e].Ticks.Add(elapsedTicks);
                                     if (track.Stopped || (track.CallStackDepth == 0 && ev[track.CurEvent].Ticks.Count > 0))
                                     {
                                         done[i] = true;
@@ -1037,16 +1032,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
             List<SongEvent> ev = Events[trackIndex];
             Track track = tracks[trackIndex];
-            ArgType argOverrideType = ArgType.None;
-            bool doCmdWork = true;
-        again:
-            bool increment = true;
+            bool increment = true, resetOverride = true, resetCmdWork = true;
             switch (ev[track.CurEvent].Command)
             {
                 case AllocTracksCommand alloc:
                 {
                     // Must be in the beginning of the first track to work
-                    if (doCmdWork && track.Index == 0 && track.CurEvent == 0)
+                    if (track.DoCommandWork && track.Index == 0 && track.CurEvent == 0)
                     {
                         for (int i = 0; i < 0x10; i++)
                         {
@@ -1060,7 +1052,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case CallCommand call:
                 {
-                    if (doCmdWork && track.CallStackDepth < 3)
+                    if (track.DoCommandWork && track.CallStackDepth < 3)
                     {
                         track.CallStack[track.CallStackDepth] = track.CurEvent + 1;
                         track.CallStackDepth++;
@@ -1071,7 +1063,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case FinishCommand _:
                 {
-                    if (doCmdWork)
+                    if (track.DoCommandWork)
                     {
                         track.Stopped = true;
                         increment = false;
@@ -1080,8 +1072,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case ForceAttackCommand attack:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, attack.Attack);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, attack.Attack);
+                    if (track.DoCommandWork)
                     {
                         track.Attack = (byte)arg;
                     }
@@ -1089,8 +1081,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case ForceDecayCommand decay:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, decay.Decay);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, decay.Decay);
+                    if (track.DoCommandWork)
                     {
                         track.Decay = (byte)arg;
                     }
@@ -1098,8 +1090,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case ForceReleaseCommand release:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, release.Release);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, release.Release);
+                    if (track.DoCommandWork)
                     {
                         track.Release = (byte)arg;
                     }
@@ -1107,8 +1099,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case ForceSustainCommand sustain:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, sustain.Sustain);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, sustain.Sustain);
+                    if (track.DoCommandWork)
                     {
                         track.Sustain = (byte)arg;
                     }
@@ -1116,7 +1108,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case JumpCommand jump:
                 {
-                    if (doCmdWork)
+                    if (track.DoCommandWork)
                     {
                         track.CurEvent = ev.FindIndex(c => c.Offset == jump.Offset);
                         increment = false;
@@ -1125,8 +1117,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case LFODelayCommand delay:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, delay.Delay);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, delay.Delay);
+                    if (track.DoCommandWork)
                     {
                         track.LFODelay = (ushort)arg;
                     }
@@ -1134,8 +1126,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case LFODepthCommand depth:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, depth.Depth);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, depth.Depth);
+                    if (track.DoCommandWork)
                     {
                         track.LFODepth = (byte)arg;
                     }
@@ -1143,8 +1135,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case LFORangeCommand range:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, range.Range);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, range.Range);
+                    if (track.DoCommandWork)
                     {
                         track.LFORange = (byte)arg;
                     }
@@ -1152,8 +1144,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case LFOSpeedCommand speed:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, speed.Speed);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, speed.Speed);
+                    if (track.DoCommandWork)
                     {
                         track.LFOSpeed = (byte)arg;
                     }
@@ -1161,8 +1153,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case LFOTypeCommand type:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, type.Type);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, type.Type);
+                    if (track.DoCommandWork)
                     {
                         track.LFOType = (LFOType)arg;
                     }
@@ -1170,7 +1162,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case LoopEndCommand _:
                 {
-                    if (doCmdWork && track.CallStackDepth != 0)
+                    if (track.DoCommandWork && track.CallStackDepth != 0)
                     {
                         byte count = track.CallStackLoops[track.CallStackDepth - 1];
                         if (count != 0)
@@ -1190,8 +1182,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case LoopStartCommand loop:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, loop.NumLoops);
-                    if (doCmdWork && track.CallStackDepth < 3)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, loop.NumLoops);
+                    if (track.DoCommandWork && track.CallStackDepth < 3)
                     {
                         track.CallStack[track.CallStackDepth] = track.CurEvent;
                         track.CallStackLoops[track.CallStackDepth] = (byte)arg;
@@ -1201,38 +1193,35 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case ModIfCommand _:
                 {
-                    if (doCmdWork)
+                    if (track.DoCommandWork)
                     {
-                        doCmdWork = track.VariableFlag;
-                        track.CurEvent++;
-                        goto again;
+                        track.DoCommandWork = track.VariableFlag;
+                        resetCmdWork = false;
                     }
                     break;
                 }
                 case ModRandCommand _:
                 {
-                    if (doCmdWork)
+                    if (track.DoCommandWork)
                     {
-                        argOverrideType = ArgType.Rand;
-                        track.CurEvent++;
-                        goto again;
+                        track.ArgOverrideType = ArgType.Rand;
+                        resetOverride = false;
                     }
                     break;
                 }
                 case ModVarCommand _:
                 {
-                    if (doCmdWork)
+                    if (track.DoCommandWork)
                     {
-                        argOverrideType = ArgType.PlayerVar;
-                        track.CurEvent++;
-                        goto again;
+                        track.ArgOverrideType = ArgType.PlayerVar;
+                        resetOverride = false;
                     }
                     break;
                 }
                 case MonophonyCommand mono:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, mono.Mono);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, mono.Mono);
+                    if (track.DoCommandWork)
                     {
                         track.Mono = arg == 1;
                     }
@@ -1240,8 +1229,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case NoteComand note:
                 {
-                    int duration = ReadArg(argOverrideType == ArgType.None ? ArgType.VarLen : argOverrideType, note.Duration);
-                    if (doCmdWork)
+                    int duration = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.VarLen : track.ArgOverrideType, note.Duration);
+                    if (track.DoCommandWork)
                     {
                         byte key = (byte)(note.Key + track.Transpose).Clamp(0x0, 0x7F);
                         PlayNote(track, key, note.Velocity, Math.Max(-1, duration));
@@ -1260,7 +1249,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 case OpenTrackCommand open:
                 {
                     Track truck = tracks[open.Track];
-                    if (doCmdWork && truck.Allocated && !truck.Enabled)
+                    if (track.DoCommandWork && truck.Allocated && !truck.Enabled)
                     {
                         truck.Enabled = true;
                         truck.CurEvent = Events[open.Track].FindIndex(c => c.Offset == open.Offset);
@@ -1269,8 +1258,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PanpotCommand panpot:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, panpot.Panpot);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, panpot.Panpot);
+                    if (track.DoCommandWork)
                     {
                         track.Panpot = (sbyte)(arg - 0x40);
                     }
@@ -1278,8 +1267,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PitchBendCommand bend:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, bend.Bend);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, bend.Bend);
+                    if (track.DoCommandWork)
                     {
                         track.PitchBend = (sbyte)arg;
                     }
@@ -1287,8 +1276,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PitchBendRangeCommand bendRange:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, bendRange.Range);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, bendRange.Range);
+                    if (track.DoCommandWork)
                     {
                         track.PitchBendRange = (byte)arg;
                     }
@@ -1296,8 +1285,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PlayerVolumeCommand pVolume:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, pVolume.Volume);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, pVolume.Volume);
+                    if (track.DoCommandWork)
                     {
                         Volume = (byte)arg;
                     }
@@ -1305,8 +1294,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PortamentoControlCommand port:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, port.Portamento);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, port.Portamento);
+                    if (track.DoCommandWork)
                     {
                         track.PortamentoKey = (byte)(arg + track.Transpose).Clamp(0x0, 0x7F);
                         track.Portamento = true;
@@ -1315,8 +1304,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PortamentoTimeCommand portTime:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, portTime.Time);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, portTime.Time);
+                    if (track.DoCommandWork)
                     {
                         track.PortamentoTime = (byte)arg;
                     }
@@ -1324,8 +1313,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PortamentoToggleCommand portToggle:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, portToggle.Portamento);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, portToggle.Portamento);
+                    if (track.DoCommandWork)
                     {
                         track.Portamento = arg == 1;
                     }
@@ -1333,8 +1322,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case PriorityCommand priority:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, priority.Priority);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, priority.Priority);
+                    if (track.DoCommandWork)
                     {
                         track.Priority = (byte)arg;
                     }
@@ -1342,8 +1331,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case RestCommand rest:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.VarLen : argOverrideType, rest.Rest);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.VarLen : track.ArgOverrideType, rest.Rest);
+                    if (track.DoCommandWork)
                     {
                         track.Rest = arg;
                     }
@@ -1351,7 +1340,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case ReturnCommand _:
                 {
-                    if (doCmdWork && track.CallStackDepth != 0)
+                    if (track.DoCommandWork && track.CallStackDepth != 0)
                     {
                         track.CallStackDepth--;
                         track.CurEvent = track.CallStack[track.CallStackDepth];
@@ -1361,8 +1350,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case SweepPitchCommand sweep:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, sweep.Pitch);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, sweep.Pitch);
+                    if (track.DoCommandWork)
                     {
                         track.SweepPitch = (short)arg;
                     }
@@ -1370,8 +1359,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case TempoCommand tem:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, tem.Tempo);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, tem.Tempo);
+                    if (track.DoCommandWork)
                     {
                         tempo = (ushort)arg;
                     }
@@ -1379,8 +1368,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case TieCommand tie:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, tie.Tie);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, tie.Tie);
+                    if (track.DoCommandWork)
                     {
                         track.Tie = arg == 1;
                         track.StopAllChannels();
@@ -1389,8 +1378,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case TrackExpressionCommand tExpression:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, tExpression.Expression);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, tExpression.Expression);
+                    if (track.DoCommandWork)
                     {
                         track.Expression = (byte)arg;
                     }
@@ -1398,8 +1387,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case TrackVolumeCommand tVolume:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, tVolume.Volume);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, tVolume.Volume);
+                    if (track.DoCommandWork)
                     {
                         track.Volume = (byte)arg;
                     }
@@ -1407,8 +1396,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case TransposeCommand transpose:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Byte : argOverrideType, transpose.Transpose);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, transpose.Transpose);
+                    if (track.DoCommandWork)
                     {
                         track.Transpose = (sbyte)arg;
                     }
@@ -1416,8 +1405,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarAddCommand add:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, add.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, add.Argument);
+                    if (track.DoCommandWork)
                     {
                         vars[add.Variable] += arg;
                     }
@@ -1425,8 +1414,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarCmpEECommand cmpEE:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, cmpEE.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpEE.Argument);
+                    if (track.DoCommandWork)
                     {
                         track.VariableFlag = vars[cmpEE.Variable] == arg;
                     }
@@ -1434,8 +1423,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarCmpGECommand cmpGE:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, cmpGE.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpGE.Argument);
+                    if (track.DoCommandWork)
                     {
                         track.VariableFlag = vars[cmpGE.Variable] >= arg;
                     }
@@ -1443,8 +1432,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarCmpGGCommand cmpGG:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, cmpGG.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpGG.Argument);
+                    if (track.DoCommandWork)
                     {
                         track.VariableFlag = vars[cmpGG.Variable] > arg;
                     }
@@ -1452,8 +1441,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarCmpLECommand cmpLE:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, cmpLE.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpLE.Argument);
+                    if (track.DoCommandWork)
                     {
                         track.VariableFlag = vars[cmpLE.Variable] <= arg;
                     }
@@ -1461,8 +1450,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarCmpLLCommand cmpLL:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, cmpLL.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpLL.Argument);
+                    if (track.DoCommandWork)
                     {
                         track.VariableFlag = vars[cmpLL.Variable] < arg;
                     }
@@ -1470,8 +1459,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarCmpNECommand cmpNE:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, cmpNE.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpNE.Argument);
+                    if (track.DoCommandWork)
                     {
                         track.VariableFlag = vars[cmpNE.Variable] != arg;
                     }
@@ -1479,8 +1468,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarDivCommand div:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, div.Argument);
-                    if (doCmdWork && arg != 0)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, div.Argument);
+                    if (track.DoCommandWork && arg != 0)
                     {
                         vars[div.Variable] /= arg;
                     }
@@ -1488,8 +1477,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarMulCommand mul:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, mul.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, mul.Argument);
+                    if (track.DoCommandWork)
                     {
                         vars[mul.Variable] *= arg;
                     }
@@ -1497,8 +1486,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarRandCommand rnd:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, rnd.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, rnd.Argument);
+                    if (track.DoCommandWork)
                     {
                         bool negate = false;
                         if (arg < 0)
@@ -1517,8 +1506,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarSetCommand set:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, set.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, set.Argument);
+                    if (track.DoCommandWork)
                     {
                         vars[set.Variable] = arg;
                     }
@@ -1526,8 +1515,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarShiftCommand shift:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, shift.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, shift.Argument);
+                    if (track.DoCommandWork)
                     {
                         vars[shift.Variable] = arg < 0 ? (short)(vars[shift.Variable] >> -arg) : (short)(vars[shift.Variable] << arg);
                     }
@@ -1535,8 +1524,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VarSubCommand sub:
                 {
-                    short arg = (short)ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType, sub.Argument);
-                    if (doCmdWork)
+                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, sub.Argument);
+                    if (track.DoCommandWork)
                     {
                         vars[sub.Variable] -= arg;
                     }
@@ -1544,8 +1533,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case VoiceCommand voice:
                 {
-                    int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.VarLen : argOverrideType, voice.Voice);
-                    if (doCmdWork)
+                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.VarLen : track.ArgOverrideType, voice.Voice);
+                    if (track.DoCommandWork)
                     {
                         track.Voice = (byte)arg;
                     }
@@ -1555,6 +1544,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             if (increment)
             {
                 track.CurEvent++;
+            }
+            if (resetOverride)
+            {
+                track.ArgOverrideType = ArgType.None;
+            }
+            if (resetCmdWork)
+            {
+                track.DoCommandWork = true;
             }
         }
 

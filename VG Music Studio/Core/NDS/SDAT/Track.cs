@@ -10,7 +10,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public bool Allocated, Enabled, Stopped;
         public bool Tie, Mono, Portamento,
             WaitingForNoteToFinishBeforeContinuingXD; // Is this necessary?
-        public bool VariableFlag; // Set by variable commands (0xB0 - 0xBD)
         public byte Voice, Priority, Volume, Expression,
             LFORange, PitchBendRange, LFOSpeed, LFODepth;
         public ushort LFODelay, LFOPhase, LFODelayCount;
@@ -20,10 +19,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public byte PortamentoKey, PortamentoTime;
         public short SweepPitch;
         public int Rest;
-        public int CurEvent;
         public int[] CallStack = new int[3];
         public byte[] CallStackLoops = new byte[3];
         public byte CallStackDepth;
+        public int CurEvent;
+        public bool VariableFlag; // Set by variable commands (0xB0 - 0xBD)
+        public bool DoCommandWork;
+        public ArgType ArgOverrideType;
 
         public readonly List<Channel> Channels = new List<Channel>(0x10);
 
@@ -56,7 +58,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             Stopped = Tie = WaitingForNoteToFinishBeforeContinuingXD = Portamento = false;
             Allocated = Enabled = Index == 0;
             CurEvent = 0;
-            Mono = VariableFlag = true;
+            ArgOverrideType = ArgType.None;
+            Mono = VariableFlag = DoCommandWork = true;
             CallStackDepth = 0;
             Voice = LFODepth = 0;
             PitchBend = Panpot = Transpose = 0;
