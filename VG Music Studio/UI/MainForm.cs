@@ -461,13 +461,11 @@ namespace Kermalis.VGMusicStudio.UI
             Engine.Instance.Player.Pause();
             if (Engine.Instance.Player.State != PlayerState.Paused)
             {
-                stopButton.Enabled = true;
                 pauseButton.Text = Strings.PlayerPause;
                 timer.Start();
             }
             else
             {
-                stopButton.Enabled = false;
                 pauseButton.Text = Strings.PlayerUnpause;
                 timer.Stop();
                 System.Threading.Monitor.Enter(timer);
@@ -480,6 +478,7 @@ namespace Kermalis.VGMusicStudio.UI
         {
             Engine.Instance.Player.Stop();
             pauseButton.Enabled = stopButton.Enabled = false;
+            pauseButton.Text = Strings.PlayerPause;
             timer.Stop();
             System.Threading.Monitor.Enter(timer);
             ClearPianoNotes();
