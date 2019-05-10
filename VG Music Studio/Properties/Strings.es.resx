@@ -117,49 +117,196 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="EndPlaylistBody" xml:space="preserve">
+    <value>Quisiera detener la Lista de Reproducción actual?</value>
+  </data>
+  <data name="ErrorLoadSong" xml:space="preserve">
+    <value>Error al Cargar Canción {0}</value>
+  </data>
+  <data name="ErrorOpenDSE" xml:space="preserve">
+    <value>Error al Abrir Carpeta DSE</value>
+  </data>
+  <data name="ErrorOpenMLSS" xml:space="preserve">
+    <value>Error al Abrir GBA ROM (MLSS)</value>
+  </data>
+  <data name="ErrorOpenMP2K" xml:space="preserve">
+    <value>Error al Abrir GBA ROM (MP2K)</value>
+  </data>
+  <data name="ErrorOpenSDAT" xml:space="preserve">
+    <value>Error al Abrir Archivo SDAT</value>
+  </data>
+  <data name="ErrorSaveMIDI" xml:space="preserve">
+    <value>Error al Exportar MIDI</value>
+  </data>
   <data name="FilterOpenGBA" xml:space="preserve">
-    <value>File GBA</value>
+    <value>Archivo GBA</value>
+  </data>
+  <data name="FilterOpenSDAT" xml:space="preserve">
+    <value>Archivo SDAT</value>
   </data>
   <data name="FilterSaveMIDI" xml:space="preserve">
-    <value>File MIDI</value>
+    <value>Archivo MIDI</value>
   </data>
   <data name="MenuData" xml:space="preserve">
-    <value>Dati</value>
+    <value>Datos</value>
+  </data>
+  <data name="MenuEndPlaylist" xml:space="preserve">
+    <value>Detener Lista de Reproducción Actual</value>
+  </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>Archivo</value>
+  </data>
+  <data name="MenuOpenDSE" xml:space="preserve">
+    <value>Abrir Carpeta DSE</value>
+  </data>
+  <data name="MenuOpenMLSS" xml:space="preserve">
+    <value>Abrir GBA ROM (MLSS)</value>
+  </data>
+  <data name="MenuOpenMP2K" xml:space="preserve">
+    <value>Abrir GBA ROM (MP2K)</value>
+  </data>
+  <data name="MenuOpenSDAT" xml:space="preserve">
+    <value>Abrir Archivo SDAT</value>
+  </data>
+  <data name="MenuPlaylist" xml:space="preserve">
+    <value>Playlist</value>
+  </data>
+  <data name="MenuSaveMIDI" xml:space="preserve">
+    <value>Exportar Canción como MIDI</value>
   </data>
   <data name="Notes" xml:space="preserve">
     <value>Do;Do#;Re;Re#;Mi;Fa;Fa#;Sol;Sol#;La;La#;Si</value>
   </data>
+  <data name="PlayerNextSong" xml:space="preserve">
+    <value>Siguiente Canción</value>
+  </data>
   <data name="PlayerNotes" xml:space="preserve">
-    <value>Note</value>
+    <value>Notas</value>
   </data>
   <data name="PlayerPause" xml:space="preserve">
-    <value>Pausa</value>
+    <value>Pausar</value>
+  </data>
+  <data name="PlayerPlay" xml:space="preserve">
+    <value>Reproducir</value>
   </data>
   <data name="PlayerPosition" xml:space="preserve">
-    <value>Posizione</value>
+    <value>Posición</value>
+  </data>
+  <data name="PlayerPreviousSong" xml:space="preserve">
+    <value>Canción Anterior</value>
+  </data>
+  <data name="PlayerRest" xml:space="preserve">
+    <value>Retraso</value>
+  </data>
+  <data name="PlayerStop" xml:space="preserve">
+    <value>Detener</value>
+  </data>
+  <data name="PlayerTempo" xml:space="preserve">
+    <value>Tempo</value>
   </data>
   <data name="PlayerType" xml:space="preserve">
     <value>Tipo</value>
   </data>
   <data name="PlayerUnpause" xml:space="preserve">
-    <value>Riprendere</value>
+    <value>Resumir</value>
   </data>
-  <data name="SuccessSaveMIDI" xml:space="preserve">
-    <value>MIDI salvata in {0}.</value>
+  <data name="PlaylistMusic" xml:space="preserve">
+    <value>Música</value>
   </data>
   <data name="PlayPlaylistBody" xml:space="preserve">
-    <value>Desideri riprodurre la seguente Playlist?{0}</value>
+    <value>Quisiera reproducir la siguiente Lista de Reproducción? {0}</value>
   </data>
-  <data name="PlayerNextSong" xml:space="preserve">
-    <value>Brano Successivo</value>
-  </data>
-  <data name="PlayerPreviousSong" xml:space="preserve">
-    <value>Brano Precedente</value>
+  <data name="SuccessSaveMIDI" xml:space="preserve">
+    <value>MIDI guardado en {0}.</value>
   </data>
   <data name="TrackViewerArguments" xml:space="preserve">
-    <value>Argomenti</value>
+    <value>Argumento</value>
   </data>
   <data name="TrackViewerEvent" xml:space="preserve">
-    <value>Eventi</value>
+    <value>Evento</value>
+  </data>
+  <data name="TrackViewerOffset" xml:space="preserve">
+    <value>Offset</value>
+  </data>
+  <data name="TrackViewerTicks" xml:space="preserve">
+    <value>Ticks</value>
+  </data>
+  <data name="TrackViewerTitle" xml:space="preserve">
+    <value>Visor de Eventos</value>
+  </data>
+  <data name="TrackViewerTrackX" xml:space="preserve">
+    <value>Pista {0}</value>
+  </data>
+  <data name="ConfigKeySubkey" xml:space="preserve">
+    <value>{0} clave</value>
+  </data>
+  <data name="ErrorBoolParse" xml:space="preserve">
+    <value>"{0}" debe ser Verdadero o Falso.</value>
+  </data>
+  <data name="ErrorConfigColorInvalidKey" xml:space="preserve">
+    <value>El color {0} tiene una clave inválida.</value>
+  </data>
+  <data name="ErrorConfigColorMissing" xml:space="preserve">
+    <value>El color {0} no está definido.</value>
+  </data>
+  <data name="ErrorConfigColorRepeated" xml:space="preserve">
+    <value>El color {0} está definido más de una vez entre decimal y hexadecimal.</value>
+  </data>
+  <data name="ErrorConfigKeyInvalid" xml:space="preserve">
+    <value>"{0}" es inválido.</value>
+  </data>
+  <data name="ErrorConfigKeyMissing" xml:space="preserve">
+    <value>"{0}" no se encuentra.</value>
+  </data>
+  <data name="ErrorConfigKeyNoEntries" xml:space="preserve">
+    <value>"{0}" debe tener al menos una entrada.</value>
+  </data>
+  <data name="ErrorDSEInvalidHeaderVersion" xml:space="preserve">
+    <value>Versión del encabezado desconocida: 0x{0:X}</value>
+  </data>
+  <data name="ErrorDSEInvalidKey" xml:space="preserve">
+    <value>Clave inválida en la pista {0} en 0x{1:X}: {2}</value>
+  </data>
+  <data name="ErrorDSEMLSSMP2KSDATInvalidCommand" xml:space="preserve">
+    <value>Comando inválido en la pista {0} en 0x{1:X}: 0x{2:X}</value>
+  </data>
+  <data name="ErrorDSENoSequences" xml:space="preserve">
+    <value>No hay ningún archivo "bgm(NNNN).smd".</value>
+  </data>
+  <data name="ErrorGlobalConfig" xml:space="preserve">
+    <value>Error al Cargar Configuración Global</value>
+  </data>
+  <data name="ErrorMLSSMP2KCopyInvalidGameCode" xml:space="preserve">
+    <value>No se puede copiar, el código del juego "{0}" es inválido.</value>
+  </data>
+  <data name="ErrorMLSSMP2KMissingGameCode" xml:space="preserve">
+    <value>No se encuentra el código del juego "{0}".</value>
+  </data>
+  <data name="ErrorMLSSMP2KParseGameCode" xml:space="preserve">
+    <value>Error analizando el código del juego "{0}" en "{1}"{2}</value>
+  </data>
+  <data name="ErrorMLSSMP2KSongRepeated" xml:space="preserve">
+    <value>La Lista de Reproducción "{0}" tiene a la canción {1} definida más de una vez entre decimal y hexadecimal.</value>
+  </data>
+  <data name="ErrorMLSSMP2KSongTableCounts" xml:space="preserve">
+    <value>El número de "{0}" debe ser igual al de "{1}".</value>
+  </data>
+  <data name="ErrorMP2KInvalidRunningStatusCommand" xml:space="preserve">
+    <value>Comando de estado en ejecución inválido en la pista {0} en 0x{1:X}: 0x{2:X}</value>
+  </data>
+  <data name="ErrorMP2KSDATNestedCalls" xml:space="preserve">
+    <value>Demasiadas llamadas a eventos anidadas en la pista {0}</value>
+  </data>
+  <data name="ErrorParseConfig" xml:space="preserve">
+    <value>Error analizando "{0}"{1}</value>
+  </data>
+  <data name="ErrorSDATNoSequences" xml:space="preserve">
+    <value>Este archivo SDAT no tiene secuencias.</value>
+  </data>
+  <data name="ErrorValueParse" xml:space="preserve">
+    <value>"{0}" no es un valor entero.</value>
+  </data>
+  <data name="ErrorValueParseRanged" xml:space="preserve">
+    <value>"{0}" debe estar entre {1} y {2}.</value>
   </data>
 </root>

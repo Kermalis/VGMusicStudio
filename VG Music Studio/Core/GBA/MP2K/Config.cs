@@ -1,4 +1,5 @@
 ﻿using Kermalis.EndianBinaryIO;
+using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.Util;
 using System;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     catch (BetterKeyNotFoundException)
                     {
-                        throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}Game code \"{GameCode}\" is missing.");
+                        throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KMissingGameCode, GameCode)));
                     }
 
                     Name = game.Children.GetValue(nameof(Name)).ToString();
@@ -53,7 +54,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     string[] songTables = game.Children.GetValue(nameof(SongTableOffsets)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (songTables.Length == 0)
                     {
-                        throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(SongTableOffsets)}\" must have at least one entry.");
+                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyNoEntries, nameof(SongTableOffsets))));
                     }
 
                     if (game.Children.TryGetValue("Copy", out YamlNode copy))
@@ -64,14 +65,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         }
                         catch (BetterKeyNotFoundException ex)
                         {
-                            throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}Cannot copy invalid game code \"{ex.Key}\"");
+                            throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KCopyInvalidGameCode, ex.Key)));
                         }
                     }
 
                     string[] sizes = game.Children.GetValue(nameof(SongTableSizes)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (sizes.Length != songTables.Length)
                     {
-                        throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(SongTableSizes)}\" count must be the same as \"{nameof(SongTableOffsets)}\" count.");
+                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongTableCounts, nameof(SongTableSizes), nameof(SongTableOffsets))));
                     }
                     SongTableOffsets = new int[songTables.Length];
                     SongTableSizes = new long[songTables.Length];
@@ -88,7 +89,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
                     {
-                        throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{nameof(ReverbType)}\" was invalid.");
+                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyInvalid, nameof(ReverbType))));
                     }
                     Reverb = (byte)game.GetValidValue(nameof(Reverb), byte.MinValue, byte.MaxValue);
                     Volume = (byte)game.GetValidValue(nameof(Volume), 0, 15);
@@ -108,10 +109,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             var songs = new List<Song>();
                             foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
                             {
-                                long songIndex = Util.Utils.ParseValue($"{nameof(Playlists)} key", song.Key.ToString(), 0, long.MaxValue);
+                                long songIndex = Util.Utils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, long.MaxValue);
                                 if (songs.Any(s => s.Index == songIndex))
                                 {
-                                    throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}Playlist \"{name}\" has song {songIndex} defined more than once between decimal and hexadecimal.");
+                                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongRepeated, name, songIndex)));
                                 }
                                 songs.Add(new Song(songIndex, song.Value.ToString()));
                             }
@@ -122,20 +123,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     // The complete playlist
                     if (!Playlists.Any(p => p.Name == "Music"))
                     {
-                        Playlists.Insert(0, new Playlist("Music", Playlists.SelectMany(p => p.Songs).Distinct().OrderBy(s => s.Index)));
+                        Playlists.Insert(0, new Playlist(Strings.PlaylistMusic, Playlists.SelectMany(p => p.Songs).Distinct().OrderBy(s => s.Index)));
                     }
                 }
                 catch (BetterKeyNotFoundException ex)
                 {
-                    throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}\"{ex.Key}\" is missing.");
+                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyMissing, ex.Key)));
                 }
                 catch (InvalidValueException ex)
                 {
-                    throw new Exception($"Error parsing game code \"{GameCode}\" in \"{configFile}\"{Environment.NewLine}{ex.Message}");
+                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + ex.Message));
                 }
-                catch (YamlDotNet.Core.SyntaxErrorException ex)
+                catch (YamlDotNet.Core.YamlException ex)
                 {
-                    throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}{ex.Message}");
+                    throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + ex.Message));
                 }
             }
         }

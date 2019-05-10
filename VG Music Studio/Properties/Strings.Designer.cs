@@ -61,101 +61,128 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Definition.
+        ///   Looks up a localized string similar to {0} key.
         /// </summary>
-        internal static string AssemblerDefinition {
+        internal static string ConfigKeySubkey {
             get {
-                return ResourceManager.GetString("AssemblerDefinition", resourceCulture);
+                return ResourceManager.GetString("ConfigKeySubkey", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Definitions cannot start with a digit..
+        ///   Looks up a localized string similar to Would you like to stop playing the current playlist?.
         /// </summary>
-        internal static string AssemblerErrorDefinitionDigit {
+        internal static string EndPlaylistBody {
             get {
-                return ResourceManager.GetString("AssemblerErrorDefinitionDigit", resourceCulture);
+                return ResourceManager.GetString("EndPlaylistBody", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value: {0}.
+        ///   Looks up a localized string similar to &quot;{0}&quot; must be True or False..
         /// </summary>
-        internal static string AssemblerErrorInvalidValue {
+        internal static string ErrorBoolParse {
             get {
-                return ResourceManager.GetString("AssemblerErrorInvalidValue", resourceCulture);
+                return ResourceManager.GetString("ErrorBoolParse", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open File.
+        ///   Looks up a localized string similar to Color {0} has an invalid key..
         /// </summary>
-        internal static string AssemblerOpenFile {
+        internal static string ErrorConfigColorInvalidKey {
             get {
-                return ResourceManager.GetString("AssemblerOpenFile", resourceCulture);
+                return ResourceManager.GetString("ErrorConfigColorInvalidKey", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preview Song.
+        ///   Looks up a localized string similar to Color {0} is not defined..
         /// </summary>
-        internal static string AssemblerPreviewSong {
+        internal static string ErrorConfigColorMissing {
             get {
-                return ResourceManager.GetString("AssemblerPreviewSong", resourceCulture);
+                return ResourceManager.GetString("ErrorConfigColorMissing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Size in bytes: {0}.
+        ///   Looks up a localized string similar to Color {0} is defined more than once between decimal and hexadecimal..
         /// </summary>
-        internal static string AssemblerSizeInBytes {
+        internal static string ErrorConfigColorRepeated {
             get {
-                return ResourceManager.GetString("AssemblerSizeInBytes", resourceCulture);
+                return ResourceManager.GetString("ErrorConfigColorRepeated", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ASM Assembler.
+        ///   Looks up a localized string similar to &quot;{0}&quot; is invalid..
         /// </summary>
-        internal static string AssemblerTitle {
+        internal static string ErrorConfigKeyInvalid {
             get {
-                return ResourceManager.GetString("AssemblerTitle", resourceCulture);
+                return ResourceManager.GetString("ErrorConfigKeyInvalid", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value.
+        ///   Looks up a localized string similar to &quot;{0}&quot; is missing..
         /// </summary>
-        internal static string AssemblerValue {
+        internal static string ErrorConfigKeyMissing {
             get {
-                return ResourceManager.GetString("AssemblerValue", resourceCulture);
+                return ResourceManager.GetString("ErrorConfigKeyMissing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Converting MIDI files to this game engine is not supported at this time..
+        ///   Looks up a localized string similar to &quot;{0}&quot; must have at least one entry..
         /// </summary>
-        internal static string ErrorEngineOpenMIDI {
+        internal static string ErrorConfigKeyNoEntries {
             get {
-                return ResourceManager.GetString("ErrorEngineOpenMIDI", resourceCulture);
+                return ResourceManager.GetString("ErrorConfigKeyNoEntries", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exporting to ASM from this game engine is not supported at this time..
+        ///   Looks up a localized string similar to Unknown header version: 0x{0:X}.
         /// </summary>
-        internal static string ErrorEngineSaveASM {
+        internal static string ErrorDSEInvalidHeaderVersion {
             get {
-                return ResourceManager.GetString("ErrorEngineSaveASM", resourceCulture);
+                return ResourceManager.GetString("ErrorDSEInvalidHeaderVersion", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exporting to MIDI from this game engine is not supported at this time..
+        ///   Looks up a localized string similar to Invalid key in track {0} at 0x{1:X}: {2}.
         /// </summary>
-        internal static string ErrorEngineSaveMIDI {
+        internal static string ErrorDSEInvalidKey {
             get {
-                return ResourceManager.GetString("ErrorEngineSaveMIDI", resourceCulture);
+                return ResourceManager.GetString("ErrorDSEInvalidKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid command in track {0} at 0x{1:X}: 0x{2:X}.
+        /// </summary>
+        internal static string ErrorDSEMLSSMP2KSDATInvalidCommand {
+            get {
+                return ResourceManager.GetString("ErrorDSEMLSSMP2KSDATInvalidCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There are no &quot;bgm(NNNN).smd&quot; files..
+        /// </summary>
+        internal static string ErrorDSENoSequences {
+            get {
+                return ResourceManager.GetString("ErrorDSENoSequences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error Loading Global Config.
+        /// </summary>
+        internal static string ErrorGlobalConfig {
+            get {
+                return ResourceManager.GetString("ErrorGlobalConfig", resourceCulture);
             }
         }
         
@@ -169,29 +196,110 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This song has no tracks..
+        ///   Looks up a localized string similar to Cannot copy invalid game code &quot;{0}&quot;.
         /// </summary>
-        internal static string ErrorNoTracks {
+        internal static string ErrorMLSSMP2KCopyInvalidGameCode {
             get {
-                return ResourceManager.GetString("ErrorNoTracks", resourceCulture);
+                return ResourceManager.GetString("ErrorMLSSMP2KCopyInvalidGameCode", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error Loading ROM.
+        ///   Looks up a localized string similar to Game code &quot;{0}&quot; is missing..
         /// </summary>
-        internal static string ErrorOpenGBA {
+        internal static string ErrorMLSSMP2KMissingGameCode {
             get {
-                return ResourceManager.GetString("ErrorOpenGBA", resourceCulture);
+                return ResourceManager.GetString("ErrorMLSSMP2KMissingGameCode", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error Exporting ASM.
+        ///   Looks up a localized string similar to Error parsing game code &quot;{0}&quot; in &quot;{1}&quot;{2}.
         /// </summary>
-        internal static string ErrorSaveASM {
+        internal static string ErrorMLSSMP2KParseGameCode {
             get {
-                return ResourceManager.GetString("ErrorSaveASM", resourceCulture);
+                return ResourceManager.GetString("ErrorMLSSMP2KParseGameCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Playlist &quot;{0}&quot; has song {1} defined more than once between decimal and hexadecimal..
+        /// </summary>
+        internal static string ErrorMLSSMP2KSongRepeated {
+            get {
+                return ResourceManager.GetString("ErrorMLSSMP2KSongRepeated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;{0}&quot; count must be the same as &quot;{1}&quot; count..
+        /// </summary>
+        internal static string ErrorMLSSMP2KSongTableCounts {
+            get {
+                return ResourceManager.GetString("ErrorMLSSMP2KSongTableCounts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid running status command in track {0} at 0x{1:X}: 0x{2:X}.
+        /// </summary>
+        internal static string ErrorMP2KInvalidRunningStatusCommand {
+            get {
+                return ResourceManager.GetString("ErrorMP2KInvalidRunningStatusCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Too many nested call events in track {0}.
+        /// </summary>
+        internal static string ErrorMP2KSDATNestedCalls {
+            get {
+                return ResourceManager.GetString("ErrorMP2KSDATNestedCalls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error Loading DSE Folder.
+        /// </summary>
+        internal static string ErrorOpenDSE {
+            get {
+                return ResourceManager.GetString("ErrorOpenDSE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error Loading GBA ROM (MLSS).
+        /// </summary>
+        internal static string ErrorOpenMLSS {
+            get {
+                return ResourceManager.GetString("ErrorOpenMLSS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error Loading GBA ROM (MP2K).
+        /// </summary>
+        internal static string ErrorOpenMP2K {
+            get {
+                return ResourceManager.GetString("ErrorOpenMP2K", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error Loading SDAT File.
+        /// </summary>
+        internal static string ErrorOpenSDAT {
+            get {
+                return ResourceManager.GetString("ErrorOpenSDAT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error parsing &quot;{0}&quot;{1}.
+        /// </summary>
+        internal static string ErrorParseConfig {
+            get {
+                return ResourceManager.GetString("ErrorParseConfig", resourceCulture);
             }
         }
         
@@ -205,34 +313,34 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error Exporting SF2 File.
+        ///   Looks up a localized string similar to This SDAT archive has no sequences..
         /// </summary>
-        internal static string ErrorSaveSF2 {
+        internal static string ErrorSDATNoSequences {
             get {
-                return ResourceManager.GetString("ErrorSaveSF2", resourceCulture);
+                return ResourceManager.GetString("ErrorSDATNoSequences", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Song has too many tracks ({0})..
+        ///   Looks up a localized string similar to &quot;{0}&quot; is not an integer value..
         /// </summary>
-        internal static string ErrorTooManyTracks {
+        internal static string ErrorValueParse {
             get {
-                return ResourceManager.GetString("ErrorTooManyTracks", resourceCulture);
+                return ResourceManager.GetString("ErrorValueParse", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ASM files.
+        ///   Looks up a localized string similar to &quot;{0}&quot; must be between {1} and {2}..
         /// </summary>
-        internal static string FilterOpenASM {
+        internal static string ErrorValueParseRanged {
             get {
-                return ResourceManager.GetString("FilterOpenASM", resourceCulture);
+                return ResourceManager.GetString("ErrorValueParseRanged", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to GBA files.
+        ///   Looks up a localized string similar to GBA Files.
         /// </summary>
         internal static string FilterOpenGBA {
             get {
@@ -241,38 +349,20 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MIDI files.
+        ///   Looks up a localized string similar to SDAT Files.
         /// </summary>
-        internal static string FilterOpenMIDI {
+        internal static string FilterOpenSDAT {
             get {
-                return ResourceManager.GetString("FilterOpenMIDI", resourceCulture);
+                return ResourceManager.GetString("FilterOpenSDAT", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ASM file.
-        /// </summary>
-        internal static string FilterSaveASM {
-            get {
-                return ResourceManager.GetString("FilterSaveASM", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to MIDI file.
+        ///   Looks up a localized string similar to MIDI Files.
         /// </summary>
         internal static string FilterSaveMIDI {
             get {
                 return ResourceManager.GetString("FilterSaveMIDI", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SF2 file.
-        /// </summary>
-        internal static string FilterSaveSF2 {
-            get {
-                return ResourceManager.GetString("FilterSaveSF2", resourceCulture);
             }
         }
         
@@ -286,6 +376,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to End Current Playlist.
+        /// </summary>
+        internal static string MenuEndPlaylist {
+            get {
+                return ResourceManager.GetString("MenuEndPlaylist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File.
         /// </summary>
         internal static string MenuFile {
@@ -295,101 +394,56 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open ASM.
+        ///   Looks up a localized string similar to Open DSE Folder.
         /// </summary>
-        internal static string MenuOpenASM {
+        internal static string MenuOpenDSE {
             get {
-                return ResourceManager.GetString("MenuOpenASM", resourceCulture);
+                return ResourceManager.GetString("MenuOpenDSE", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open MIDI.
+        ///   Looks up a localized string similar to Open GBA ROM (MLSS).
         /// </summary>
-        internal static string MenuOpenMIDI {
+        internal static string MenuOpenMLSS {
             get {
-                return ResourceManager.GetString("MenuOpenMIDI", resourceCulture);
+                return ResourceManager.GetString("MenuOpenMLSS", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open ROM.
+        ///   Looks up a localized string similar to Open GBA ROM (MP2K).
         /// </summary>
-        internal static string MenuOpenROM {
+        internal static string MenuOpenMP2K {
             get {
-                return ResourceManager.GetString("MenuOpenROM", resourceCulture);
+                return ResourceManager.GetString("MenuOpenMP2K", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Song To ASM.
+        ///   Looks up a localized string similar to Open SDAT File.
         /// </summary>
-        internal static string MenuSaveASM {
+        internal static string MenuOpenSDAT {
             get {
-                return ResourceManager.GetString("MenuSaveASM", resourceCulture);
+                return ResourceManager.GetString("MenuOpenSDAT", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Song To MIDI.
+        ///   Looks up a localized string similar to Playlist.
+        /// </summary>
+        internal static string MenuPlaylist {
+            get {
+                return ResourceManager.GetString("MenuPlaylist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export Song as MIDI.
         /// </summary>
         internal static string MenuSaveMIDI {
             get {
                 return ResourceManager.GetString("MenuSaveMIDI", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Export VoiceTable To SF2.
-        /// </summary>
-        internal static string MenuSaveSF2 {
-            get {
-                return ResourceManager.GetString("MenuSaveSF2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There was an error converting the MIDI file:{0}.
-        /// </summary>
-        internal static string MIDIConverterError {
-            get {
-                return ResourceManager.GetString("MIDIConverterError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Open MIDI.
-        /// </summary>
-        internal static string MIDIConverterOpenFile {
-            get {
-                return ResourceManager.GetString("MIDIConverterOpenFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Preview Song.
-        /// </summary>
-        internal static string MIDIConverterPreviewSong {
-            get {
-                return ResourceManager.GetString("MIDIConverterPreviewSong", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to MIDI Converter.
-        /// </summary>
-        internal static string MIDIConverterTitle {
-            get {
-                return ResourceManager.GetString("MIDIConverterTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error Converting MIDI.
-        /// </summary>
-        internal static string MIDIConverterTitleError {
-            get {
-                return ResourceManager.GetString("MIDIConverterTitleError", resourceCulture);
             }
         }
         
@@ -399,15 +453,6 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string Notes {
             get {
                 return ResourceManager.GetString("Notes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delay.
-        /// </summary>
-        internal static string PlayerDelay {
-            get {
-                return ResourceManager.GetString("PlayerDelay", resourceCulture);
             }
         }
         
@@ -466,6 +511,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rest.
+        /// </summary>
+        internal static string PlayerRest {
+            get {
+                return ResourceManager.GetString("PlayerRest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Stop.
         /// </summary>
         internal static string PlayerStop {
@@ -502,20 +556,20 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Music.
+        /// </summary>
+        internal static string PlaylistMusic {
+            get {
+                return ResourceManager.GetString("PlaylistMusic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Would you like to play the following playlist?{0}.
         /// </summary>
         internal static string PlayPlaylistBody {
             get {
                 return ResourceManager.GetString("PlayPlaylistBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ASM saved to {0}..
-        /// </summary>
-        internal static string SuccessSaveASM {
-            get {
-                return ResourceManager.GetString("SuccessSaveASM", resourceCulture);
             }
         }
         
@@ -529,191 +583,56 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VoiceTable saved to {0}..
-        /// </summary>
-        internal static string SuccessSaveSF2 {
-            get {
-                return ResourceManager.GetString("SuccessSaveSF2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error Assembling File.
-        /// </summary>
-        internal static string TitleAssemblerError {
-            get {
-                return ResourceManager.GetString("TitleAssemblerError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error.
-        /// </summary>
-        internal static string TitleError {
-            get {
-                return ResourceManager.GetString("TitleError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Open ASM.
-        /// </summary>
-        internal static string TitleOpenASM {
-            get {
-                return ResourceManager.GetString("TitleOpenASM", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Open GBA ROM.
-        /// </summary>
-        internal static string TitleOpenGBA {
-            get {
-                return ResourceManager.GetString("TitleOpenGBA", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Open MIDI.
-        /// </summary>
-        internal static string TitleOpenMIDI {
-            get {
-                return ResourceManager.GetString("TitleOpenMIDI", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Export ASM File.
-        /// </summary>
-        internal static string TitleSaveASM {
-            get {
-                return ResourceManager.GetString("TitleSaveASM", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Export MIDI File.
-        /// </summary>
-        internal static string TitleSaveMIDI {
-            get {
-                return ResourceManager.GetString("TitleSaveMIDI", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Export SF2 File.
-        /// </summary>
-        internal static string TitleSaveSF2 {
-            get {
-                return ResourceManager.GetString("TitleSaveSF2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add Event.
-        /// </summary>
-        internal static string TrackEditorAddEvent {
-            get {
-                return ResourceManager.GetString("TrackEditorAddEvent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Arguments.
         /// </summary>
-        internal static string TrackEditorArguments {
+        internal static string TrackViewerArguments {
             get {
-                return ResourceManager.GetString("TrackEditorArguments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Arg. {0}.
-        /// </summary>
-        internal static string TrackEditorArgX {
-            get {
-                return ResourceManager.GetString("TrackEditorArgX", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Voices.
-        /// </summary>
-        internal static string TrackEditorChangeVoices {
-            get {
-                return ResourceManager.GetString("TrackEditorChangeVoices", resourceCulture);
+                return ResourceManager.GetString("TrackViewerArguments", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Event.
         /// </summary>
-        internal static string TrackEditorEvent {
+        internal static string TrackViewerEvent {
             get {
-                return ResourceManager.GetString("TrackEditorEvent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to From.
-        /// </summary>
-        internal static string TrackEditorFrom {
-            get {
-                return ResourceManager.GetString("TrackEditorFrom", resourceCulture);
+                return ResourceManager.GetString("TrackViewerEvent", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Offset.
         /// </summary>
-        internal static string TrackEditorOffset {
+        internal static string TrackViewerOffset {
             get {
-                return ResourceManager.GetString("TrackEditorOffset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove Event.
-        /// </summary>
-        internal static string TrackEditorRemoveEvent {
-            get {
-                return ResourceManager.GetString("TrackEditorRemoveEvent", resourceCulture);
+                return ResourceManager.GetString("TrackViewerOffset", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Ticks.
         /// </summary>
-        internal static string TrackEditorTicks {
+        internal static string TrackViewerTicks {
             get {
-                return ResourceManager.GetString("TrackEditorTicks", resourceCulture);
+                return ResourceManager.GetString("TrackViewerTicks", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To.
+        ///   Looks up a localized string similar to Track Viewer.
         /// </summary>
-        internal static string TrackEditorTo {
+        internal static string TrackViewerTitle {
             get {
-                return ResourceManager.GetString("TrackEditorTo", resourceCulture);
+                return ResourceManager.GetString("TrackViewerTitle", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Track {0}.
         /// </summary>
-        internal static string TrackEditorTrackX {
+        internal static string TrackViewerTrackX {
             get {
-                return ResourceManager.GetString("TrackEditorTrackX", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Address.
-        /// </summary>
-        internal static string VoiceTableEditorAddress {
-            get {
-                return ResourceManager.GetString("VoiceTableEditorAddress", resourceCulture);
+                return ResourceManager.GetString("TrackViewerTrackX", resourceCulture);
             }
         }
     }

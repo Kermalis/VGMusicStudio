@@ -16,23 +16,23 @@ namespace Kermalis.VGMusicStudio.Util
         {
             return val.CompareTo(min) < 0 ? min : val.CompareTo(max) > 0 ? max : val;
         }
-        public static bool TryParseValue(string value, long minRange, long maxRange, out long outValue)
+        public static bool TryParseValue(string value, long minValue, long maxValue, out long outValue)
         {
-            try { outValue = ParseValue(string.Empty, value, minRange, maxRange); return true; }
+            try { outValue = ParseValue(string.Empty, value, minValue, maxValue); return true; }
             catch { outValue = 0; return false; }
         }
         /// <exception cref="InvalidValueException" />
-        public static long ParseValue(string valueName, string value, long minRange, long maxRange)
+        public static long ParseValue(string valueName, string value, long minValue, long maxValue)
         {
             string GetMessage()
             {
-                return $"\"{valueName}\" must be between {minRange} and {maxRange}.";
+                return string.Format(Strings.ErrorValueParseRanged, valueName, minValue, maxValue);
             }
 
             var provider = new CultureInfo("en-US");
             if (value.StartsWith("0x") && long.TryParse(value.Substring(2), NumberStyles.HexNumber, provider, out long hexp))
             {
-                if (hexp < minRange || hexp > maxRange)
+                if (hexp < minValue || hexp > maxValue)
                 {
                     throw new InvalidValueException(hexp, GetMessage());
                 }
@@ -40,7 +40,7 @@ namespace Kermalis.VGMusicStudio.Util
             }
             else if (long.TryParse(value, NumberStyles.Integer, provider, out long dec))
             {
-                if (dec < minRange || dec > maxRange)
+                if (dec < minValue || dec > maxValue)
                 {
                     throw new InvalidValueException(dec, GetMessage());
                 }
@@ -48,13 +48,13 @@ namespace Kermalis.VGMusicStudio.Util
             }
             else if (long.TryParse(value, NumberStyles.HexNumber, provider, out long hex))
             {
-                if (hex < minRange || hex > maxRange)
+                if (hex < minValue || hex > maxValue)
                 {
                     throw new InvalidValueException(hex, GetMessage());
                 }
                 return hex;
             }
-            throw new InvalidValueException(value, $"\"{valueName}\" is not a value.");
+            throw new InvalidValueException(value, string.Format(Strings.ErrorValueParse, valueName));
         }
         /// <exception cref="BetterKeyNotFoundException" />
         public static TValue GetValue<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
@@ -75,7 +75,7 @@ namespace Kermalis.VGMusicStudio.Util
             return ParseValue(key, yamlNode.Children.GetValue(key).ToString(), minRange, maxRange);
         }
         /// <exception cref="BetterKeyNotFoundException" />
-        /// <exception cref="Exception" />
+        /// <exception cref="InvalidValueException" />
         public static bool GetValidBoolean(this YamlMappingNode yamlNode, string key)
         {
             if (bool.TryParse(yamlNode.Children.GetValue(key).ToString(), out bool value))
@@ -84,7 +84,7 @@ namespace Kermalis.VGMusicStudio.Util
             }
             else
             {
-                throw new InvalidValueException(key, $"\"{key}\" must be True or False.");
+                throw new InvalidValueException(key, string.Format(Strings.ErrorBoolParse, key));
             }
         }
 

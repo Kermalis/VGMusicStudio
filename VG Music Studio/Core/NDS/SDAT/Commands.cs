@@ -10,7 +10,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         protected string GetValues(int value, string ifNot)
         {
-            return RandMod ? $"[{(short)value}, {(short)((value >> 16) & 0xFFFF)}]"
+            return RandMod ? $"[{(short)value}, {(short)(value >> 16)}]"
                 : VarMod ? $"[{(byte)value}]"
                 : ifNot;
         }

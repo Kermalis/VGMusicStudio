@@ -1,4 +1,5 @@
 ﻿using Kermalis.EndianBinaryIO;
+using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.Util;
 using System;
 using System.Collections.Generic;
@@ -113,7 +114,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         songChunk = reader.ReadObject<SMD.SongChunk_V415>();
                         break;
                     }
-                    default: throw new Exception($"Unknown header version: 0x{header.Version:X}");
+                    default: throw new Exception(string.Format(Strings.ErrorDSEInvalidHeaderVersion, header.Version));
                 }
                 tracks = new Track[songChunk.NumTracks];
                 Events = new List<SongEvent>[songChunk.NumTracks];
@@ -171,7 +172,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                             }
                             else
                             {
-                                throw new Exception($"Invalid key at 0x{offset:X}: {k}");
+                                throw new Exception(string.Format(Strings.ErrorDSEInvalidKey, i, offset, k));
                             }
                         }
                         else if (cmd >= 0x80 && cmd <= 0x8F)
@@ -372,7 +373,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
-                                default: throw new Exception($"Invalid command at 0x{offset:X}: 0x{cmd:X}");
+                                default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
                             }
                         }
                     }

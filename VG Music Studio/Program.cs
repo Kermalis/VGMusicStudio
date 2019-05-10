@@ -1,4 +1,5 @@
 ﻿using Kermalis.VGMusicStudio.Core;
+using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.UI;
 using System;
 using System.Windows.Forms;
@@ -16,7 +17,7 @@ namespace Kermalis.VGMusicStudio
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, "Error Loading Global Config");
+                FlexibleMessageBox.Show(ex.Message, Strings.ErrorGlobalConfig);
                 return;
             }
             Application.EnableVisualStyles();

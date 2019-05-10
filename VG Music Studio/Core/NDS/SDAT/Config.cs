@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kermalis.VGMusicStudio.Properties;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,12 +14,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             SDAT = sdat;
             if (sdat.INFOBlock.SequenceInfos.NumEntries == 0)
             {
-                throw new Exception("This SDAT archive has no sequences.");
+                throw new Exception(Strings.ErrorSDATNoSequences);
             }
             IEnumerable<Song> songs = Enumerable.Range(0, sdat.INFOBlock.SequenceInfos.NumEntries)
                 .Where(i => sdat.INFOBlock.SequenceInfos.Entries[i] != null)
                 .Select(i => new Song(i, sdat.SYMBBlock == null ? i.ToString() : sdat.SYMBBlock.SequenceSymbols.Entries[i]));
-            Playlists.Add(new Playlist("Music", songs));
+            Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));
         }
     }
 }

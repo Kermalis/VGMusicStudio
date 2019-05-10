@@ -35,10 +35,10 @@ namespace Kermalis.VGMusicStudio.UI
                 UseFilterIndicator = true
             };
             OLVColumn c1, c2, c3, c4;
-            c1 = new OLVColumn(Strings.TrackEditorEvent, "Command.Label");
-            c2 = new OLVColumn(Strings.TrackEditorArguments, "Command.Arguments") { UseFiltering = false };
-            c3 = new OLVColumn(Strings.TrackEditorOffset, "Offset") { AspectToStringFormat = "0x{0:X}", UseFiltering = false };
-            c4 = new OLVColumn(Strings.TrackEditorTicks, "Ticks") { AspectGetter = (o) => string.Join(", ", ((SongEvent)o).Ticks), UseFiltering = false };
+            c1 = new OLVColumn(Strings.TrackViewerEvent, "Command.Label");
+            c2 = new OLVColumn(Strings.TrackViewerArguments, "Command.Arguments") { UseFiltering = false };
+            c3 = new OLVColumn(Strings.TrackViewerOffset, "Offset") { AspectToStringFormat = "0x{0:X}", UseFiltering = false };
+            c4 = new OLVColumn(Strings.TrackViewerTicks, "Ticks") { AspectGetter = (o) => string.Join(", ", ((SongEvent)o).Ticks), UseFiltering = false };
             c1.Width = c2.Width = c3.Width = 72;
             c4.Width = 47;
             c1.Hideable = c2.Hideable = c3.Hideable = c4.Hideable = false;
@@ -61,7 +61,7 @@ namespace Kermalis.VGMusicStudio.UI
             Controls.AddRange(new Control[] { listView, panel1 });
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
-            Text = $"{Utils.ProgramName} ― Track Viewer";
+            Text = $"{Utils.ProgramName} ― {Strings.TrackViewerTitle}";
 
             UpdateTracks();
         }
@@ -93,7 +93,7 @@ namespace Kermalis.VGMusicStudio.UI
             tracksBox.Enabled = tracks;
 
             // Track 0, Track 1, ...
-            tracksBox.DataSource = Enumerable.Range(0, numTracks).Select(i => string.Format(Strings.TrackEditorTrackX, i)).ToList();
+            tracksBox.DataSource = Enumerable.Range(0, numTracks).Select(i => string.Format(Strings.TrackViewerTrackX, i)).ToList();
 
             if (!tracks)
             {

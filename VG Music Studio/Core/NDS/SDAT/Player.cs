@@ -1,3 +1,4 @@
+using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.Util;
 using System;
 using System.Collections.Generic;
@@ -221,7 +222,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                             void Invalid()
                             {
-                                throw new Exception($"Invalid command at 0x{offset:X4}: 0x{cmd:X}");
+                                throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
                             }
 
                             if (cmd <= 0x7F)
@@ -266,10 +267,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0x93:
                                         {
-                                            if (i != 0)
-                                            {
-                                                throw new Exception($"Track {i} has a \"{nameof(OpenTrackCommand)}\".");
-                                            }
                                             int trackIndex = sseq.Data[dataOffset++];
                                             int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
                                             if (!EventExists(offset))
@@ -313,7 +310,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                             }
                                             else
                                             {
-                                                throw new Exception($"Too many nested call events in track {i}.");
+                                                throw new Exception(string.Format(Strings.ErrorMP2KSDATNestedCalls, i));
                                             }
                                             break;
                                         }
@@ -725,10 +722,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                             if (!EventExists(offset))
                                             {
                                                 AddEvent(new AllocTracksCommand { Tracks = bits });
-                                            }
-                                            if (i != 0)
-                                            {
-                                                throw new Exception($"Track {i} has a \"{nameof(AllocTracksCommand)}\".");
                                             }
                                             break;
                                         }
@@ -1276,11 +1269,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 case OpenTrackCommand open:
                 {
-                    Track truck = tracks[open.Track];
-                    if (track.DoCommandWork && truck.Allocated && !truck.Enabled)
+                    if (trackIndex == 0)
                     {
-                        truck.Enabled = true;
-                        truck.CurEvent = Events[open.Track].FindIndex(c => c.Offset == open.Offset);
+                        Track truck = tracks[open.Track];
+                        if (track.DoCommandWork && truck.Allocated && !truck.Enabled)
+                        {
+                            truck.Enabled = true;
+                            truck.CurEvent = Events[open.Track].FindIndex(c => c.Offset == open.Offset);
+                        }
                     }
                     break;
                 }

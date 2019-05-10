@@ -1,4 +1,5 @@
-﻿using Kermalis.VGMusicStudio.Util;
+﻿using Kermalis.VGMusicStudio.Properties;
+using Kermalis.VGMusicStudio.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -243,7 +244,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                         }
                                         else
                                         {
-                                            throw new Exception($"Unknown command at 0x{offset:X7}: 0x{cmd:X}");
+                                            throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
                                         }
                                         break;
                                     }

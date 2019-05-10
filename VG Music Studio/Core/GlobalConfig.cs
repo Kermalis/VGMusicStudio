@@ -1,4 +1,5 @@
-﻿using Kermalis.VGMusicStudio.Util;
+﻿using Kermalis.VGMusicStudio.Properties;
+using Kermalis.VGMusicStudio.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -46,7 +47,7 @@ namespace Kermalis.VGMusicStudio.Core
                     }
                     catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
                     {
-                        throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}\"{nameof(PlaylistMode)}\" was invalid.");
+                        throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyInvalid, nameof(PlaylistMode))));
                     }
                     PlaylistSongLoops = mapping.GetValidValue(nameof(PlaylistSongLoops), 0, long.MaxValue);
                     PlaylistFadeOutMilliseconds = mapping.GetValidValue(nameof(PlaylistFadeOutMilliseconds), 0, long.MaxValue);
@@ -55,16 +56,16 @@ namespace Kermalis.VGMusicStudio.Core
                     Colors = new HSLColor[256];
                     foreach (KeyValuePair<YamlNode, YamlNode> c in cmap)
                     {
-                        int i = (int)Utils.ParseValue($"{nameof(Colors)} key", c.Key.ToString(), 0, 127);
+                        int i = (int)Utils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Colors)), c.Key.ToString(), 0, 127);
                         if (Colors[i] != null)
                         {
-                            throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}Color {i} is defined more than once between decimal and hexadecimal.");
+                            throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigColorRepeated, i)));
                         }
                         double h = 0, s = 0, l = 0;
                         foreach (KeyValuePair<YamlNode, YamlNode> v in ((YamlMappingNode)c.Value).Children)
                         {
                             string key = v.Key.ToString();
-                            string valueName = $"Color {i} {key}";
+                            string valueName = string.Format(Strings.ConfigKeySubkey, string.Format("{0} {1}", nameof(Colors), i));
                             if (key == "H")
                             {
                                 h = Utils.ParseValue(valueName, v.Value.ToString(), 0, 240);
@@ -79,7 +80,7 @@ namespace Kermalis.VGMusicStudio.Core
                             }
                             else
                             {
-                                throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}Color {i} has an invalid key.");
+                                throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigColorInvalidKey, i)));
                             }
                         }
                         Colors[i] = Colors[i + 128] = new HSLColor(h, s, l);
@@ -88,17 +89,17 @@ namespace Kermalis.VGMusicStudio.Core
                     {
                         if (Colors[i] == null)
                         {
-                            throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}Color {i} is not defined.");
+                            throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigColorMissing, i)));
                         }
                     }
                 }
                 catch (BetterKeyNotFoundException ex)
                 {
-                    throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}\"{ex.Key}\" is missing.");
+                    throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyMissing, ex.Key)));
                 }
-                catch (Exception ex) when (ex is InvalidValueException || ex is YamlDotNet.Core.SyntaxErrorException)
+                catch (Exception ex) when (ex is InvalidValueException || ex is YamlDotNet.Core.YamlException)
                 {
-                    throw new Exception($"Error parsing \"{configFile}\"{Environment.NewLine}{ex.Message}");
+                    throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + ex.Message));
                 }
             }
         }

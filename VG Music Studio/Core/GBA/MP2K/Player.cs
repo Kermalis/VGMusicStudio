@@ -1,4 +1,5 @@
-﻿using Kermalis.VGMusicStudio.Util;
+﻿using Kermalis.VGMusicStudio.Properties;
+using Kermalis.VGMusicStudio.Util;
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
@@ -321,7 +322,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                     break;
                                 }
-                                default: throw new Exception($"Invalid running status command at 0x{offset:X7}: 0x{runCmd:X}");
+                                default: throw new Exception(string.Format(Strings.ErrorMP2KInvalidRunningStatusCommand, i, offset, runCmd));
                             }
                         }
                         else if (cmd > 0xB0 && cmd < 0xCF)
@@ -368,7 +369,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                     else
                                     {
-                                        throw new Exception($"Too many nested call events in track {i}.");
+                                        throw new Exception(string.Format(Strings.ErrorMP2KSDATNestedCalls, i));
                                     }
                                     break;
                                 }
@@ -543,7 +544,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                     break;
                                 }
-                                default: throw new Exception($"Invalid command at 0x{offset:X7}: 0x{cmd:X}");
+                                default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
                             }
                         }
 
@@ -623,7 +624,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             if (args.ReverseVolume)
             {
                 baseVolume = Events.SelectMany(e => e).Where(e => e.Command is VolumeCommand).Select(e => ((VolumeCommand)e.Command).Volume).Max();
-                Console.WriteLine("Reversing volume back from {0}.", baseVolume);
+                System.Diagnostics.Debug.WriteLine($"Reversing volume back from {baseVolume}.");
             }
 
             var midi = new Sequence(24) { Format = 1 };

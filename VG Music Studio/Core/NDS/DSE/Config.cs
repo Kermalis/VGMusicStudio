@@ -1,4 +1,5 @@
 ﻿using Kermalis.EndianBinaryIO;
+using Kermalis.VGMusicStudio.Properties;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             BGMFiles = Directory.GetFiles(bgmPath, "bgm*.smd", SearchOption.TopDirectoryOnly);
             if (BGMFiles.Length == 0)
             {
-                throw new Exception("There are no \"bgm(NNNN).smd\" files.");
+                throw new Exception(Strings.ErrorDSENoSequences);
             }
             var songs = new Song[BGMFiles.Length];
             for (int i = 0; i < BGMFiles.Length; i++)
@@ -27,7 +28,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     songs[i] = new Song(i, $"{Path.GetFileNameWithoutExtension(BGMFiles[i])} - {new string(header.Label.TakeWhile(c => c != '\0').ToArray())}");
                 }
             }
-            Playlists.Add(new Playlist("Music", songs));
+            Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));
         }
     }
 }

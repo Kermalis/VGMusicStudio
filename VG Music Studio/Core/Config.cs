@@ -44,13 +44,17 @@ namespace Kermalis.VGMusicStudio.Core
             {
                 int songCount = Songs.Count;
                 CultureInfo cul = System.Threading.Thread.CurrentThread.CurrentUICulture;
-
-                if (cul.Equals(CultureInfo.CreateSpecificCulture("it")) // Italian
-                    || cul.Equals(CultureInfo.CreateSpecificCulture("it-it"))) // Italian (Italy)
+                if (cul.TwoLetterISOLanguageName == "it") // Italian
                 {
-                    // PlaylistName - (1 Canzoni)
+                    // PlaylistName - (1 Canzone)
                     // PlaylistName - (2 Canzoni)
                     return $"{Name} - ({songCount} {(songCount == 1 ? "Canzone" : "Canzoni")})";
+                }
+                else if (cul.TwoLetterISOLanguageName == "es") // Spanish
+                {
+                    // PlaylistName - (1 Canción)
+                    // PlaylistName - (2 Canciones)
+                    return $"{Name} - ({songCount} {(songCount == 1 ? "Canción" : "Canciones")})";
                 }
                 else // Fallback to en-US
                 {

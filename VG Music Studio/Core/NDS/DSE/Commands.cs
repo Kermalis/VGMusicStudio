@@ -56,7 +56,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
     {
         public Color Color => Color.MediumPurple;
         public string Label => "Pitch Bend";
-        public string Arguments => Bend.ToString();
+        public string Arguments => $"{(sbyte)Bend}, {(sbyte)(Bend >> 8)}";
 
         public ushort Bend { get; set; }
     }

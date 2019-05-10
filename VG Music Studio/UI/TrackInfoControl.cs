@@ -1,4 +1,5 @@
 ﻿using Kermalis.VGMusicStudio.Core;
+using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.Util;
 using System;
 using System.ComponentModel;
@@ -160,7 +161,7 @@ namespace Kermalis.VGMusicStudio.UI
             notesX = positionX + (FWidth / 4.4f);
             delayX = positionX + (FWidth / 7.5f);
             typeEndX = positionX + FWidth - (FWidth / 100f);
-            typeX = typeEndX - TextRenderer.MeasureText("Type", Font).Width;
+            typeX = typeEndX - TextRenderer.MeasureText(Strings.PlayerType, Font).Width;
             voicesX = positionX + (FWidth / 25f);
             row2ElementAdditionX = FWidth / 15f;
 
@@ -174,7 +175,7 @@ namespace Kermalis.VGMusicStudio.UI
             barRightBoundX = barStartX + barWidth - bwd;
             barCenterX = barStartX + (barWidth / 2);
 
-            tempoX = barCenterX - (TextRenderer.MeasureText("Tempo - 999", Font).Width / 2);
+            tempoX = barCenterX - (TextRenderer.MeasureText(string.Format("{0} - 999", Strings.PlayerTempo), Font).Width / 2);
 
             base.OnResize(e);
             Invalidate();
@@ -186,13 +187,13 @@ namespace Kermalis.VGMusicStudio.UI
 
             mutes[0x10].Location = new Point(checkboxOffset, (int)infoY + checkboxOffset);
             pianos[0x10].Location = new Point(checkboxSize + (checkboxOffset * 2), (int)infoY + checkboxOffset);
-            e.Graphics.DrawString("Position", Font, Brushes.Lime, positionX, infoY);
-            e.Graphics.DrawString("Delay", Font, Brushes.Crimson, delayX, infoY);
-            e.Graphics.DrawString("Notes", Font, Brushes.Turquoise, notesX, infoY);
+            e.Graphics.DrawString(Strings.PlayerPosition, Font, Brushes.Lime, positionX, infoY);
+            e.Graphics.DrawString(Strings.PlayerRest, Font, Brushes.Crimson, delayX, infoY);
+            e.Graphics.DrawString(Strings.PlayerNotes, Font, Brushes.Turquoise, notesX, infoY);
             e.Graphics.DrawString("L", Font, Brushes.GreenYellow, barStartX - 5, infoY);
-            e.Graphics.DrawString("Tempo - " + Info.Tempo, Font, Brushes.Cyan, tempoX, infoY);
+            e.Graphics.DrawString(string.Format("{0} - ", Strings.PlayerTempo) + Info.Tempo, Font, Brushes.Cyan, tempoX, infoY);
             e.Graphics.DrawString("R", Font, Brushes.GreenYellow, barRightBoundX - 5, infoY);
-            e.Graphics.DrawString("Type", Font, Brushes.DeepPink, typeX, infoY);
+            e.Graphics.DrawString(Strings.PlayerType, Font, Brushes.DeepPink, typeX, infoY);
             e.Graphics.DrawLine(Pens.Gold, 0, infoHeight, Width, infoHeight);
 
             for (int i = 0; i < 0x10; i++)

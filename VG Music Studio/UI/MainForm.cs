@@ -69,29 +69,29 @@ namespace Kermalis.VGMusicStudio.UI
             components = new Container();
 
             // File Menu
-            openDSEItem = new ToolStripMenuItem { Text = "Open DSE Folder" };
+            openDSEItem = new ToolStripMenuItem { Text = Strings.MenuOpenDSE };
             openDSEItem.Click += OpenDSE;
-            openMLSSItem = new ToolStripMenuItem { Text = "Open GBA ROM (MLSS)" };
+            openMLSSItem = new ToolStripMenuItem { Text = Strings.MenuOpenMLSS };
             openMLSSItem.Click += OpenMLSS;
-            openMP2KItem = new ToolStripMenuItem { Text = "Open GBA ROM (MP2K)" };
+            openMP2KItem = new ToolStripMenuItem { Text = Strings.MenuOpenMP2K };
             openMP2KItem.Click += OpenMP2K;
-            openSDATItem = new ToolStripMenuItem { Text = "Open SDAT File" };
+            openSDATItem = new ToolStripMenuItem { Text = Strings.MenuOpenSDAT };
             openSDATItem.Click += OpenSDAT;
             fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
             fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openMLSSItem, openMP2KItem, openSDATItem });
 
             // Data Menu
-            trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = "Track Viewer" };
+            trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = Strings.TrackViewerTitle };
             trackViewerItem.Click += OpenTrackViewer;
-            exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = "Export Song as MIDI" };
+            exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDI };
             exportMIDIItem.Click += ExportMIDI;
             dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
             dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem, exportMIDIItem });
 
             // Playlist Menu
-            endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = "End Current Playlist" };
+            endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuEndPlaylist };
             endPlaylistItem.Click += EndCurrentPlaylist;
-            playlistItem = new ToolStripMenuItem { Text = "Playlist" };
+            playlistItem = new ToolStripMenuItem { Text = Strings.MenuPlaylist };
             playlistItem.DropDownItems.AddRange(new ToolStripItem[] { endPlaylistItem });
 
             // Main Menu
@@ -241,7 +241,7 @@ namespace Kermalis.VGMusicStudio.UI
             else if (item.Item is Config.Playlist playlist)
             {
                 if (playlist.Songs.Count > 0
-                    && FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), "Playlist", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    && FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.MenuPlaylist, MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ResetPlaylistStuff(false);
                     curPlaylist = playlist;
@@ -289,7 +289,7 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void EndCurrentPlaylist(object sender, EventArgs e)
         {
-            if (FlexibleMessageBox.Show("Would you like to stop playing the current playlist?", "Playlist", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (FlexibleMessageBox.Show(Strings.EndPlaylistBody, Strings.MenuPlaylist, MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 ResetPlaylistStuff(true);
             }
@@ -299,7 +299,7 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonOpenFileDialog
             {
-                Title = "Open DSE Folder",
+                Title = Strings.MenuOpenDSE,
                 IsFolderPicker = true
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
@@ -313,7 +313,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, "Error Loading DSE");
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenDSE);
                     success = false;
                 }
                 if (success)
@@ -327,8 +327,8 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonOpenFileDialog
             {
-                Title = "Open GBA ROM (MLSS)",
-                Filters = { new CommonFileDialogFilter("GBA Files", ".gba") }
+                Title = Strings.MenuOpenMLSS,
+                Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
@@ -341,7 +341,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, "Error Loading GBA ROM (MLSS)");
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenMLSS);
                     success = false;
                 }
                 if (success)
@@ -355,8 +355,8 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonOpenFileDialog
             {
-                Title = "Open GBA ROM (MP2K)",
-                Filters = { new CommonFileDialogFilter("GBA Files", ".gba") }
+                Title = Strings.MenuOpenMP2K,
+                Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
@@ -369,7 +369,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, "Error Loading GBA ROM (MP2K)");
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenMP2K);
                     success = false;
                 }
                 if (success)
@@ -383,8 +383,8 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonOpenFileDialog
             {
-                Title = "Open SDAT File",
-                Filters = { new CommonFileDialogFilter("SDAT Files", ".sdat") }
+                Title = Strings.MenuOpenSDAT,
+                Filters = { new CommonFileDialogFilter(Strings.FilterOpenSDAT, ".sdat") }
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
@@ -397,7 +397,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, "Error Loading SDAT File");
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenSDAT);
                     success = false;
                 }
                 if (success)
@@ -412,8 +412,8 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonSaveFileDialog
             {
-                Title = "Export Song as MIDI File",
-                Filters = { new CommonFileDialogFilter("MIDI Files", ".mid;.midi") }
+                Title = Strings.MenuSaveMIDI,
+                Filters = { new CommonFileDialogFilter(Strings.FilterSaveMIDI, ".mid;.midi") }
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
