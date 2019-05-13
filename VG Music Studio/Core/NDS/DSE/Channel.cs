@@ -1,4 +1,6 @@
-﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE
+﻿using Kermalis.VGMusicStudio.Util;
+
+namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
     internal class Channel
     {
@@ -8,18 +10,19 @@
         public EnvelopeState State;
         public byte RootKey, Key, NoteVelocity;
         public sbyte Panpot; // Not necessary
-        public int Velocity;
-        public byte Volume;
         public ushort BaseTimer, Timer;
         public uint NoteLength;
-
-        private byte attack;
-        private int sustain;
-        private ushort decay;
-        private ushort release;
+        public byte Volume;
 
         private int pos;
         private short prevLeft, prevRight;
+
+        private int envelopeTimeLeft;
+        private int volumeIncrement;
+        private int velocity; // From 0-0x3FFFFFFF ((128 << 23) - 1)
+        private byte targetVolume;
+
+        private byte attackVolume, attack, decay, sustain, hold, decay2, release;
 
         // PCM8, PCM16, ADPCM
         private SWD.SampleBlock sample;
@@ -49,16 +52,32 @@
                         Key = (byte)key;
                         RootKey = split.SampleRootKey;
                         BaseTimer = (ushort)(NDS.Utils.ARM7_CLOCK / sample.WavInfo.SampleRate);
-                        SetAttack(0x7F - sample.WavInfo.Attack);
-                        SetDecay(0x7F - sample.WavInfo.Decay);
-                        SetSustain(sample.WavInfo.Sustain);
-                        SetRelease(0x7F - sample.WavInfo.Release);
                         if (sample.WavInfo.SampleFormat == SampleFormat.ADPCM)
                         {
                             adpcmDecoder = new ADPCMDecoder(sample.Data);
                         }
-                        State = EnvelopeState.Attack;
-                        Velocity = -92544;
+                        //attackVolume = sample.WavInfo.AttackVolume == 0 ? split.AttackVolume : sample.WavInfo.AttackVolume;
+                        //attack = sample.WavInfo.Attack == 0 ? split.Attack : sample.WavInfo.Attack;
+                        //decay = sample.WavInfo.Decay == 0 ? split.Decay : sample.WavInfo.Decay;
+                        //sustain = sample.WavInfo.Sustain == 0 ? split.Sustain : sample.WavInfo.Sustain;
+                        //hold = sample.WavInfo.Hold == 0 ? split.Hold : sample.WavInfo.Hold;
+                        //decay2 = sample.WavInfo.Decay2 == 0 ? split.Decay2 : sample.WavInfo.Decay2;
+                        //release = sample.WavInfo.Release == 0 ? split.Release : sample.WavInfo.Release;
+                        //attackVolume = split.AttackVolume == 0 ? sample.WavInfo.AttackVolume : split.AttackVolume;
+                        //attack = split.Attack == 0 ? sample.WavInfo.Attack : split.Attack;
+                        //decay = split.Decay == 0 ? sample.WavInfo.Decay : split.Decay;
+                        //sustain = split.Sustain == 0 ? sample.WavInfo.Sustain : split.Sustain;
+                        //hold = split.Hold == 0 ? sample.WavInfo.Hold : split.Hold;
+                        //decay2 = split.Decay2 == 0 ? sample.WavInfo.Decay2 : split.Decay2;
+                        //release = split.Release == 0 ? sample.WavInfo.Release : split.Release;
+                        attackVolume = split.AttackVolume == 0 ? sample.WavInfo.AttackVolume == 0 ? (byte)0x7F : sample.WavInfo.AttackVolume : split.AttackVolume;
+                        attack = split.Attack == 0 ? sample.WavInfo.Attack == 0 ? (byte)0x7F : sample.WavInfo.Attack : split.Attack;
+                        decay = split.Decay == 0 ? sample.WavInfo.Decay == 0 ? (byte)0x7F : sample.WavInfo.Decay : split.Decay;
+                        sustain = split.Sustain == 0 ? sample.WavInfo.Sustain == 0 ? (byte)0x7F : sample.WavInfo.Sustain : split.Sustain;
+                        hold = split.Hold == 0 ? sample.WavInfo.Hold == 0 ? (byte)0x7F : sample.WavInfo.Hold : split.Hold;
+                        decay2 = split.Decay2 == 0 ? sample.WavInfo.Decay2 == 0 ? (byte)0x7F : sample.WavInfo.Decay2 : split.Decay2;
+                        release = split.Release == 0 ? sample.WavInfo.Release == 0 ? (byte)0x7F : sample.WavInfo.Release : split.Release;
+                        DetermineEnvelopeStartingPoint();
                         pos = 0;
                         prevLeft = prevRight = 0;
                         NoteLength = noteLength;
@@ -79,55 +98,165 @@
             Volume = 0;
         }
 
-        // TODO
-        public void SetAttack(int a)
+        private bool CMDB1___sub_2074CA0()
         {
-            attack = SDAT.Utils.AttackTable[a];
-        }
-        public void SetDecay(int d)
-        {
-            decay = SDAT.Utils.DecayTable[d];
-        }
-        public void SetSustain(byte s)
-        {
-            sustain = SDAT.Utils.SustainTable[s];
-        }
-        public void SetRelease(int r)
-        {
-            release = SDAT.Utils.DecayTable[r];
-        }
-        public void StepEnvelope()
-        {
-            switch (State)
+            bool b = true;
+            bool ge = sample.WavInfo.EnvMult >= 0x7F;
+            bool ee = sample.WavInfo.EnvMult == 0x7F;
+            if (sample.WavInfo.EnvMult > 0x7F)
             {
-                case EnvelopeState.Attack:
+                ge = attackVolume >= 0x7F;
+                ee = attackVolume == 0x7F;
+            }
+            if (!ee & ge
+                && attack > 0x7F
+                && decay > 0x7F
+                && sustain > 0x7F
+                && hold > 0x7F
+                && decay2 > 0x7F
+                && release > 0x7F)
+            {
+                b = false;
+            }
+            return b;
+        }
+        private void DetermineEnvelopeStartingPoint()
+        {
+            State = EnvelopeState.Two; // This isn't actually placed in this func
+            bool atLeastOneThingIsValid = CMDB1___sub_2074CA0(); // Neither is this
+            if (atLeastOneThingIsValid)
+            {
+                if (attack != 0)
                 {
-                    Velocity = attack * Velocity / 0xFF;
-                    if (Velocity == 0)
+                    velocity = attackVolume << 23;
+                    State = EnvelopeState.Hold;
+                    UpdateEnvelopePlan(0x7F, attack);
+                }
+                else
+                {
+                    velocity = 0x7F << 23;
+                    if (hold != 0)
                     {
+                        UpdateEnvelopePlan(0x7F, hold);
                         State = EnvelopeState.Decay;
                     }
-                    break;
-                }
-                case EnvelopeState.Decay:
-                {
-                    Velocity -= decay;
-                    if (Velocity <= sustain)
+                    else if (decay != 0)
                     {
-                        State = EnvelopeState.Sustain;
-                        Velocity = sustain;
+                        UpdateEnvelopePlan(sustain, decay);
+                        State = EnvelopeState.Decay2;
                     }
-                    break;
-                }
-                case EnvelopeState.Release:
-                {
-                    Velocity -= release;
-                    if (Velocity < -92544)
+                    else
                     {
-                        Velocity = -92544;
+                        UpdateEnvelopePlan(0, release);
+                        State = EnvelopeState.Six;
                     }
-                    break;
                 }
+                // Unk1E = 1
+            }
+            else if (State != EnvelopeState.One) // What should it be?
+            {
+                State = EnvelopeState.Zero;
+                velocity = 0x7F << 23;
+            }
+        }
+        public void SetEnvelopePhase7_2074ED8()
+        {
+            if (State != EnvelopeState.Zero)
+            {
+                UpdateEnvelopePlan(0, release);
+                State = EnvelopeState.Seven;
+            }
+        }
+        public int StepEnvelope()
+        {
+            if (State > EnvelopeState.Two)
+            {
+                if (envelopeTimeLeft != 0)
+                {
+                    envelopeTimeLeft--;
+                    velocity = (velocity + volumeIncrement).Clamp(0, 0x3FFFFFFF);
+                }
+                else
+                {
+                    velocity = targetVolume << 23;
+                    switch (State)
+                    {
+                        default: return velocity >> 23; // case 8
+                        case EnvelopeState.Hold:
+                        {
+                            if (hold == 0)
+                            {
+                                goto LABEL_6;
+                            }
+                            else
+                            {
+                                UpdateEnvelopePlan(0x7F, hold);
+                                State = EnvelopeState.Decay;
+                            }
+                            break;
+                        }
+                        case EnvelopeState.Decay:
+                        LABEL_6:
+                            {
+                                if (decay == 0)
+                                {
+                                    velocity = sustain << 23;
+                                    goto LABEL_9;
+                                }
+                                else
+                                {
+                                    UpdateEnvelopePlan(sustain, decay);
+                                    State = EnvelopeState.Decay2;
+                                }
+                                break;
+                            }
+                        case EnvelopeState.Decay2:
+                        LABEL_9:
+                            {
+                                if (decay2 == 0)
+                                {
+                                    goto LABEL_11;
+                                }
+                                else
+                                {
+                                    UpdateEnvelopePlan(0, decay2);
+                                    State = EnvelopeState.Six;
+                                }
+                                break;
+                            }
+                        case EnvelopeState.Six:
+                        LABEL_11:
+                            {
+                                UpdateEnvelopePlan(0, 0);
+                                State = EnvelopeState.Two;
+                                break;
+                            }
+                        case EnvelopeState.Seven:
+                        {
+                            State = EnvelopeState.Eight;
+                            velocity = 0;
+                            envelopeTimeLeft = 0;
+                            break;
+                        }
+                    }
+                }
+            }
+            return velocity >> 23;
+        }
+        private void UpdateEnvelopePlan(byte targetVolume, int envelopeParam)
+        {
+            if (envelopeParam == 0x7F)
+            {
+                volumeIncrement = 0;
+                envelopeTimeLeft = int.MaxValue;
+            }
+            else
+            {
+                this.targetVolume = targetVolume;
+                envelopeTimeLeft = sample.WavInfo.EnvMult == 0
+                    ? Utils.Duration32[envelopeParam] * 1000 / 10000
+                    : Utils.Duration16[envelopeParam] * sample.WavInfo.EnvMult * 1000 / 10000;
+                volumeIncrement = envelopeTimeLeft == 0 ? 0 : ((targetVolume << 23) - velocity) / envelopeTimeLeft;
             }
         }
 

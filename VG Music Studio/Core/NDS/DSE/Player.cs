@@ -508,6 +508,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     info.Notes[i] = new byte[0];
                     info.Lefts[i] = 0;
                     info.Rights[i] = 0;
+                    //info.Types[i] = string.Empty;
                 }
                 else
                 {
@@ -519,9 +520,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         lefts[j] = (float)(-c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
                         rights[j] = (float)(c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
                     }
-                    info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).ToArray();
+                    info.Notes[i] = channels.Where(c => !Utils.IsStateRemovable(c.State)).Select(c => c.Key).ToArray();
                     info.Lefts[i] = lefts.Max();
                     info.Rights[i] = rights.Max();
+                    //info.Types[i] = string.Join(", ", channels.Select(c => c.State.ToString()));
                 }
             }
         }

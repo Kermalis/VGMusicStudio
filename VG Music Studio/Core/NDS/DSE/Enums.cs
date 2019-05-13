@@ -2,10 +2,15 @@
 {
     internal enum EnvelopeState
     {
-        Attack,
-        Decay,
-        Sustain,
-        Release
+        Zero = 0,
+        One = 1,
+        Two = 2,
+        Hold = 3,
+        Decay = 4,
+        Decay2 = 5,
+        Six = 6,
+        Seven = 7,
+        Eight = 8
     }
 
     internal enum SampleFormat : ushort

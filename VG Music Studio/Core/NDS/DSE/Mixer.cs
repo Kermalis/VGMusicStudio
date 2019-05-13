@@ -45,7 +45,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             int GetScore(Channel c)
             {
                 // Free channels should be used before releasing channels
-                return c.Owner == null ? -2 : c.State == EnvelopeState.Release ? -1 : 0;
+                return c.Owner == null ? -2 : Utils.IsStateRemovable(c.State) ? -1 : 0;
             }
             Channel nChan = null;
             for (int i = 0; i < numChannels; i++)
@@ -75,15 +75,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 Channel chan = channels[i];
                 if (chan.Owner != null)
                 {
-                    chan.StepEnvelope();
-                    if (chan.NoteLength == 0)
+                    chan.Volume = (byte)chan.StepEnvelope();
+                    if (chan.NoteLength == 0 && !Utils.IsStateRemovable(chan.State))
                     {
-                        chan.State = EnvelopeState.Release;
+                        chan.SetEnvelopePhase7_2074ED8();
                     }
-                    int vol = SDAT.Utils.SustainTable[chan.NoteVelocity] + chan.Velocity + SDAT.Utils.SustainTable[chan.Owner.Volume] + SDAT.Utils.SustainTable[chan.Owner.Expression];
+                    int vol = SDAT.Utils.SustainTable[chan.NoteVelocity] + SDAT.Utils.SustainTable[chan.Volume] + SDAT.Utils.SustainTable[chan.Owner.Volume] + SDAT.Utils.SustainTable[chan.Owner.Expression];
                     //int pitch = ((chan.Key - chan.BaseKey) << 6) + chan.SweepMain() + chan.Owner.GetPitch(); // "<< 6" is "* 0x40"
                     int pitch = (chan.Key - chan.RootKey) << 6; // "<< 6" is "* 0x40"
-                    if (chan.State == EnvelopeState.Release && vol <= -92544)
+                    if (Utils.IsStateRemovable(chan.State) && vol <= -92544)
                     {
                         chan.Stop();
                     }

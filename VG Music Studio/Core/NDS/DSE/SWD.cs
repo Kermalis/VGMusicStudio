@@ -63,6 +63,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             int SampleId { get; }
             byte SampleRootKey { get; }
             sbyte SampleTranspose { get; }
+            byte AttackVolume { get; set; }
+            byte Attack { get; set; }
+            byte Decay { get; set; }
+            byte Sustain { get; set; }
+            byte Hold { get; set; }
+            byte Decay2 { get; set; }
+            byte Release { get; set; }
         }
         internal class SplitEntry_V402 : ISplitEntry
         {
@@ -196,9 +203,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             uint SampleOffset { get; }
             uint LoopStart { get; }
             uint LoopEnd { get; }
+            byte EnvMult { get; }
+            byte AttackVolume { get; }
             byte Attack { get; }
             byte Decay { get; }
             byte Sustain { get; }
+            byte Hold { get; }
+            byte Decay2 { get; }
             byte Release { get; }
         }
         internal class WavInfo_V402 : IWavInfo
