@@ -117,6 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorLoadSong" xml:space="preserve">
+    <value>Errore durante il caricamento del Brano {0}</value>
+  </data>
+  <data name="ErrorOpenMLSS" xml:space="preserve">
+    <value>Errore durante il caricamento della ROM GBA (MLSS)</value>
+  </data>
+  <data name="ErrorSaveMIDI" xml:space="preserve">
+    <value>Errore durante l'esportazione in MIDI</value>
+  </data>
   <data name="FilterOpenGBA" xml:space="preserve">
     <value>File GBA</value>
   </data>
@@ -126,8 +135,20 @@
   <data name="MenuData" xml:space="preserve">
     <value>Dati</value>
   </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="MenuOpenMP2K" xml:space="preserve">
+    <value>Apri ROM GBA (MP2K)</value>
+  </data>
+  <data name="MenuSaveMIDI" xml:space="preserve">
+    <value>Esporta Brano in MIDI</value>
+  </data>
   <data name="Notes" xml:space="preserve">
     <value>Do;Do#;Re;Re#;Mi;Fa;Fa#;Sol;Sol#;La;La#;Si</value>
+  </data>
+  <data name="PlayerRest" xml:space="preserve">
+    <value>Pausa</value>
   </data>
   <data name="PlayerNotes" xml:space="preserve">
     <value>Note</value>
@@ -135,31 +156,157 @@
   <data name="PlayerPause" xml:space="preserve">
     <value>Pausa</value>
   </data>
+  <data name="PlayerPlay" xml:space="preserve">
+    <value>Play</value>
+  </data>
   <data name="PlayerPosition" xml:space="preserve">
     <value>Posizione</value>
+  </data>
+  <data name="PlayerStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="PlayerTempo" xml:space="preserve">
+    <value>Tempo</value>
   </data>
   <data name="PlayerType" xml:space="preserve">
     <value>Tipo</value>
   </data>
   <data name="PlayerUnpause" xml:space="preserve">
-    <value>Riprendere</value>
+    <value>Riprendi</value>
   </data>
   <data name="SuccessSaveMIDI" xml:space="preserve">
-    <value>MIDI salvata in {0}.</value>
+    <value>MIDI salvato in {0}.</value>
   </data>
   <data name="PlayPlaylistBody" xml:space="preserve">
-    <value>Desideri riprodurre la seguente Playlist?{0}</value>
+    <value>Desideri riprodurre la seguente playlist?{0}</value>
   </data>
   <data name="PlayerNextSong" xml:space="preserve">
-    <value>Brano Successivo</value>
+    <value>Brano Sucessivo</value>
   </data>
   <data name="PlayerPreviousSong" xml:space="preserve">
     <value>Brano Precedente</value>
+  </data>
+  <data name="EndPlaylistBody" xml:space="preserve">
+    <value>Desideri interrompere la riproduzione della playlist attuale?</value>
+  </data>
+  <data name="ErrorOpenDSE" xml:space="preserve">
+    <value>Errore durante il caricamento della Cartella DSE</value>
+  </data>
+  <data name="ErrorOpenMP2K" xml:space="preserve">
+    <value>Errore durante il caricamento della ROM GBA (MP2K)</value>
+  </data>
+  <data name="ErrorOpenSDAT" xml:space="preserve">
+    <value>Errore durante il caricamento del File SDAT</value>
+  </data>
+  <data name="FilterOpenSDAT" xml:space="preserve">
+    <value>File SDAT</value>
+  </data>
+  <data name="MenuEndPlaylist" xml:space="preserve">
+    <value>Termina la Playlist Attuale</value>
+  </data>
+  <data name="MenuOpenDSE" xml:space="preserve">
+    <value>Apri Cartella DSE</value>
+  </data>
+  <data name="MenuOpenMLSS" xml:space="preserve">
+    <value>Apri ROM GBA (MLSS)</value>
+  </data>
+  <data name="MenuOpenSDAT" xml:space="preserve">
+    <value>Apri File SDAT</value>
+  </data>
+  <data name="MenuPlaylist" xml:space="preserve">
+    <value>Playlist</value>
+  </data>
+  <data name="PlaylistMusic" xml:space="preserve">
+    <value>Musica</value>
   </data>
   <data name="TrackViewerArguments" xml:space="preserve">
     <value>Argomenti</value>
   </data>
   <data name="TrackViewerEvent" xml:space="preserve">
-    <value>Eventi</value>
+    <value>Evento</value>
+  </data>
+  <data name="TrackViewerOffset" xml:space="preserve">
+    <value>Posizione</value>
+  </data>
+  <data name="TrackViewerTicks" xml:space="preserve">
+    <value>Tick</value>
+  </data>
+  <data name="TrackViewerTitle" xml:space="preserve">
+    <value>Visualizzatore Traccia</value>
+  </data>
+  <data name="TrackViewerTrackX" xml:space="preserve">
+    <value>Traccia {0}</value>
+  </data>
+  <data name="ConfigKeySubkey" xml:space="preserve">
+    <value>La Chiave {0}</value>
+  </data>
+  <data name="ErrorBoolParse" xml:space="preserve">
+    <value>"{0}" deve essere Vero o Falso.</value>
+  </data>
+  <data name="ErrorConfigColorInvalidKey" xml:space="preserve">
+    <value>Il colore {0} non ha una chiave valida.</value>
+  </data>
+  <data name="ErrorConfigColorMissing" xml:space="preserve">
+    <value>Il colore {0} non è definito.</value>
+  </data>
+  <data name="ErrorConfigColorRepeated" xml:space="preserve">
+    <value>Il colore {0} è definito più di una volta tra decimale ed esadecimale.</value>
+  </data>
+  <data name="ErrorConfigKeyInvalid" xml:space="preserve">
+    <value>"{0}" non è valido.</value>
+  </data>
+  <data name="ErrorConfigKeyMissing" xml:space="preserve">
+    <value>"{0}" è mancante.</value>
+  </data>
+  <data name="ErrorConfigKeyNoEntries" xml:space="preserve">
+    <value>"{0}" deve possedere almeno una voce.</value>
+  </data>
+  <data name="ErrorDSEInvalidHeaderVersion" xml:space="preserve">
+    <value>Versione dell'header sconosciuta: 0x{0:X}</value>
+  </data>
+  <data name="ErrorDSEInvalidKey" xml:space="preserve">
+    <value>Tasto del pianoforte non valido nella traccia {0} a 0x{1:X}: {2}</value>
+  </data>
+  <data name="ErrorDSEMLSSMP2KSDATInvalidCommand" xml:space="preserve">
+    <value>Comando non valido nella traccia {0} a 0x{1:X}: 0x{2:X}</value>
+  </data>
+  <data name="ErrorDSENoSequences" xml:space="preserve">
+    <value>Non sono presenti file "bgm(NNNN).smd".</value>
+  </data>
+  <data name="ErrorGlobalConfig" xml:space="preserve">
+    <value>Errore nel Caricamento della Configurazione Globale</value>
+  </data>
+  <data name="ErrorMLSSMP2KCopyInvalidGameCode" xml:space="preserve">
+    <value>Non è possibile copiare il Codice Gioco invalido "{0}"</value>
+  </data>
+  <data name="ErrorMLSSMP2KMissingGameCode" xml:space="preserve">
+    <value>Il Codice Gioco "{0}" non è presente.</value>
+  </data>
+  <data name="ErrorMLSSMP2KParseGameCode" xml:space="preserve">
+    <value>Errore nell'analisi del Codice Gioco "{0}" in "{1}"{2}</value>
+  </data>
+  <data name="ErrorMLSSMP2KSongRepeated" xml:space="preserve">
+    <value> La Playlist "{0}" presenta il brano {1} più volte definito tra decimale e esadecimale.</value>
+  </data>
+  <data name="ErrorMLSSMP2KSongTableCounts" xml:space="preserve">
+    <value>Il numero di "{0}" deve essere uguale a quello di "{1}".</value>
+  </data>
+  <data name="ErrorMP2KInvalidRunningStatusCommand" xml:space="preserve">
+    <value>Comando di stato in esecuzione non valido nella traccia {0} a 0x{1:X}: 0x{2:X}</value>
+  </data>
+  <data name="ErrorMP2KSDATNestedCalls" xml:space="preserve">
+    <value>Troppi eventi di chiamata nidificati nella traccia {0}</value>
+  </data>
+  <data name="ErrorParseConfig" xml:space="preserve">
+    <value>Errore nell'analisi di "{0}"{1}</value>
+  </data>
+  <data name="ErrorSDATNoSequences" xml:space="preserve">
+    <value>Questo archivio SDAT non ha sequenze.</value>
+  </data>
+  <data name="ErrorValueParse" xml:space="preserve">
+    <value>"{0}" non è un valore intero.</value>
+  </data>
+  <data name="ErrorValueParseRanged" xml:space="preserve">
+    <value>"{0}" deve essere compreso tra {1} e {2}.</value>
   </data>
 </root>
