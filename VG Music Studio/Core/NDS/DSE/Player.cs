@@ -138,7 +138,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                             Events[i].Add(new SongEvent(offset, command));
                         }
                         byte cmd = reader.ReadByte();
-                        if (cmd >= 1 && cmd <= 0x7F)
+                        if (cmd <= 0x7F)
                         {
                             byte arg = reader.ReadByte();
                             int numParams = (arg & 0xC0) >> 6;
@@ -183,8 +183,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                 AddEvent(new RestCommand { Rest = lastRest });
                             }
                         }
-                        else // 0, 0x90-0xFF
+                        else // 0x90-0xFF
                         {
+                            // TODO: 0x95 - a rest that may or may not repeat depending on some condition within channels
+                            // TODO: 0x9E - may or may not jump somewhere else depending on an unknown structure
                             switch (cmd)
                             {
                                 case 0x90:
@@ -231,6 +233,59 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
+                                case 0x96:
+                                case 0x97:
+                                case 0x9A:
+                                case 0x9B:
+                                case 0x9F:
+                                case 0xA2:
+                                case 0xA3:
+                                case 0xA6:
+                                case 0xA7:
+                                case 0xAD:
+                                case 0xAE:
+                                case 0xB7:
+                                case 0xB8:
+                                case 0xB9:
+                                case 0xBA:
+                                case 0xBB:
+                                case 0xBD:
+                                case 0xC1:
+                                case 0xC2:
+                                case 0xC4:
+                                case 0xC5:
+                                case 0xC6:
+                                case 0xC7:
+                                case 0xC8:
+                                case 0xC9:
+                                case 0xCA:
+                                case 0xCC:
+                                case 0xCD:
+                                case 0xCE:
+                                case 0xCF:
+                                case 0xD9:
+                                case 0xDA:
+                                case 0xDE:
+                                case 0xE6:
+                                case 0xEB:
+                                case 0xEE:
+                                case 0xF4:
+                                case 0xF5:
+                                case 0xF7:
+                                case 0xF9:
+                                case 0xFA:
+                                case 0xFB:
+                                case 0xFC:
+                                case 0xFD:
+                                case 0xFE:
+                                case 0xFF:
+                                {
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new InvalidCommand { Command = cmd });
+                                    }
+                                    break;
+                                }
                                 case 0x98:
                                 {
                                     if (!EventExists(offset))
@@ -253,16 +308,35 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     byte octave = reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new OctaveCommand { Octave = octave });
+                                        AddEvent(new OctaveSetCommand { Octave = octave });
+                                    }
+                                    break;
+                                }
+                                case 0xA1:
+                                {
+                                    sbyte change = reader.ReadSByte();
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new OctaveAddCommand { OctaveChange = change });
                                     }
                                     break;
                                 }
                                 case 0xA4:
+                                case 0xA5: // The code for these two is identical
                                 {
                                     byte tempoArg = reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new TempoCommand { Tempo = tempoArg });
+                                        AddEvent(new TempoCommand { Command = cmd, Tempo = tempoArg });
+                                    }
+                                    break;
+                                }
+                                case 0xAB:
+                                {
+                                    byte[] bytes = reader.ReadBytes(1);
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new SkipBytesCommand { Command = cmd, SkippedBytes = bytes });
                                     }
                                     break;
                                 }
@@ -272,6 +346,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new VoiceCommand { Voice = voice });
+                                    }
+                                    break;
+                                }
+                                case 0xCB:
+                                case 0xF8:
+                                {
+                                    byte[] bytes = reader.ReadBytes(2);
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new SkipBytesCommand { Command = cmd, SkippedBytes = bytes });
                                     }
                                     break;
                                 }
@@ -311,8 +395,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
-                                case 0x9D: // bgm0113
-                                case 0xC0: // bgm0100
+                                case 0x9D:
+                                case 0xB0:
+                                case 0xC0:
                                 {
                                     if (!EventExists(offset))
                                     {
@@ -320,20 +405,28 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
-                                case 0x9C: // bgm0113
-                                case 0xA5: // bgm0001
-                                case 0xA9: // bgm0000
-                                case 0xAA: // bgm0000
-                                case 0xB2: // bgm0100
-                                case 0xB5: // bgm0100
-                                case 0xBE: // bgm0003
-                                case 0xBF: // bgm0151
-                                case 0xD0: // bgm0100
-                                case 0xD1: // bgm0113
-                                case 0xD2: // bgm0116
-                                case 0xD8: // bgm0000
-                                case 0xDB: // bgm0000
-                                case 0xF6: // bgm0001
+                                case 0x9C:
+                                case 0xA9:
+                                case 0xAA:
+                                case 0xB1:
+                                case 0xB2:
+                                case 0xB3:
+                                case 0xB5:
+                                case 0xB6:
+                                case 0xBC:
+                                case 0xBE:
+                                case 0xBF:
+                                case 0xC3:
+                                case 0xD0:
+                                case 0xD1:
+                                case 0xD2:
+                                case 0xDB:
+                                case 0xDF:
+                                case 0xE1:
+                                case 0xE7:
+                                case 0xE9:
+                                case 0xEF:
+                                case 0xF6:
                                 {
                                     byte[] args = reader.ReadBytes(1);
                                     if (!EventExists(offset))
@@ -342,9 +435,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
-                                case 0xA8: // bgm0001
-                                case 0xB4: // bgm0180
-                                case 0xD6: // bgm0101
+                                case 0xA8:
+                                case 0xB4:
+                                case 0xD3:
+                                case 0xD5:
+                                case 0xD6:
+                                case 0xD8:
+                                case 0xF2:
                                 {
                                     byte[] args = reader.ReadBytes(2);
                                     if (!EventExists(offset))
@@ -353,9 +450,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
-                                case 0xD4: // bgm0100
-                                case 0xE2: // bgm0100
-                                case 0xEA: // bgm0100
+                                case 0xAF:
+                                case 0xD4:
+                                case 0xE2:
+                                case 0xEA:
+                                case 0xF3:
                                 {
                                     byte[] args = reader.ReadBytes(3);
                                     if (!EventExists(offset))
@@ -364,7 +463,22 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
-                                case 0xDC: // bgm0182
+                                case 0xDD:
+                                case 0xE5:
+                                case 0xED:
+                                case 0xF1:
+                                {
+                                    byte[] args = reader.ReadBytes(4);
+                                    if (!EventExists(offset))
+                                    {
+                                        AddEvent(new UnknownCommand { Command = cmd, Args = args });
+                                    }
+                                    break;
+                                }
+                                case 0xDC:
+                                case 0xE4:
+                                case 0xEC:
+                                case 0xF0:
                                 {
                                     byte[] args = reader.ReadBytes(5);
                                     if (!EventExists(offset))
@@ -549,6 +663,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     increment = false;
                     break;
                 }
+                case InvalidCommand _: track.Stopped = true; increment = false; break;
                 case LoopStartCommand loop: track.LoopOffset = loop.Offset; break;
                 case NoteCommand note:
                 {
@@ -563,7 +678,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     }
                     break;
                 }
-                case OctaveCommand octave: track.Octave = octave.Octave; break;
+                case OctaveAddCommand octaveAdd: track.Octave = (byte)(track.Octave + octaveAdd.OctaveChange); break;
+                case OctaveSetCommand octaveSet: track.Octave = octaveSet.Octave; break;
                 case PanpotCommand panpot: track.Panpot = panpot.Panpot; break;
                 case PitchBendCommand bend: track.PitchBend = bend.Bend; break;
                 case RestCommand rest: track.Rest = rest.Rest; break;

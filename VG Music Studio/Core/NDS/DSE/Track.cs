@@ -24,7 +24,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public void Init()
         {
-            Expression = Voice = Octave = Volume = 0;
+            Expression = Voice = Volume = 0;
+            Octave = 4;
             Panpot = 0;
             Rest = 0;
             PitchBend = 0;

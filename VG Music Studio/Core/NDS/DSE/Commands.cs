@@ -17,6 +17,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public string Label => "Finish";
         public string Arguments => string.Empty;
     }
+    internal class InvalidCommand : ICommand
+    {
+        public Color Color => Color.MediumVioletRed;
+        public string Label => $"Invalid 0x{Command:X}";
+        public string Arguments => string.Empty;
+
+        public byte Command { get; set; }
+    }
     internal class LoopStartCommand : ICommand
     {
         public Color Color => Color.MediumSpringGreen;
@@ -36,10 +44,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public byte Velocity { get; set; }
         public uint Duration { get; set; }
     }
-    internal class OctaveCommand : ICommand
+    internal class OctaveAddCommand : ICommand
     {
         public Color Color => Color.SkyBlue;
-        public string Label => "Octave";
+        public string Label => "Add To Octave";
+        public string Arguments => OctaveChange.ToString();
+
+        public sbyte OctaveChange { get; set; }
+    }
+    internal class OctaveSetCommand : ICommand
+    {
+        public Color Color => Color.SkyBlue;
+        public string Label => "Set Octave";
         public string Arguments => Octave.ToString();
 
         public byte Octave { get; set; }
@@ -68,17 +84,27 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public uint Rest { get; set; }
     }
+    internal class SkipBytesCommand : ICommand
+    {
+        public Color Color => Color.MediumVioletRed;
+        public string Label => $"Skip 0x{Command:X}";
+        public string Arguments => string.Join(", ", SkippedBytes.Select(b => $"0x{b:X}"));
+
+        public byte Command { get; set; }
+        public byte[] SkippedBytes { get; set; }
+    }
     internal class TempoCommand : ICommand
     {
         public Color Color => Color.DeepSkyBlue;
-        public string Label => "Tempo";
+        public string Label => $"Tempo {Command - 0xA3}"; // The two possible tempo commands are 0xA4 and 0xA5
         public string Arguments => Tempo.ToString();
 
+        public byte Command { get; set; }
         public byte Tempo { get; set; }
     }
     internal class UnknownCommand : ICommand
     {
-        public Color Color => Color.LightSteelBlue;
+        public Color Color => Color.MediumVioletRed;
         public string Label => $"Unknown 0x{Command:X}";
         public string Arguments => string.Join(", ", Args.Select(b => $"0x{b:X}"));
 
