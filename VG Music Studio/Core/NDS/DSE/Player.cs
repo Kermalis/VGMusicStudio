@@ -15,7 +15,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         private readonly Config config;
         private readonly TimeBarrier time;
         private readonly Thread thread;
-        private SWD masterSWD;
+        private readonly SWD masterSWD;
         private SWD localSWD;
         private Track[] tracks;
         private byte tempo;
@@ -35,6 +35,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         {
             this.mixer = mixer;
             this.config = config;
+            masterSWD = new SWD(Path.Combine(config.BGMPath, "bgm.swd"));
 
             time = new TimeBarrier(192);
             thread = new Thread(Tick) { Name = "DSE Player Tick" };
@@ -95,7 +96,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public void LoadSong(long index)
         {
             tracks = null;
-            masterSWD = new SWD(Path.Combine(config.BGMPath, "bgm.swd"));
             string bgm = config.BGMFiles[index];
             localSWD = new SWD(Path.ChangeExtension(bgm, "swd"));
             using (var reader = new EndianBinaryReader(new MemoryStream(File.ReadAllBytes(bgm))))
