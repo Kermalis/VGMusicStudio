@@ -41,47 +41,43 @@ namespace Kermalis.VGMusicStudio.Core
             baby.Save(f2);
         }
 
-        public static void EventScan(long numSongs)
+        public static void EventScan(List<Config.Song> songs, bool showIndexes)
         {
-            var errors = new List<Tuple<long, Exception>>();
-            var scans = new Dictionary<Type, List<long>>();
-            for (long i = 0; i < numSongs; i++)
+            var errors = new List<Tuple<Config.Song, Exception>>();
+            var scans = new Dictionary<string, List<Config.Song>>();
+            foreach (Config.Song song in songs)
             {
                 try
                 {
-                    Engine.Instance.Player.LoadSong(i);
+                    Engine.Instance.Player.LoadSong(song.Index);
                 }
                 catch (Exception ex)
                 {
-                    errors.Add(Tuple.Create(i, ex));
+                    errors.Add(Tuple.Create(song, ex));
                     continue;
                 }
                 if (Engine.Instance.Player.Events != null)
                 {
-                    foreach (Type type in Engine.Instance.Player.Events.Where(ev => ev != null).SelectMany(ev => ev).Select(ev => ev.Command.GetType()))
+                    foreach (string cmd in Engine.Instance.Player.Events.Where(ev => ev != null).SelectMany(ev => ev).Select(ev => ev.Command.Label).Distinct())
                     {
-                        if (scans.ContainsKey(type))
+                        if (scans.ContainsKey(cmd))
                         {
-                            List<long> list = scans[type];
-                            if (!list.Contains(i))
-                            {
-                                list.Add(i);
-                            }
+                            scans[cmd].Add(song);
                         }
                         else
                         {
-                            scans.Add(type, new List<long>() { i });
+                            scans.Add(cmd, new List<Config.Song>() { song });
                         }
                     }
                 }
             }
-            foreach (Tuple<long, Exception> tup in errors)
+            foreach (Tuple<Config.Song, Exception> tup in errors)
             {
-                Console.WriteLine("Exception in song {0} - {1}", tup.Item1, tup.Item2.Message);
+                Console.WriteLine("Exception in {0} - {1}", showIndexes ? $"song {tup.Item1.Index}" : $"\"{tup.Item1.Name}\"", tup.Item2.Message);
             }
-            foreach (KeyValuePair<Type, List<long>> kvp in scans)
+            foreach (KeyValuePair<string, List<Config.Song>> kvp in scans.OrderBy(k => k.Key))
             {
-                Console.WriteLine("{0} ({1})", kvp.Key.Name, string.Join(", ", kvp.Value));
+                Console.WriteLine("{0} ({1})", kvp.Key, string.Join(", ", showIndexes ? (IEnumerable<object>)kvp.Value.Select(s => s.Index) : kvp.Value.Select(s => s.Name)));
             }
         }
     }

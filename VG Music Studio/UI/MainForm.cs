@@ -537,7 +537,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             songNumerical.Maximum = numSongs - 1;
 #if DEBUG
-            //Debug.EventScan(numSongs);
+            //Debug.EventScan(Engine.Instance.Config.Playlists[0].Songs, numericalVisible);
 #endif
             autoplay = false;
             SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
