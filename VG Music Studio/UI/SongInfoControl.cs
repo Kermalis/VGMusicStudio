@@ -75,8 +75,8 @@ namespace Kermalis.VGMusicStudio.UI
         }
         public SongInfoControl()
         {
-            DoubleBuffered = true;
-            TabStop = false;
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw | ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.Selectable, false);
             Font = new Font("Segoe UI", 10.5f, FontStyle.Regular, GraphicsUnit.Point);
             Size = new Size(675, 675);
 
@@ -239,7 +239,6 @@ namespace Kermalis.VGMusicStudio.UI
             }
 
             base.OnResize(e);
-            Invalidate();
         }
         protected override void OnPaint(PaintEventArgs e)
         {

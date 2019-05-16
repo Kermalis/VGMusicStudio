@@ -704,7 +704,6 @@ namespace Kermalis.VGMusicStudio.UI
                 // Piano
                 piano.Size = new Size(splitContainer.Panel1.Width, (int)(splitContainer.Panel1.Height / 2.5)); // Force it to initialize piano keys again
                 piano.Location = new Point((splitContainer.Panel1.Width - (piano.WhiteKeyWidth * PianoControl.WhiteKeyCount)) / 2, splitContainer.Panel1.Height - piano.Height - 1);
-                piano.Invalidate(true);
             }
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

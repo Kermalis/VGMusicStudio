@@ -52,8 +52,8 @@ namespace Kermalis.VGMusicStudio.UI
 
             public PianoKey(byte k)
             {
-                DoubleBuffered = true;
-                TabStop = false;
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw | ControlStyles.UserPaint, true);
+                SetStyle(ControlStyles.Selectable, false);
                 offBrush = new SolidBrush(new HSLColor(160.0, 0.0, KeyTypeTable[k % 12] == KeyType.White ? k / 12 % 2 == 0 ? 240.0 : 120.0 : 0.0));
             }
 
@@ -80,7 +80,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         public PianoControl()
         {
-            TabStop = false;
+            SetStyle(ControlStyles.Selectable, false);
             for (byte k = 0; k <= 0x7F; k++)
             {
                 var key = new PianoKey(k);
