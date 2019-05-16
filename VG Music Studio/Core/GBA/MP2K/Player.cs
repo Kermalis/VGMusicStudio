@@ -873,16 +873,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
         }
         private string[] voiceTypeCache;
-        public void GetSongState(UI.TrackInfoControl.TrackInfo info)
+        public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = tempo;
             for (int i = 0; i < tracks.Length; i++)
             {
                 Track track = tracks[i];
-                info.Positions[i] = Events[i][track.CurEvent].Offset;
-                info.Rests[i] = track.Rest;
-                info.Voices[i] = track.Voice;
-                info.Mods[i] = track.LFODepth;
+                UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
+                tin.Position = Events[i][track.CurEvent].Offset;
+                tin.Rest = track.Rest;
+                tin.Voice = track.Voice;
+                tin.LFO = track.LFODepth;
                 if (voiceTypeCache[track.Voice] == null)
                 {
                     byte t = config.ROM[voiceTableOffset + (track.Voice * 0xC)]; // Don't use config.Reader because it is not thread-safe
@@ -909,31 +910,43 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         }
                     }
                 }
-                info.Types[i] = voiceTypeCache[track.Voice];
-                info.Volumes[i] = track.GetVolume();
-                info.PitchBends[i] = track.GetPitch();
-                info.Panpots[i] = track.GetPanpot();
+                tin.Type = voiceTypeCache[track.Voice];
+                tin.Volume = track.GetVolume();
+                tin.PitchBend = track.GetPitch();
+                tin.Panpot = track.GetPanpot();
 
                 Channel[] channels = track.Channels.ToArray();
                 if (channels.Length == 0)
                 {
-                    info.Notes[i] = new byte[0];
-                    info.Lefts[i] = 0;
-                    info.Rights[i] = 0;
+                    tin.Keys[0] = byte.MaxValue;
+                    tin.LeftVolume = 0f;
+                    tin.RightVolume = 0f;
                 }
                 else
                 {
-                    float[] lefts = new float[channels.Length];
-                    float[] rights = new float[channels.Length];
+                    int numKeys = 0;
+                    float left = 0f;
+                    float right = 0f;
                     for (int j = 0; j < channels.Length; j++)
                     {
-                        ChannelVolume vol = channels[j].GetVolume();
-                        lefts[j] = vol.LeftVol;
-                        rights[j] = vol.RightVol;
+                        Channel c = channels[j];
+                        if (c.State < EnvelopeState.Releasing)
+                        {
+                            tin.Keys[numKeys++] = c.Note.OriginalKey;
+                        }
+                        ChannelVolume vol = c.GetVolume();
+                        if (vol.LeftVol > left)
+                        {
+                            left = vol.LeftVol;
+                        }
+                        if (vol.RightVol > right)
+                        {
+                            right = vol.RightVol;
+                        }
                     }
-                    info.Notes[i] = channels.Where(c => c.State < EnvelopeState.Releasing).Select(c => c.Note.OriginalKey).ToArray();
-                    info.Lefts[i] = lefts.Max();
-                    info.Rights[i] = rights.Max();
+                    tin.Keys[numKeys] = byte.MaxValue; // There's no way for numKeys to be after the last index in the array
+                    tin.LeftVolume = left;
+                    tin.RightVolume = right;
                 }
             }
         }

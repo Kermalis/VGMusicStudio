@@ -354,7 +354,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 thread.Join();
             }
         }
-        public void GetSongState(UI.TrackInfoControl.TrackInfo info)
+        public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = tempo;
             for (int i = 0; i < 0x10; i++)
@@ -362,24 +362,26 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 Track track = tracks[i];
                 if (track.Enabled)
                 {
-                    info.Positions[i] = Events[i][track.CurEvent].Offset;
-                    info.Rests[i] = track.Rest;
-                    info.Voices[i] = track.Voice;
-                    info.Types[i] = track.Type;
-                    info.Volumes[i] = track.Volume;
-                    info.PitchBends[i] = track.GetPitch();
-                    info.Panpots[i] = track.Panpot;
+                    UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
+                    tin.Position = Events[i][track.CurEvent].Offset;
+                    tin.Rest = track.Rest;
+                    tin.Voice = track.Voice;
+                    tin.Type = track.Type;
+                    tin.Volume = track.Volume;
+                    tin.PitchBend = track.GetPitch();
+                    tin.Panpot = track.Panpot;
                     if (track.NoteDuration != 0 && !track.Channel.Stopped)
                     {
-                        info.Notes[i] = new byte[] { track.Channel.Key };
+                        tin.Keys[0] = track.Channel.Key;
                         ChannelVolume vol = track.Channel.GetVolume();
-                        info.Lefts[i] = vol.LeftVol;
-                        info.Rights[i] = vol.RightVol;
+                        tin.LeftVolume = vol.LeftVol;
+                        tin.RightVolume = vol.RightVol;
                     }
                     else
                     {
-                        info.Notes[i] = Array.Empty<byte>();
-                        info.Lefts[i] = info.Rights[i] = 0f;
+                        tin.Keys[0] = byte.MaxValue;
+                        tin.LeftVolume = 0f;
+                        tin.RightVolume = 0f;
                     }
                 }
             }

@@ -25,8 +25,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             SampleRateReciprocal = 1f / sampleRate;
             samplesReciprocal = 1f / SamplesPerBuffer;
 
-            Mutes = new bool[0x10];
-
             int amt = SamplesPerBuffer * 2;
             audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
             for (int i = 0; i < 0x10; i++)

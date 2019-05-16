@@ -600,44 +600,57 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 thread.Join();
             }
         }
-        public void GetSongState(UI.TrackInfoControl.TrackInfo info)
+        public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = tempo;
-            // TODO: Longest song is actually 18 tracks (bgm0168)
-            for (int i = 0; i < tracks.Length - 1; i++)
+            for (int i = 0; i < tracks.Length; i++)
             {
-                Track track = tracks[i + 1];
-                info.Positions[i] = Events[i + 1][track.CurEvent].Offset;
-                info.Rests[i] = track.Rest;
-                info.Voices[i] = track.Voice;
-                info.Types[i] = "PCM";
-                info.Volumes[i] = track.Volume;
-                info.PitchBends[i] = track.PitchBend;
-                info.Extras[i] = track.Octave;
-                info.Panpots[i] = track.Panpot;
+                Track track = tracks[i];
+                UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
+                tin.Position = Events[i][track.CurEvent].Offset;
+                tin.Rest = track.Rest;
+                tin.Voice = track.Voice;
+                tin.Type = "PCM";
+                tin.Volume = track.Volume;
+                tin.PitchBend = track.PitchBend;
+                tin.Extra = track.Octave;
+                tin.Panpot = track.Panpot;
 
                 Channel[] channels = track.Channels.ToArray();
                 if (channels.Length == 0)
                 {
-                    info.Notes[i] = new byte[0];
-                    info.Lefts[i] = 0;
-                    info.Rights[i] = 0;
-                    //info.Types[i] = string.Empty;
+                    tin.Keys[0] = byte.MaxValue;
+                    tin.LeftVolume = 0f;
+                    tin.RightVolume = 0f;
+                    //tin.Type = string.Empty;
                 }
                 else
                 {
-                    float[] lefts = new float[channels.Length];
-                    float[] rights = new float[channels.Length];
+                    int numKeys = 0;
+                    float left = 0f;
+                    float right = 0f;
                     for (int j = 0; j < channels.Length; j++)
                     {
                         Channel c = channels[j];
-                        lefts[j] = (float)(-c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
-                        rights[j] = (float)(c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
+                        if (!Utils.IsStateRemovable(c.State))
+                        {
+                            tin.Keys[numKeys++] = c.Key;
+                        }
+                        float a = (float)(-c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
+                        if (a > left)
+                        {
+                            left = a;
+                        }
+                        a = (float)(c.Panpot + 0x40) / 0x80 * c.Volume / 0x7F;
+                        if (a > right)
+                        {
+                            right = a;
+                        }
                     }
-                    info.Notes[i] = channels.Where(c => !Utils.IsStateRemovable(c.State)).Select(c => c.Key).ToArray();
-                    info.Lefts[i] = lefts.Max();
-                    info.Rights[i] = rights.Max();
-                    //info.Types[i] = string.Join(", ", channels.Select(c => c.State.ToString()));
+                    tin.Keys[numKeys] = byte.MaxValue; // There's no way for numKeys to be after the last index in the array
+                    tin.LeftVolume = left;
+                    tin.RightVolume = right;
+                    //tin.Type = string.Join(", ", channels.Select(c => c.State.ToString()));
                 }
             }
         }

@@ -847,7 +847,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
         }
         private string[] voiceTypeCache;
-        public void GetSongState(UI.TrackInfoControl.TrackInfo info)
+        public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = tempo;
             for (int i = 0; i < 0x10; i++)
@@ -855,10 +855,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 Track track = tracks[i];
                 if (track.Enabled)
                 {
-                    info.Positions[i] = Events[i][track.CurEvent].Offset;
-                    info.Rests[i] = track.Rest;
-                    info.Voices[i] = track.Voice;
-                    info.Mods[i] = track.LFODepth * track.LFORange;
+                    UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
+                    tin.Position = Events[i][track.CurEvent].Offset;
+                    tin.Rest = track.Rest;
+                    tin.Voice = track.Voice;
+                    tin.LFO = track.LFODepth * track.LFORange;
                     if (voiceTypeCache[track.Voice] == null)
                     {
                         if (sbnk.NumInstruments <= track.Voice)
@@ -879,32 +880,45 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                         }
                     }
-                    info.Types[i] = voiceTypeCache[track.Voice];
-                    info.Volumes[i] = track.Volume;
-                    info.PitchBends[i] = track.GetPitch();
-                    info.Extras[i] = track.Portamento ? track.PortamentoTime : (byte)0;
-                    info.Panpots[i] = track.GetPan();
+                    tin.Type = voiceTypeCache[track.Voice];
+                    tin.Volume = track.Volume;
+                    tin.PitchBend = track.GetPitch();
+                    tin.Extra = track.Portamento ? track.PortamentoTime : (byte)0;
+                    tin.Panpot = track.GetPan();
 
                     Channel[] channels = track.Channels.ToArray();
                     if (channels.Length == 0)
                     {
-                        info.Notes[i] = new byte[0];
-                        info.Lefts[i] = 0;
-                        info.Rights[i] = 0;
+                        tin.Keys[0] = byte.MaxValue;
+                        tin.LeftVolume = 0f;
+                        tin.RightVolume = 0f;
                     }
                     else
                     {
-                        float[] lefts = new float[channels.Length];
-                        float[] rights = new float[channels.Length];
+                        int numKeys = 0;
+                        float left = 0f;
+                        float right = 0f;
                         for (int j = 0; j < channels.Length; j++)
                         {
                             Channel c = channels[j];
-                            lefts[j] = (float)(-c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
-                            rights[j] = (float)(c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+                            if (c.State != EnvelopeState.Release)
+                            {
+                                tin.Keys[numKeys++] = c.Key;
+                            }
+                            float a = (float)(-c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+                            if (a > left)
+                            {
+                                left = a;
+                            }
+                            a = (float)(c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+                            if (a > right)
+                            {
+                                right = a;
+                            }
                         }
-                        info.Notes[i] = channels.Where(c => c.State != EnvelopeState.Release).Select(c => c.Key).ToArray();
-                        info.Lefts[i] = lefts.Max();
-                        info.Rights[i] = rights.Max();
+                        tin.Keys[numKeys] = byte.MaxValue; // There's no way for numKeys to be after the last index in the array
+                        tin.LeftVolume = left;
+                        tin.RightVolume = right;
                     }
                 }
             }

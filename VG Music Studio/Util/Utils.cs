@@ -12,6 +12,12 @@ namespace Kermalis.VGMusicStudio.Util
 
         private static readonly Random rng = new Random();
 
+        private static readonly string[] notes = null;
+        static Utils()
+        {
+            notes = Strings.Notes.Split(';');
+        }
+
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
         {
             return val.CompareTo(min) < 0 ? min : val.CompareTo(max) > 0 ? max : val;
@@ -107,22 +113,12 @@ namespace Kermalis.VGMusicStudio.Util
             }
         }
 
-        private static string[] notes = null;
-        private static void SetNotes()
-        {
-            if (notes == null)
-            {
-                notes = Strings.Notes.Split(';');
-            }
-        }
         public static string GetPianoKeyName(int key)
         {
-            SetNotes();
             return notes[key];
         }
         public static string GetNoteName(int key)
         {
-            SetNotes();
             return notes[key % 12] + ((key / 12) - 2);
         }
     }

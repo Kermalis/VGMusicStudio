@@ -27,6 +27,6 @@ namespace Kermalis.VGMusicStudio.Core
         void Play();
         void Pause();
         void Stop();
-        void GetSongState(UI.TrackInfoControl.TrackInfo info);
+        void GetSongState(UI.SongInfoControl.SongInfo info);
     }
 }

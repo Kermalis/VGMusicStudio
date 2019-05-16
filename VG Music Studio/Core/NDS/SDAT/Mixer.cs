@@ -29,8 +29,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 Channels[i] = new Channel(i);
             }
 
-            Mutes = new bool[0x10];
-
             buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
             {
                 DiscardOnBufferOverflow = true,

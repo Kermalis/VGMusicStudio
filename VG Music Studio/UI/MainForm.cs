@@ -21,8 +21,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         public static MainForm Instance { get; } = new MainForm();
 
-        private readonly List<byte> pianoNotes = new List<byte>();
-        public readonly bool[] PianoTracks = new bool[0x10];
+        public readonly bool[] PianoTracks = new bool[SongInfoControl.SongInfo.MaxTracks];
 
         public bool PlaylistPlaying;
         private Config.Playlist curPlaylist;
@@ -34,7 +33,6 @@ namespace Kermalis.VGMusicStudio.UI
 
         #region Controls
 
-        private readonly IContainer components;
         private readonly MenuStrip mainMenu;
         private readonly ToolStripMenuItem fileItem, openDSEItem, openMLSSItem, openMP2KItem, openSDATItem,
             dataItem, trackViewerItem, exportMIDIItem,
@@ -45,7 +43,7 @@ namespace Kermalis.VGMusicStudio.UI
         private readonly SplitContainer splitContainer;
         private readonly PianoControl piano;
         private readonly ColorSlider volumeBar, positionBar;
-        private readonly TrackInfoControl trackInfo;
+        private readonly SongInfoControl songInfo;
         private readonly ImageComboBox songsComboBox;
         private readonly ThumbnailToolBarButton prevTButton, toggleTButton, nextTButton;
 
@@ -53,9 +51,9 @@ namespace Kermalis.VGMusicStudio.UI
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && components != null)
+            if (disposing)
             {
-                components.Dispose();
+                timer.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -65,8 +63,6 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 PianoTracks[i] = true;
             }
-
-            components = new Container();
 
             // File Menu
             openDSEItem = new ToolStripMenuItem { Text = Strings.MenuOpenDSE };
@@ -111,11 +107,11 @@ namespace Kermalis.VGMusicStudio.UI
             songNumerical.ValueChanged += SongNumerical_ValueChanged;
 
             // Timer
-            timer = new Timer(components);
+            timer = new Timer();
             timer.Tick += UpdateUI;
 
             // Piano
-            piano = new PianoControl { HighNoteID = 127, LowNoteID = 0 };
+            piano = new PianoControl();
 
             // Volume bar
             volumeBar = new ColorSlider { Enabled = false, LargeChange = 20, Maximum = 100, SmallChange = 5 };
@@ -131,12 +127,12 @@ namespace Kermalis.VGMusicStudio.UI
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
 
             // Track info
-            trackInfo = new TrackInfoControl { Dock = DockStyle.Fill };
+            songInfo = new SongInfoControl { Dock = DockStyle.Fill };
 
             // Split container
             splitContainer = new SplitContainer { BackColor = Theme.TitleBar, Dock = DockStyle.Fill, IsSplitterFixed = true, Orientation = Orientation.Horizontal, SplitterWidth = 1 };
             splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, pauseButton, stopButton, songNumerical, songsComboBox, piano, volumeBar, positionBar });
-            splitContainer.Panel2.Controls.Add(trackInfo);
+            splitContainer.Panel2.Controls.Add(songInfo);
 
             // MainForm
             ClientSize = new Size(intendedWidth, intendedHeight);
@@ -193,7 +189,7 @@ namespace Kermalis.VGMusicStudio.UI
             Stop();
             Text = Utils.ProgramName;
             songsComboBox.SelectedIndex = 0;
-            trackInfo.DeleteData();
+            songInfo.DeleteData();
             bool success;
             try
             {
@@ -220,10 +216,15 @@ namespace Kermalis.VGMusicStudio.UI
                 positionBar.Maximum = (int)Engine.Instance.Player.MaxTicks;
                 positionBar.LargeChange = positionBar.Maximum / 10;
                 positionBar.SmallChange = positionBar.LargeChange / 4;
+                songInfo.SetNumTracks(Engine.Instance.Player.Events.Length);
                 if (autoplay)
                 {
                     Play();
                 }
+            }
+            else
+            {
+                songInfo.SetNumTracks(0);
             }
             positionBar.Enabled = success;
             exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && Engine.Instance.Player.Events.Length > 0;
@@ -468,8 +469,6 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 pauseButton.Text = Strings.PlayerUnpause;
                 timer.Stop();
-                System.Threading.Monitor.Enter(timer);
-                ClearPianoNotes();
             }
             UpdateTaskbarState();
             UpdateTaskbarButtons();
@@ -480,9 +479,8 @@ namespace Kermalis.VGMusicStudio.UI
             pauseButton.Enabled = stopButton.Enabled = false;
             pauseButton.Text = Strings.PlayerPause;
             timer.Stop();
-            System.Threading.Monitor.Enter(timer);
-            ClearPianoNotes();
-            trackInfo.DeleteData();
+            songInfo.DeleteData();
+            piano.UpdateKeys(songInfo.Info, PianoTracks);
             UpdatePositionIndicators(0);
             UpdateTaskbarState();
             UpdateTaskbarButtons();
@@ -555,6 +553,8 @@ namespace Kermalis.VGMusicStudio.UI
             trackViewer?.UpdateTracks();
             prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = positionBar.Enabled = false;
             Text = Utils.ProgramName;
+            songInfo.SetNumTracks(0);
+            songInfo.ResetMutes();
             ResetPlaylistStuff(false);
             UpdatePositionIndicators(0);
             UpdateTaskbarState();
@@ -567,65 +567,32 @@ namespace Kermalis.VGMusicStudio.UI
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
             songNumerical.ValueChanged += SongNumerical_ValueChanged;
         }
-        private void ClearPianoNotes()
-        {
-            foreach (byte n in pianoNotes)
-            {
-                if (n >= piano.LowNoteID && n <= piano.HighNoteID)
-                {
-                    piano[n - piano.LowNoteID].NoteOnColor = Color.DeepSkyBlue;
-                    piano.ReleasePianoKey(n);
-                }
-            }
-            pianoNotes.Clear();
-        }
         private bool stopUI = false;
         private void UpdateUI(object sender, EventArgs e)
         {
-            if (System.Threading.Monitor.TryEnter(timer))
+            if (stopUI)
             {
-                if (stopUI)
+                stopUI = false;
+                if (PlaylistPlaying)
                 {
-                    stopUI = false;
-                    if (PlaylistPlaying)
-                    {
-                        playedSongs.Add(curSong);
-                        SetAndLoadNextPlaylistSong();
-                    }
-                    else
-                    {
-                        Stop();
-                    }
+                    playedSongs.Add(curSong);
+                    SetAndLoadNextPlaylistSong();
                 }
                 else
                 {
-                    if (WindowState != FormWindowState.Minimized)
-                    {
-                        TrackInfoControl.TrackInfo info = trackInfo.Info;
-                        Engine.Instance.Player.GetSongState(info);
-                        ClearPianoNotes();
-                        for (int i = PianoTracks.Length - 1; i >= 0; i--)
-                        {
-                            if (PianoTracks[i])
-                            {
-                                byte[] notes = info.Notes[i];
-                                pianoNotes.AddRange(notes);
-                                for (int j = 0; j < notes.Length; j++)
-                                {
-                                    byte n = notes[j];
-                                    if (n >= piano.LowNoteID && n <= piano.HighNoteID)
-                                    {
-                                        piano[n - piano.LowNoteID].NoteOnColor = GlobalConfig.Instance.Colors[info.Voices[i]];
-                                        piano.PressPianoKey(n);
-                                    }
-                                }
-                            }
-                        }
-                        trackInfo.Invalidate();
-                    }
-                    UpdatePositionIndicators((int)Engine.Instance.Player.ElapsedTicks);
+                    Stop();
                 }
-                System.Threading.Monitor.Exit(timer);
+            }
+            else
+            {
+                if (WindowState != FormWindowState.Minimized)
+                {
+                    SongInfoControl.SongInfo info = songInfo.Info;
+                    Engine.Instance.Player.GetSongState(info);
+                    piano.UpdateKeys(info, PianoTracks);
+                    songInfo.Invalidate();
+                }
+                UpdatePositionIndicators((int)Engine.Instance.Player.ElapsedTicks);
             }
         }
         private void SongEnded()
@@ -736,7 +703,7 @@ namespace Kermalis.VGMusicStudio.UI
 
                 // Piano
                 piano.Size = new Size(splitContainer.Panel1.Width, (int)(splitContainer.Panel1.Height / 2.5)); // Force it to initialize piano keys again
-                piano.Location = new Point((splitContainer.Panel1.Width - (piano[0].Width * piano.WhiteKeyCount)) / 2, splitContainer.Panel1.Height - piano.Height - 1);
+                piano.Location = new Point((splitContainer.Panel1.Width - (piano.WhiteKeyWidth * PianoControl.WhiteKeyCount)) / 2, splitContainer.Panel1.Height - piano.Height - 1);
                 piano.Invalidate(true);
             }
         }

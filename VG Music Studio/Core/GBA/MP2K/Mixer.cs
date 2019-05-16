@@ -40,8 +40,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
             psgChannels = new PSGChannel[] { sq1 = new SquareChannel(this), sq2 = new SquareChannel(this), pcm4 = new PCM4Channel(this), noise = new NoiseChannel(this) };
 
-            Mutes = new bool[0x10];
-
             int amt = SamplesPerBuffer * 2;
             audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
             trackBuffers = new float[0x10][];

@@ -8,7 +8,7 @@ namespace Kermalis.VGMusicStudio.Core
 {
     internal abstract class Mixer : IAudioSessionEventsHandler, IDisposable
     {
-        public bool[] Mutes { get; protected set; }
+        public readonly bool[] Mutes = new bool[SongInfoControl.SongInfo.MaxTracks];
         private IWavePlayer @out;
         private AudioSessionControl appVolume;
         private bool ignoreVolChangeFromUI = false;
