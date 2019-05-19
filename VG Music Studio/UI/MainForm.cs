@@ -118,7 +118,7 @@ namespace Kermalis.VGMusicStudio.UI
             volumeBar.ValueChanged += VolumeBar_ValueChanged;
 
             // Position bar
-            positionBar = new ColorSlider { Enabled = false, Maximum = 0 };
+            positionBar = new ColorSlider { AcceptKeys = false, Enabled = false, Maximum = 0 };
             positionBar.MouseUp += PositionBar_MouseUp;
             positionBar.MouseDown += PositionBar_MouseDown;
 
@@ -169,15 +169,21 @@ namespace Kermalis.VGMusicStudio.UI
             volumeBar.ValueChanged += VolumeBar_ValueChanged;
         }
         private bool positionBarFree = true;
-        private void PositionBar_MouseUp(object sender, EventArgs e)
+        private void PositionBar_MouseUp(object sender, MouseEventArgs e)
         {
-            Engine.Instance.Player.SetCurrentPosition(positionBar.Value);
-            positionBarFree = true;
-            LetUIKnowPlayerIsPlaying();
+            if (e.Button == MouseButtons.Left)
+            {
+                Engine.Instance.Player.SetCurrentPosition(positionBar.Value);
+                positionBarFree = true;
+                LetUIKnowPlayerIsPlaying();
+            }
         }
-        private void PositionBar_MouseDown(object sender, EventArgs e)
+        private void PositionBar_MouseDown(object sender, MouseEventArgs e)
         {
-            positionBarFree = false;
+            if (e.Button == MouseButtons.Left)
+            {
+                positionBarFree = false;
+            }
         }
 
         private bool autoplay = false;
@@ -481,7 +487,7 @@ namespace Kermalis.VGMusicStudio.UI
             timer.Stop();
             songInfo.DeleteData();
             piano.UpdateKeys(songInfo.Info, PianoTracks);
-            UpdatePositionIndicators(0);
+            UpdatePositionIndicators(0L);
             UpdateTaskbarState();
             UpdateTaskbarButtons();
         }
@@ -556,7 +562,7 @@ namespace Kermalis.VGMusicStudio.UI
             songInfo.SetNumTracks(0);
             songInfo.ResetMutes();
             ResetPlaylistStuff(false);
-            UpdatePositionIndicators(0);
+            UpdatePositionIndicators(0L);
             UpdateTaskbarState();
             songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             songNumerical.ValueChanged -= SongNumerical_ValueChanged;
@@ -592,14 +598,14 @@ namespace Kermalis.VGMusicStudio.UI
                     piano.UpdateKeys(info, PianoTracks);
                     songInfo.Invalidate();
                 }
-                UpdatePositionIndicators((int)Engine.Instance.Player.ElapsedTicks);
+                UpdatePositionIndicators(Engine.Instance.Player.ElapsedTicks);
             }
         }
         private void SongEnded()
         {
             stopUI = true;
         }
-        private void UpdatePositionIndicators(int ticks)
+        private void UpdatePositionIndicators(long ticks)
         {
             if (positionBarFree)
             {
@@ -607,7 +613,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             if (GlobalConfig.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
             {
-                TaskbarManager.Instance.SetProgressValue(ticks, positionBar.Maximum);
+                TaskbarManager.Instance.SetProgressValue((int)ticks, (int)positionBar.Maximum);
             }
         }
         private void UpdateTaskbarState()

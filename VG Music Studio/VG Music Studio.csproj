@@ -157,15 +157,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="UI\ColorSlider.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="UI\ColorSlider.designer.cs">
-      <DependentUpon>ColorSlider.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\PianoControl.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="UI\ColorSlider.cs" />
+    <Compile Include="UI\PianoControl.cs" />
     <Compile Include="UI\ImageComboBox.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -217,9 +210,6 @@
     <EmbeddedResource Include="Properties\Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\ColorSlider.resx">
-      <DependentUpon>ColorSlider.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

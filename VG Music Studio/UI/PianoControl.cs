@@ -26,11 +26,13 @@
 using Kermalis.VGMusicStudio.Core;
 using Kermalis.VGMusicStudio.Util;
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
 namespace Kermalis.VGMusicStudio.UI
 {
+    [DesignerCategory("")]
     internal class PianoControl : Control
     {
         private enum KeyType : byte

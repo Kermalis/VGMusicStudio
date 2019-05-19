@@ -9,7 +9,7 @@ using System.Windows.Forms;
 namespace Kermalis.VGMusicStudio.UI
 {
     [DesignerCategory("")]
-    internal class SongInfoControl : UserControl
+    internal class SongInfoControl : Control
     {
         public class SongInfo
         {
@@ -87,15 +87,17 @@ namespace Kermalis.VGMusicStudio.UI
                 pianos[i] = new CheckBox
                 {
                     BackColor = Color.Transparent,
+                    Checked = true,
                     Size = new Size(checkboxSize, checkboxSize),
-                    Checked = true
+                    TabStop = false
                 };
                 pianos[i].CheckStateChanged += TogglePiano;
                 mutes[i] = new CheckBox
                 {
                     BackColor = Color.Transparent,
+                    Checked = true,
                     Size = new Size(checkboxSize, checkboxSize),
-                    Checked = true
+                    TabStop = false
                 };
                 mutes[i].CheckStateChanged += ToggleMute;
             }
