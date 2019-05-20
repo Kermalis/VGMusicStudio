@@ -1,7 +1,4 @@
-﻿using Kermalis.VGMusicStudio.Util;
-using System;
-
-namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
+﻿namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
     public static class Utils
     {
@@ -318,11 +315,28 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 timer <<= remainder;
             }
-            return (ushort)timer.Clamp(0x10uL, ushort.MaxValue);
+            if (timer < 0x10)
+            {
+                timer = 0x10;
+            }
+            else if (timer > ushort.MaxValue)
+            {
+                timer = ushort.MaxValue;
+            }
+            return (ushort)timer;
         }
         public static byte GetChannelVolume(int vol)
         {
-            return VolumeTable[Util.Utils.Clamp(vol / 0x80, -723, 0) + 723];
+            int a = vol / 0x80;
+            if (a < -723)
+            {
+                a = -723;
+            }
+            else if (a > 0)
+            {
+                a = 0;
+            }
+            return VolumeTable[a + 723];
         }
     }
 }

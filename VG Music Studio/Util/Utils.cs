@@ -18,10 +18,6 @@ namespace Kermalis.VGMusicStudio.Util
             notes = Strings.Notes.Split(';');
         }
 
-        public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
-        {
-            return val.CompareTo(min) < 0 ? min : val.CompareTo(max) > 0 ? max : val;
-        }
         public static bool TryParseValue(string value, long minValue, long maxValue, out long outValue)
         {
             try { outValue = ParseValue(string.Empty, value, minValue, maxValue); return true; }

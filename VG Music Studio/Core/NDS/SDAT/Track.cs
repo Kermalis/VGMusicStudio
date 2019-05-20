@@ -31,21 +31,30 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public int GetPitch()
         {
-            int mod = LFOType == LFOType.Pitch ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            mod = ((mod << 6) >> 14) | ((mod >> 26) << 18);
-            return (PitchBend * PitchBendRange / 2) + mod;
+            int lfo = LFOType == LFOType.Pitch ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
+            lfo = ((lfo << 6) >> 14) | ((lfo >> 26) << 18);
+            return (PitchBend * PitchBendRange / 2) + lfo;
         }
         public int GetVolume()
         {
-            int mod = LFOType == LFOType.Volume ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            mod = (((mod << 6) >> 14) | ((mod >> 26) << 18)) << 6;
-            return Utils.SustainTable[player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + mod;
+            int lfo = LFOType == LFOType.Volume ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
+            lfo = (((lfo << 6) >> 14) | ((lfo >> 26) << 18)) << 6;
+            return Utils.SustainTable[player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + lfo;
         }
         public sbyte GetPan()
         {
-            int mod = LFOType == LFOType.Panpot ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            mod = ((mod << 6) >> 14) | ((mod >> 26) << 18);
-            return (sbyte)Util.Utils.Clamp(Panpot + mod, -0x40, 0x3F);
+            int lfo = LFOType == LFOType.Panpot ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
+            lfo = ((lfo << 6) >> 14) | ((lfo >> 26) << 18);
+            int p = Panpot + lfo;
+            if (p < -0x40)
+            {
+                p = -0x40;
+            }
+            else if (p > 0x3F)
+            {
+                p = 0x3F;
+            }
+            return (sbyte)p;
         }
 
         public Track(byte i, Player player)

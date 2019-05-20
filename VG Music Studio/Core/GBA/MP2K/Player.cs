@@ -334,7 +334,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 {
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new FinishCommand { Type = cmd });
+                                        AddEvent(new FinishCommand { Prev = cmd == 0xB6 });
                                     }
                                     cont = false;
                                     break;
@@ -686,8 +686,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             NoteCommand nc = eot.Key == -1 ? playing.LastOrDefault() : playing.LastOrDefault(no => no.Key == eot.Key);
                             if (nc != null)
                             {
-                                int n = (nc.Key + transpose).Clamp(0, 0x7F);
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                                int key = nc.Key + transpose;
+                                if (key < 0)
+                                {
+                                    key = 0;
+                                }
+                                else if (key > 0x7F)
+                                {
+                                    key = 0x7F;
+                                }
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, key));
                                 playing.Remove(nc);
                             }
                             break;
@@ -746,11 +754,19 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         }
                         case NoteCommand note:
                         {
-                            int n = (note.Key + transpose).Clamp(0, 0x7F);
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, n, note.Velocity));
+                            int key = note.Key + transpose;
+                            if (key < 0)
+                            {
+                                key = 0;
+                            }
+                            else if (key > 0x7F)
+                            {
+                                key = 0x7F;
+                            }
+                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, key, note.Velocity));
                             if (note.Duration != -1)
                             {
-                                track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, n));
+                                track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, key));
                             }
                             else
                             {
@@ -953,7 +969,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         private void PlayNote(Track track, byte key, byte velocity, int duration)
         {
-            key = (byte)(key + track.Transpose).Clamp(0, 0x7F);
+            int k = key + track.Transpose;
+            if (k < 0)
+            {
+                k = 0;
+            }
+            else if (k > 0x7F)
+            {
+                k = 0x7F;
+            }
+            key = (byte)k;
             track.PrevKey = key;
             if (track.Ready)
             {
@@ -1048,7 +1073,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     else
                     {
-                        track.ReleaseChannels((byte)(eot.Key + track.Transpose).Clamp(0, 0x7F));
+                        int k = eot.Key + track.Transpose;
+                        if (k < 0)
+                        {
+                            k = 0;
+                        }
+                        else if (k > 0x7F)
+                        {
+                            k = 0x7F;
+                        }
+                        track.ReleaseChannels((byte)k);
                     }
                     break;
                 }

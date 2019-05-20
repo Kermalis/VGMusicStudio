@@ -102,8 +102,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 }
                 case EnvelopeState.Release:
                 {
-                    int nextVel = (velocity * adsr.R) >> 8;
-                    velocity = (byte)Math.Max(nextVel, 0);
+                    int next = (velocity * adsr.R) >> 8;
+                    if (next < 0)
+                    {
+                        next = 0;
+                    }
+                    velocity = (byte)next;
                     break;
                 }
             }
@@ -168,36 +172,40 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             {
                 case EnvelopeState.Attack:
                 {
-                    int nextVel = velocity + adsr.A;
-                    if (nextVel >= 0xF)
+                    int next = velocity + adsr.A;
+                    if (next >= 0xF)
                     {
                         State = EnvelopeState.Decay;
                         velocity = 0xF;
                     }
                     else
                     {
-                        velocity = (byte)nextVel;
+                        velocity = (byte)next;
                     }
                     break;
                 }
                 case EnvelopeState.Decay:
                 {
-                    int nextVel = (velocity * adsr.D) >> 3;
-                    if (nextVel <= adsr.S)
+                    int next = (velocity * adsr.D) >> 3;
+                    if (next <= adsr.S)
                     {
                         State = EnvelopeState.Sustain;
                         velocity = adsr.S;
                     }
                     else
                     {
-                        velocity = (byte)nextVel;
+                        velocity = (byte)next;
                     }
                     break;
                 }
                 case EnvelopeState.Release:
                 {
-                    int nextVel = (velocity * adsr.R) >> 3;
-                    velocity = (byte)Math.Max(nextVel, 0);
+                    int next = (velocity * adsr.R) >> 3;
+                    if (next < 0)
+                    {
+                        next = 0;
+                    }
+                    velocity = (byte)next;
                     break;
                 }
             }

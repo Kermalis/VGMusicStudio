@@ -1,6 +1,4 @@
-﻿using Kermalis.VGMusicStudio.Util;
-
-namespace Kermalis.VGMusicStudio.Core
+﻿namespace Kermalis.VGMusicStudio.Core
 {
     internal class ADPCMDecoder
     {
@@ -58,8 +56,28 @@ namespace Kermalis.VGMusicStudio.Core
                 (stepTable[StepIndex] / 2 * ((val >> 1) & 1)) +
                 (stepTable[StepIndex] * ((val >> 2) & 1));
 
-            LastSample = (short)Utils.Clamp((diff * ((((val >> 3) & 1) == 1) ? -1 : 1)) + LastSample, short.MinValue, short.MaxValue);
-            StepIndex = (short)Utils.Clamp(StepIndex + indexTable[val & 7], 0, 88);
+            int a = (diff * ((((val >> 3) & 1) == 1) ? -1 : 1)) + LastSample;
+            if (a < short.MinValue)
+            {
+                a = short.MinValue;
+            }
+            else if (a > short.MaxValue)
+            {
+                a = short.MaxValue;
+            }
+            LastSample = (short)a;
+
+            a = StepIndex + indexTable[val & 7];
+            if (a < 0)
+            {
+                a = 0;
+            }
+            else if (a > 88)
+            {
+                a = 88;
+            }
+            StepIndex = (short)a;
+
             if (OnSecondNibble)
             {
                 DataOffset++;

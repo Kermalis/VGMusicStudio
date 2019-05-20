@@ -1,5 +1,4 @@
-﻿using Kermalis.VGMusicStudio.Util;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
@@ -20,18 +19,36 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         public int GetPitch()
         {
-            int mod = LFOType == LFOType.Pitch ? (Utils.Tri(LFOPhase) * LFODepth) >> 8 : 0;
-            return (PitchBend * PitchBendRange) + Tune + mod;
+            int lfo = LFOType == LFOType.Pitch ? (Utils.Tri(LFOPhase) * LFODepth) >> 8 : 0;
+            return (PitchBend * PitchBendRange) + Tune + lfo;
         }
         public byte GetVolume()
         {
-            int mod = LFOType == LFOType.Volume ? (Utils.Tri(LFOPhase) * LFODepth * 3 * Volume) >> 19 : 0;
-            return (byte)(Volume + mod).Clamp(0, 0x7F);
+            int lfo = LFOType == LFOType.Volume ? (Utils.Tri(LFOPhase) * LFODepth * 3 * Volume) >> 19 : 0;
+            int v = Volume + lfo;
+            if (v < 0)
+            {
+                v = 0;
+            }
+            else if (v > 0x7F)
+            {
+                v = 0x7F;
+            }
+            return (byte)v;
         }
         public sbyte GetPanpot()
         {
-            int mod = LFOType == LFOType.Panpot ? (Utils.Tri(LFOPhase) * LFODepth * 3) >> 12 : 0;
-            return (sbyte)(Panpot + mod).Clamp(-0x40, 0x3F);
+            int lfo = LFOType == LFOType.Panpot ? (Utils.Tri(LFOPhase) * LFODepth * 3) >> 12 : 0;
+            int p = Panpot + lfo;
+            if (p < -0x40)
+            {
+                p = -0x40;
+            }
+            else if (p > 0x3F)
+            {
+                p = 0x3F;
+            }
+            return (sbyte)p;
         }
 
         public Track(byte i)

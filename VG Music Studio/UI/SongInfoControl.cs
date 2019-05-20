@@ -204,20 +204,20 @@ namespace Kermalis.VGMusicStudio.UI
             infoHeight = Height / 30f;
             infoY = infoHeight - (TextRenderer.MeasureText("A", Font).Height * 1.125f);
             positionX = (checkboxSize * 2) + 2;
-            int FWidth = Width - (int)positionX; // Width between checkboxes' edges and the window edge
-            keysX = positionX + (FWidth / 4.4f);
-            delayX = positionX + (FWidth / 7.5f);
-            typeEndX = positionX + FWidth - (FWidth / 100f);
+            int fWidth = Width - (int)positionX; // Width between checkboxes' edges and the window edge
+            keysX = positionX + (fWidth / 4.4f);
+            delayX = positionX + (fWidth / 7.5f);
+            typeEndX = positionX + fWidth - (fWidth / 100f);
             typeX = typeEndX - TextRenderer.MeasureText(Strings.PlayerType, Font).Width;
-            voicesX = positionX + (FWidth / 25f);
-            row2ElementAdditionX = FWidth / 15f;
+            voicesX = positionX + (fWidth / 25f);
+            row2ElementAdditionX = fWidth / 15f;
 
             yMargin = Height / 200f;
-            trackHeight = (Height - yMargin) / (Math.Max(16, numTracksToDraw) * 1.04f);
+            trackHeight = (Height - yMargin) / ((numTracksToDraw < 16 ? 16 : numTracksToDraw) * 1.04f);
             row2Offset = trackHeight / 2.5f;
             barHeight = (int)(Height / 30.3f);
-            barStartX = (int)(positionX + (FWidth / 2.35f));
-            barWidth = (int)(FWidth / 2.95f);
+            barStartX = (int)(positionX + (fWidth / 2.35f));
+            barWidth = (int)(fWidth / 2.95f);
             bwd = barWidth % 2; // Add/Subtract by 1 if the bar width is odd
             barRightBoundX = barStartX + barWidth - bwd;
             barCenterX = barStartX + (barWidth / 2);
@@ -292,8 +292,12 @@ namespace Kermalis.VGMusicStudio.UI
                             barHeight);
                     if (!rect.IsEmpty)
                     {
-                        byte velocity = (byte)(Math.Min(1f, (track.LeftVolume + track.RightVolume) * 2) * byte.MaxValue);
-                        solidBrush.Color = Color.FromArgb(velocity, color);
+                        float velocity = (track.LeftVolume + track.RightVolume) * 2f;
+                        if (velocity > 1f)
+                        {
+                            velocity = 1f;
+                        }
+                        solidBrush.Color = Color.FromArgb((byte)(velocity * byte.MaxValue), color);
                         e.Graphics.FillRectangle(solidBrush, rect);
                         e.Graphics.DrawRectangle(pen, rect);
                     }

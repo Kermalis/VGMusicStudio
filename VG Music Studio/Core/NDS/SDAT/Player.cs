@@ -1267,8 +1267,17 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     int duration = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.VarLen : track.ArgOverrideType, note.Duration);
                     if (track.DoCommandWork)
                     {
-                        byte key = (byte)(note.Key + track.Transpose).Clamp(0x0, 0x7F);
-                        PlayNote(track, key, note.Velocity, Math.Max(-1, duration));
+                        int k = note.Key + track.Transpose;
+                        if (k < 0)
+                        {
+                            k = 0;
+                        }
+                        else if (k > 0x7F)
+                        {
+                            k = 0x7F;
+                        }
+                        byte key = (byte)k;
+                        PlayNote(track, key, note.Velocity, duration);
                         track.PortamentoKey = key;
                         if (track.Mono)
                         {
@@ -1335,7 +1344,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, port.Portamento);
                     if (track.DoCommandWork)
                     {
-                        track.PortamentoKey = (byte)(arg + track.Transpose).Clamp(0x0, 0x7F);
+                        int k = arg + track.Transpose;
+                        if (k < 0)
+                        {
+                            k = 0;
+                        }
+                        else if (k > 0x7F)
+                        {
+                            k = 0x7F;
+                        }
+                        track.PortamentoKey = (byte)k;
                         track.Portamento = true;
                     }
                     break;

@@ -1,6 +1,4 @@
-﻿using Kermalis.VGMusicStudio.Util;
-
-namespace Kermalis.VGMusicStudio.Core.NDS.DSE
+﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
     internal class Channel
     {
@@ -174,7 +172,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 if (envelopeTimeLeft != 0)
                 {
                     envelopeTimeLeft--;
-                    velocity = (velocity + volumeIncrement).Clamp(0, 0x3FFFFFFF);
+                    velocity += volumeIncrement;
+                    if (velocity < 0)
+                    {
+                        velocity = 0;
+                    }
+                    else if (velocity > 0x3FFFFFFF)
+                    {
+                        velocity = 0x3FFFFFFF;
+                    }
                 }
                 else
                 {

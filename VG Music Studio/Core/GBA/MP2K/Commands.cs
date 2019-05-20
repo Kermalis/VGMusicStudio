@@ -6,37 +6,33 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public Color Color => Color.MediumSpringGreen;
         public string Label => "Call";
-        public string Arguments => $"0x{offset:X7}";
+        public string Arguments => $"0x{Offset:X7}";
 
-        private int offset;
-        public int Offset { get => offset; set => offset = Util.Utils.Clamp(value, 0, GBA.Utils.CartridgeCapacity); }
+        public int Offset { get; set; }
     }
     internal class EndOfTieCommand : ICommand
     {
         public Color Color => Color.SkyBlue;
         public string Label => "End Of Tie";
-        public string Arguments => key == -1 ? "All Ties" : Util.Utils.GetNoteName(key);
+        public string Arguments => Key == -1 ? "All Ties" : Util.Utils.GetNoteName(Key);
 
-        private int key;
-        public int Key { get => key; set => key = Util.Utils.Clamp(value, -1, 0x7F); }
+        public int Key { get; set; }
     }
     internal class FinishCommand : ICommand
     {
         public Color Color => Color.MediumSpringGreen;
         public string Label => "Finish";
-        public string Arguments => prev ? "Resume previous track" : "End track";
+        public string Arguments => Prev ? "Resume previous track" : "End track";
 
-        private bool prev;
-        public byte Type { get => (byte)(prev ? 0xB6 : 0xB1); set => prev = value == 0xB6; }
+        public bool Prev { get; set; }
     }
     internal class JumpCommand : ICommand
     {
         public Color Color => Color.MediumSpringGreen;
         public string Label => "Jump";
-        public string Arguments => $"0x{offset:X7}";
+        public string Arguments => $"0x{Offset:X7}";
 
-        private int offset;
-        public int Offset { get => offset; set => offset = Util.Utils.Clamp(value, 0, GBA.Utils.CartridgeCapacity); }
+        public int Offset { get; set; }
     }
     internal class LFODelayCommand : ICommand
     {
@@ -66,10 +62,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public Color Color => Color.LightSteelBlue;
         public string Label => "LFO Type";
-        public string Arguments => type.ToString();
+        public string Arguments => Type.ToString();
 
-        private LFOType type;
-        public LFOType Type { get => type; set => type = (LFOType)Util.Utils.Clamp((byte)value, 0, 2); }
+        public LFOType Type { get; set; }
     }
     internal class LibraryCommand : ICommand
     {
@@ -94,32 +89,27 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public Color Color => Color.SkyBlue;
         public string Label => "Note";
-        public string Arguments => $"{Util.Utils.GetNoteName(key)} {velocity} {duration}";
+        public string Arguments => $"{Util.Utils.GetNoteName(Key)} {Velocity} {Duration}";
 
-        private byte key;
-        public byte Key { get => key; set => key = (byte)Util.Utils.Clamp(value, 0, 0x7F); }
-        private byte velocity;
-        public byte Velocity { get => velocity; set => velocity = (byte)Util.Utils.Clamp(value, 0, 0x7F); }
-        private int duration;
-        public int Duration { get => duration; set => duration = Util.Utils.Clamp(value, -1, 0x7F); }
+        public byte Key { get; set; }
+        public byte Velocity { get; set; }
+        public int Duration { get; set; }
     }
     internal class PanpotCommand : ICommand
     {
         public Color Color => Color.GreenYellow;
         public string Label => "Panpot";
-        public string Arguments => panpot.ToString();
+        public string Arguments => Panpot.ToString();
 
-        private sbyte panpot;
-        public sbyte Panpot { get => panpot; set => panpot = (sbyte)Util.Utils.Clamp(value, -0x40, 0x3F); }
+        public sbyte Panpot { get; set; }
     }
     internal class PitchBendCommand : ICommand
     {
         public Color Color => Color.MediumPurple;
         public string Label => "Pitch Bend";
-        public string Arguments => bend.ToString();
+        public string Arguments => Bend.ToString();
 
-        private sbyte bend;
-        public sbyte Bend { get => bend; set => bend = (sbyte)Util.Utils.Clamp(value, -0x40, 0x3F); }
+        public sbyte Bend { get; set; }
     }
     internal class PitchBendRangeCommand : ICommand
     {
@@ -141,20 +131,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public Color Color => Color.MediumSpringGreen;
         public string Label => "Repeat";
-        public string Arguments => $"{Times}, 0x{offset:X7}";
+        public string Arguments => $"{Times}, 0x{Offset:X7}";
 
         public byte Times { get; set; }
-        private int offset;
-        public int Offset { get => offset; set => offset = Util.Utils.Clamp(value, 0, GBA.Utils.CartridgeCapacity); }
+        public int Offset { get; set; }
     }
     internal class RestCommand : ICommand
     {
         public Color Color => Color.PaleVioletRed;
         public string Label => "Rest";
-        public string Arguments => rest.ToString();
+        public string Arguments => Rest.ToString();
 
-        private byte rest;
-        public byte Rest { get => rest; set => rest = (byte)Util.Utils.Clamp(value, 0, 96); }
+        public byte Rest { get; set; }
     }
     internal class ReturnCommand : ICommand
     {
@@ -166,18 +154,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public Color Color => Color.DeepSkyBlue;
         public string Label => "Tempo";
-        public string Arguments => tempo.ToString();
+        public string Arguments => Tempo.ToString();
 
-        private ushort tempo;
-        public ushort Tempo
-        {
-            get => tempo;
-            set
-            {
-                value /= 2; value *= 2; // Get rid of odd values
-                tempo = (ushort)Util.Utils.Clamp(value, 0, 510);
-            }
-        }
+        public ushort Tempo { get; set; }
     }
     internal class TransposeCommand : ICommand
     {
@@ -191,10 +170,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public Color Color => Color.MediumPurple;
         public string Label => "Fine Tune";
-        public string Arguments => tune.ToString();
+        public string Arguments => Tune.ToString();
 
-        private sbyte tune;
-        public sbyte Tune { get => tune; set => tune = (sbyte)Util.Utils.Clamp(value, -0x40, 0x3F); }
+        public sbyte Tune { get; set; }
     }
     internal class VoiceCommand : ICommand
     {
@@ -208,9 +186,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public Color Color => Color.SteelBlue;
         public string Label => "Volume";
-        public string Arguments => volume.ToString();
+        public string Arguments => Volume.ToString();
 
-        private byte volume;
-        public byte Volume { get => volume; set => volume = (byte)Util.Utils.Clamp(value, 0, 0x7F); }
+        public byte Volume { get; set; }
     }
 }

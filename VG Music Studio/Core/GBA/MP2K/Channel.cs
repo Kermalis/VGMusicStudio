@@ -1,5 +1,4 @@
-﻿using Kermalis.VGMusicStudio.Util;
-using System;
+﻿using System;
 using System.Collections;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
@@ -443,9 +442,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     velocity = sustainVelocity;
                     nextState = EnvelopeState.Playing;
                 }
-                else
+                else if (velocity != 0)
                 {
-                    velocity = (byte)(velocity - 1).Clamp(0, 0xF);
+                    velocity--;
                 }
             }
             void sus()
@@ -489,7 +488,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     else if (adsr.A == 0 && adsr.S < 0xF)
                     {
                         State = EnvelopeState.Decaying;
-                        velocity = (byte)(peakVelocity - 1).Clamp(0, 0xF);
+                        int next = peakVelocity - 1;
+                        if (next < 0)
+                        {
+                            next = 0;
+                        }
+                        velocity = (byte)next;
                         if (velocity < sustainVelocity)
                         {
                             velocity = sustainVelocity;
@@ -699,7 +703,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         public override void SetPitch(int pitch)
         {
-            frequency = (0x1000 * (float)Math.Pow(8, ((Note.Key - 60) / 12f) + (pitch / 768f))).Clamp(8, 0x80000); // Thanks ipatix
+            // Thanks ipatix
+            float a = 0x1000 * (float)Math.Pow(8, ((Note.Key - 60) / 12f) + (pitch / 768f));
+            if (a < 8)
+            {
+                a = 8;
+            }
+            else if (a > 0x80000)
+            {
+                a = 0x80000;
+            }
+            frequency = a;
         }
 
         public override void Process(float[] buffer)

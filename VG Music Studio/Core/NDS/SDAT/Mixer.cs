@@ -97,8 +97,17 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     else
                     {
                         chan.Volume = Utils.GetChannelVolume(vol);
-                        chan.Pan = (sbyte)Util.Utils.Clamp(chan.StartingPan + chan.Owner.GetPan(), -0x40, 0x3F);
                         chan.Timer = Utils.GetChannelTimer(chan.BaseTimer, pitch);
+                        int p = chan.StartingPan + chan.Owner.GetPan();
+                        if (p < -0x40)
+                        {
+                            p = -0x40;
+                        }
+                        else if (p > 0x3F)
+                        {
+                            p = 0x3F;
+                        }
+                        chan.Pan = (sbyte)p;
                     }
                 }
             }
@@ -172,11 +181,29 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         }
                     }
                 }
-                left = (int)Util.Utils.Clamp(left * masterLevel, short.MinValue, short.MaxValue);
-                right = (int)Util.Utils.Clamp(right * masterLevel, short.MinValue, short.MaxValue);
+                float a = left * masterLevel;
+                if (a < short.MinValue)
+                {
+                    a = short.MinValue;
+                }
+                else if (a > short.MaxValue)
+                {
+                    a = short.MaxValue;
+                }
+                left = (int)a;
+                a = right * masterLevel;
+                if (a < short.MinValue)
+                {
+                    a = short.MinValue;
+                }
+                else if (a > short.MaxValue)
+                {
+                    a = short.MaxValue;
+                }
+                right = (int)a;
                 masterLevel += masterStep;
                 // Convert two shorts to four bytes
-                buffer.AddSamples(new byte[] { (byte)(left & 0xFF), (byte)((left >> 8) & 0xFF), (byte)(right & 0xFF), (byte)((right >> 8) & 0xFF) }, 0, 4);
+                buffer.AddSamples(new byte[] { (byte)left, (byte)(left >> 8), (byte)right, (byte)(right >> 8) }, 0, 4);
             }
         }
     }
