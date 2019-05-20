@@ -219,7 +219,7 @@ namespace Kermalis.VGMusicStudio.UI
                     Text = $"{Utils.ProgramName} - {song.Name}";
                     songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
                 }
-                positionBar.Maximum = (int)Engine.Instance.Player.MaxTicks;
+                positionBar.Maximum = Engine.Instance.Player.MaxTicks;
                 positionBar.LargeChange = positionBar.Maximum / 10;
                 positionBar.SmallChange = positionBar.LargeChange / 4;
                 songInfo.SetNumTracks(Engine.Instance.Player.Events.Length);

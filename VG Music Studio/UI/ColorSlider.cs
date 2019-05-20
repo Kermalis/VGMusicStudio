@@ -108,13 +108,13 @@ namespace Kermalis.VGMusicStudio.UI
             get => _smallChange;
             set
             {
-                if (value > 0)
+                if (value >= 0)
                 {
                     _smallChange = value;
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException(nameof(SmallChange), $"{nameof(SmallChange)} must be positive.");
+                    throw new ArgumentOutOfRangeException(nameof(SmallChange), $"{nameof(SmallChange)} must be greater than or equal to 0.");
                 }
             }
         }
@@ -124,13 +124,13 @@ namespace Kermalis.VGMusicStudio.UI
             get => _largeChange;
             set
             {
-                if (value > 0)
+                if (value >= 0)
                 {
                     _largeChange = value;
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException(nameof(LargeChange), $"{nameof(LargeChange)} must be positive.");
+                    throw new ArgumentOutOfRangeException(nameof(LargeChange), $"{nameof(LargeChange)} must be greater than or equal to 0.");
                 }
             }
         }
