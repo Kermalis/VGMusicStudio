@@ -1012,8 +1012,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         {
                             case VoiceType.PCM8:
                             {
-                                bool bFixed = (v.Type & (int)VoiceFlags.Fixed) == (int)VoiceFlags.Fixed;
-                                bool bCompressed = false;//ROM.Instance.Game.Engine.HasPokemonCompression && (v.Type & (int)VoiceFlags.Compressed) == (int)VoiceFlags.Compressed;
+                                bool bFixed = (v.Type & (int)VoiceFlags.Fixed) != 0;
+                                bool bCompressed = config.HasPokemonCompression && ((v.Type & (int)VoiceFlags.Compressed) != 0);
                                 mixer.AllocPCM8Channel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     bFixed, bCompressed, v.Int4 - GBA.Utils.CartridgeOffset);
