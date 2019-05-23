@@ -37,6 +37,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             };
             Init(buffer);
         }
+        public override void Dispose()
+        {
+            base.Dispose();
+            CloseWaveWriter();
+        }
 
         public Channel AllocateChannel()
         {
@@ -116,7 +121,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             fadeMicroFramesLeft = 0;
         }
 
-        public void Process()
+        private WaveFileWriter waveWriter;
+        public void CreateWaveWriter(string fileName)
+        {
+            waveWriter = new WaveFileWriter(fileName, buffer.WaveFormat);
+        }
+        public void CloseWaveWriter()
+        {
+            waveWriter?.Dispose();
+        }
+        public void Process(bool output, bool recording)
         {
             float fromMaster = 1f, toMaster = 1f;
             if (fadeMicroFramesLeft > 0)
@@ -129,19 +143,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
             float masterStep = (toMaster - fromMaster) * samplesReciprocal;
             float masterLevel = fromMaster;
-            int left, right;
-            short channelLeft, channelRight;
+            byte[] b = new byte[4];
             for (int i = 0; i < samplesPerBuffer; i++)
             {
-                left = 0;
-                right = 0;
+                int left = 0,
+                    right = 0;
                 for (int j = 0; j < numChannels; j++)
                 {
                     Channel chan = channels[j];
                     if (chan.Owner != null)
                     {
                         bool muted = Mutes[chan.Owner.Index - 1]; // Get mute first because chan.Process() can call chan.Stop() which sets chan.Owner to null
-                        chan.Process(out channelLeft, out channelRight);
+                        chan.Process(out short channelLeft, out short channelRight);
                         if (!muted)
                         {
                             left += channelLeft;
@@ -149,29 +162,39 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         }
                     }
                 }
-                float a = left * masterLevel;
-                if (a < short.MinValue)
+                float f = left * masterLevel;
+                if (f < short.MinValue)
                 {
-                    a = short.MinValue;
+                    f = short.MinValue;
                 }
-                else if (a > short.MaxValue)
+                else if (f > short.MaxValue)
                 {
-                    a = short.MaxValue;
+                    f = short.MaxValue;
                 }
-                left = (int)a;
-                a = right * masterLevel;
-                if (a < short.MinValue)
+                left = (int)f;
+                b[0] = (byte)left;
+                b[1] = (byte)(left >> 8);
+                f = right * masterLevel;
+                if (f < short.MinValue)
                 {
-                    a = short.MinValue;
+                    f = short.MinValue;
                 }
-                else if (a > short.MaxValue)
+                else if (f > short.MaxValue)
                 {
-                    a = short.MaxValue;
+                    f = short.MaxValue;
                 }
-                right = (int)a;
+                right = (int)f;
+                b[2] = (byte)right;
+                b[3] = (byte)(right >> 8);
                 masterLevel += masterStep;
-                // Convert two shorts to four bytes
-                buffer.AddSamples(new byte[] { (byte)left, (byte)(left >> 8), (byte)right, (byte)(right >> 8) }, 0, 4);
+                if (output)
+                {
+                    buffer.AddSamples(b, 0, 4);
+                }
+                if (recording)
+                {
+                    waveWriter.Write(b, 0, 4);
+                }
             }
         }
     }

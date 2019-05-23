@@ -313,6 +313,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error Exporting WAV.
+        /// </summary>
+        internal static string ErrorSaveWAV {
+            get {
+                return ResourceManager.GetString("ErrorSaveWAV", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This SDAT archive has no sequences..
         /// </summary>
         internal static string ErrorSDATNoSequences {
@@ -363,6 +372,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string FilterSaveMIDI {
             get {
                 return ResourceManager.GetString("FilterSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WAV Files.
+        /// </summary>
+        internal static string FilterSaveWAV {
+            get {
+                return ResourceManager.GetString("FilterSaveWAV", resourceCulture);
             }
         }
         
@@ -444,6 +462,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string MenuSaveMIDI {
             get {
                 return ResourceManager.GetString("MenuSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export Song as WAV.
+        /// </summary>
+        internal static string MenuSaveWAV {
+            get {
+                return ResourceManager.GetString("MenuSaveWAV", resourceCulture);
             }
         }
         
@@ -579,6 +606,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string SuccessSaveMIDI {
             get {
                 return ResourceManager.GetString("SuccessSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WAV saved to {0}..
+        /// </summary>
+        internal static string SuccessSaveWAV {
+            get {
+                return ResourceManager.GetString("SuccessSaveWAV", resourceCulture);
             }
         }
         

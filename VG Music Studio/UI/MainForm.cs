@@ -23,7 +23,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         public readonly bool[] PianoTracks = new bool[SongInfoControl.SongInfo.MaxTracks];
 
-        public bool PlaylistPlaying;
+        private bool playlistPlaying;
         private Config.Playlist curPlaylist;
         private long curSong = -1;
         private readonly List<long> playedSongs = new List<long>(),
@@ -35,7 +35,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         private readonly MenuStrip mainMenu;
         private readonly ToolStripMenuItem fileItem, openDSEItem, openMLSSItem, openMP2KItem, openSDATItem,
-            dataItem, trackViewerItem, exportMIDIItem,
+            dataItem, trackViewerItem, exportMIDIItem, exportWAVItem,
             playlistItem, endPlaylistItem;
         private readonly Timer timer;
         private readonly ThemedNumeric songNumerical;
@@ -81,8 +81,10 @@ namespace Kermalis.VGMusicStudio.UI
             trackViewerItem.Click += OpenTrackViewer;
             exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDI };
             exportMIDIItem.Click += ExportMIDI;
+            exportWAVItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveWAV };
+            exportWAVItem.Click += ExportWAV;
             dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
-            dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem, exportMIDIItem });
+            dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem, exportMIDIItem, exportWAVItem });
 
             // Playlist Menu
             endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuEndPlaylist };
@@ -232,8 +234,9 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 songInfo.SetNumTracks(0);
             }
-            positionBar.Enabled = success;
-            exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && Engine.Instance.Player.Events.Length > 0;
+            int numTracks = (Engine.Instance.Player.Events?.Length).GetValueOrDefault();
+            positionBar.Enabled = exportWAVItem.Enabled = success && numTracks > 0;
+            exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && numTracks > 0;
 
             autoplay = true;
             songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -252,7 +255,8 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     ResetPlaylistStuff(false);
                     curPlaylist = playlist;
-                    PlaylistPlaying = true;
+                    Engine.Instance.Player.ShouldFadeOut = playlistPlaying = true;
+                    Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
                     endPlaylistItem.Enabled = true;
                     SetAndLoadNextPlaylistSong();
                 }
@@ -286,7 +290,11 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void ResetPlaylistStuff(bool enableds)
         {
-            PlaylistPlaying = false;
+            if (Engine.Instance != null)
+            {
+                Engine.Instance.Player.ShouldFadeOut = false;
+            }
+            playlistPlaying = false;
             curPlaylist = null;
             curSong = -1;
             remainingSongs.Clear();
@@ -445,6 +453,30 @@ namespace Kermalis.VGMusicStudio.UI
                 }
             }
         }
+        private void ExportWAV(object sender, EventArgs e)
+        {
+            var d = new CommonSaveFileDialog
+            {
+                Title = Strings.MenuSaveWAV,
+                Filters = { new CommonFileDialogFilter(Strings.FilterSaveWAV, ".wav") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                Stop();
+                bool old = Engine.Instance.Player.ShouldFadeOut;
+                try
+                {
+                    Engine.Instance.Player.Record(d.FileName);
+                    FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveWAV, d.FileName), Text);
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveWAV);
+                }
+                Engine.Instance.Player.ShouldFadeOut = old;
+                stopUI = false;
+            }
+        }
 
         public void LetUIKnowPlayerIsPlaying()
         {
@@ -466,15 +498,15 @@ namespace Kermalis.VGMusicStudio.UI
         private void Pause()
         {
             Engine.Instance.Player.Pause();
-            if (Engine.Instance.Player.State != PlayerState.Paused)
-            {
-                pauseButton.Text = Strings.PlayerPause;
-                timer.Start();
-            }
-            else
+            if (Engine.Instance.Player.State == PlayerState.Paused)
             {
                 pauseButton.Text = Strings.PlayerUnpause;
                 timer.Stop();
+            }
+            else
+            {
+                pauseButton.Text = Strings.PlayerPause;
+                timer.Start();
             }
             UpdateTaskbarState();
             UpdateTaskbarButtons();
@@ -505,7 +537,7 @@ namespace Kermalis.VGMusicStudio.UI
         private void PlayPreviousSong(object sender, EventArgs e)
         {
             long prevSong;
-            if (PlaylistPlaying)
+            if (playlistPlaying)
             {
                 int index = playedSongs.Count - 1;
                 prevSong = playedSongs[index];
@@ -520,7 +552,7 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void PlayNextSong(object sender, EventArgs e)
         {
-            if (PlaylistPlaying)
+            if (playlistPlaying)
             {
                 playedSongs.Add(curSong);
                 SetAndLoadNextPlaylistSong();
@@ -579,7 +611,7 @@ namespace Kermalis.VGMusicStudio.UI
             if (stopUI)
             {
                 stopUI = false;
-                if (PlaylistPlaying)
+                if (playlistPlaying)
                 {
                     playedSongs.Add(curSong);
                     SetAndLoadNextPlaylistSong();
@@ -634,7 +666,7 @@ namespace Kermalis.VGMusicStudio.UI
         {
             if (TaskbarManager.IsPlatformSupported)
             {
-                if (PlaylistPlaying)
+                if (playlistPlaying)
                 {
                     prevTButton.Enabled = playedSongs.Count > 0;
                     nextTButton.Enabled = true;

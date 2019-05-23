@@ -13,7 +13,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private readonly Mixer mixer;
         private readonly Config config;
         private readonly TimeBarrier time;
-        private readonly Thread thread;
+        private Thread thread;
         private byte tempo;
         private int tempoStack;
         private long elapsedLoops;
@@ -22,6 +22,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
         public long ElapsedTicks { get; private set; }
+        public bool ShouldFadeOut { get; set; }
+        public long NumLoops { get; set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -37,8 +39,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             this.config = config;
 
             time = new TimeBarrier(Utils.AGB_FPS);
+        }
+        private void CreateThread()
+        {
             thread = new Thread(Tick) { Name = "MLSS Player Tick" };
             thread.Start();
+        }
+        private void WaitThread()
+        {
+            if (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin)
+            {
+                thread.Join();
+            }
         }
 
         private void InitEmulation()
@@ -325,6 +337,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 Stop();
                 InitEmulation();
                 State = PlayerState.Playing;
+                CreateThread();
             }
         }
         public void Pause()
@@ -332,10 +345,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             if (State == PlayerState.Playing)
             {
                 State = PlayerState.Paused;
+                WaitThread();
             }
             else if (State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 State = PlayerState.Playing;
+                CreateThread();
             }
         }
         public void Stop()
@@ -343,15 +358,25 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             if (State == PlayerState.Playing || State == PlayerState.Paused)
             {
                 State = PlayerState.Stopped;
+                WaitThread();
             }
+        }
+        public void Record(string fileName)
+        {
+            ShouldFadeOut = true;
+            mixer.CreateWaveWriter(fileName);
+            InitEmulation();
+            State = PlayerState.Recording;
+            CreateThread();
+            WaitThread();
+            mixer.CloseWaveWriter();
         }
         public void Dispose()
         {
             if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
-                Stop();
                 State = PlayerState.ShutDown;
-                thread.Join();
+                WaitThread();
             }
         }
         public void GetSongState(UI.SongInfoControl.SongInfo info)
@@ -483,79 +508,79 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         private void Tick()
         {
             time.Start();
-            while (State != PlayerState.ShutDown)
+            while (State == PlayerState.Playing || State == PlayerState.Recording)
             {
-                if (State == PlayerState.Playing)
+                while (tempoStack >= 75)
                 {
-                    while (tempoStack >= 75)
+                    tempoStack -= 75;
+                    bool allDone = true;
+                    for (int i = 0; i < 0x10; i++)
                     {
-                        tempoStack -= 75;
-                        bool allDone = true;
-                        for (int i = 0; i < 0x10; i++)
+                        Track track = tracks[i];
+                        if (track.Enabled)
                         {
-                            Track track = tracks[i];
-                            if (track.Enabled)
+                            byte prevDuration = track.NoteDuration;
+                            track.Tick();
+                            bool update = false;
+                            while (track.Rest == 0 && !track.Stopped)
                             {
-                                byte prevDuration = track.NoteDuration;
-                                track.Tick();
-                                bool update = false;
-                                while (track.Rest == 0 && !track.Stopped)
+                                ExecuteNext(i, ref update);
+                            }
+                            if (i == longestTrack)
+                            {
+                                if (ElapsedTicks == MaxTicks)
                                 {
-                                    ExecuteNext(i, ref update);
-                                }
-                                if (i == longestTrack)
-                                {
-                                    if (ElapsedTicks == MaxTicks)
+                                    if (!track.Stopped)
                                     {
-                                        if (!track.Stopped)
+                                        ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                        elapsedLoops++;
+                                        if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
                                         {
-                                            ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
-                                            elapsedLoops++;
-                                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
-                                            {
-                                                fadeOutBegan = true;
-                                                mixer.BeginFadeOut();
-                                            }
+                                            fadeOutBegan = true;
+                                            mixer.BeginFadeOut();
                                         }
                                     }
-                                    else
-                                    {
-                                        ElapsedTicks++;
-                                    }
                                 }
-                                if (prevDuration == 1 && track.NoteDuration == 0) // Note was not renewed
+                                else
                                 {
-                                    track.Channel.State = EnvelopeState.Release;
+                                    ElapsedTicks++;
                                 }
-                                if (!track.Stopped)
+                            }
+                            if (prevDuration == 1 && track.NoteDuration == 0) // Note was not renewed
+                            {
+                                track.Channel.State = EnvelopeState.Release;
+                            }
+                            if (!track.Stopped)
+                            {
+                                allDone = false;
+                            }
+                            if (track.NoteDuration != 0)
+                            {
+                                allDone = false;
+                                if (update)
                                 {
-                                    allDone = false;
-                                }
-                                if (track.NoteDuration != 0)
-                                {
-                                    allDone = false;
-                                    if (update)
-                                    {
-                                        track.Channel.SetVolume(track.Volume, track.Panpot);
-                                        track.Channel.SetPitch(track.GetPitch());
-                                    }
+                                    track.Channel.SetVolume(track.Volume, track.Panpot);
+                                    track.Channel.SetPitch(track.GetPitch());
                                 }
                             }
                         }
-                        if (fadeOutBegan && mixer.IsFadeDone())
-                        {
-                            allDone = true;
-                        }
-                        if (allDone)
-                        {
-                            Stop();
-                            SongEnded?.Invoke();
-                        }
                     }
-                    tempoStack += tempo;
-                    mixer.Process(tracks);
+                    if (fadeOutBegan && mixer.IsFadeDone())
+                    {
+                        allDone = true;
+                    }
+                    if (allDone)
+                    {
+                        State = PlayerState.Stopped;
+                        SongEnded?.Invoke();
+                    }
                 }
-                time.Wait();
+                tempoStack += tempo;
+                mixer.Process(tracks, State == PlayerState.Playing, State == PlayerState.Recording);
+                if (State == PlayerState.Playing)
+                {
+                    time.Wait();
+                }
             }
             time.Stop();
         }

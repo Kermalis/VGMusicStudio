@@ -38,6 +38,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             };
             Init(buffer);
         }
+        public override void Dispose()
+        {
+            base.Dispose();
+            CloseWaveWriter();
+        }
 
         public void BeginFadeIn()
         {
@@ -60,7 +65,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             fadeMicroFramesLeft = 0;
         }
 
-        public void Process(Track[] tracks)
+        private WaveFileWriter waveWriter;
+        public void CreateWaveWriter(string fileName)
+        {
+            waveWriter = new WaveFileWriter(fileName, buffer.WaveFormat);
+        }
+        public void CloseWaveWriter()
+        {
+            waveWriter?.Dispose();
+        }
+        public void Process(Track[] tracks, bool output, bool recording)
         {
             audio.Clear();
             float fromMaster = 1f, toMaster = 1f;
@@ -90,8 +104,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     }
                 }
             }
-            buffer.AddSamples(audio, 0, audio.ByteBufferCount);
+            if (output)
+            {
+                buffer.AddSamples(audio.ByteBuffer, 0, audio.ByteBufferCount);
+            }
+            if (recording)
+            {
+                waveWriter.Write(audio.ByteBuffer, 0, audio.ByteBufferCount);
+            }
         }
     }
 }
-

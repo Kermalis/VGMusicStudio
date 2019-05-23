@@ -14,7 +14,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private readonly Mixer mixer;
         private readonly Config config;
         private readonly TimeBarrier time;
-        private readonly Thread thread;
+        private Thread thread;
         private int randSeed;
         private Random rand;
         private SDAT.INFO.SequenceInfo seqInfo;
@@ -29,6 +29,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
         public long ElapsedTicks { get; private set; }
+        public bool ShouldFadeOut { get; set; }
+        public long NumLoops { get; set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -44,8 +46,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             this.config = config;
 
             time = new TimeBarrier(192);
+        }
+        private void CreateThread()
+        {
             thread = new Thread(Tick) { Name = "SDAT Player Tick" };
             thread.Start();
+        }
+        private void WaitThread()
+        {
+            if (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin)
+            {
+                thread.Join();
+            }
         }
 
         private void InitEmulation()
@@ -813,6 +825,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 Stop();
                 InitEmulation();
                 State = PlayerState.Playing;
+                CreateThread();
             }
         }
         public void Pause()
@@ -820,10 +833,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             if (State == PlayerState.Playing)
             {
                 State = PlayerState.Paused;
+                WaitThread();
             }
             else if (State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 State = PlayerState.Playing;
+                CreateThread();
             }
         }
         public void Stop()
@@ -831,19 +846,25 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             if (State == PlayerState.Playing || State == PlayerState.Paused)
             {
                 State = PlayerState.Stopped;
-                for (int i = 0; i < 0x10; i++)
-                {
-                    tracks[i].StopAllChannels();
-                }
+                WaitThread();
             }
+        }
+        public void Record(string fileName)
+        {
+            ShouldFadeOut = true;
+            mixer.CreateWaveWriter(fileName);
+            InitEmulation();
+            State = PlayerState.Recording;
+            CreateThread();
+            WaitThread();
+            mixer.CloseWaveWriter();
         }
         public void Dispose()
         {
             if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
-                Stop();
                 State = PlayerState.ShutDown;
-                thread.Join();
+                WaitThread();
             }
         }
         private string[] voiceTypeCache;
@@ -1614,66 +1635,66 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private void Tick()
         {
             time.Start();
-            while (State != PlayerState.ShutDown)
+            while (State == PlayerState.Playing || State == PlayerState.Recording)
             {
-                if (State == PlayerState.Playing)
+                while (tempoStack >= 240)
                 {
-                    while (tempoStack >= 240)
+                    tempoStack -= 240;
+                    bool allDone = true;
+                    for (int i = 0; i < 0x10; i++)
                     {
-                        tempoStack -= 240;
-                        bool allDone = true;
-                        for (int i = 0; i < 0x10; i++)
+                        Track track = tracks[i];
+                        if (track.Enabled)
                         {
-                            Track track = tracks[i];
-                            if (track.Enabled)
+                            track.Tick();
+                            while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
                             {
-                                track.Tick();
-                                while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
+                                ExecuteNext(i);
+                            }
+                            if (i == longestTrack)
+                            {
+                                if (ElapsedTicks == MaxTicks)
                                 {
-                                    ExecuteNext(i);
-                                }
-                                if (i == longestTrack)
-                                {
-                                    if (ElapsedTicks == MaxTicks)
+                                    if (!track.Stopped)
                                     {
-                                        if (!track.Stopped)
+                                        List<long> t = Events[i][track.CurEvent].Ticks;
+                                        ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
+                                        elapsedLoops++;
+                                        if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
                                         {
-                                            List<long> t = Events[i][track.CurEvent].Ticks;
-                                            ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
-                                            elapsedLoops++;
-                                            if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
-                                            {
-                                                fadeOutBegan = true;
-                                                mixer.BeginFadeOut();
-                                            }
+                                            fadeOutBegan = true;
+                                            mixer.BeginFadeOut();
                                         }
                                     }
-                                    else
-                                    {
-                                        ElapsedTicks++;
-                                    }
                                 }
-                                if (!track.Stopped || track.Channels.Count != 0)
+                                else
                                 {
-                                    allDone = false;
+                                    ElapsedTicks++;
                                 }
                             }
-                        }
-                        if (fadeOutBegan && mixer.IsFadeDone())
-                        {
-                            allDone = true;
-                        }
-                        if (allDone)
-                        {
-                            Stop();
-                            SongEnded?.Invoke();
+                            if (!track.Stopped || track.Channels.Count != 0)
+                            {
+                                allDone = false;
+                            }
                         }
                     }
-                    tempoStack += tempo;
-                    mixer.ChannelTick();
-                    mixer.Process();
+                    if (fadeOutBegan && mixer.IsFadeDone())
+                    {
+                        allDone = true;
+                    }
+                    if (allDone)
+                    {
+                        State = PlayerState.Stopped;
+                        SongEnded?.Invoke();
+                    }
                 }
-                time.Wait();
+                tempoStack += tempo;
+                mixer.ChannelTick();
+                mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
+                if (State == PlayerState.Playing)
+                {
+                    time.Wait();
+                }
             }
             time.Stop();
         }

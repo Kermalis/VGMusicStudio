@@ -10,10 +10,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
     internal class Player : IPlayer
     {
+        public class MIDISaveArgs
+        {
+            public bool SaveCommandsBeforeTranspose;
+            public bool ReverseVolume;
+            public List<(int AbsoluteTick, (byte Numerator, byte Denominator))> TimeSignatures;
+        }
+
         private readonly Mixer mixer;
         private readonly Config config;
         private readonly TimeBarrier time;
-        private readonly Thread thread;
+        private Thread thread;
         private int voiceTableOffset = -1;
         private Track[] tracks;
         private ushort tempo;
@@ -24,6 +31,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
         public long ElapsedTicks { get; private set; }
+        public bool ShouldFadeOut { get; set; }
+        public long NumLoops { get; set; }
         private int longestTrack;
 
         public PlayerState State { get; private set; }
@@ -35,8 +44,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             this.config = config;
 
             time = new TimeBarrier(GBA.Utils.AGB_FPS);
+        }
+        private void CreateThread()
+        {
             thread = new Thread(Tick) { Name = "MP2K Player Tick" };
             thread.Start();
+        }
+        private void WaitThread()
+        {
+            if (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin)
+            {
+                thread.Join();
+            }
         }
 
         private void InitEmulation()
@@ -93,7 +112,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public void LoadSong(long index)
         {
-            tracks = null;
+            if (tracks != null)
+            {
+                for (int i = 0; i < tracks.Length; i++)
+                {
+                    tracks[i].StopAllChannels();
+                }
+                tracks = null;
+            }
             Events = null;
             SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
             SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
@@ -608,12 +634,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 Pause();
             }
         }
-        public class MIDISaveArgs
-        {
-            public bool SaveCommandsBeforeTranspose;
-            public bool ReverseVolume;
-            public List<(int AbsoluteTick, (byte Numerator, byte Denominator))> TimeSignatures;
-        }
         public void SaveAsMIDI(string fileName, MIDISaveArgs args)
         {
             // TODO: FINE vs PREV
@@ -855,6 +875,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 Stop();
                 InitEmulation();
                 State = PlayerState.Playing;
+                CreateThread();
             }
         }
         public void Pause()
@@ -862,10 +883,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             if (State == PlayerState.Playing)
             {
                 State = PlayerState.Paused;
+                WaitThread();
             }
             else if (State == PlayerState.Paused || State == PlayerState.Stopped)
             {
                 State = PlayerState.Playing;
+                CreateThread();
             }
         }
         public void Stop()
@@ -873,19 +896,25 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             if (State == PlayerState.Playing || State == PlayerState.Paused)
             {
                 State = PlayerState.Stopped;
-                for (int i = 0; i < tracks.Length; i++)
-                {
-                    tracks[i].StopAllChannels();
-                }
+                WaitThread();
             }
+        }
+        public void Record(string fileName)
+        {
+            ShouldFadeOut = true;
+            mixer.CreateWaveWriter(fileName);
+            InitEmulation();
+            State = PlayerState.Recording;
+            CreateThread();
+            WaitThread();
+            mixer.CloseWaveWriter();
         }
         public void Dispose()
         {
             if (State == PlayerState.Playing || State == PlayerState.Paused || State == PlayerState.Stopped)
             {
-                Stop();
                 State = PlayerState.ShutDown;
-                thread.Join();
+                WaitThread();
             }
         }
         private string[] voiceTypeCache;
@@ -1135,70 +1164,70 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         private void Tick()
         {
             time.Start();
-            while (State != PlayerState.ShutDown)
+            while (State == PlayerState.Playing || State == PlayerState.Recording)
             {
-                if (State == PlayerState.Playing)
+                while (tempoStack >= 150)
                 {
-                    while (tempoStack >= 150)
+                    tempoStack -= 150;
+                    bool allDone = true;
+                    for (int i = 0; i < tracks.Length; i++)
                     {
-                        tempoStack -= 150;
-                        bool allDone = true;
-                        for (int i = 0; i < tracks.Length; i++)
+                        Track track = tracks[i];
+                        track.Tick();
+                        bool update = false;
+                        while (track.Rest == 0 && !track.Stopped)
                         {
-                            Track track = tracks[i];
-                            track.Tick();
-                            bool update = false;
-                            while (track.Rest == 0 && !track.Stopped)
+                            ExecuteNext(i, ref update);
+                        }
+                        if (i == longestTrack)
+                        {
+                            if (ElapsedTicks == MaxTicks)
                             {
-                                ExecuteNext(i, ref update);
-                            }
-                            if (i == longestTrack)
-                            {
-                                if (ElapsedTicks == MaxTicks)
+                                if (!track.Stopped)
                                 {
-                                    if (!track.Stopped)
+                                    ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                    elapsedLoops++;
+                                    if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
                                     {
-                                        ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
-                                        elapsedLoops++;
-                                        if (UI.MainForm.Instance.PlaylistPlaying && !fadeOutBegan && elapsedLoops > GlobalConfig.Instance.PlaylistSongLoops)
-                                        {
-                                            fadeOutBegan = true;
-                                            mixer.BeginFadeOut();
-                                        }
+                                        fadeOutBegan = true;
+                                        mixer.BeginFadeOut();
                                     }
                                 }
-                                else
-                                {
-                                    ElapsedTicks++;
-                                }
                             }
-                            if (!track.Stopped)
+                            else
                             {
-                                allDone = false;
-                            }
-                            if (track.Channels.Count > 0)
-                            {
-                                allDone = false;
-                                if (update || track.LFODepth > 0)
-                                {
-                                    track.UpdateChannels();
-                                }
+                                ElapsedTicks++;
                             }
                         }
-                        if (fadeOutBegan && mixer.IsFadeDone())
+                        if (!track.Stopped)
                         {
-                            allDone = true;
+                            allDone = false;
                         }
-                        if (allDone)
+                        if (track.Channels.Count > 0)
                         {
-                            Stop();
-                            SongEnded?.Invoke();
+                            allDone = false;
+                            if (update || track.LFODepth > 0)
+                            {
+                                track.UpdateChannels();
+                            }
                         }
                     }
-                    tempoStack += tempo;
-                    mixer.Process();
+                    if (fadeOutBegan && mixer.IsFadeDone())
+                    {
+                        allDone = true;
+                    }
+                    if (allDone)
+                    {
+                        State = PlayerState.Stopped;
+                        SongEnded?.Invoke();
+                    }
                 }
-                time.Wait();
+                tempoStack += tempo;
+                mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
+                if (State == PlayerState.Playing)
+                {
+                    time.Wait();
+                }
             }
             time.Stop();
         }

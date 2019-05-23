@@ -11,34 +11,37 @@ namespace Kermalis.VGMusicStudio.Core
         public readonly bool[] Mutes = new bool[SongInfoControl.SongInfo.MaxTracks];
         private IWavePlayer @out;
         private AudioSessionControl appVolume;
-        private bool ignoreVolChangeFromUI = false;
 
         protected void Init(IWaveProvider waveProvider)
         {
             @out = new WasapiOut();
             @out.Init(waveProvider);
-            SessionCollection sessions = new MMDeviceEnumerator().GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia).AudioSessionManager.Sessions;
-            int id = System.Diagnostics.Process.GetCurrentProcess().Id;
-            for (int i = 0; i < sessions.Count; i++)
+            using (var en = new MMDeviceEnumerator())
             {
-                AudioSessionControl session = sessions[i];
-                if (session.GetProcessID == id)
+                SessionCollection sessions = en.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia).AudioSessionManager.Sessions;
+                int id = System.Diagnostics.Process.GetCurrentProcess().Id;
+                for (int i = 0; i < sessions.Count; i++)
                 {
-                    appVolume = session;
-                    appVolume.RegisterEventClient(this);
-                    break;
+                    AudioSessionControl session = sessions[i];
+                    if (session.GetProcessID == id)
+                    {
+                        appVolume = session;
+                        appVolume.RegisterEventClient(this);
+                        break;
+                    }
                 }
             }
             @out.Play();
         }
 
+        private bool volChange = true;
         public void OnVolumeChanged(float volume, bool isMuted)
         {
-            if (!ignoreVolChangeFromUI)
+            if (volChange)
             {
                 MainForm.Instance.SetVolumeBarValue(volume);
             }
-            ignoreVolChangeFromUI = false;
+            volChange = true;
         }
         public void OnDisplayNameChanged(string displayName)
         {
@@ -70,11 +73,11 @@ namespace Kermalis.VGMusicStudio.Core
         }
         public void SetVolume(float volume)
         {
-            ignoreVolChangeFromUI = true;
+            volChange = false;
             appVolume.SimpleAudioVolume.Volume = volume;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             @out.Stop();
             @out.Dispose();

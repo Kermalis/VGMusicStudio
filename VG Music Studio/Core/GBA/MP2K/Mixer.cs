@@ -54,6 +54,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             };
             Init(buffer);
         }
+        public override void Dispose()
+        {
+            base.Dispose();
+            CloseWaveWriter();
+        }
 
         public PCM8Channel AllocPCM8Channel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
         {
@@ -176,7 +181,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             fadeMicroFramesLeft = 0;
         }
 
-        public void Process()
+        private WaveFileWriter waveWriter;
+        public void CreateWaveWriter(string fileName)
+        {
+            waveWriter = new WaveFileWriter(fileName, buffer.WaveFormat);
+        }
+        public void CloseWaveWriter()
+        {
+            waveWriter?.Dispose();
+        }
+        public void Process(bool output, bool recording)
         {
             for (int i = 0; i < trackBuffers.Length; i++)
             {
@@ -227,8 +241,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                 }
             }
-            buffer.AddSamples(audio, 0, audio.ByteBufferCount);
+            if (output)
+            {
+                buffer.AddSamples(audio.ByteBuffer, 0, audio.ByteBufferCount);
+            }
+            if (recording)
+            {
+                waveWriter.Write(audio.ByteBuffer, 0, audio.ByteBufferCount);
+            }
         }
     }
 }
-

@@ -5,9 +5,10 @@ namespace Kermalis.VGMusicStudio.Core
 {
     internal enum PlayerState : byte
     {
-        Stopped,
+        Stopped = 0,
         Playing,
         Paused,
+        Recording,
         ShutDown
     }
 
@@ -18,6 +19,8 @@ namespace Kermalis.VGMusicStudio.Core
         List<SongEvent>[] Events { get; }
         long MaxTicks { get; }
         long ElapsedTicks { get; }
+        bool ShouldFadeOut { get; set; }
+        long NumLoops { get; set; }
 
         PlayerState State { get; }
         event SongEndedEvent SongEnded;
@@ -27,6 +30,7 @@ namespace Kermalis.VGMusicStudio.Core
         void Play();
         void Pause();
         void Stop();
+        void Record(string fileName);
         void GetSongState(UI.SongInfoControl.SongInfo info);
     }
 }

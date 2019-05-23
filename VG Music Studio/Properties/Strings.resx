@@ -334,4 +334,17 @@
     <value>"{0}" must be between {1} and {2}.</value>
     <comment>{0} is the value name, {1} is the minimum allowed value, {2} is the maximum allowed value.</comment>
   </data>
+  <data name="ErrorSaveWAV" xml:space="preserve">
+    <value>Error Exporting WAV</value>
+  </data>
+  <data name="FilterSaveWAV" xml:space="preserve">
+    <value>WAV Files</value>
+  </data>
+  <data name="MenuSaveWAV" xml:space="preserve">
+    <value>Export Song as WAV</value>
+  </data>
+  <data name="SuccessSaveWAV" xml:space="preserve">
+    <value>WAV saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
 </root>
