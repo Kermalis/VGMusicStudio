@@ -9,7 +9,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
     internal class Player : IPlayer
     {
-        private readonly short[] vars = new short[0x20]; // Unsure of the exact amount (highest var encountered is 19 [0 indexed] [Spirit Tracks 18])
+        private readonly short[] vars = new short[0x20]; // 16 player variables, then 16 global variables
         private readonly Track[] tracks = new Track[0x10];
         private readonly Mixer mixer;
         private readonly Config config;
@@ -72,9 +72,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             {
                 tracks[i].Init();
             }
-            for (int i = 0; i < vars.Length; i++)
+            // Initialize player and global variables. Global variables should not have an effect in this program.
+            for (int i = 0; i < 0x20; i++)
             {
-                vars[i] = short.MinValue; // Not sure what the initial value is, but it is not [0,15]
+                vars[i] = i % 8 == 0 ? short.MaxValue : (short)0;
             }
         }
         private void SetTicks()
