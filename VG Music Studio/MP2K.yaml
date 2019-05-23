@@ -1,4 +1,4 @@
-A2UJ:
+A2UJ_00:
   Name: "Mother 1 + 2 (Japan)"
   SongTableOffsets: 0x10B530
   SongTableSizes: 451
@@ -8,7 +8,7 @@ A2UJ:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-A3UJ:
+A3UJ_00:
   Name: "Mother 3 (Japan)"
   SongTableOffsets: 0x120E94
   SongTableSizes: 1968
@@ -18,7 +18,7 @@ A3UJ:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-A7KE:
+A7KE_00:
   Name: "Kirby: Nightmare in Dream Land (USA)"
   SongTableOffsets: 0x060B460
   SongTableSizes: 579
@@ -86,11 +86,11 @@ A7KE:
       52: "Green Greens (No Intro)"
       41: "Building of Battles (Outside)"
       56: "Nightmare Appears!"
-A7KP:
+A7KP_00:
   Name: "Kirby: Nightmare in Dream Land (Europe)"
   SongTableOffsets: 0x0843B50
-  Copy: "A7KE"
-AE7E:
+  Copy: "A7KE_00"
+AE7E_00:
   Name: "Fire Emblem 7 (USA)"
   SongTableOffsets: 0x69D6E0
   SongTableSizes: 1000
@@ -100,7 +100,7 @@ AE7E:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-AGFE:
+AGFE_00:
   Name: "Golden Sun: The Lost Age (USA)"
   SongTableOffsets: 0x1C4530
   SongTableSizes: 800
@@ -110,7 +110,7 @@ AGFE:
   Volume: 15
   HasGoldenSunSynths: True
   HasPokemonCompression: False
-AGLJ:
+AGLJ_00:
   Name: "Tomato Adventure (Japan)"
   SongTableOffsets: 0x4B11A4
   SongTableSizes: 244
@@ -120,7 +120,7 @@ AGLJ:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-AGSE:
+AGSE_00:
   Name: "Golden Sun (USA)"
   SongTableOffsets: 0xFC684
   SongTableSizes: 312
@@ -130,7 +130,7 @@ AGSE:
   Volume: 15
   HasGoldenSunSynths: True
   HasPokemonCompression: False
-AINJ:
+AINJ_00:
   Name: "Initial D: Another Stage (Japan)"
   SongTableOffsets: 0x648B38
   SongTableSizes: 88
@@ -140,15 +140,15 @@ AINJ:
   Volume: 13
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-AMAE:
+AMAE_00:
   Name: "Super Mario Advance (Europe)"
   SongTableOffsets: 0xF4368
-  Copy: "AMZE"
-AMAJ:
+  Copy: "AMZE_00"
+AMAJ_00:
   Name: "Super Mario Advance (Japan)"
   SongTableOffsets: 0xF3F18
-  Copy: "AMZE"
-AMKE:
+  Copy: "AMZE_00"
+AMKE_00:
   Name: "Mario Kart: Super Circuit (USA)"
   SongTableOffsets: 0x102498
   SongTableSizes: 403
@@ -212,7 +212,7 @@ AMKE:
       57: "Award Ceremony Lose"
       59: "59"
       60: "60"
-AMTE:
+AMTE_00:
   Name: "Metroid Fusion (USA)"
   SongTableOffsets: 0xA8D3C
   SongTableSizes: 745
@@ -222,7 +222,7 @@ AMTE:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-AMZE:
+AMZE_00:
   Name: "Super Mario Advance (USA)"
   SongTableOffsets: 0xF40D4
   SongTableSizes: 447
@@ -232,7 +232,7 @@ AMZE:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-AWAE:
+AWAE_00:
   Name: "Wario Land 4 (USA)"
   SongTableOffsets: 0x98028
   SongTableSizes: 819
@@ -366,11 +366,19 @@ AWAE:
       727: "Medamayaki (Karaoke)"
       728: "Medamayaki (Karaoke) (2)"
       729: "Medamayaki (Voice)"
-AXPE:
+AXPE_00:
   Name: "Pokémon Sapphire Version (USA)"
   SongTableOffsets: 0x4554E8
-  Copy: "AXVE"
-AXVE:
+  Copy: "AXVE_00"
+AXPE_01:
+  Name: "Pokémon Sapphire Version (USA)"
+  SongTableOffsets: 0x455500
+  Copy: "AXVE_00"
+AXPE_02:
+  Name: "Pokémon Sapphire Version (USA)"
+  SongTableOffsets: 0x455500
+  Copy: "AXVE_00"
+AXVE_00:
   Name: "Pokémon Ruby Version (USA)"
   SongTableOffsets: 0x45548C
   SongTableSizes: 468
@@ -502,7 +510,15 @@ AXVE:
       395: "Pokémon Contest! (Multiplayer - Player 3)"
       396: "Pokémon Contest! (Multiplayer - Player 4)"
       467: "Unused - Team Rocket Appears!"
-AZLE:
+AXVE_01:
+  Name: "Pokémon Ruby Version (USA)"
+  SongTableOffsets: 0x4554A0
+  Copy: "AXVE_00"
+AXVE_02:
+  Name: "Pokémon Ruby Version (USA)"
+  SongTableOffsets: 0x4554A0
+  Copy: "AXVE_00"
+AZLE_00:
   Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
   SongTableOffsets: 0x3C3BBC
   SongTableSizes: 545
@@ -512,7 +528,7 @@ AZLE:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-B24E:
+B24E_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   SongTableOffsets: 0x1E866BC
   SongTableSizes: 940
@@ -626,11 +642,11 @@ B24E:
       23: "Sky Tower Summit"
       21: "Stormy Sea"
       13: "Buried Relic"
-B24P:
+B24P_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
   SongTableOffsets: 0x1E866BC
-  Copy: "B24E"
-BMXE:
+  Copy: "B24E_00"
+BMXE_00:
   Name: "Metroid: Zero Mission (USA)"
   SongTableOffsets: 0x8F2C0
   SongTableSizes: 708
@@ -640,11 +656,11 @@ BMXE:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-BPED:
+BPED_00:
   Name: "Pokémon Emerald Version (Germany)"
   SongTableOffsets: 0x6C5BDC
-  Copy: "BPEE"
-BPEE:
+  Copy: "BPEE_00"
+BPEE_00:
   Name: "Pokémon Emerald Version (USA)"
   SongTableOffsets: 0x6B49F0
   SongTableSizes: 610
@@ -886,11 +902,15 @@ BPEE:
       551: "Battle! (Deoxys)"
       552: "Battle! (Mewtwo) (FRLG)"
       553: "Battle! (Ho-Oh/Lugia)"
-BPGE:
+BPGE_00:
   Name: "Pokémon Leaf Green Version (USA)"
   SongTableOffsets: 0x4A2BA8
-  Copy: "BPRE"
-BPRE:
+  Copy: "BPRE_00"
+BPGE_01:
+  Name: "Pokémon Leaf Green Version (USA)"
+  SongTableOffsets: 0x4A2C18
+  Copy: "BPRE_00"
+BPRE_00:
   Name: "Pokémon Fire Red Version (USA)"
   SongTableOffsets: 0x4A32CC
   SongTableSizes: 347
@@ -995,7 +1015,11 @@ BPRE:
       334: "Tanoby Chambers"
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
-BZME:
+BPRE_01:
+  Name: "Pokémon Fire Red Version (USA)"
+  SongTableOffsets: 0x4A332C
+  Copy: "BPRE_00"
+BZME_00:
   Name: "The Legend of Zelda: The Minish Cap (USA)"
   SongTableOffsets: 0xA11DBC
   SongTableSizes: 546
@@ -1005,7 +1029,7 @@ BZME:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-KERB:
+KERB_00:
   Name: "Kermalis's Test ROM"
   SongTableOffsets: 0x100004C 0x1000B6C 0x100168C 0x10021AC
   SongTableSizes: 356 356 356 356
@@ -1015,7 +1039,7 @@ KERB:
   Volume: 12
   HasGoldenSunSynths: False
   HasPokemonCompression: True
-KERH:
+KERH_00:
   Name: "Kermalis's Test ROM"
   SongTableOffsets: 0x1000038 0x1000B78
   SongTableSizes: 360 360
@@ -1026,7 +1050,7 @@ KERH:
   Volume: 12
   HasGoldenSunSynths: False
   HasPokemonCompression: True
-KERP:
+KERP_00:
   Name: "Kermalis's Test ROM"
   SongTableOffsets: 0x1000000 0x1001310 0x1002620 0x1003930
   SongTableSizes: 610 610 610 610

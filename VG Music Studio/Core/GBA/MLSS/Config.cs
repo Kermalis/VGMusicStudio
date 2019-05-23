@@ -14,6 +14,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
         public string GameCode;
+        public byte Version;
         public string Name;
         public int[] SongTableOffsets;
         public long[] SongTableSizes;
@@ -27,11 +28,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             const string configFile = "MLSS.yaml";
             using (StreamReader fileStream = File.OpenText(configFile))
             {
+                string gcv = string.Empty;
                 try
                 {
                     ROM = rom;
                     Reader = new EndianBinaryReader(new MemoryStream(rom));
                     GameCode = Reader.ReadString(4, 0xAC);
+                    Version = Reader.ReadByte(0xBC);
+                    gcv = $"{GameCode}_{Version:X2}";
                     var yaml = new YamlStream();
                     yaml.Load(fileStream);
 
@@ -39,11 +43,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     YamlMappingNode game;
                     try
                     {
-                        game = (YamlMappingNode)mapping.Children.GetValue(GameCode);
+                        game = (YamlMappingNode)mapping.Children.GetValue(gcv);
                     }
                     catch (BetterKeyNotFoundException)
                     {
-                        throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KMissingGameCode, GameCode)));
+                        throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KMissingGameCode, gcv)));
                     }
 
                     Name = game.Children.GetValue(nameof(Name)).ToString();
@@ -51,7 +55,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     string[] songTables = game.Children.GetValue(nameof(SongTableOffsets)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (songTables.Length == 0)
                     {
-                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyNoEntries, nameof(SongTableOffsets))));
+                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyNoEntries, nameof(SongTableOffsets))));
                     }
                     VoiceTableOffset = (int)game.GetValidValue(nameof(VoiceTableOffset), 0, rom.Length - 1);
                     SampleTableOffset = (int)game.GetValidValue(nameof(SampleTableOffset), 0, rom.Length - 1);
@@ -64,14 +68,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         }
                         catch (BetterKeyNotFoundException ex)
                         {
-                            throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KCopyInvalidGameCode, ex.Key)));
+                            throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KCopyInvalidGameCode, ex.Key)));
                         }
                     }
 
                     string[] sizes = game.Children.GetValue(nameof(SongTableSizes)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (sizes.Length != songTables.Length)
                     {
-                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongTableCounts, nameof(SongTableSizes), nameof(SongTableOffsets))));
+                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongTableCounts, nameof(SongTableSizes), nameof(SongTableOffsets))));
                     }
                     SongTableOffsets = new int[songTables.Length];
                     SongTableSizes = new long[songTables.Length];
@@ -98,7 +102,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                 long songIndex = Util.Utils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, long.MaxValue);
                                 if (songs.Any(s => s.Index == songIndex))
                                 {
-                                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongRepeated, name, songIndex)));
+                                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongRepeated, name, songIndex)));
                                 }
                                 songs.Add(new Song(songIndex, song.Value.ToString()));
                             }
@@ -114,11 +118,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 }
                 catch (BetterKeyNotFoundException ex)
                 {
-                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyMissing, ex.Key)));
+                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyMissing, ex.Key)));
                 }
                 catch (InvalidValueException ex)
                 {
-                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, GameCode, configFile, Environment.NewLine + ex.Message));
+                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + ex.Message));
                 }
                 catch (YamlDotNet.Core.YamlException ex)
                 {

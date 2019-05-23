@@ -1,4 +1,4 @@
-A88E:
+A88E_00:
   Name: "Mario & Luigi - Superstar Saga (USA)"
   SongTableOffsets: 0x21CB70
   SongTableSizes: 407
@@ -58,9 +58,9 @@ A88E:
       48: "Professor E Gadd"
       49: "Ghostly Encounter"
       50: "Bean Time!"
-A88P:
+A88P_00:
   Name: "Mario & Luigi - Superstar Saga (Europe)"
   SongTableOffsets: 0x21DC50
   VoiceTableOffset: 0x21E2AC
   SampleTableOffset: 0xA82088
-  Copy: "A88E"
+  Copy: "A88E_00"
