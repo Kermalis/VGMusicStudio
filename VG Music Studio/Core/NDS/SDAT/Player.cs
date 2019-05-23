@@ -852,7 +852,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public void Record(string fileName)
         {
-            ShouldFadeOut = true;
             mixer.CreateWaveWriter(fileName);
             InitEmulation();
             State = PlayerState.Recording;

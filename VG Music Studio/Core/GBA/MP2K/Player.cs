@@ -901,7 +901,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public void Record(string fileName)
         {
-            ShouldFadeOut = true;
             mixer.CreateWaveWriter(fileName);
             InitEmulation();
             State = PlayerState.Recording;

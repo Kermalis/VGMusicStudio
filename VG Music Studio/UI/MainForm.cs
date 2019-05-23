@@ -463,7 +463,10 @@ namespace Kermalis.VGMusicStudio.UI
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 Stop();
-                bool old = Engine.Instance.Player.ShouldFadeOut;
+                bool oldFade = Engine.Instance.Player.ShouldFadeOut;
+                long oldLoops = Engine.Instance.Player.NumLoops;
+                Engine.Instance.Player.ShouldFadeOut = true;
+                Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
                 try
                 {
                     Engine.Instance.Player.Record(d.FileName);
@@ -473,7 +476,8 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveWAV);
                 }
-                Engine.Instance.Player.ShouldFadeOut = old;
+                Engine.Instance.Player.ShouldFadeOut = oldFade;
+                Engine.Instance.Player.NumLoops = oldLoops;
                 stopUI = false;
             }
         }
