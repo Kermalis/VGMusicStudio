@@ -124,7 +124,7 @@
     <value>Errore durante il caricamento della ROM GBA (MLSS)</value>
   </data>
   <data name="ErrorSaveMIDI" xml:space="preserve">
-    <value>Errore durante l'esportazione in MIDI</value>
+    <value>Errore Durante L'Esportazione in MIDI</value>
   </data>
   <data name="FilterOpenGBA" xml:space="preserve">
     <value>File GBA</value>
@@ -308,5 +308,17 @@
   </data>
   <data name="ErrorValueParseRanged" xml:space="preserve">
     <value>"{0}" deve essere compreso tra {1} e {2}.</value>
+  </data>
+  <data name="ErrorSaveWAV" xml:space="preserve">
+    <value>Errore Durante L'Esportazione in WAV</value>
+  </data>
+  <data name="FilterSaveWAV" xml:space="preserve">
+    <value>File WAV</value>
+  </data>
+  <data name="MenuSaveWAV" xml:space="preserve">
+    <value>Esporta Brano in WAV</value>
+  </data>
+  <data name="SuccessSaveWAV" xml:space="preserve">
+    <value>WAV salvato in {0}.</value>
   </data>
 </root>
