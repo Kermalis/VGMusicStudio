@@ -145,7 +145,7 @@
     <value>Archivo SDAT</value>
   </data>
   <data name="FilterSaveMIDI" xml:space="preserve">
-    <value>Archivo MIDI</value>
+    <value>Archivos MIDI</value>
   </data>
   <data name="MenuData" xml:space="preserve">
     <value>Datos</value>
@@ -308,5 +308,17 @@
   </data>
   <data name="ErrorValueParseRanged" xml:space="preserve">
     <value>"{0}" debe estar entre {1} y {2}.</value>
+  </data>
+  <data name="ErrorSaveWAV" xml:space="preserve">
+    <value>Error al Exportar WAV</value>
+  </data>
+  <data name="FilterSaveWAV" xml:space="preserve">
+    <value>Archivos WAV</value>
+  </data>
+  <data name="MenuSaveWAV" xml:space="preserve">
+    <value>Exportar Canción como WAV</value>
+  </data>
+  <data name="SuccessSaveWAV" xml:space="preserve">
+    <value>WAV guardado en {0}.</value>
   </data>
 </root>
