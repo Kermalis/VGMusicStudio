@@ -38,7 +38,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public Player(Mixer mixer, Config config)
         {
-            for (byte i = 0; i < tracks.Length; i++)
+            for (byte i = 0; i < 0x10; i++)
             {
                 tracks[i] = new Track(i, this);
             }
@@ -54,7 +54,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         private void WaitThread()
         {
-            if (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin)
+            if (thread != null && (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin))
             {
                 thread.Join();
             }

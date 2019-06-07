@@ -162,7 +162,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             [BinaryArrayFixedLength(4)]
             public byte[] Unknown3 { get; set; }
             [BinaryArrayFixedLength(16)]
-            public SWD.KeyGroup[] KeyGroups { get; set; }
+            public KeyGroup[] KeyGroups { get; set; }
             [BinaryArrayVariableLength(nameof(NumLFOs))]
             public LFOInfo LFOInfos { get; set; }
             [BinaryArrayVariableLength(nameof(NumSplits))]

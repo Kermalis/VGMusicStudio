@@ -48,7 +48,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         }
         private void WaitThread()
         {
-            if (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin)
+            if (thread != null && (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin))
             {
                 thread.Join();
             }
