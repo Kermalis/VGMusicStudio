@@ -646,6 +646,20 @@ B24P_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
   SongTableOffsets: 0x1E866BC
   Copy: "B24E_00"
+BE8E_00:
+  Name: "Fire Emblem: The Sacred Stones (USA)"
+  SongTableOffsets: 0x224470
+  SongTableSizes: 1000
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 13
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+BE8P_00:
+  Name: "Fire Emblem: The Sacred Stones (Europe)"
+  SongTableOffsets: 0x42FFB0
+  Copy: "BE8E_00"
 BMXE_00:
   Name: "Metroid: Zero Mission (USA)"
   SongTableOffsets: 0x8F2C0
