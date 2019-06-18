@@ -20,7 +20,7 @@ A3UJ_00:
   HasPokemonCompression: False
 A7KE_00:
   Name: "Kirby: Nightmare in Dream Land (USA)"
-  SongTableOffsets: 0x060B460
+  SongTableOffsets: 0x60B460
   SongTableSizes: 579
   SampleRate: 4
   ReverbType: "Normal"
@@ -88,16 +88,38 @@ A7KE_00:
       56: "Nightmare Appears!"
 A7KP_00:
   Name: "Kirby: Nightmare in Dream Land (Europe)"
-  SongTableOffsets: 0x0843B50
+  SongTableOffsets: 0x843B50
   Copy: "A7KE_00"
 AE7E_00:
-  Name: "Fire Emblem 7 (USA)"
-  SongTableOffsets: 0x69D6E0
-  SongTableSizes: 1000
+  Name: "Fire Emblem: The Blazing Blade (USA)"
+  SongTableOffsets: 0x69D6D8
+  SongTableSizes: 1001
   SampleRate: 3
   ReverbType: "Normal"
   Reverb: 0
-  Volume: 15
+  Volume: 13
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+AE7J_00:
+  Name: "Fire Emblem: The Blazing Blade (Japan)"
+  SongTableOffsets: 0x6EA8C8
+  Copy: "AE7E_00"
+AE7X_00:
+  Name: "Fire Emblem: The Blazing Blade (Europe X)"
+  SongTableOffsets: 0x6805F4
+  Copy: "AE7E_00"
+AE7Y_00:
+  Name: "Fire Emblem: The Blazing Blade (Europe Y)"
+  SongTableOffsets: 0x67F1F4
+  Copy: "AE7E_00"
+AEFJ_00:
+  Name: "Fire Emblem: The Binding Blade (Japan)"
+  SongTableOffsets: 0x3994D8
+  SongTableSizes: 621
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 13
   HasGoldenSunSynths: False
   HasPokemonCompression: False
 AGFE_00:
@@ -656,6 +678,10 @@ BE8E_00:
   Volume: 13
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+BE8J_00:
+  Name: "Fire Emblem: The Sacred Stones (Japan)"
+  SongTableOffsets: 0x214120
+  Copy: "BE8E_00"
 BE8P_00:
   Name: "Fire Emblem: The Sacred Stones (Europe)"
   SongTableOffsets: 0x42FFB0
