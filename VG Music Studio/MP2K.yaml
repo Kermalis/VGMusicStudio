@@ -400,6 +400,10 @@ AXPE_02:
   Name: "Pokémon Sapphire Version (USA)"
   SongTableOffsets: 0x455500
   Copy: "AXVE_00"
+AXPJ_00:
+  Name: "ポケットモンスターサファイア/Pokémon Sapphire (Japan)"
+  SongTableOffsets: 0x416ECC
+  Copy: "AXVE_00"
 AXVE_00:
   Name: "Pokémon Ruby Version (USA)"
   SongTableOffsets: 0x45548C
@@ -539,6 +543,10 @@ AXVE_01:
 AXVE_02:
   Name: "Pokémon Ruby Version (USA)"
   SongTableOffsets: 0x4554A0
+  Copy: "AXVE_00"
+AXVJ_00:
+  Name: "ポケットモンスタールビー/Pokémon Ruby (Japan)"
+  SongTableOffsets: 0x416EE4
   Copy: "AXVE_00"
 AZLE_00:
   Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
@@ -942,16 +950,24 @@ BPEE_00:
       551: "Battle! (Deoxys)"
       552: "Battle! (Mewtwo) (FRLG)"
       553: "Battle! (Ho-Oh/Lugia)"
+BPEJ_00:
+  Name: "ポケットモンスターエメラルド/Pokémon Emerald (Japan)"
+  SongTableOffsets: 0x63C2AC
+  Copy: "BPEE_00"
 BPGE_00:
-  Name: "Pokémon Leaf Green Version (USA)"
+  Name: "Pokémon LeafGreen Version (USA)"
   SongTableOffsets: 0x4A2BA8
   Copy: "BPRE_00"
 BPGE_01:
-  Name: "Pokémon Leaf Green Version (USA)"
+  Name: "Pokémon LeafGreen Version (USA)"
   SongTableOffsets: 0x4A2C18
   Copy: "BPRE_00"
+BPGJ_00:
+  Name: "ポケットモンスターリーフグリーン/Pokémon LeafGreen (Japan)"
+  SongTableOffsets: 0x467D50
+  Copy: "BPRE_00"
 BPRE_00:
-  Name: "Pokémon Fire Red Version (USA)"
+  Name: "Pokémon FireRed Version (USA)"
   SongTableOffsets: 0x4A32CC
   SongTableSizes: 347
   SampleRate: 3
@@ -1056,8 +1072,12 @@ BPRE_00:
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
 BPRE_01:
-  Name: "Pokémon Fire Red Version (USA)"
+  Name: "Pokémon FireRed Version (USA)"
   SongTableOffsets: 0x4A332C
+  Copy: "BPRE_00"
+BPRJ_00:
+  Name: "ポケットモンスターファイアレッド/Pokémon FireRed (Japan)"
+  SongTableOffsets: 0x467F0C
   Copy: "BPRE_00"
 BZME_00:
   Name: "The Legend of Zelda: The Minish Cap (USA)"
