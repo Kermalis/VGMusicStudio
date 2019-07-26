@@ -153,7 +153,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     Channel chan = channels[j];
                     if (chan.Owner != null)
                     {
-                        bool muted = Mutes[chan.Owner.Index - 1]; // Get mute first because chan.Process() can call chan.Stop() which sets chan.Owner to null
+                        bool muted = Mutes[chan.Owner.Index]; // Get mute first because chan.Process() can call chan.Stop() which sets chan.Owner to null
                         chan.Process(out short channelLeft, out short channelRight);
                         if (!muted)
                         {
