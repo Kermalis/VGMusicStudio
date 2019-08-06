@@ -2,7 +2,7 @@
 
 VG Music Studio is a music player and visualizer for the most common GBA music format (MP2K), Mario & Luigi: Superstar Saga, the most common NDS music format (SDAT), and a more rare NDS/WII music format (DSE) [found in PMD2 among others].
 
-![Preview](https://i.imgur.com/BJI8GU3.gif)
+[![VG Music Studio Preview](https://i.imgur.com/hWJGG83.png)](https://www.youtube.com/watch?v=s1BZ7cRbtBU "VG Music Studio Preview")
 
 Discord Server: https://discord.gg/q2pAw3x
 
