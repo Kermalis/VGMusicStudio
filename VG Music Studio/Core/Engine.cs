@@ -10,7 +10,8 @@ namespace Kermalis.VGMusicStudio.Core
             GBA_MLSS,
             GBA_MP2K,
             NDS_DSE,
-            NDS_SDAT
+            NDS_SDAT,
+            PSX_PSF
         }
 
         public static Engine Instance { get; private set; }
@@ -70,6 +71,16 @@ namespace Kermalis.VGMusicStudio.Core
                     var mixer = new NDS.SDAT.Mixer();
                     Mixer = mixer;
                     Player = new NDS.SDAT.Player(mixer, config);
+                    break;
+                }
+                case EngineType.PSX_PSF:
+                {
+                    string bgmPath = (string)playerArg;
+                    var config = new PSX.PSF.Config(bgmPath);
+                    Config = config;
+                    var mixer = new PSX.PSF.Mixer();
+                    Mixer = mixer;
+                    Player = new PSX.PSF.Player(mixer, config);
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(type));

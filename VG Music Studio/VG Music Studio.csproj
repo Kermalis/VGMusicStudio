@@ -99,6 +99,9 @@
     <Reference Include="YamlDotNet, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\YamlDotNet.5.2.1\lib\net45\YamlDotNet.dll</HintPath>
     </Reference>
+    <Reference Include="Zlib.Portable, Version=1.11.0.0, Culture=neutral, PublicKeyToken=431cba815f6a8b5b, processorArchitecture=MSIL">
+      <HintPath>..\packages\Zlib.Portable.Signed.1.11.0\lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch+MonoAndroid\Zlib.Portable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\ADPCMDecoder.cs" />
@@ -150,6 +153,13 @@
     <Compile Include="Core\NDS\SDAT\SWAR.cs" />
     <Compile Include="Core\NDS\SDAT\Track.cs" />
     <Compile Include="Core\Player.cs" />
+    <Compile Include="Core\PSX\PSF\Channel.cs" />
+    <Compile Include="Core\PSX\PSF\Commands.cs" />
+    <Compile Include="Core\PSX\PSF\Config.cs" />
+    <Compile Include="Core\PSX\PSF\Mixer.cs" />
+    <Compile Include="Core\PSX\PSF\Player.cs" />
+    <Compile Include="Core\PSX\PSF\PSF.cs" />
+    <Compile Include="Core\PSX\PSF\Track.cs" />
     <Compile Include="Core\SongEvent.cs" />
     <Compile Include="Core\Debug.cs" />
     <Compile Include="Properties\Strings.Designer.cs">
