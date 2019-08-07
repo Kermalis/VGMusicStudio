@@ -160,6 +160,7 @@
     <Compile Include="Core\PSX\PSF\Player.cs" />
     <Compile Include="Core\PSX\PSF\PSF.cs" />
     <Compile Include="Core\PSX\PSF\Track.cs" />
+    <Compile Include="Core\PSX\PSF\VAB.cs" />
     <Compile Include="Core\SongEvent.cs" />
     <Compile Include="Core\Debug.cs" />
     <Compile Include="Properties\Strings.Designer.cs">

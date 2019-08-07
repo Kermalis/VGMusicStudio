@@ -16,6 +16,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         private readonly Config config;
         private readonly TimeBarrier time;
         private Thread thread;
+        private VAB vab;
         private ushort initialTempo;
         private ushort tempo;
         private int tempoStack;
@@ -85,9 +86,11 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         public void LoadSong(long index)
         {
             PSF.Open(config.BGMFiles[index], out byte[] exeBuffer, out _);
-            using (var reader = new EndianBinaryReader(new MemoryStream(exeBuffer), Endianness.BigEndian))
+            using (var reader = new EndianBinaryReader(new MemoryStream(exeBuffer)))
             {
+                vab = new VAB(reader);
                 reader.BaseStream.Position = SongOffset;
+                reader.Endianness = Endianness.BigEndian;
                 reader.ReadString(4); // "pQES"
                 reader.ReadUInt32(); // Version
                 reader.ReadUInt16(); // PPQN
