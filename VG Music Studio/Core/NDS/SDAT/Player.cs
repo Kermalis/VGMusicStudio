@@ -1655,7 +1655,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             {
                                 if (ElapsedTicks == MaxTicks)
                                 {
-                                    if (!track.Stopped)
+                                    if (track.Stopped)
                                     {
                                         List<long> t = Events[i][track.CurEvent].Ticks;
                                         ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
