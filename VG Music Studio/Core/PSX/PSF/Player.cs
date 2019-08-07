@@ -16,6 +16,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         private readonly Config config;
         private readonly TimeBarrier time;
         private Thread thread;
+        private ushort initialTempo;
         private ushort tempo;
         private int tempoStack;
         private long elapsedLoops;
@@ -72,7 +73,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
 
         private void InitEmulation()
         {
-            tempo = 158;
+            tempo = initialTempo;
             tempoStack = 0;
             elapsedLoops = ElapsedTicks = 0;
             fadeOutBegan = false;
@@ -90,7 +91,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                 reader.ReadString(4); // "pQES"
                 reader.ReadUInt32(); // Version
                 reader.ReadUInt16(); // PPQN
-                reader.ReadBytes(3); // Tempo
+                initialTempo = (ushort)(60000000 / (uint)((reader.ReadUInt16() << 8) | (reader.ReadByte())));
                 reader.ReadBytes(2); // Time signature
                 reader.ReadBytes(4); // Unknown
                 Events = new List<SongEvent>[0x10];
