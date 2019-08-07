@@ -56,7 +56,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             public uint WAVILength { get; set; }
         }
 
-        internal interface ISplitEntry
+        public interface ISplitEntry
         {
             byte LowKey { get; }
             byte HighKey { get; }
@@ -71,7 +71,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             byte Decay2 { get; set; }
             byte Release { get; set; }
         }
-        internal class SplitEntry_V402 : ISplitEntry
+        public class SplitEntry_V402 : ISplitEntry
         {
             public ushort Id { get; set; }
             [BinaryArrayFixedLength(2)]
@@ -107,7 +107,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
             int ISplitEntry.SampleId => SampleId;
         }
-        internal class SplitEntry_V415 : ISplitEntry
+        public class SplitEntry_V415 : ISplitEntry
         {
             public ushort Id { get; set; }
             [BinaryArrayFixedLength(2)]
@@ -144,11 +144,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             int ISplitEntry.SampleId => SampleId;
         }
 
-        internal interface IProgramInfo
+        public interface IProgramInfo
         {
             ISplitEntry[] SplitEntries { get; }
         }
-        internal class ProgramInfo_V402 : IProgramInfo
+        public class ProgramInfo_V402 : IProgramInfo
         {
             public byte Id { get; set; }
             public byte NumSplits { get; set; }
@@ -171,7 +171,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             [BinaryIgnore]
             ISplitEntry[] IProgramInfo.SplitEntries => SplitEntries;
         }
-        internal class ProgramInfo_V415 : IProgramInfo
+        public class ProgramInfo_V415 : IProgramInfo
         {
             public ushort Id { get; set; }
             public ushort NumSplits { get; set; }
@@ -193,7 +193,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             ISplitEntry[] IProgramInfo.SplitEntries => SplitEntries;
         }
 
-        internal interface IWavInfo
+        public interface IWavInfo
         {
             byte RootKey { get; }
             sbyte Transpose { get; }
@@ -212,7 +212,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             byte Decay2 { get; }
             byte Release { get; }
         }
-        internal class WavInfo_V402 : IWavInfo
+        public class WavInfo_V402 : IWavInfo
         {
             public byte Unknown1 { get; set; }
             public byte Id { get; set; }
@@ -245,7 +245,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             public byte Release { get; set; }
             public byte Unknown6 { get; set; }
         }
-        internal class WavInfo_V415 : IWavInfo
+        public class WavInfo_V415 : IWavInfo
         {
             [BinaryArrayFixedLength(2)]
             public byte[] Unknown1 { get; set; }
@@ -306,7 +306,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             [BinaryArrayFixedLength(2)]
             public byte[] Unknown { get; set; }
         }
-        internal class LFOInfo
+        public class LFOInfo
         {
             [BinaryArrayFixedLength(16)]
             public byte[] Unknown { get; set; }
