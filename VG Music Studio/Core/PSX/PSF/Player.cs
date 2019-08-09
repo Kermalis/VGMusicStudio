@@ -16,10 +16,14 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         private readonly Config config;
         private readonly TimeBarrier time;
         private Thread thread;
+        private byte[] exeBuffer;
         private VAB vab;
-        private ushort initialTempo;
+        private long dataOffset;
+        private byte runningStatus;
+        private uint tempoMicroseconds;
         private ushort tempo;
         private int tempoStack;
+        private long deltaTicks;
         private long elapsedLoops;
         private bool fadeOutBegan;
 
@@ -57,26 +61,18 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             }
         }
 
-        private uint ReadVarLen(EndianBinaryReader reader)
-        {
-            uint value;
-            byte c;
-            if (((value = reader.ReadByte()) & 0x80) != 0)
-            {
-                value &= 0x7F;
-                do
-                {
-                    value = (uint)((value << 7) + ((c = reader.ReadByte()) & 0x7F));
-                } while ((c & 0x80) != 0);
-            }
-            return value;
-        }
-
         private void InitEmulation()
         {
-            tempo = initialTempo;
-            tempoStack = 0;
-            elapsedLoops = ElapsedTicks = 0;
+            dataOffset = SongOffset;
+            dataOffset += 4; // "pQES"
+            dataOffset += 4; // Version
+            dataOffset += 2; // PPQN
+            tempoMicroseconds = (uint)((exeBuffer[dataOffset++] << 16) | (exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
+            tempo = (ushort)(60000000 / tempoMicroseconds);
+            dataOffset += 2; // Time Signature
+            dataOffset += 4; // Unknown
+
+            elapsedLoops = ElapsedTicks = deltaTicks = tempoStack = runningStatus = 0;
             fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
@@ -85,16 +81,31 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         }
         public void LoadSong(long index)
         {
-            PSF.Open(config.BGMFiles[index], out byte[] exeBuffer, out _);
+            PSF.Open(config.BGMFiles[index], out exeBuffer, out _);
             using (var reader = new EndianBinaryReader(new MemoryStream(exeBuffer)))
             {
+                uint ReadVarLen()
+                {
+                    uint value;
+                    byte c;
+                    if (((value = reader.ReadByte()) & 0x80) != 0)
+                    {
+                        value &= 0x7F;
+                        do
+                        {
+                            value = (uint)((value << 7) + ((c = reader.ReadByte()) & 0x7F));
+                        } while ((c & 0x80) != 0);
+                    }
+                    return value;
+                }
+
                 vab = new VAB(reader);
                 reader.BaseStream.Position = SongOffset;
                 reader.Endianness = Endianness.BigEndian;
                 reader.ReadString(4); // "pQES"
                 reader.ReadUInt32(); // Version
                 reader.ReadUInt16(); // PPQN
-                initialTempo = (ushort)(60000000 / (uint)((reader.ReadUInt16() << 8) | (reader.ReadByte())));
+                reader.ReadBytes(3); // Initial Tempo
                 reader.ReadBytes(2); // Time signature
                 reader.ReadBytes(4); // Unknown
                 Events = new List<SongEvent>[0x10];
@@ -102,7 +113,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                 {
                     Events[i] = new List<SongEvent>();
                 }
-                byte runningStatus = 0;
+                runningStatus = 0;
                 byte curTrack = 0;
                 MaxTicks = 0;
 
@@ -120,7 +131,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                         ev.Ticks.Add(MaxTicks);
                         Events[curTrack].Add(ev);
                     }
-                    MaxTicks += ReadVarLen(reader);
+                    MaxTicks += ReadVarLen();
                     byte cmd = reader.ReadByte();
                     void Invalid()
                     {
@@ -208,7 +219,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                                 }
                                 case 0x51:
                                 {
-                                    uint tempo = (uint)((reader.ReadUInt16() << 8) | (reader.ReadByte()));
+                                    uint tempo = (uint)((reader.ReadUInt16() << 8) | reader.ReadByte());
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new TempoCommand { Tempo = tempo });
@@ -332,8 +343,8 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             {
                 Track track = tracks[i];
                 UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
-                tin.Position = track.CurEvent >= Events[i].Count ? 0 : Events[i][track.CurEvent].Offset;
-                //tin.Rest = track.Rest;
+                tin.Position = dataOffset;
+                tin.Rest = deltaTicks;
                 tin.Voice = track.Voice;
                 tin.Type = "PCM";
                 //tin.Volume = track.Volume;
@@ -375,27 +386,48 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             }
         }
 
-        private void ExecuteNext(int trackIndex)
+        private void ExecuteNext()
         {
-            bool increment = true;
-            List<SongEvent> ev = Events[trackIndex];
-            Track track = tracks[trackIndex];
-            switch (ev[track.CurEvent].Command)
+            uint ReadVarLen()
             {
-                case FinishCommand _:
+                uint value;
+                byte c;
+                if (((value = exeBuffer[dataOffset++]) & 0x80) != 0)
                 {
-                    track.CurEvent = 0; // TODO: loops
-                    break;
+                    value &= 0x7F;
+                    do
+                    {
+                        value = (uint)((value << 7) + ((c = exeBuffer[dataOffset++]) & 0x7F));
+                    } while ((c & 0x80) != 0);
                 }
-                case NoteCommand note:
+                return value;
+            }
+
+            deltaTicks = ReadVarLen();
+            byte cmd = exeBuffer[dataOffset++];
+            if (cmd <= 0x7F)
+            {
+                cmd = runningStatus;
+                dataOffset--;
+            }
+            else
+            {
+                runningStatus = cmd;
+            }
+            Track track = tracks[cmd & 0xF];
+            switch (cmd & 0xF0)
+            {
+                case 0x90:
                 {
-                    if (note.Velocity == 0)
+                    byte key = exeBuffer[dataOffset++];
+                    byte velocity = exeBuffer[dataOffset++];
+                    if (velocity == 0)
                     {
                         Channel[] chans = track.Channels.ToArray();
                         for (int i = 0; i < chans.Length; i++)
                         {
                             Channel c = chans[i];
-                            if (c.Key == note.Key)
+                            if (c.Key == key)
                             {
                                 c.Stop();
                                 break;
@@ -404,23 +436,53 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                     }
                     else
                     {
-                        Channel channel = mixer.AllocateChannel();
-                        channel.Stop();
-                        channel.StartPSG(4, -1);
-                        channel.Key = note.Key;
-                        channel.NoteVelocity = note.Velocity;
-                        channel.Owner = track;
-                        track.Channels.Add(channel);
+                        Channel c = mixer.AllocateChannel();
+                        c.Stop();
+                        c.StartPSG(4, -1);
+                        c.Key = key;
+                        c.NoteVelocity = velocity;
+                        c.Owner = track;
+                        track.Channels.Add(c);
                     }
                     break;
                 }
-                case PitchBendCommand bend: track.PitchBend = bend.Bend; break;
-                case TempoCommand tem: tempo = (ushort)(60000000 / tem.Tempo); break;
-                case VoiceCommand voice: track.Voice = voice.Voice; break;
-            }
-            if (increment)
-            {
-                track.CurEvent++;
+                case 0xB0:
+                {
+                    byte controller = exeBuffer[dataOffset++];
+                    byte value = exeBuffer[dataOffset++];
+                    break;
+                }
+                case 0xC0:
+                {
+                    byte voice = exeBuffer[dataOffset++];
+                    track.Voice = voice;
+                    break;
+                }
+                case 0xE0:
+                {
+                    ushort pitchBend = (ushort)((exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
+                    track.PitchBend = pitchBend;
+                    break;
+                }
+                case 0xF0:
+                {
+                    byte meta = exeBuffer[dataOffset++];
+                    switch (meta)
+                    {
+                        case 0x2F:
+                        {
+                            track.Stopped = true;
+                            break;
+                        }
+                        case 0x51:
+                        {
+                            tempoMicroseconds = (uint)((exeBuffer[dataOffset++] << 16) | (exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
+                            tempo = (ushort)(60000000 / tempoMicroseconds);
+                            break;
+                        }
+                    }
+                    break;
+                }
             }
         }
 
@@ -432,14 +494,18 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                 while (tempoStack >= 24)
                 {
                     tempoStack -= 24;
+                    if (deltaTicks > 0)
+                    {
+                        deltaTicks--;
+                    }
+                    while (deltaTicks == 0)
+                    {
+                        ExecuteNext();
+                    }
                     bool allDone = true;
-                    for (int i = 0; i < tracks.Length; i++)
+                    for (int i = 0; i < 0x10; i++)
                     {
                         Track track = tracks[i];
-                        while (track.CurEvent < Events[i].Count && Events[i][track.CurEvent].Ticks.Contains(ElapsedTicks))
-                        {
-                            ExecuteNext(i);
-                        }
                         if (!track.Stopped || track.Channels.Count != 0)
                         {
                             allDone = false;

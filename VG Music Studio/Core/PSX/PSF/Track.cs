@@ -9,7 +9,6 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         public byte Voice;
         public bool Stopped;
         public ushort PitchBend;
-        public int CurEvent;
 
         public readonly List<Channel> Channels = new List<Channel>(0x10);
 
@@ -20,7 +19,6 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         public void Init()
         {
             Voice = 0;
-            CurEvent = 0;
             PitchBend = 0;
             Stopped = false;
             StopAllChannels();
