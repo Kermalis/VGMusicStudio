@@ -11,6 +11,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
     internal class Player : IPlayer
     {
         private const long SongOffset = 0x120000;
+        private const int RefreshRate = 60; // TODO: A PSF can determine refresh rate regardless of region
         private readonly Track[] tracks = new Track[0x10];
         private readonly Mixer mixer;
         private readonly Config config;
@@ -20,9 +21,12 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         private VAB vab;
         private long dataOffset;
         private byte runningStatus;
-        private uint tempoMicroseconds;
+        private ushort ticksPerQuarterNote;
+        private uint microsecondsPerBeat;
+        private uint microsecondsPerTick;
+        private long tickStack;
+        private long ticksPerUpdate;
         private ushort tempo;
-        private int tempoStack;
         private long deltaTicks;
         private long elapsedLoops;
         private bool fadeOutBegan;
@@ -45,8 +49,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             this.mixer = mixer;
             this.config = config;
 
-            time = new TimeBarrier(192);
-            //time = new TimeBarrier(60); // TODO: A PSF can determine refresh rate regardless of region; does this affect what we should put here?
+            time = new TimeBarrier(RefreshRate);
         }
         private void CreateThread()
         {
@@ -61,18 +64,26 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             }
         }
 
+        private void TEMPORARY_UpdateTimeVars()
+        {
+            tempo = (ushort)(60000000 / microsecondsPerBeat);
+            microsecondsPerTick = microsecondsPerBeat / ticksPerQuarterNote;
+            ticksPerUpdate = 1000000 / RefreshRate;
+        }
         private void InitEmulation()
         {
             dataOffset = SongOffset;
             dataOffset += 4; // "pQES"
             dataOffset += 4; // Version
-            dataOffset += 2; // PPQN
-            tempoMicroseconds = (uint)((exeBuffer[dataOffset++] << 16) | (exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
-            tempo = (ushort)(60000000 / tempoMicroseconds);
-            dataOffset += 2; // Time Signature
+            ticksPerQuarterNote = (ushort)((exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
+            microsecondsPerBeat = (uint)((exeBuffer[dataOffset++] << 16) | (exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
+            TEMPORARY_UpdateTimeVars();
+            //dataOffset += 2; // Time Signature
+            byte ts1 = exeBuffer[dataOffset++];
+            double ts2 = Math.Pow(2, exeBuffer[dataOffset++]);
             dataOffset += 4; // Unknown
 
-            elapsedLoops = ElapsedTicks = deltaTicks = tempoStack = runningStatus = 0;
+            tickStack = elapsedLoops = ElapsedTicks = deltaTicks = runningStatus = 0;
             fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
@@ -104,8 +115,8 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                 reader.Endianness = Endianness.BigEndian;
                 reader.ReadString(4); // "pQES"
                 reader.ReadUInt32(); // Version
-                reader.ReadUInt16(); // PPQN
-                reader.ReadBytes(3); // Initial Tempo
+                reader.ReadUInt16(); // Ticks per Quarter Note
+                reader.ReadBytes(3); // Microseconds per Beat
                 reader.ReadBytes(2); // Time signature
                 reader.ReadBytes(4); // Unknown
                 Events = new List<SongEvent>[0x10];
@@ -476,8 +487,8 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                         }
                         case 0x51:
                         {
-                            tempoMicroseconds = (uint)((exeBuffer[dataOffset++] << 16) | (exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
-                            tempo = (ushort)(60000000 / tempoMicroseconds);
+                            microsecondsPerBeat = (uint)((exeBuffer[dataOffset++] << 16) | (exeBuffer[dataOffset++] << 8) | exeBuffer[dataOffset++]);
+                            TEMPORARY_UpdateTimeVars();
                             break;
                         }
                     }
@@ -491,9 +502,9 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             time.Start();
             while (State == PlayerState.Playing || State == PlayerState.Recording)
             {
-                while (tempoStack >= 24)
+                while (tickStack > microsecondsPerTick)
                 {
-                    tempoStack -= 24;
+                    tickStack -= microsecondsPerTick;
                     if (deltaTicks > 0)
                     {
                         deltaTicks--;
@@ -535,7 +546,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                         SongEnded?.Invoke();
                     }
                 }
-                tempoStack += tempo;
+                tickStack += ticksPerUpdate;
                 mixer.ChannelTick();
                 mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
                 if (State == PlayerState.Playing)

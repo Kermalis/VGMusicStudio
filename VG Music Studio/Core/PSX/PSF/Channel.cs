@@ -28,7 +28,7 @@
         {
             psgCounter = 0;
             psgDuty = duty;
-            BaseTimer = 8006;
+            BaseTimer = 2000;
             Start(noteDuration);
         }
 
