@@ -32,19 +32,19 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public int GetPitch()
         {
             int lfo = LFOType == LFOType.Pitch ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            lfo = ((lfo << 6) >> 14) | ((lfo >> 26) << 18);
+            lfo = (int)(((long)lfo * 60) >> 14);
             return (PitchBend * PitchBendRange / 2) + lfo;
         }
         public int GetVolume()
         {
             int lfo = LFOType == LFOType.Volume ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            lfo = (((lfo << 6) >> 14) | ((lfo >> 26) << 18)) << 6;
+            lfo = (int)(((lfo & ~0xFC000000) >> 8) | ((lfo < 0 ? -1 : 0) << 6) | (((uint)lfo >> 26) << 18));
             return Utils.SustainTable[player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + lfo;
         }
         public sbyte GetPan()
         {
             int lfo = LFOType == LFOType.Panpot ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            lfo = ((lfo << 6) >> 14) | ((lfo >> 26) << 18);
+            lfo = (int)(((lfo & ~0xFC000000) >> 8) | ((lfo < 0 ? -1 : 0) << 6) | (((uint)lfo >> 26) << 18));
             int p = Panpot + lfo;
             if (p < -0x40)
             {
@@ -115,14 +115,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 }
                 else
                 {
-                    int increment = LFOSpeed << 6; // "<< 6" is "* 0x40"
-                    int i;
-                    for (i = (LFOPhase + increment) >> 8; i >= 0x80; i -= 0x80) // ">> 8" is "/ 0x100"
+                    int speed = LFOSpeed << 6; // "<< 6" is "* 0x40"
+                    int counter = (LFOPhase + speed) >> 8; // ">> 8" is "/ 0x100"
+                    while (counter >= 0x80)
                     {
+                        counter -= 0x80;
                     }
-                    LFOPhase += (ushort)increment;
+                    LFOPhase += (ushort)speed;
                     LFOPhase &= 0xFF;
-                    LFOPhase |= (ushort)(i << 8); // "<< 8" is "* 0x100"
+                    LFOPhase |= (ushort)(counter << 8); // "<< 8" is "* 0x100"
                 }
             }
             else

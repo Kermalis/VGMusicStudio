@@ -283,43 +283,45 @@
 
         public static ushort GetChannelTimer(ushort baseTimer, int pitch)
         {
-            int remainder = 0;
-            int pitchTableIndex = -pitch;
-            // Positive pitch:
-            while (pitchTableIndex < 0)
+            int shift = 0;
+            pitch = -pitch;
+
+            while (pitch < 0)
             {
-                remainder--;
-                pitchTableIndex += 768;
+                shift--;
+                pitch += 0x300;
             }
-            // Negative pitch:
-            while (pitchTableIndex >= 768)
+
+            while (pitch >= 0x300)
             {
-                remainder++;
-                pitchTableIndex -= 768;
+                shift++;
+                pitch -= 0x300;
             }
-            ulong timer = (PitchTable[pitchTableIndex] + 0x10000uL) * baseTimer;
-            remainder -= 0x10;
-            if (remainder <= 0)
+
+            ulong timer = (PitchTable[pitch] + 0x10000uL) * baseTimer;
+            shift -= 16;
+            if (shift <= 0)
             {
-                timer >>= -remainder;
+                timer >>= -shift;
             }
-            else
+            else if (shift < 32)
             {
-                if (remainder >= 0x20)
-                {
-                    return 0xFF;
-                }
-                if ((timer & (ulong.MaxValue << (0x20 - remainder))) != 0)
+                if ((timer & (ulong.MaxValue << (32 - shift))) != 0)
                 {
                     return ushort.MaxValue;
                 }
-                timer <<= remainder;
+                timer <<= shift;
             }
+            else
+            {
+                return ushort.MaxValue;
+            }
+
             if (timer < 0x10)
             {
-                timer = 0x10;
+                return 0x10;
             }
-            else if (timer > ushort.MaxValue)
+            if (timer > ushort.MaxValue)
             {
                 timer = ushort.MaxValue;
             }
