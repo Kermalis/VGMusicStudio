@@ -959,25 +959,28 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 SBNK.InstrumentData inst = sbnk.GetInstrumentData(track.Voice, key);
                 if (inst != null)
                 {
-                    channel = mixer.AllocateChannel(inst.Type, track);
+                    InstrumentType type = inst.Type;
+                    channel = mixer.AllocateChannel(type, track);
                     if (channel != null)
                     {
                         if (track.Tie)
                         {
                             duration = -1;
                         }
-                        int release = inst.Param.Release;
+                        SBNK.InstrumentData.DataParam param = inst.Param;
+                        byte release = param.Release;
                         if (release == 0xFF)
                         {
                             duration = -1;
                             release = 0;
                         }
                         bool started = false;
-                        switch (inst.Type)
+                        switch (type)
                         {
                             case InstrumentType.PCM:
                             {
-                                SWAR.SWAV swav = sbnk.GetSWAV(inst.Param.Info[1], inst.Param.Info[0]);
+                                ushort[] info = param.Info;
+                                SWAR.SWAV swav = sbnk.GetSWAV(info[1], info[0]);
                                 if (swav != null)
                                 {
                                     channel.StartPCM(swav, duration);
@@ -987,7 +990,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                             case InstrumentType.PSG:
                             {
-                                channel.StartPSG((byte)inst.Param.Info[0], duration);
+                                channel.StartPSG((byte)param.Info[0], duration);
                                 started = true;
                                 break;
                             }
@@ -1002,13 +1005,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         if (started)
                         {
                             channel.Key = key;
-                            channel.BaseKey = inst.Param.BaseKey;
+                            byte baseKey = param.BaseKey;
+                            channel.BaseKey = type != InstrumentType.PCM && baseKey == 0x7F ? (byte)60 : baseKey;
                             channel.NoteVelocity = velocity;
-                            channel.SetAttack(inst.Param.Attack);
-                            channel.SetDecay(inst.Param.Decay);
-                            channel.SetSustain(inst.Param.Sustain);
+                            channel.SetAttack(param.Attack);
+                            channel.SetDecay(param.Decay);
+                            channel.SetSustain(param.Sustain);
                             channel.SetRelease(release);
-                            channel.StartingPan = (sbyte)(inst.Param.Pan - 0x40);
+                            channel.StartingPan = (sbyte)(param.Pan - 0x40);
                             channel.Owner = track;
                             track.Channels.Add(channel);
                         }
