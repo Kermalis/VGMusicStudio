@@ -1,6 +1,7 @@
 ﻿using Kermalis.VGMusicStudio.Properties;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.PSX.PSF
 {
@@ -12,7 +13,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         public Config(string bgmPath)
         {
             BGMPath = bgmPath;
-            BGMFiles = Directory.GetFiles(bgmPath, "*.psf", SearchOption.TopDirectoryOnly);
+            BGMFiles = Directory.EnumerateFiles(bgmPath).Where(f => f.EndsWith(".minipsf", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".psf", StringComparison.OrdinalIgnoreCase)).ToArray();
             if (BGMFiles.Length == 0)
             {
                 throw new Exception(Strings.ErrorDSENoSequences);
