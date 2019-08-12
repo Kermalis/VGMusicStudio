@@ -15,13 +15,47 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             public byte[] Unknown { get; set; }
         }
 
+        public class Tone
+        {
+            public byte Priority { get; set; }
+            public byte Mode { get; set; }
+            public byte Volume { get; set; } // Out of 127
+            public byte Panpot { get; set; } // 0x40 is middle
+            public byte BaseKey { get; set; }
+            public byte PitchTune { get; set; }
+            public byte LowKey { get; set; }
+            public byte HighKey { get; set; }
+            public byte VibratoWidth { get; set; }
+            public byte VibratoTime { get; set; }
+            public byte PortamentoWidth { get; set; }
+            public byte PortamentoTime { get; set; }
+            public byte PitchBendMin { get; set; }
+            public byte PitchBendMax { get; set; }
+            [BinaryArrayFixedLength(2)]
+            public byte[] Unknown { get; set; }
+            public byte Attack { get; set; }
+            public byte Decay { get; set; }
+            public byte Sustain { get; set; }
+            public byte Release { get; set; }
+            public ushort ParentProgram { get; set; }
+            public ushort SampleId { get; set; }
+            [BinaryArrayFixedLength(8)]
+            public byte[] Unknown2 { get; set; }
+        }
+
+        public class Instrument
+        {
+            [BinaryArrayFixedLength(0x10)]
+            public Tone[] Tones { get; set; }
+        }
+
         private const long InstrumentsOffset = 0x130000; // Crash Bandicoot 2
 
         public ushort NumPrograms { get; }
         public ushort NumTones { get; }
         public ushort NumVAGs { get; }
         public Program[] Programs { get; }
-        public byte[][] Tones { get; }
+        public Instrument[] Instruments { get; }
         public (long Offset, long Size)[] VAGs { get; }
 
         public VAB(EndianBinaryReader reader)
@@ -45,22 +79,22 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
 
             // Programs
             Programs = new Program[0x80];
-            for (int i = 0; i < Programs.Length; i++)
+            for (int i = 0; i < 0x80; i++)
             {
                 Programs[i] = reader.ReadObject<Program>();
             }
 
-            // Tones (Unknown structure)
-            Tones = new byte[0x10 * NumPrograms][];
-            for (int i = 0; i < Tones.Length; i++)
+            // Instruments
+            Instruments = new Instrument[NumPrograms];
+            for (int i = 0; i < NumPrograms; i++)
             {
-                Tones[i] = reader.ReadBytes(0x20);
+                Instruments[i] = reader.ReadObject<Instrument>();
             }
 
             // VAG Pointers
             VAGs = new (long Offset, long Size)[0xFF];
             long offset = reader.ReadUInt16() * 8;
-            for (int i = 0; i < VAGs.Length; i++)
+            for (int i = 0; i < 0xFF; i++)
             {
                 long size = reader.ReadUInt16() * 8;
                 VAGs[i] = (offset, size);

@@ -10,7 +10,8 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
 {
     internal class Player : IPlayer
     {
-        private const long SongOffset = 0x120000;
+        private const long SongOffset = 0x120000; // Crash Bandicoot 2
+        private const long SamplesOffset = 0x140000; // Crash Bandicoot 2
         private const int RefreshRate = 60; // TODO: A PSF can determine refresh rate regardless of region
         private readonly Track[] tracks = new Track[0x10];
         private readonly Mixer mixer;
