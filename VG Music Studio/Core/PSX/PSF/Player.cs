@@ -12,7 +12,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
     {
         private const long SongOffset = 0x120000; // Crash Bandicoot 2
         private const long SamplesOffset = 0x140000; // Crash Bandicoot 2
-        private const int RefreshRate = 60; // TODO: A PSF can determine refresh rate regardless of region
+        private const int RefreshRate = 192; // TODO: A PSF can determine refresh rate regardless of region
         private readonly Track[] tracks = new Track[0x10];
         private readonly Mixer mixer;
         private readonly Config config;
@@ -448,13 +448,29 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                     }
                     else
                     {
-                        Channel c = mixer.AllocateChannel();
-                        c.Stop();
-                        c.StartPSG(4, -1);
-                        c.Key = key;
-                        c.NoteVelocity = velocity;
-                        c.Owner = track;
-                        track.Channels.Add(c);
+                        VAB.Program p = vab.Programs[track.Voice];
+                        VAB.Instrument ins = vab.Instruments[track.Voice];
+                        byte num = p.NumTones;
+                        for (int i = 0; i < num; i++)
+                        {
+                            VAB.Tone t = ins.Tones[i];
+                            if (t.LowKey <= key && t.HighKey >= key)
+                            {
+                                (long sampleOffset, long sampleSize) = vab.VAGs[t.SampleId - 1];
+                                Channel c = mixer.AllocateChannel();
+                                if (c != null)
+                                {
+                                    c.Start(sampleOffset + SamplesOffset, sampleSize, exeBuffer);
+                                    c.Key = key;
+                                    c.BaseKey = t.BaseKey;
+                                    c.PitchTune = t.PitchTune;
+                                    c.NoteVelocity = velocity;
+                                    c.Owner = track;
+                                    track.Channels.Add(c);
+                                }
+                                break;
+                            }
+                        }
                     }
                     break;
                 }

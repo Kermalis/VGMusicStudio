@@ -75,12 +75,8 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                 if (chan.Owner != null)
                 {
                     //chan.StepEnvelope();
-                    if (chan.NoteDuration == 0)
-                    {
-                        //chan.State = EnvelopeState.Release;
-                    }
                     int vol = NDS.SDAT.Utils.SustainTable[chan.NoteVelocity] + 0;
-                    int pitch = (chan.Key - 60) << 6; // "<< 6" is "* 0x40"
+                    int pitch = ((chan.Key - chan.BaseKey) << 6) + chan.PitchTune; // "<< 6" is "* 0x40"
                     if (/*chan.State == EnvelopeState.Release && */vol <= -92544)
                     {
                         chan.Stop();
