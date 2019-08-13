@@ -50,11 +50,12 @@
         public short GetSample()
         {
             int val = (data[DataOffset] >> (OnSecondNibble ? 4 : 0)) & 0xF;
+            short step = stepTable[StepIndex];
             int diff =
-                (stepTable[StepIndex] / 8) +
-                (stepTable[StepIndex] / 4 * (val & 1)) +
-                (stepTable[StepIndex] / 2 * ((val >> 1) & 1)) +
-                (stepTable[StepIndex] * ((val >> 2) & 1));
+                (step / 8) +
+                (step / 4 * (val & 1)) +
+                (step / 2 * ((val >> 1) & 1)) +
+                (step * ((val >> 2) & 1));
 
             int a = (diff * ((((val >> 3) & 1) == 1) ? -1 : 1)) + LastSample;
             if (a < short.MinValue)
