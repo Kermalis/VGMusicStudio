@@ -31,8 +31,14 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             FileBytes = File.ReadAllBytes(fileName);
             using (var reader = new EndianBinaryReader(new MemoryStream(FileBytes)))
             {
-                reader.ReadString(3); // PSF
-                reader.ReadByte(); // Version
+                if (reader.ReadString(3) != "PSF")
+                {
+                    throw new InvalidDataException();
+                }
+                if (reader.ReadByte() != 1)
+                {
+                    throw new InvalidDataException();
+                }
                 uint reservedSize = reader.ReadUInt32();
                 uint exeSize = reader.ReadUInt32();
                 int checksum = reader.ReadInt32();
@@ -58,6 +64,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                     LoadLib1(lib, exeBuffer);
                     LoadLib2(lib, exeBuffer);
                     PlaceEXE(lib, exeBuffer);
+                    break;
                 }
             }
         }

@@ -32,7 +32,6 @@
             new float[2] { 98f / 64f, 55f / 64f },
             new float[2] { 122f / 64f, 60f / 64f }
         };
-        private static bool beeee = true;
         public void Start(long sampleOffset, long sampleSize, byte[] exeBuffer)
         {
             Stop();
@@ -84,13 +83,6 @@
                     prev1 = p1;
                     prev2 = p2;
                 }
-            }
-            if (beeee)
-            {
-                beeee = false;
-                byte[] result = new byte[decompressedSample.Length * sizeof(short)];
-                System.Buffer.BlockCopy(decompressedSample, 0, result, 0, result.Length);
-                System.IO.File.WriteAllBytes(sampleOffset.ToString("X") + ".bin", result);
             }
         }
 
