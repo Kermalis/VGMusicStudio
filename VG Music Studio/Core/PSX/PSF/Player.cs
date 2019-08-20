@@ -20,7 +20,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         private Thread thread;
         private byte[] exeBuffer;
         private VAB vab;
-        private long dataOffset;
+        private long dataOffset, startOffset, loopOffset;
         private byte runningStatus;
         private ushort ticksPerQuarterNote;
         private uint microsecondsPerBeat;
@@ -84,7 +84,8 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             double ts2 = Math.Pow(2, exeBuffer[dataOffset++]);
             dataOffset += 4; // Unknown
 
-            tickStack = elapsedLoops = ElapsedTicks = deltaTicks = runningStatus = 0;
+            startOffset = dataOffset;
+            loopOffset = tickStack = elapsedLoops = ElapsedTicks = deltaTicks = runningStatus = 0;
             fadeOutBegan = false;
             for (int i = 0; i < tracks.Length; i++)
             {
@@ -478,6 +479,26 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                 {
                     byte controller = exeBuffer[dataOffset++];
                     byte value = exeBuffer[dataOffset++];
+                    switch (controller)
+                    {
+                        case 0x63:
+                        {
+                            switch (value)
+                            {
+                                case 0x14:
+                                {
+                                    loopOffset = dataOffset;
+                                    break;
+                                }
+                                case 0x1E:
+                                {
+                                    dataOffset = loopOffset;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
                     break;
                 }
                 case 0xC0:
@@ -499,7 +520,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                     {
                         case 0x2F:
                         {
-                            track.Stopped = true;
+                            dataOffset = startOffset;
                             break;
                         }
                         case 0x51:
@@ -530,18 +551,23 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                     {
                         ExecuteNext();
                     }
-                    bool allDone = true;
-                    for (int i = 0; i < 0x10; i++)
-                    {
-                        Track track = tracks[i];
-                        if (!track.Stopped || track.Channels.Count != 0)
-                        {
-                            allDone = false;
-                        }
-                    }
                     if (ElapsedTicks == MaxTicks)
                     {
-                        ElapsedTicks = 0;
+                        for (int i = 0; i < 0x10; i++)
+                        {
+                            List<SongEvent> t = Events[i];
+                            for (int j = 0; j < t.Count; j++)
+                            {
+                                SongEvent e = t[j];
+                                if (e.Offset == dataOffset)
+                                {
+                                    ElapsedTicks = e.Ticks[0];
+                                    goto doneSearch;
+                                }
+                            }
+                        }
+                        throw new Exception();
+                    doneSearch:
                         elapsedLoops++;
                         if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
                         {
@@ -552,15 +578,6 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                     else
                     {
                         ElapsedTicks++;
-                    }
-                    if (fadeOutBegan && mixer.IsFadeDone())
-                    {
-                        allDone = true;
-                    }
-                    if (allDone)
-                    {
-                        State = PlayerState.Stopped;
-                        SongEnded?.Invoke();
                     }
                 }
                 tickStack += ticksPerUpdate;
