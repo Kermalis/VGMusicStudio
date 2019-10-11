@@ -30,9 +30,10 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
     {
         public Color Color => Color.MediumPurple;
         public string Label => "Pitch Bend";
-        public string Arguments => Bend.ToString();
+        public string Arguments => $"0x{Bend1:X} 0x{Bend2:X}";
 
-        public ushort Bend { get; set; }
+        public byte Bend1 { get; set; }
+        public byte Bend2 { get; set; }
     }
     internal class TempoCommand : ICommand
     {

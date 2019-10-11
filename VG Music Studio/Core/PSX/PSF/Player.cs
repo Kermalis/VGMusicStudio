@@ -209,10 +209,11 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
                         }
                         case 0xE0:
                         {
-                            ushort bend = reader.ReadUInt16();
+                            byte bend1 = reader.ReadByte();
+                            byte bend2 = reader.ReadByte();
                             if (!EventExists(offset))
                             {
-                                AddEvent(new PitchBendCommand { Bend = bend });
+                                AddEvent(new PitchBendCommand { Bend1 = bend1, Bend2 = bend2 });
                             }
                             break;
                         }
