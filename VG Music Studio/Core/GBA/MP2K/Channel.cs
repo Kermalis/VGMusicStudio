@@ -703,17 +703,24 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         public override void SetPitch(int pitch)
         {
-            // Thanks ipatix
-            float a = 0x1000 * (float)Math.Pow(8, ((Note.Key - 60) / 12f) + (pitch / 768f));
-            if (a < 8)
+            int key = Note.Key + (int)Math.Round(pitch / 64f);
+            if (key <= 20)
             {
-                a = 8;
+                key = 0;
             }
-            else if (a > 0x80000)
+            else
             {
-                a = 0x80000;
+                key -= 21;
+                if (key > 59)
+                {
+                    key = 59;
+                }
             }
-            frequency = a;
+            byte v = Utils.NoiseFrequencyTable[key];
+            // The following emulates 0x0400007C - SOUND4CNT_H
+            int r = v & 7; // Bits 0-2
+            int s = v >> 4; // Bits 4-7
+            frequency = 524288f / (r == 0 ? 0.5f : r) / (float)Math.Pow(2, s + 1);
         }
 
         public override void Process(float[] buffer)
