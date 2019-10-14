@@ -5,15 +5,30 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     internal class Track
     {
         public readonly byte Index;
-
-        public byte Voice, PitchBendRange, Priority, Volume, Rest, PrevKey,
-            LFOPhase, LFODelayCount, LFOSpeed, LFODelay, LFODepth;
+        private readonly long _startOffset;
+        public byte Voice;
+        public byte PitchBendRange;
+        public byte Priority;
+        public byte Volume;
+        public byte Rest;
+        public byte LFOPhase;
+        public byte LFODelayCount;
+        public byte LFOSpeed;
+        public byte LFODelay;
+        public byte LFODepth;
         public LFOType LFOType;
-        public sbyte PitchBend, Tune, Panpot, Transpose;
-        public bool Ready, Stopped;
-        public int CurEvent;
-        public int[] CallStack = new int[3];
+        public sbyte PitchBend;
+        public sbyte Tune;
+        public sbyte Panpot;
+        public sbyte Transpose;
+        public bool Ready;
+        public bool Stopped;
+        public long CurOffset;
+        public long[] CallStack = new long[3];
         public byte CallStackDepth;
+        public byte RunCmd;
+        public byte PrevKey;
+        public byte PrevVelocity;
 
         public readonly List<Channel> Channels = new List<Channel>();
 
@@ -51,18 +66,33 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             return (sbyte)p;
         }
 
-        public Track(byte i)
+        public Track(byte i, long startOffset)
         {
             Index = i;
+            _startOffset = startOffset;
         }
         public void Init()
         {
-            Voice = Priority = PrevKey = Rest = LFODelay = LFODelayCount = LFOPhase = LFODepth = CallStackDepth = 0;
-            PitchBend = Tune = Panpot = Transpose = 0;
-            CurEvent = 0;
+            Voice = 0;
+            Priority = 0;
+            Rest = 0;
+            LFODelay = 0;
+            LFODelayCount = 0;
+            LFOPhase = 0;
+            LFODepth = 0;
+            CallStackDepth = 0;
+            PitchBend = 0; 
+            Tune = 0;
+            Panpot = 0;
+            Transpose = 0;
+            CurOffset = _startOffset;
+            RunCmd = 0;
+            PrevKey = 0;
+            PrevVelocity = 0x7F;
             PitchBendRange = 2;
             LFOType = LFOType.Pitch;
-            Ready = Stopped = false;
+            Ready = false;
+            Stopped = false;
             LFOSpeed = 22;
             Volume = 100;
             StopAllChannels();
@@ -101,7 +131,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
         }
 
-        public void ReleaseChannels(byte key)
+        public void ReleaseChannels(int key)
         {
             Channel[] chans = Channels.ToArray();
             for (int i = 0; i < chans.Length; i++)

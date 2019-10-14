@@ -716,6 +716,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         track.Channels.Add(channel);
                     }
                 }
+                else
+                {
+                    throw new Exception(string.Format(Strings.ErrorDSEInvalidKey, track.Index, track.CurOffset, k));
+                }
             }
             else if (cmd >= 0x80 && cmd <= 0x8F)
             {
@@ -943,6 +947,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         track.CurOffset += 5;
                         break;
                     }
+                    default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, track.Index, track.CurOffset, cmd));
                 }
             }
         }

@@ -62,11 +62,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         {
             tempo = 150;
             tempoStack = 0;
-            elapsedLoops = ElapsedTicks = 0;
+            elapsedLoops = 0;
+            ElapsedTicks = 0;
             fadeOutBegan = false;
-            for (int i = 0; i < tracks.Length; i++)
+            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
             {
-                tracks[i].Init();
+                tracks[trackIndex].Init();
             }
         }
         private void SetTicks()
@@ -82,7 +83,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 ElapsedTicks = 0;
                 while (true)
                 {
-                    SongEvent e = evs[track.CurEvent];
+                    SongEvent e = evs.Single(ev => ev.Offset == track.CurOffset);
                     if (track.CallStackDepth == 0 && e.Ticks.Count > 0)
                     {
                         break;
@@ -90,7 +91,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     else
                     {
                         e.Ticks.Add(ElapsedTicks);
-                        ExecuteNext(trackIndex, ref u);
+                        ExecuteNext(track, ref u);
                         if (track.Stopped)
                         {
                             break;
@@ -131,19 +132,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
             tracks = new Track[header.NumTracks];
             Events = new List<SongEvent>[header.NumTracks];
-            for (byte i = 0; i < header.NumTracks; i++)
+            for (byte trackIndex = 0; trackIndex < header.NumTracks; trackIndex++)
             {
-                tracks[i] = new Track(i);
-                Events[i] = new List<SongEvent>();
+                long trackStart = header.TrackOffsets[trackIndex] - GBA.Utils.CartridgeOffset;
+                tracks[trackIndex] = new Track(trackIndex, trackStart);
+                Events[trackIndex] = new List<SongEvent>();
                 bool EventExists(long offset)
                 {
-                    return Events[i].Any(e => e.Offset == offset);
+                    return Events[trackIndex].Any(e => e.Offset == offset);
                 }
 
-                byte runCmd = 0, prevKey = 0, prevVelocity = 0x7F; // TODO: https://github.com/Kermalis/VGMusicStudio/issues/37
+                byte runCmd = 0, prevKey = 0, prevVelocity = 0x7F;
                 int callStackDepth = 0;
-                AddEvents(header.TrackOffsets[i] - GBA.Utils.CartridgeOffset);
-                void AddEvents(int startOffset)
+                AddEvents(trackStart);
+                void AddEvents(long startOffset)
                 {
                     config.Reader.BaseStream.Position = startOffset;
                     bool cont = true;
@@ -152,7 +154,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         long offset = config.Reader.BaseStream.Position;
                         void AddEvent(ICommand command)
                         {
-                            Events[i].Add(new SongEvent(offset, command));
+                            Events[trackIndex].Add(new SongEvent(offset, command));
                         }
                         void EmulateNote(byte key, byte velocity, byte addedDuration)
                         {
@@ -348,7 +350,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                     break;
                                 }
-                                default: throw new Exception(string.Format(Strings.ErrorMP2KInvalidRunningStatusCommand, i, offset, runCmd));
+                                default: throw new Exception(string.Format(Strings.ErrorMP2KInvalidRunningStatusCommand, trackIndex, offset, runCmd));
                             }
                         }
                         else if (cmd > 0xB0 && cmd < 0xCF)
@@ -395,7 +397,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                     else
                                     {
-                                        throw new Exception(string.Format(Strings.ErrorMP2KSDATNestedCalls, i));
+                                        throw new Exception(string.Format(Strings.ErrorMP2KSDATNestedCalls, trackIndex));
                                     }
                                     break;
                                 }
@@ -570,7 +572,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                     break;
                                 }
-                                default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
+                                default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, trackIndex, offset, cmd));
                             }
                         }
 
@@ -605,15 +607,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         while (tempoStack >= 150)
                         {
                             tempoStack -= 150;
-                            for (int i = 0; i < tracks.Length; i++)
+                            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
                             {
-                                Track track = tracks[i];
+                                Track track = tracks[trackIndex];
                                 if (!track.Stopped)
                                 {
                                     track.Tick();
                                     while (track.Rest == 0 && !track.Stopped)
                                     {
-                                        ExecuteNext(i, ref u);
+                                        ExecuteNext(track, ref u);
                                     }
                                 }
                             }
@@ -634,6 +636,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 Pause();
             }
         }
+        // TODO: Don't use events, read from rom
         public void SaveAsMIDI(string fileName, MIDISaveArgs args)
         {
             // TODO: FINE vs PREV
@@ -647,66 +650,135 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 System.Diagnostics.Debug.WriteLine($"Reversing volume back from {baseVolume}.");
             }
 
-            var midi = new Sequence(24) { Format = 1 };
-            var metaTrack = new Sanford.Multimedia.Midi.Track();
-            midi.Add(metaTrack);
-            var ts = new TimeSignatureBuilder();
-            foreach ((int AbsoluteTick, (byte Numerator, byte Denominator)) e in args.TimeSignatures)
+            using (var midi = new Sequence(24) { Format = 1 })
             {
-                ts.Numerator = e.Item2.Numerator;
-                ts.Denominator = e.Item2.Denominator;
-                ts.ClocksPerMetronomeClick = 24;
-                ts.ThirtySecondNotesPerQuarterNote = 8;
-                ts.Build();
-                metaTrack.Insert(e.AbsoluteTick, ts.Result);
-            }
-
-            for (int i = 0; i < Events.Length; i++)
-            {
-                var track = new Sanford.Multimedia.Midi.Track();
-                midi.Add(track);
-
-                bool foundTranspose = false;
-                int endOfPattern = 0;
-                long startOfPatternTicks = 0, endOfPatternTicks = 0;
-                sbyte transpose = 0;
-                var playing = new List<NoteCommand>();
-                for (int j = 0; j < Events[i].Count; j++)
+                var metaTrack = new Sanford.Multimedia.Midi.Track();
+                midi.Add(metaTrack);
+                var ts = new TimeSignatureBuilder();
+                foreach ((int AbsoluteTick, (byte Numerator, byte Denominator)) e in args.TimeSignatures)
                 {
-                    SongEvent e = Events[i][j];
-                    int ticks = (int)(e.Ticks[0] + (endOfPatternTicks - startOfPatternTicks));
+                    ts.Numerator = e.Item2.Numerator;
+                    ts.Denominator = e.Item2.Denominator;
+                    ts.ClocksPerMetronomeClick = 24;
+                    ts.ThirtySecondNotesPerQuarterNote = 8;
+                    ts.Build();
+                    metaTrack.Insert(e.AbsoluteTick, ts.Result);
+                }
 
-                    // Preliminary check for saving events before transpose
-                    switch (e.Command)
+                for (int trackIndex = 0; trackIndex < Events.Length; trackIndex++)
+                {
+                    var track = new Sanford.Multimedia.Midi.Track();
+                    midi.Add(track);
+
+                    bool foundTranspose = false;
+                    int endOfPattern = 0;
+                    long startOfPatternTicks = 0, endOfPatternTicks = 0;
+                    sbyte transpose = 0;
+                    var playing = new List<NoteCommand>();
+                    for (int i = 0; i < Events[trackIndex].Count; i++)
                     {
-                        case TransposeCommand keysh: foundTranspose = true; break;
-                        default: // If we should not save before transpose then skip this event
+                        SongEvent e = Events[trackIndex][i];
+                        int ticks = (int)(e.Ticks[0] + (endOfPatternTicks - startOfPatternTicks));
+
+                        // Preliminary check for saving events before transpose
+                        switch (e.Command)
                         {
-                            if (!args.SaveCommandsBeforeTranspose && !foundTranspose)
+                            case TransposeCommand keysh: foundTranspose = true; break;
+                            default: // If we should not save before transpose then skip this event
                             {
-                                continue;
+                                if (!args.SaveCommandsBeforeTranspose && !foundTranspose)
+                                {
+                                    continue;
+                                }
+                                break;
                             }
-                            break;
                         }
-                    }
-                    // Now do the event magic...
-                    switch (e.Command)
-                    {
-                        case CallCommand patt:
+                        // Now do the event magic...
+                        switch (e.Command)
                         {
-                            int callCmd = Events[i].FindIndex(c => c.Offset == patt.Offset);
-                            endOfPattern = j;
-                            endOfPatternTicks = e.Ticks[0];
-                            j = callCmd - 1; // -1 for incoming ++
-                            startOfPatternTicks = Events[i][callCmd].Ticks[0];
-                            break;
-                        }
-                        case EndOfTieCommand eot:
-                        {
-                            NoteCommand nc = eot.Key == -1 ? playing.LastOrDefault() : playing.LastOrDefault(no => no.Key == eot.Key);
-                            if (nc != null)
+                            case CallCommand patt:
                             {
-                                int key = nc.Key + transpose;
+                                int callCmd = Events[trackIndex].FindIndex(c => c.Offset == patt.Offset);
+                                endOfPattern = i;
+                                endOfPatternTicks = e.Ticks[0];
+                                i = callCmd - 1; // -1 for incoming ++
+                                startOfPatternTicks = Events[trackIndex][callCmd].Ticks[0];
+                                break;
+                            }
+                            case EndOfTieCommand eot:
+                            {
+                                NoteCommand nc = eot.Key == -1 ? playing.LastOrDefault() : playing.LastOrDefault(no => no.Key == eot.Key);
+                                if (nc != null)
+                                {
+                                    int key = nc.Key + transpose;
+                                    if (key < 0)
+                                    {
+                                        key = 0;
+                                    }
+                                    else if (key > 0x7F)
+                                    {
+                                        key = 0x7F;
+                                    }
+                                    track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, trackIndex, key));
+                                    playing.Remove(nc);
+                                }
+                                break;
+                            }
+                            case FinishCommand _:
+                            {
+                                // If the track is not only the finish command, place the finish command at the correct tick
+                                if (track.Count > 1)
+                                {
+                                    track.EndOfTrackOffset = (int)(e.Ticks[0] - track.GetMidiEvent(track.Count - 2).AbsoluteTicks);
+                                }
+                                goto endOfTrack;
+                            }
+                            case JumpCommand goTo:
+                            {
+                                if (trackIndex == 0)
+                                {
+                                    int jumpCmd = Events[trackIndex].FindIndex(c => c.Offset == goTo.Offset);
+                                    metaTrack.Insert((int)Events[trackIndex][jumpCmd].Ticks[0], new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
+                                    metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                                }
+                                break;
+                            }
+                            case LFODelayCommand lfodl:
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 26, lfodl.Delay));
+                                break;
+                            }
+                            case LFODepthCommand mod:
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, (int)ControllerType.ModulationWheel, mod.Depth));
+                                break;
+                            }
+                            case LFOSpeedCommand lfos:
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 21, lfos.Speed));
+                                break;
+                            }
+                            case LFOTypeCommand modt:
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 22, (byte)modt.Type));
+                                break;
+                            }
+                            case LibraryCommand xcmd:
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 30, xcmd.Command));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 29, xcmd.Argument));
+                                break;
+                            }
+                            case MemoryAccessCommand memacc:
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 13, memacc.Operator));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 14, memacc.Address));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 12, memacc.Data));
+                                break;
+                            }
+                            case NoteCommand note:
+                            {
+                                int key = note.Key + transpose;
                                 if (key < 0)
                                 {
                                     key = 0;
@@ -715,154 +787,87 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 {
                                     key = 0x7F;
                                 }
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOff, i, key));
-                                playing.Remove(nc);
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, trackIndex, key, note.Velocity));
+                                if (note.Duration != -1)
+                                {
+                                    track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, trackIndex, key));
+                                }
+                                else
+                                {
+                                    playing.Add(note);
+                                }
+                                break;
                             }
-                            break;
-                        }
-                        case FinishCommand _:
-                        {
-                            // If the track is not only the finish command, place the finish command at the correct tick
-                            if (track.Count > 1)
+                            case PanpotCommand pan:
                             {
-                                track.EndOfTrackOffset = (int)(e.Ticks[0] - track.GetMidiEvent(track.Count - 2).AbsoluteTicks);
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, (int)ControllerType.Pan, pan.Panpot + 0x40));
+                                break;
                             }
-                            goto endOfTrack;
-                        }
-                        case JumpCommand goTo:
-                        {
-                            if (i == 0)
+                            case PitchBendCommand bend:
                             {
-                                int jumpCmd = Events[i].FindIndex(c => c.Offset == goTo.Offset);
-                                metaTrack.Insert((int)Events[i][jumpCmd].Ticks[0], new MetaMessage(MetaType.Marker, new byte[] { (byte)'[' }));
-                                metaTrack.Insert(ticks, new MetaMessage(MetaType.Marker, new byte[] { (byte)']' }));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, trackIndex, 0, bend.Bend + 0x40));
+                                break;
                             }
-                            break;
-                        }
-                        case LFODelayCommand lfodl:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 26, lfodl.Delay));
-                            break;
-                        }
-                        case LFODepthCommand mod:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.ModulationWheel, mod.Depth));
-                            break;
-                        }
-                        case LFOSpeedCommand lfos:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 21, lfos.Speed));
-                            break;
-                        }
-                        case LFOTypeCommand modt:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 22, (byte)modt.Type));
-                            break;
-                        }
-                        case LibraryCommand xcmd:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 30, xcmd.Command));
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 29, xcmd.Argument));
-                            break;
-                        }
-                        case MemoryAccessCommand memacc:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 13, memacc.Operator));
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 14, memacc.Address));
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 12, memacc.Data));
-                            break;
-                        }
-                        case NoteCommand note:
-                        {
-                            int key = note.Key + transpose;
-                            if (key < 0)
+                            case PitchBendRangeCommand bendr:
                             {
-                                key = 0;
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 20, bendr.Range));
+                                break;
                             }
-                            else if (key > 0x7F)
+                            case PriorityCommand prio:
                             {
-                                key = 0x7F;
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, (int)ControllerType.VolumeFine, prio.Priority));
+                                break;
                             }
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.NoteOn, i, key, note.Velocity));
-                            if (note.Duration != -1)
+                            case ReturnCommand _:
                             {
-                                track.Insert(ticks + note.Duration, new ChannelMessage(ChannelCommand.NoteOff, i, key));
+                                if (endOfPattern != 0)
+                                {
+                                    i = endOfPattern;
+                                    endOfPattern = 0;
+                                    startOfPatternTicks = endOfPatternTicks = 0;
+                                }
+                                break;
                             }
-                            else
+                            case TempoCommand tempo:
                             {
-                                playing.Add(note);
+                                var change = new TempoChangeBuilder { Tempo = 60000000 / tempo.Tempo };
+                                change.Build();
+                                metaTrack.Insert(ticks, change.Result);
+                                break;
                             }
-                            break;
-                        }
-                        case PanpotCommand pan:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Pan, pan.Panpot + 0x40));
-                            break;
-                        }
-                        case PitchBendCommand bend:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.PitchWheel, i, 0, bend.Bend + 0x40));
-                            break;
-                        }
-                        case PitchBendRangeCommand bendr:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 20, bendr.Range));
-                            break;
-                        }
-                        case PriorityCommand prio:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.VolumeFine, prio.Priority));
-                            break;
-                        }
-                        case ReturnCommand _:
-                        {
-                            if (endOfPattern != 0)
+                            case TransposeCommand keysh:
                             {
-                                j = endOfPattern;
-                                endOfPattern = 0;
-                                startOfPatternTicks = endOfPatternTicks = 0;
+                                transpose = keysh.Transpose;
+                                break;
                             }
-                            break;
-                        }
-                        case TempoCommand tempo:
-                        {
-                            var change = new TempoChangeBuilder { Tempo = 60000000 / tempo.Tempo };
-                            change.Build();
-                            metaTrack.Insert(ticks, change.Result);
-                            break;
-                        }
-                        case TransposeCommand keysh:
-                        {
-                            transpose = keysh.Transpose;
-                            break;
-                        }
-                        case TuneCommand tune:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, 24, tune.Tune));
-                            break;
-                        }
-                        case VoiceCommand voice:
-                        {
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, i, voice.Voice));
-                            break;
-                        }
-                        case VolumeCommand vol:
-                        {
-                            double d = baseVolume / (double)0x7F;
-                            int volume = (int)(vol.Volume / d);
-                            // If there are rounding errors, fix them (happens if baseVolume is not 127 and baseVolume is not vol.Volume)
-                            if (volume * baseVolume / 0x7F == vol.Volume - 1)
+                            case TuneCommand tune:
                             {
-                                volume++;
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune));
+                                break;
                             }
-                            track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, i, (int)ControllerType.Volume, volume));
-                            break;
+                            case VoiceCommand voice:
+                            {
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, trackIndex, voice.Voice));
+                                break;
+                            }
+                            case VolumeCommand vol:
+                            {
+                                double d = baseVolume / (double)0x7F;
+                                int volume = (int)(vol.Volume / d);
+                                // If there are rounding errors, fix them (happens if baseVolume is not 127 and baseVolume is not vol.Volume)
+                                if (volume * baseVolume / 0x7F == vol.Volume - 1)
+                                {
+                                    volume++;
+                                }
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, (int)ControllerType.Volume, volume));
+                                break;
+                            }
                         }
                     }
+                endOfTrack:;
                 }
-            endOfTrack:;
+                midi.Save(fileName);
             }
-            midi.Save(fileName);
         }
         public void Play()
         {
@@ -920,17 +925,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = tempo;
-            for (int i = 0; i < tracks.Length; i++)
+            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
             {
-                Track track = tracks[i];
-                UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
-                tin.Position = Events[i][track.CurEvent].Offset;
+                Track track = tracks[trackIndex];
+                UI.SongInfoControl.SongInfo.Track tin = info.Tracks[trackIndex];
+                tin.Position = track.CurOffset;
                 tin.Rest = track.Rest;
                 tin.Voice = track.Voice;
                 tin.LFO = track.LFODepth;
                 if (voiceTypeCache[track.Voice] == null)
                 {
-                    byte t = config.ROM[voiceTableOffset + (track.Voice * 0xC)]; // Don't use config.Reader because it is not thread-safe
+                    byte t = config.ROM[voiceTableOffset + (track.Voice * 0xC)];
                     if (t == (byte)VoiceFlags.KeySplit)
                     {
                         voiceTypeCache[track.Voice] = "Key Split";
@@ -995,7 +1000,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
         }
 
-        private void PlayNote(Track track, byte key, byte velocity, int duration)
+        // TODO: Don't use config.Reader
+        private void PlayNote(Track track, byte key, byte velocity, byte addedDuration)
         {
             int k = key + track.Transpose;
             if (k < 0)
@@ -1008,6 +1014,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
             key = (byte)k;
             track.PrevKey = key;
+            track.PrevVelocity = velocity;
             if (track.Ready)
             {
                 bool fromDrum = false;
@@ -1030,7 +1037,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     {
                         var note = new Note
                         {
-                            Duration = duration,
+                            Duration = track.RunCmd == 0xCF ? -1 : (Utils.RestTable[track.RunCmd - 0xCF] + addedDuration),
                             Velocity = velocity,
                             OriginalKey = key,
                             Key = fromDrum ? v.RootKey : key
@@ -1074,34 +1081,153 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
             }
         }
-        private void ExecuteNext(int trackIndex, ref bool update)
+        private void ExecuteNext(Track track, ref bool update)
         {
-            bool increment = true;
-            List<SongEvent> ev = Events[trackIndex];
-            Track track = tracks[trackIndex];
-            switch (ev[track.CurEvent].Command)
+            byte cmd = config.ROM[track.CurOffset++];
+            if (cmd >= 0xBD) // Commands that work within running status
             {
-                case CallCommand call:
+                track.RunCmd = cmd;
+            }
+            if (track.RunCmd >= 0xCF && cmd <= 0x7F) // Within running status
+            {
+                byte peek0 = config.ROM[track.CurOffset];
+                byte peek1 = config.ROM[track.CurOffset + 1];
+                byte velocity, addedDuration;
+                if (peek0 > 0x7F)
                 {
-                    if (track.CallStackDepth < 3)
-                    {
-                        int callCmd = ev.FindIndex(c => c.Offset == call.Offset);
-                        track.CallStack[track.CallStackDepth] = track.CurEvent + 1;
-                        track.CallStackDepth++;
-                        track.CurEvent = callCmd;
-                        increment = false;
-                    }
-                    break;
+                    velocity = track.PrevVelocity;
+                    addedDuration = 0;
                 }
-                case EndOfTieCommand eot:
+                else if (peek1 > 3)
                 {
-                    if (eot.Key == -1)
+                    track.CurOffset++;
+                    velocity = peek0;
+                    addedDuration = 0;
+                }
+                else
+                {
+                    track.CurOffset += 2;
+                    velocity = peek0;
+                    addedDuration = peek1;
+                }
+                PlayNote(track, cmd, velocity, addedDuration);
+            }
+            else if (cmd >= 0xCF)
+            {
+                byte peek0 = config.ROM[track.CurOffset];
+                byte peek1 = config.ROM[track.CurOffset + 1];
+                byte peek2 = config.ROM[track.CurOffset + 2];
+                byte key, velocity, addedDuration;
+                if (peek0 > 0x7F)
+                {
+                    key = track.PrevKey;
+                    velocity = track.PrevVelocity;
+                    addedDuration = 0;
+                }
+                else if (peek1 > 0x7F)
+                {
+                    track.CurOffset++;
+                    key = peek0;
+                    velocity = track.PrevVelocity;
+                    addedDuration = 0;
+                }
+                else if (cmd == 0xCF || peek2 > 3)
+                {
+                    track.CurOffset += 2;
+                    key = peek0;
+                    velocity = peek1;
+                    addedDuration = 0;
+                }
+                else
+                {
+                    track.CurOffset += 3;
+                    key = peek0;
+                    velocity = peek1;
+                    addedDuration = peek2;
+                }
+                PlayNote(track, key, velocity, addedDuration);
+            }
+            else if (cmd >= 0x80 && cmd <= 0xB0)
+            {
+                track.Rest = Utils.RestTable[cmd - 0x80];
+            }
+            else if (track.RunCmd < 0xCF && cmd <= 0x7F)
+            {
+                switch (track.RunCmd)
+                {
+                    case 0xBD:
                     {
-                        track.ReleaseChannels(track.PrevKey);
+                        track.Voice = cmd;
+                        //track.Ready = true; // This is unnecessary because if we're in running status of a voice command, then Ready was already set
+                        break;
                     }
-                    else
+                    case 0xBE:
                     {
-                        int k = eot.Key + track.Transpose;
+                        track.Volume = cmd;
+                        update = true;
+                        break;
+                    }
+                    case 0xBF:
+                    {
+                        track.Panpot = (sbyte)(cmd - 0x40);
+                        update = true;
+                        break;
+                    }
+                    case 0xC0:
+                    {
+                        track.PitchBend = (sbyte)(cmd - 0x40);
+                        update = true;
+                        break;
+                    }
+                    case 0xC1:
+                    {
+                        track.PitchBendRange = cmd;
+                        update = true;
+                        break;
+                    }
+                    case 0xC2:
+                    {
+                        track.LFOSpeed = cmd;
+                        track.LFOPhase = 0;
+                        track.LFODelayCount = 0;
+                        update = true;
+                        break;
+                    }
+                    case 0xC3:
+                    {
+                        track.LFODelay = cmd;
+                        track.LFOPhase = 0;
+                        track.LFODelayCount = 0;
+                        update = true;
+                        break;
+                    }
+                    case 0xC4:
+                    {
+                        track.LFODepth = cmd;
+                        update = true;
+                        break;
+                    }
+                    case 0xC5:
+                    {
+                        track.LFOType = (LFOType)cmd;
+                        update = true;
+                        break;
+                    }
+                    case 0xC8:
+                    {
+                        track.Tune = (sbyte)(cmd - 0x40);
+                        update = true;
+                        break;
+                    }
+                    case 0xCD:
+                    {
+                        track.CurOffset++;
+                        break;
+                    }
+                    case 0xCE:
+                    {
+                        track.PrevKey = cmd;
+                        int k = cmd + track.Transpose;
                         if (k < 0)
                         {
                             k = 0;
@@ -1110,53 +1236,178 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         {
                             k = 0x7F;
                         }
-                        track.ReleaseChannels((byte)k);
+                        track.ReleaseChannels(k);
+                        break;
                     }
-                    break;
+                    default: throw new Exception(string.Format(Strings.ErrorMP2KInvalidRunningStatusCommand, track.Index, track.CurOffset, track.RunCmd));
                 }
-                case FinishCommand _:
-                {
-                    track.Stopped = true;
-                    increment = false;
-                    //track.ReleaseAllTieingChannels();
-                    break;
-                }
-                case JumpCommand jump:
-                {
-                    int jumpCmd = ev.FindIndex(c => c.Offset == jump.Offset);
-                    track.CurEvent = jumpCmd;
-                    increment = false;
-                    break;
-                }
-                case LFODelayCommand lfodl: track.LFODelay = lfodl.Delay; track.LFOPhase = track.LFODelayCount = 0; update = true; break;
-                case LFODepthCommand lfo: track.LFODepth = lfo.Depth; update = true; break;
-                case LFOSpeedCommand lfos: track.LFOSpeed = lfos.Speed; track.LFOPhase = track.LFODelayCount = 0; update = true; break;
-                case LFOTypeCommand lfot: track.LFOType = lfot.Type; update = true; break;
-                case NoteCommand note: PlayNote(track, note.Key, note.Velocity, note.Duration); break;
-                case PanpotCommand pan: track.Panpot = pan.Panpot; update = true; break;
-                case PitchBendCommand bend: track.PitchBend = bend.Bend; update = true; break;
-                case PitchBendRangeCommand bendr: track.PitchBendRange = bendr.Range; update = true; break;
-                case PriorityCommand priority: track.Priority = priority.Priority; break;
-                case RestCommand rest: track.Rest = rest.Rest; break;
-                case ReturnCommand _:
-                {
-                    if (track.CallStackDepth != 0)
-                    {
-                        track.CallStackDepth--;
-                        track.CurEvent = track.CallStack[track.CallStackDepth];
-                        increment = false;
-                    }
-                    break;
-                }
-                case TempoCommand tempo: this.tempo = tempo.Tempo; break;
-                case TransposeCommand transpose: track.Transpose = transpose.Transpose; break;
-                case TuneCommand tune: track.Tune = tune.Tune; update = true; break;
-                case VoiceCommand voice: track.Voice = voice.Voice; track.Ready = true; break;
-                case VolumeCommand volume: track.Volume = volume.Volume; update = true; break;
             }
-            if (increment)
+            else if (cmd > 0xB0 && cmd < 0xCF)
             {
-                track.CurEvent++;
+                switch (cmd)
+                {
+                    case 0xB1:
+                    case 0xB6:
+                    {
+                        track.Stopped = true;
+                        //track.ReleaseAllTieingChannels(); // Necessary?
+                        break;
+                    }
+                    case 0xB2:
+                    {
+                        track.CurOffset = (config.ROM[track.CurOffset++] | (config.ROM[track.CurOffset++] << 8) | (config.ROM[track.CurOffset++] << 16) | (config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                        break;
+                    }
+                    case 0xB3:
+                    {
+                        if (track.CallStackDepth < 3)
+                        {
+                            long callOffset = (config.ROM[track.CurOffset++] | (config.ROM[track.CurOffset++] << 8) | (config.ROM[track.CurOffset++] << 16) | (config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                            track.CallStack[track.CallStackDepth] = track.CurOffset;
+                            track.CallStackDepth++;
+                            track.CurOffset = callOffset;
+                        }
+                        else
+                        {
+                            throw new Exception(string.Format(Strings.ErrorMP2KSDATNestedCalls, track.Index));
+                        }
+                        break;
+                    }
+                    case 0xB4:
+                    {
+                        if (track.CallStackDepth != 0)
+                        {
+                            track.CallStackDepth--;
+                            track.CurOffset = track.CallStack[track.CallStackDepth];
+                        }
+                        break;
+                    }
+                    /*case 0xB5: // TODO: Logic so this isn't an infinite loop
+                    {
+                        byte times = config.Reader.ReadByte();
+                        int repeatOffset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
+                        if (!EventExists(offset))
+                        {
+                            AddEvent(new RepeatCommand { Times = times, Offset = repeatOffset });
+                        }
+                        break;
+                    }*/
+                    case 0xB9:
+                    {
+                        track.CurOffset += 3;
+                        break;
+                    }
+                    case 0xBA:
+                    {
+                        track.Priority = config.ROM[track.CurOffset++];
+                        break;
+                    }
+                    case 0xBB:
+                    {
+                        tempo = (ushort)(config.ROM[track.CurOffset++] * 2);
+                        break;
+                    }
+                    case 0xBC:
+                    {
+                        track.Transpose = (sbyte)config.ROM[track.CurOffset++];
+                        break;
+                    }
+                    // Commands that work within running status:
+                    case 0xBD:
+                    {
+                        track.Voice = config.ROM[track.CurOffset++];
+                        track.Ready = true;
+                        break;
+                    }
+                    case 0xBE:
+                    {
+                        track.Volume = config.ROM[track.CurOffset++];
+                        update = true;
+                        break;
+                    }
+                    case 0xBF:
+                    {
+                        track.Panpot = (sbyte)(config.ROM[track.CurOffset++] - 0x40);
+                        update = true;
+                        break;
+                    }
+                    case 0xC0:
+                    {
+                        track.PitchBend = (sbyte)(config.ROM[track.CurOffset++] - 0x40);
+                        update = true;
+                        break;
+                    }
+                    case 0xC1:
+                    {
+                        track.PitchBendRange = config.ROM[track.CurOffset++];
+                        update = true;
+                        break;
+                    }
+                    case 0xC2:
+                    {
+                        track.LFOSpeed = config.ROM[track.CurOffset++];
+                        track.LFOPhase = 0;
+                        track.LFODelayCount = 0;
+                        update = true;
+                        break;
+                    }
+                    case 0xC3:
+                    {
+                        track.LFODelay = config.ROM[track.CurOffset++];
+                        track.LFOPhase = 0;
+                        track.LFODelayCount = 0;
+                        update = true;
+                        break;
+                    }
+                    case 0xC4:
+                    {
+                        track.LFODepth = config.ROM[track.CurOffset++];
+                        update = true;
+                        break;
+                    }
+                    case 0xC5:
+                    {
+                        track.LFOType = (LFOType)config.ROM[track.CurOffset++];
+                        update = true;
+                        break;
+                    }
+                    case 0xC8:
+                    {
+                        track.Tune = (sbyte)(config.ROM[track.CurOffset++] - 0x40);
+                        update = true;
+                        break;
+                    }
+                    case 0xCD:
+                    {
+                        track.CurOffset += 2;
+                        break;
+                    }
+                    case 0xCE:
+                    {
+                        byte peek = config.ROM[track.CurOffset];
+                        if (peek > 0x7F)
+                        {
+                            track.ReleaseChannels(track.PrevKey);
+                        }
+                        else
+                        {
+                            track.CurOffset++;
+                            track.PrevKey = peek;
+                            int k = peek + track.Transpose;
+                            if (k < 0)
+                            {
+                                k = 0;
+                            }
+                            else if (k > 0x7F)
+                            {
+                                k = 0x7F;
+                            }
+                            track.ReleaseChannels(k);
+                        }
+                        break;
+                    }
+                    default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, track.Index, track.CurOffset, cmd));
+                }
             }
         }
 
@@ -1169,22 +1420,31 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 {
                     tempoStack -= 150;
                     bool allDone = true;
-                    for (int i = 0; i < tracks.Length; i++)
+                    for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
                     {
-                        Track track = tracks[i];
+                        Track track = tracks[trackIndex];
                         track.Tick();
                         bool update = false;
                         while (track.Rest == 0 && !track.Stopped)
                         {
-                            ExecuteNext(i, ref update);
+                            ExecuteNext(track, ref update);
                         }
-                        if (i == longestTrack)
+                        if (trackIndex == longestTrack)
                         {
                             if (ElapsedTicks == MaxTicks)
                             {
                                 if (!track.Stopped)
                                 {
-                                    ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                    List<SongEvent> evs = Events[trackIndex];
+                                    for (int i = 0; i < evs.Count; i++)
+                                    {
+                                        SongEvent ev = evs[i];
+                                        if (ev.Offset == track.CurOffset)
+                                        {
+                                            ElapsedTicks = ev.Ticks[0] - track.Rest;
+                                            break;
+                                        }
+                                    }
                                     elapsedLoops++;
                                     if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
                                     {
