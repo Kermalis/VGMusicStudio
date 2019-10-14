@@ -17,6 +17,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         private Thread thread;
         private readonly SWD masterSWD;
         private SWD localSWD;
+        private byte[] smdFile;
         private Track[] tracks;
         private byte tempo;
         private int tempoStack;
@@ -58,11 +59,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         {
             tempo = 120;
             tempoStack = 0;
-            elapsedLoops = ElapsedTicks = 0;
+            elapsedLoops = 0;
+            ElapsedTicks = 0;
             fadeOutBegan = false;
-            for (int i = 0; i < tracks.Length; i++)
+            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
             {
-                tracks[i].Init();
+                tracks[trackIndex].Init();
             }
         }
         private void SetTicks()
@@ -77,7 +79,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 ElapsedTicks = 0;
                 while (true)
                 {
-                    SongEvent e = evs[track.CurEvent];
+                    SongEvent e = evs.Single(ev => ev.Offset == track.CurOffset);
                     if (e.Ticks.Count > 0)
                     {
                         break;
@@ -85,7 +87,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                     else
                     {
                         e.Ticks.Add(ElapsedTicks);
-                        ExecuteNext(trackIndex);
+                        ExecuteNext(track);
                         if (track.Stopped)
                         {
                             break;
@@ -117,7 +119,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
             string bgm = config.BGMFiles[index];
             localSWD = new SWD(Path.ChangeExtension(bgm, "swd"));
-            using (var reader = new EndianBinaryReader(new MemoryStream(File.ReadAllBytes(bgm))))
+            smdFile = File.ReadAllBytes(bgm);
+            using (var reader = new EndianBinaryReader(new MemoryStream(smdFile)))
             {
                 SMD.Header header = reader.ReadObject<SMD.Header>();
                 SMD.ISongChunk songChunk;
@@ -137,24 +140,26 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 }
                 tracks = new Track[songChunk.NumTracks];
                 Events = new List<SongEvent>[songChunk.NumTracks];
-                for (byte i = 0; i < songChunk.NumTracks; i++)
+                for (byte trackIndex = 0; trackIndex < songChunk.NumTracks; trackIndex++)
                 {
-                    Events[i] = new List<SongEvent>();
+                    Events[trackIndex] = new List<SongEvent>();
                     bool EventExists(long offset)
                     {
-                        return Events[i].Any(e => e.Offset == offset);
+                        return Events[trackIndex].Any(e => e.Offset == offset);
                     }
 
-                    long startPosition = reader.BaseStream.Position;
-                    reader.BaseStream.Position += 0x14;
-                    uint lastNoteDuration = 0, lastRest = 0; // TODO: https://github.com/Kermalis/VGMusicStudio/issues/37
+                    long chunkStart = reader.BaseStream.Position;
+                    reader.BaseStream.Position += 0x14; // Skip header
+                    tracks[trackIndex] = new Track(trackIndex, reader.BaseStream.Position);
+
+                    uint lastNoteDuration = 0, lastRest = 0;
                     bool cont = true;
                     while (cont)
                     {
                         long offset = reader.BaseStream.Position;
                         void AddEvent(ICommand command)
                         {
-                            Events[i].Add(new SongEvent(offset, command));
+                            Events[trackIndex].Add(new SongEvent(offset, command));
                         }
                         byte cmd = reader.ReadByte();
                         if (cmd <= 0x7F)
@@ -166,23 +171,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                             if (k < 12)
                             {
                                 uint duration;
-                                switch (numParams)
+                                if (numParams == 0)
                                 {
-                                    case 0:
+                                    duration = lastNoteDuration;
+                                }
+                                else // Big Endian reading of 8, 16, or 24 bits
+                                {
+                                    duration = 0;
+                                    for (int b = 0; b < numParams; b++)
                                     {
-                                        duration = lastNoteDuration;
-                                        break;
+                                        duration = (duration << 8) | reader.ReadByte();
                                     }
-                                    default: // Big Endian reading of 8, 16, or 24 bits
-                                    {
-                                        duration = 0;
-                                        for (int b = 0; b < numParams; b++)
-                                        {
-                                            duration = (duration << 8) | reader.ReadByte();
-                                        }
-                                        lastNoteDuration = duration;
-                                        break;
-                                    }
+                                    lastNoteDuration = duration;
                                 }
                                 if (!EventExists(offset))
                                 {
@@ -191,7 +191,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                             }
                             else
                             {
-                                throw new Exception(string.Format(Strings.ErrorDSEInvalidKey, i, offset, k));
+                                throw new Exception(string.Format(Strings.ErrorDSEInvalidKey, trackIndex, offset, k));
                             }
                         }
                         else if (cmd >= 0x80 && cmd <= 0x8F)
@@ -506,12 +506,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                                     }
                                     break;
                                 }
-                                default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
+                                default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, trackIndex, offset, cmd));
                             }
                         }
                     }
-                    tracks[i] = new Track(i);
-                    uint chunkLength = reader.ReadUInt32(startPosition + 0xC);
+                    uint chunkLength = reader.ReadUInt32(chunkStart + 0xC);
                     reader.BaseStream.Position += chunkLength;
                     // Align 4
                     while (reader.BaseStream.Position % 4 != 0)
@@ -546,15 +545,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                         while (tempoStack >= 240)
                         {
                             tempoStack -= 240;
-                            for (int i = 0; i < tracks.Length; i++)
+                            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
                             {
-                                Track track = tracks[i];
+                                Track track = tracks[trackIndex];
                                 if (!track.Stopped)
                                 {
                                     track.Tick();
                                     while (track.Rest == 0 && !track.Stopped)
                                     {
-                                        ExecuteNext(i);
+                                        ExecuteNext(track);
                                     }
                                 }
                             }
@@ -630,11 +629,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = tempo;
-            for (int i = 0; i < tracks.Length; i++)
+            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
             {
-                Track track = tracks[i];
-                UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
-                tin.Position = Events[i][track.CurEvent].Offset;
+                Track track = tracks[trackIndex];
+                UI.SongInfoControl.SongInfo.Track tin = info.Tracks[trackIndex];
+                tin.Position = track.CurOffset;
                 tin.Rest = track.Rest;
                 tin.Voice = track.Voice;
                 tin.Type = "PCM";
@@ -682,54 +681,269 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
         }
 
-        private void ExecuteNext(int trackIndex)
+        private void ExecuteNext(Track track)
         {
-            bool increment = true;
-            List<SongEvent> ev = Events[trackIndex];
-            Track track = tracks[trackIndex];
-            switch (ev[track.CurEvent].Command)
+            byte cmd = smdFile[track.CurOffset++];
+            if (cmd <= 0x7F)
             {
-                case ExpressionCommand expression: track.Expression = expression.Expression; break;
-                case FinishCommand _:
+                byte arg = smdFile[track.CurOffset++];
+                int numParams = (arg & 0xC0) >> 6;
+                int oct = ((arg & 0x30) >> 4) - 2;
+                int k = arg & 0xF;
+                if (k < 12)
                 {
-                    if (track.LoopOffset == -1)
+                    uint duration;
+                    if (numParams == 0)
                     {
-                        track.Stopped = true;
+                        duration = track.LastNoteDuration;
                     }
                     else
                     {
-                        track.CurEvent = ev.FindIndex(c => c.Offset == track.LoopOffset);
+                        duration = 0;
+                        for (int b = 0; b < numParams; b++)
+                        {
+                            duration = (duration << 8) | smdFile[track.CurOffset++];
+                        }
+                        track.LastNoteDuration = duration;
                     }
-                    increment = false;
-                    break;
-                }
-                case InvalidCommand _: track.Stopped = true; increment = false; break;
-                case LoopStartCommand loop: track.LoopOffset = loop.Offset; break;
-                case NoteCommand note:
-                {
                     Channel channel = mixer.AllocateChannel();
                     channel.Stop();
-                    track.Octave += (byte)note.OctaveChange;
-                    if (channel.StartPCM(localSWD, masterSWD, track.Voice, note.Key + (12 * track.Octave), note.Duration))
+                    track.Octave = (byte)(track.Octave + oct);
+                    if (channel.StartPCM(localSWD, masterSWD, track.Voice, k + (12 * track.Octave), duration))
                     {
-                        channel.NoteVelocity = note.Velocity;
+                        channel.NoteVelocity = cmd;
                         channel.Owner = track;
                         track.Channels.Add(channel);
                     }
-                    break;
                 }
-                case OctaveAddCommand octaveAdd: track.Octave = (byte)(track.Octave + octaveAdd.OctaveChange); break;
-                case OctaveSetCommand octaveSet: track.Octave = octaveSet.Octave; break;
-                case PanpotCommand panpot: track.Panpot = panpot.Panpot; break;
-                case PitchBendCommand bend: track.PitchBend = bend.Bend; break;
-                case RestCommand rest: track.Rest = rest.Rest; break;
-                case TempoCommand tem: tempo = tem.Tempo; break;
-                case VoiceCommand voice: track.Voice = voice.Voice; break;
-                case VolumeCommand volume: track.Volume = volume.Volume; break;
             }
-            if (increment)
+            else if (cmd >= 0x80 && cmd <= 0x8F)
             {
-                track.CurEvent++;
+                track.LastRest = Utils.FixedRests[cmd - 0x80];
+                track.Rest = track.LastRest;
+            }
+            else // 0x90-0xFF
+            {
+                // TODO: 0x95, 0x9E
+                switch (cmd)
+                {
+                    case 0x90:
+                    {
+                        track.Rest = track.LastRest;
+                        break;
+                    }
+                    case 0x91:
+                    {
+                        track.LastRest = (uint)(track.LastRest + (sbyte)smdFile[track.CurOffset++]);
+                        track.Rest = track.LastRest;
+                        break;
+                    }
+                    case 0x92:
+                    {
+                        track.LastRest = smdFile[track.CurOffset++];
+                        track.Rest = track.LastRest;
+                        break;
+                    }
+                    case 0x93:
+                    {
+                        track.LastRest = (uint)(smdFile[track.CurOffset++] | (smdFile[track.CurOffset++] << 8));
+                        track.Rest = track.LastRest;
+                        break;
+                    }
+                    case 0x94:
+                    {
+                        track.LastRest = (uint)(smdFile[track.CurOffset++] | (smdFile[track.CurOffset++] << 8) | (smdFile[track.CurOffset++] << 16));
+                        track.Rest = track.LastRest;
+                        break;
+                    }
+                    case 0x96:
+                    case 0x97:
+                    case 0x9A:
+                    case 0x9B:
+                    case 0x9F:
+                    case 0xA2:
+                    case 0xA3:
+                    case 0xA6:
+                    case 0xA7:
+                    case 0xAD:
+                    case 0xAE:
+                    case 0xB7:
+                    case 0xB8:
+                    case 0xB9:
+                    case 0xBA:
+                    case 0xBB:
+                    case 0xBD:
+                    case 0xC1:
+                    case 0xC2:
+                    case 0xC4:
+                    case 0xC5:
+                    case 0xC6:
+                    case 0xC7:
+                    case 0xC8:
+                    case 0xC9:
+                    case 0xCA:
+                    case 0xCC:
+                    case 0xCD:
+                    case 0xCE:
+                    case 0xCF:
+                    case 0xD9:
+                    case 0xDA:
+                    case 0xDE:
+                    case 0xE6:
+                    case 0xEB:
+                    case 0xEE:
+                    case 0xF4:
+                    case 0xF5:
+                    case 0xF7:
+                    case 0xF9:
+                    case 0xFA:
+                    case 0xFB:
+                    case 0xFC:
+                    case 0xFD:
+                    case 0xFE:
+                    case 0xFF:
+                    {
+                        track.Stopped = true;
+                        break;
+                    }
+                    case 0x98:
+                    {
+                        if (track.LoopOffset == -1)
+                        {
+                            track.Stopped = true;
+                        }
+                        else
+                        {
+                            track.CurOffset = track.LoopOffset;
+                        }
+                        break;
+                    }
+                    case 0x99:
+                    {
+                        track.LoopOffset = track.CurOffset;
+                        break;
+                    }
+                    case 0xA0:
+                    {
+                        track.Octave = smdFile[track.CurOffset++];
+                        break;
+                    }
+                    case 0xA1:
+                    {
+                        track.Octave = (byte)(track.Octave + (sbyte)smdFile[track.CurOffset++]);
+                        break;
+                    }
+                    case 0xA4:
+                    case 0xA5:
+                    {
+                        tempo = smdFile[track.CurOffset++];
+                        break;
+                    }
+                    case 0xAB:
+                    {
+                        track.CurOffset++;
+                        break;
+                    }
+                    case 0xAC:
+                    {
+                        track.Voice = smdFile[track.CurOffset++];
+                        break;
+                    }
+                    case 0xCB:
+                    case 0xF8:
+                    {
+                        track.CurOffset += 2;
+                        break;
+                    }
+                    case 0xD7:
+                    {
+                        track.PitchBend = (ushort)(smdFile[track.CurOffset++] | (smdFile[track.CurOffset++] << 8));
+                        break;
+                    }
+                    case 0xE0:
+                    {
+                        track.Volume = smdFile[track.CurOffset++];
+                        break;
+                    }
+                    case 0xE3:
+                    {
+                        track.Expression = smdFile[track.CurOffset++];
+                        break;
+                    }
+                    case 0xE8:
+                    {
+                        track.Panpot = (sbyte)(smdFile[track.CurOffset++] - 0x40);
+                        break;
+                    }
+                    case 0x9D:
+                    case 0xB0:
+                    case 0xC0:
+                    {
+                        break;
+                    }
+                    case 0x9C:
+                    case 0xA9:
+                    case 0xAA:
+                    case 0xB1:
+                    case 0xB2:
+                    case 0xB3:
+                    case 0xB5:
+                    case 0xB6:
+                    case 0xBC:
+                    case 0xBE:
+                    case 0xBF:
+                    case 0xC3:
+                    case 0xD0:
+                    case 0xD1:
+                    case 0xD2:
+                    case 0xDB:
+                    case 0xDF:
+                    case 0xE1:
+                    case 0xE7:
+                    case 0xE9:
+                    case 0xEF:
+                    case 0xF6:
+                    {
+                        track.CurOffset++;
+                        break;
+                    }
+                    case 0xA8:
+                    case 0xB4:
+                    case 0xD3:
+                    case 0xD5:
+                    case 0xD6:
+                    case 0xD8:
+                    case 0xF2:
+                    {
+                        track.CurOffset += 2;
+                        break;
+                    }
+                    case 0xAF:
+                    case 0xD4:
+                    case 0xE2:
+                    case 0xEA:
+                    case 0xF3:
+                    {
+                        track.CurOffset += 3;
+                        break;
+                    }
+                    case 0xDD:
+                    case 0xE5:
+                    case 0xED:
+                    case 0xF1:
+                    {
+                        track.CurOffset += 4;
+                        break;
+                    }
+                    case 0xDC:
+                    case 0xE4:
+                    case 0xEC:
+                    case 0xF0:
+                    {
+                        track.CurOffset += 5;
+                        break;
+                    }
+                }
             }
         }
 
@@ -742,21 +956,30 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 {
                     tempoStack -= 240;
                     bool allDone = true;
-                    for (int i = 0; i < tracks.Length; i++)
+                    for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
                     {
-                        Track track = tracks[i];
+                        Track track = tracks[trackIndex];
                         track.Tick();
                         while (track.Rest == 0 && !track.Stopped)
                         {
-                            ExecuteNext(i);
+                            ExecuteNext(track);
                         }
-                        if (i == longestTrack)
+                        if (trackIndex == longestTrack)
                         {
                             if (ElapsedTicks == MaxTicks)
                             {
                                 if (!track.Stopped)
                                 {
-                                    ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                    List<SongEvent> evs = Events[trackIndex];
+                                    for (int i = 0; i < evs.Count; i++)
+                                    {
+                                        SongEvent ev = evs[i];
+                                        if (ev.Offset == track.CurOffset)
+                                        {
+                                            ElapsedTicks = ev.Ticks[0] - track.Rest;
+                                            break;
+                                        }
+                                    }
                                     elapsedLoops++;
                                     if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
                                     {

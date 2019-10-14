@@ -5,33 +5,42 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
     internal class Track
     {
         public readonly byte Index;
+        public readonly long StartOffset;
         public byte Octave;
         public byte Voice;
-        public byte Expression, Volume;
+        public byte Expression;
+        public byte Volume;
         public sbyte Panpot;
         public uint Rest;
         public ushort PitchBend;
+        public long CurOffset;
         public long LoopOffset;
         public bool Stopped;
-        public int CurEvent;
+        public uint LastNoteDuration;
+        public uint LastRest;
 
         public readonly List<Channel> Channels = new List<Channel>(0x10);
 
-        public Track(byte i)
+        public Track(byte i, long startOffset)
         {
             Index = i;
+            StartOffset = startOffset;
         }
 
         public void Init()
         {
-            Expression = Voice = Volume = 0;
+            Expression = 0;
+            Voice = 0;
+            Volume = 0;
             Octave = 4;
             Panpot = 0;
             Rest = 0;
             PitchBend = 0;
+            CurOffset = StartOffset;
             LoopOffset = -1;
             Stopped = false;
-            CurEvent = 0;
+            LastNoteDuration = 0;
+            LastRest = 0;
             StopAllChannels();
         }
 
