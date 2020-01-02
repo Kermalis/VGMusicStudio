@@ -4,7 +4,7 @@ VG Music Studio is a music player and visualizer for the most common GBA music f
 
 [![VG Music Studio Preview](https://i.imgur.com/hWJGG83.png)](https://www.youtube.com/watch?v=s1BZ7cRbtBU "VG Music Studio Preview")
 
-Discord Server: https://discord.gg/q2pAw3x
+Discord Server: https://discord.gg/mBQXCTs
 
 ----
 # To Do:
