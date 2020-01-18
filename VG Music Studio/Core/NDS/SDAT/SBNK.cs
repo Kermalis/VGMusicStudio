@@ -88,7 +88,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
             public void Read(EndianBinaryReader er)
             {
-                Type = (InstrumentType)er.ReadByte();
+                Type = er.ReadEnum<InstrumentType>();
                 DataOffset = er.ReadUInt16();
                 Padding = er.ReadByte();
 

@@ -19,7 +19,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
             public void Read(EndianBinaryReader er)
             {
-                Format = (SWAVFormat)er.ReadByte();
+                Format = er.ReadEnum<SWAVFormat>();
                 DoesLoop = er.ReadBoolean();
                 SampleRate = er.ReadUInt16();
                 Timer = er.ReadUInt16();
