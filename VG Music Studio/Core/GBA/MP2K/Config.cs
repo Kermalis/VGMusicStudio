@@ -29,7 +29,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public Config(byte[] rom)
         {
             const string configFile = "MP2K.yaml";
-            using (StreamReader fileStream = File.OpenText(configFile))
+            using (StreamReader fileStream = File.OpenText(Util.Utils.CombineWithBaseDirectory(configFile)))
             {
                 string gcv = string.Empty;
                 try

@@ -1000,7 +1000,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
         }
 
-        // TODO: Don't use config.Reader
+        // TODO: Don't use config.Reader (Or make ReadObjectCached(offset))
         private void PlayNote(Track track, byte key, byte velocity, byte addedDuration)
         {
             int k = key + track.Transpose;

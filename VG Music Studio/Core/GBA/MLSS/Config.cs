@@ -26,7 +26,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public Config(byte[] rom)
         {
             const string configFile = "MLSS.yaml";
-            using (StreamReader fileStream = File.OpenText(configFile))
+            using (StreamReader fileStream = File.OpenText(Util.Utils.CombineWithBaseDirectory(configFile)))
             {
                 string gcv = string.Empty;
                 try

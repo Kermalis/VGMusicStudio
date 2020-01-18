@@ -29,7 +29,7 @@ namespace Kermalis.VGMusicStudio.Core
         private GlobalConfig()
         {
             const string configFile = "Config.yaml";
-            using (StreamReader fileStream = File.OpenText(configFile))
+            using (StreamReader fileStream = File.OpenText(Utils.CombineWithBaseDirectory(configFile)))
             {
                 try
                 {
