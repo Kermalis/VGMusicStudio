@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace Kermalis.VGMusicStudio.Util
@@ -116,6 +117,11 @@ namespace Kermalis.VGMusicStudio.Util
         public static string GetNoteName(int key)
         {
             return notes[key % 12] + ((key / 12) - 2);
+        }
+
+        public static string CombineWithBaseDirectory(string path)
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
         }
     }
 }
