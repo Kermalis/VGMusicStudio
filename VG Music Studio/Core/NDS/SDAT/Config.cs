@@ -21,5 +21,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 .Select(i => new Song(i, sdat.SYMBBlock == null ? i.ToString() : sdat.SYMBBlock.SequenceSymbols.Entries[i]));
             Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));
         }
+
+        public override string GetSongName(long index)
+        {
+            return SDAT.SYMBBlock == null || index < 0 || index >= SDAT.SYMBBlock.SequenceSymbols.NumEntries
+                ? index.ToString()
+                : '\"' + SDAT.SYMBBlock.SequenceSymbols.Entries[index] + '\"';
+        }
     }
 }

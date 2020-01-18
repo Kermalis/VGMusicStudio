@@ -131,6 +131,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             }
         }
 
+        public override string GetSongName(long index)
+        {
+            return index.ToString();
+        }
+
         public override void Dispose()
         {
             Reader.Dispose();

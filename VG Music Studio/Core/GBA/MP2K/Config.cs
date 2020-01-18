@@ -145,6 +145,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
         }
 
+        public override string GetSongName(long index)
+        {
+            return index.ToString();
+        }
+
         public override void Dispose()
         {
             Reader.Dispose();

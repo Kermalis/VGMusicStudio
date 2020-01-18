@@ -30,5 +30,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             }
             Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));
         }
+
+        public override string GetSongName(long index)
+        {
+            return index < 0 || index >= BGMFiles.Length
+                ? index.ToString()
+                : '\"' + BGMFiles[index] + '\"';
+        }
     }
 }
