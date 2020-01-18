@@ -67,6 +67,8 @@ namespace Kermalis.VGMusicStudio.Core
 
         public List<Playlist> Playlists = new List<Playlist>();
 
+        public abstract string GetSongName(long index);
+
         public virtual void Dispose() { }
     }
 }

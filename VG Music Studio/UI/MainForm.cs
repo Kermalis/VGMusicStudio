@@ -206,7 +206,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, songNumerical.Value));
+                FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, Engine.Instance.Config.GetSongName(index)));
                 success = false;
             }
 
