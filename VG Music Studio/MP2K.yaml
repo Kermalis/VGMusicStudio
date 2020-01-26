@@ -950,6 +950,28 @@ BPGE_01:
   Name: "Pokémon Leaf Green Version (USA)"
   SongTableOffsets: 0x4A2C18
   Copy: "BPRE_00"
+BPPE_00:
+  Name: "Pokémon Pinball: Ruby and Sapphire (USA)"
+  SongTableOffsets: 0x534E04
+  SongTableSizes: 333
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 14
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+BPPJ_00:
+  Name: "Pokémon Pinball: Ruby & Sapphire (Japan)"
+  SongTableOffsets: 0x51B9BC
+  Copy: "BPPE_00"
+BPPJ_01:
+  Name: "Pokémon Pinball: Ruby & Sapphire (Japan)"
+  SongTableOffsets: 0x51B708
+  Copy: "BPPE_00"
+BPPP_00:
+  Name: "Pokémon Pinball: Ruby & Sapphire (Europe)"
+  SongTableOffsets: 0x7C67A4
+  Copy: "BPPE_00"
 BPRE_00:
   Name: "Pokémon Fire Red Version (USA)"
   SongTableOffsets: 0x4A32CC
