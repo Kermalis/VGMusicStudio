@@ -58,6 +58,14 @@ A88E_00:
       48: "Professor E Gadd"
       49: "Ghostly Encounter"
       50: "Bean Time!"
+A88J_00:
+  Name: "Mario & Luigi - Superstar Saga (Japan)"
+  SongTableOffsets: 0x205060
+  SongTableSizes: 418
+  VoiceTableOffset: 0x2056E8
+  SampleTableOffset: 0x9721A8
+  SampleTableSize: 239
+  Copy: "A88E_00"
 A88P_00:
   Name: "Mario & Luigi - Superstar Saga (Europe)"
   SongTableOffsets: 0x21DC50

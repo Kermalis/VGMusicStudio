@@ -86,6 +86,10 @@ A7KE_00:
       52: "Green Greens (No Intro)"
       41: "Building of Battles (Outside)"
       56: "Nightmare Appears!"
+A7KJ_00:
+  Name: "Kirby: Nightmare in Dream Land (Japan)"
+  SongTableOffsets: 0x60F36C
+  Copy: "A7KE_00"
 A7KP_00:
   Name: "Kirby: Nightmare in Dream Land (Europe)"
   SongTableOffsets: 0x843B50
@@ -105,13 +109,12 @@ AE7J_00:
   SongTableOffsets: 0x6EA8C8
   Copy: "AE7E_00"
 AE7X_00:
-  Name: "Fire Emblem: The Blazing Blade (Europe X)"
+  Name: "Fire Emblem: The Blazing Blade (Europe)"
   SongTableOffsets: 0x6805F4
   Copy: "AE7E_00"
 AE7Y_00:
-  Name: "Fire Emblem: The Blazing Blade (Europe Y)"
   SongTableOffsets: 0x67F1F4
-  Copy: "AE7E_00"
+  Copy: "AE7X_00"
 AEFJ_00:
   Name: "Fire Emblem: The Binding Blade (Japan)"
   SongTableOffsets: 0x3994D8
@@ -122,6 +125,9 @@ AEFJ_00:
   Volume: 13
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+AGFD_00:
+  Name: "Golden Sun: The Lost Age (Germany)"
+  Copy: "AGFE_00"
 AGFE_00:
   Name: "Golden Sun: The Lost Age (USA)"
   SongTableOffsets: 0x1C4530
@@ -132,6 +138,18 @@ AGFE_00:
   Volume: 15
   HasGoldenSunSynths: True
   HasPokemonCompression: False
+AGFF_00:
+  Name: "Golden Sun: The Lost Age (France)"
+  Copy: "AGFE_00"
+AGFI_00:
+  Name: "Golden Sun: The Lost Age (Italy)"
+  Copy: "AGFE_00"
+AGFJ_00:
+  Name: "Golden Sun: The Lost Age (Japan)"
+  Copy: "AGFE_00"
+AGFS_00:
+  Name: "Golden Sun: The Lost Age (Spain)"
+  Copy: "AGFE_00"
 AGLJ_00:
   Name: "Tomato Adventure (Japan)"
   SongTableOffsets: 0x4B11A4
@@ -142,6 +160,10 @@ AGLJ_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+AGSD_00:
+  Name: "Golden Sun (Germany)"
+  SongTableOffsets: 0xFD484
+  Copy: "AGSE_00"
 AGSE_00:
   Name: "Golden Sun (USA)"
   SongTableOffsets: 0xFC684
@@ -152,6 +174,21 @@ AGSE_00:
   Volume: 15
   HasGoldenSunSynths: True
   HasPokemonCompression: False
+AGSF_00:
+  Name: "Golden Sun (France)"
+  SongTableOffsets: 0xFEE84
+  Copy: "AGSE_00"
+AGSI_00:
+  Name: "Golden Sun (Italy)"
+  Copy: "AGSE_00"
+AGSJ_00:
+  Name: "Golden Sun (Japan)"
+  SongTableOffsets: 0xF3684
+  Copy: "AGSE_00"
+AGSS_00:
+  Name: "Golden Sun (Spain)"
+  SongTableOffsets: 0xFEE84
+  Copy: "AGSE_00"
 AINJ_00:
   Name: "Initial D: Another Stage (Japan)"
   SongTableOffsets: 0x648B38
@@ -162,6 +199,10 @@ AINJ_00:
   Volume: 13
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+AMAC_00:
+  Name: "Super Mario Advance (China)"
+  SongTableOffsets: 0xF64C4
+  Copy: "AMZE_00"
 AMAE_00:
   Name: "Super Mario Advance (Europe)"
   SongTableOffsets: 0xF4368
@@ -234,6 +275,17 @@ AMKE_00:
       57: "Award Ceremony Lose"
       59: "59"
       60: "60"
+AMKJ_00:
+  Name: "Mario Kart: Super Circuit (Japan)"
+  SongTableOffsets: 0x1245C8
+  Copy: "AMKE_00"
+AMKP_00:
+  Name: "Mario Kart: Super Circuit (Europe)"
+  Copy: "AMKE_00"
+AMTC_00:
+  Name: "Metroid Fusion (China)"
+  SongTableOffsets: 0xAB0E4
+  Copy: "AMTE_00"
 AMTE_00:
   Name: "Metroid Fusion (USA)"
   SongTableOffsets: 0xA8D3C
@@ -244,6 +296,14 @@ AMTE_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+AMTJ_00:
+  Name: "Metroid Fusion (Japan)"
+  SongTableOffsets: 0xAB0A0
+  Copy: "AMTE_00"
+AMTP_00:
+  Name: "Metroid Fusion (Europe)"
+  SongTableOffsets: 0xA9398
+  Copy: "AMTE_00"
 AMZE_00:
   Name: "Super Mario Advance (USA)"
   SongTableOffsets: 0xF40D4
@@ -254,6 +314,10 @@ AMZE_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+AWAC_00:
+  Name: "Wario Land 4 (China)"
+  SongTableOffsets: 0x98CB8
+  Copy: "AWAE_00"
 AWAE_00:
   Name: "Wario Land 4 (USA)"
   SongTableOffsets: 0x98028
@@ -388,18 +452,52 @@ AWAE_00:
       727: "Medamayaki (Karaoke)"
       728: "Medamayaki (Karaoke) (2)"
       729: "Medamayaki (Voice)"
+AWAJ_00:
+  Name: "Wario Land 4 (Japan)"
+  Copy: "AWAE_00"
+AXPD_00:
+  Name: "Pokémon Sapphire Version (Germany)"
+  SongTableOffsets: 0x463394
+  Copy: "AXVD_00"
+AXPD_01:
+  Copy: "AXPD_00"
 AXPE_00:
   Name: "Pokémon Sapphire Version (USA)"
   SongTableOffsets: 0x4554E8
   Copy: "AXVE_00"
 AXPE_01:
-  Name: "Pokémon Sapphire Version (USA)"
   SongTableOffsets: 0x455500
-  Copy: "AXVE_00"
+  Copy: "AXPE_00"
 AXPE_02:
-  Name: "Pokémon Sapphire Version (USA)"
-  SongTableOffsets: 0x455500
+  Copy: "AXPE_01"
+AXPF_00:
+  Name: "Pokémon Sapphire Version (France)"
+  SongTableOffsets: 0x45E094
+  Copy: "AXVF_00"
+AXPF_01:
+  Copy: "AXPF_00"
+AXPI_00:
+  Name: "Pokémon Sapphire Version (Italy)"
+  SongTableOffsets: 0x4574B4
+  Copy: "AXVI_00"
+AXPI_01:
+  Copy: "AXPI_00"
+AXPJ_00:
+  Name: "Pokémon Sapphire Version (Japan)"
+  SongTableOffsets: 0x416ECC
+  Copy: "AXVJ_00"
+AXPS_00:
+  Name: "Pokémon Sapphire Version (Spain)"
+  SongTableOffsets: 0x45A660
+  Copy: "AXVS_00"
+AXPS_01:
+  Copy: "AXPS_00"
+AXVD_00:
+  Name: "Pokémon Ruby Version (Germany)"
+  SongTableOffsets: 0x463428
   Copy: "AXVE_00"
+AXVD_01:
+  Copy: "AXVD_00"
 AXVE_00:
   Name: "Pokémon Ruby Version (USA)"
   SongTableOffsets: 0x45548C
@@ -533,13 +631,32 @@ AXVE_00:
       396: "Pokémon Contest! (Multiplayer - Player 4)"
       467: "Unused - Team Rocket Appears!"
 AXVE_01:
-  Name: "Pokémon Ruby Version (USA)"
   SongTableOffsets: 0x4554A0
   Copy: "AXVE_00"
 AXVE_02:
-  Name: "Pokémon Ruby Version (USA)"
-  SongTableOffsets: 0x4554A0
+  Copy: "AXVE_01"
+AXVF_00:
+  Name: "Pokémon Ruby Version (France)"
+  SongTableOffsets: 0x45E564
   Copy: "AXVE_00"
+AXVF_01:
+  Copy: "AXVF_00"
+AXVI_00:
+  Name: "Pokémon Ruby Version (Italy)"
+  SongTableOffsets: 0x457810
+  Copy: "AXVE_00"
+AXVI_01:
+  Copy: "AXVI_00"
+AXVJ_00:
+  Name: "Pokémon Ruby Version (Japan)"
+  SongTableOffsets: 0x416EE4
+  Copy: "AXVE_00"
+AXVS_00:
+  Name: "Pokémon Ruby Version (Spain)"
+  SongTableOffsets: 0x45A924
+  Copy: "AXVE_00"
+AXVS_01:
+  Copy: "AXVS_00"
 AZLE_00:
   Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
   SongTableOffsets: 0x3C3BBC
@@ -550,6 +667,14 @@ AZLE_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+AZLJ_00:
+  Name: "The Legend of Zelda: A Link to the Past and Four Swords (Japan)"
+  SongTableOffsets: 0x3E7A54
+  Copy: "AZLE_00"
+AZLP_00:
+  Name: "The Legend of Zelda: A Link to the Past and Four Swords (Europe)"
+  SongTableOffsets: 0x43F8AC
+  Copy: "AZLE_00"
 B24E_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   SongTableOffsets: 0x1E866BC
@@ -664,9 +789,12 @@ B24E_00:
       23: "Sky Tower Summit"
       21: "Stormy Sea"
       13: "Buried Relic"
+B24J_00:
+  Name: "Pokémon Mystery Dungeon: Red Rescue Team (Japan)"
+  SongTableOffsets: 0x1DC66BC
+  Copy: "B24E_00"
 B24P_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
-  SongTableOffsets: 0x1E866BC
   Copy: "B24E_00"
 BE8E_00:
   Name: "Fire Emblem: The Sacred Stones (USA)"
@@ -686,6 +814,10 @@ BE8P_00:
   Name: "Fire Emblem: The Sacred Stones (Europe)"
   SongTableOffsets: 0x42FFB0
   Copy: "BE8E_00"
+BMXC_00:
+  Name: "Metroid: Zero Mission (China)"
+  SongTableOffsets: 0xA8AAC
+  Copy: "BMXE_00"
 BMXE_00:
   Name: "Metroid: Zero Mission (USA)"
   SongTableOffsets: 0x8F2C0
@@ -696,6 +828,14 @@ BMXE_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+BMXJ_00:
+  Name: "Metroid: Zero Mission (Japan)"
+  SongTableOffsets: 0x8F31C
+  Copy: "BMXE_00"
+BMXP_00:
+  Name: "Metroid: Zero Mission (Europe)"
+  SongTableOffsets: 0x8FF4C
+  Copy: "BMXE_00"
 BPED_00:
   Name: "Pokémon Emerald Version (Germany)"
   SongTableOffsets: 0x6C5BDC
@@ -942,14 +1082,49 @@ BPEE_00:
       551: "Battle! (Deoxys)"
       552: "Battle! (Mewtwo) (FRLG)"
       553: "Battle! (Ho-Oh/Lugia)"
+BPEF_00:
+  Name: "Pokémon Emerald Version (France)"
+  SongTableOffsets: 0x6B890C
+  Copy: "BPEE_00"
+BPEI_00:
+  Name: "Pokémon Emerald Version (Italy)"
+  SongTableOffsets: 0x6B1004
+  Copy: "BPEE_00"
+BPEJ_00:
+  Name: "Pokémon Emerald Version (Japan)"
+  SongTableOffsets: 0x63C2AC
+  Copy: "BPEE_00"
+BPES_00:
+  Name: "Pokémon Emerald Version (Spain)"
+  SongTableOffsets: 0x6B6FA4
+  Copy: "BPEE_00"
+BPGD_00:
+  Name: "Pokémon Leaf Green Version (Germany)"
+  SongTableOffsets: 0x4A0A5C
+  Copy: "BPRD_00"
 BPGE_00:
   Name: "Pokémon Leaf Green Version (USA)"
   SongTableOffsets: 0x4A2BA8
   Copy: "BPRE_00"
 BPGE_01:
-  Name: "Pokémon Leaf Green Version (USA)"
   SongTableOffsets: 0x4A2C18
-  Copy: "BPRE_00"
+  Copy: "BPGE_00"
+BPGF_00:
+  Name: "Pokémon Leaf Green Version (France)"
+  SongTableOffsets: 0x4980BC
+  Copy: "BPRF_00"
+BPGI_00:
+  Name: "Pokémon Leaf Green Version (Italy)"
+  SongTableOffsets: 0x4964B8
+  Copy: "BPRI_00"
+BPGJ_00:
+  Name: "Pokémon Leaf Green Version (Japan)"
+  SongTableOffsets: 0x467D50
+  Copy: "BPRJ_00"
+BPGS_00:
+  Name: "Pokémon Leaf Green Version (Spain)"
+  SongTableOffsets: 0x4992C0
+  Copy: "BPRS_00"
 BPPE_00:
   Name: "Pokémon Pinball: Ruby and Sapphire (USA)"
   SongTableOffsets: 0x534E04
@@ -965,13 +1140,16 @@ BPPJ_00:
   SongTableOffsets: 0x51B9BC
   Copy: "BPPE_00"
 BPPJ_01:
-  Name: "Pokémon Pinball: Ruby & Sapphire (Japan)"
   SongTableOffsets: 0x51B708
-  Copy: "BPPE_00"
+  Copy: "BPPJ_00"
 BPPP_00:
   Name: "Pokémon Pinball: Ruby & Sapphire (Europe)"
   SongTableOffsets: 0x7C67A4
   Copy: "BPPE_00"
+BPRD_00:
+  Name: "Pokémon Fire Red Version (Germany)"
+  SongTableOffsets: 0x4A18F0
+  Copy: "BPRE_00"
 BPRE_00:
   Name: "Pokémon Fire Red Version (USA)"
   SongTableOffsets: 0x4A32CC
@@ -1078,8 +1256,25 @@ BPRE_00:
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
 BPRE_01:
-  Name: "Pokémon Fire Red Version (USA)"
-  SongTableOffsets: 0x4A332C
+  Copy: "BPRE_00"
+BPRF_00:
+  Name: "Pokémon Fire Red Version (France)"
+  SongTableOffsets: 0x499394
+  Copy: "BPRE_00"
+BPRI_00:
+  Name: "Pokémon Fire Red Version (Italy)"
+  SongTableOffsets: 0x496D20
+  Copy: "BPRE_00"
+BPRJ_00:
+  Name: "Pokémon Fire Red Version (Japan)"
+  SongTableOffsets: 0x467F0C
+  Copy: "BPRE_00"
+BPRJ_01:
+  SongTableOffsets: 0x463708
+  Copy: "BPRJ_00"
+BPRS_00:
+  Name: "Pokémon Fire Red Version (Spain)"
+  SongTableOffsets: 0x499BC8
   Copy: "BPRE_00"
 BZME_00:
   Name: "The Legend of Zelda: The Minish Cap (USA)"
@@ -1091,34 +1286,11 @@ BZME_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
-KERB_00:
-  Name: "Kermalis's Test ROM"
-  SongTableOffsets: 0x100004C 0x1000B6C 0x100168C 0x10021AC
-  SongTableSizes: 356 356 356 356
-  SampleRate: 3
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 12
-  HasGoldenSunSynths: False
-  HasPokemonCompression: True
-KERH_00:
-  Name: "Kermalis's Test ROM"
-  SongTableOffsets: 0x1000038 0x1000B78
-  SongTableSizes: 360 360
-  Remap: "HGSS"
-  SampleRate: 3
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 12
-  HasGoldenSunSynths: False
-  HasPokemonCompression: True
-KERP_00:
-  Name: "Kermalis's Test ROM"
-  SongTableOffsets: 0x1000000 0x1001310 0x1002620 0x1003930
-  SongTableSizes: 610 610 610 610
-  SampleRate: 3
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 12
-  HasGoldenSunSynths: False
-  HasPokemonCompression: True
+BZMJ_00:
+  Name: "The Legend of Zelda: The Minish Cap (Japan)"
+  SongTableOffsets: 0x9F3D3C
+  Copy: "BZME_00"
+BZMP_00:
+  Name: "The Legend of Zelda: The Minish Cap (Europe)"
+  SongTableOffsets: 0xB1D414
+  Copy: "BZME_00"
