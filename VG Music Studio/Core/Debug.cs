@@ -1,12 +1,14 @@
-﻿using Sanford.Multimedia.Midi;
+﻿using Kermalis.EndianBinaryIO;
+using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core
 {
 #if DEBUG
-    internal class Debug
+    internal static class Debug
     {
         public static void MIDIVolumeMerger(string f1, string f2)
         {
@@ -43,7 +45,7 @@ namespace Kermalis.VGMusicStudio.Core
 
         public static void EventScan(List<Config.Song> songs, bool showIndexes)
         {
-            var errors = new List<Tuple<Config.Song, Exception>>();
+            Console.WriteLine($"{nameof(EventScan)} started.");
             var scans = new Dictionary<string, List<Config.Song>>();
             foreach (Config.Song song in songs)
             {
@@ -53,7 +55,7 @@ namespace Kermalis.VGMusicStudio.Core
                 }
                 catch (Exception ex)
                 {
-                    errors.Add(Tuple.Create(song, ex));
+                    Console.WriteLine("Exception loading {0} - {1}", showIndexes ? $"song {song.Index}" : $"\"{song.Name}\"", ex.Message);
                     continue;
                 }
                 if (Engine.Instance.Player.Events != null)
@@ -71,14 +73,39 @@ namespace Kermalis.VGMusicStudio.Core
                     }
                 }
             }
-            foreach (Tuple<Config.Song, Exception> tup in errors)
-            {
-                Console.WriteLine("Exception in {0} - {1}", showIndexes ? $"song {tup.Item1.Index}" : $"\"{tup.Item1.Name}\"", tup.Item2.Message);
-            }
             foreach (KeyValuePair<string, List<Config.Song>> kvp in scans.OrderBy(k => k.Key))
             {
                 Console.WriteLine("{0} ({1})", kvp.Key, string.Join(", ", showIndexes ? (IEnumerable<object>)kvp.Value.Select(s => s.Index) : kvp.Value.Select(s => s.Name)));
             }
+            Console.WriteLine($"{nameof(EventScan)} ended.");
+        }
+
+        public static void GBAGameCodeScan(string path)
+        {
+            Console.WriteLine($"{nameof(GBAGameCodeScan)} started.");
+            var scans = new List<string>();
+            foreach (string file in Directory.GetFiles(path, "*.gba", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    using (var reader = new EndianBinaryReader(File.OpenRead(file)))
+                    {
+                        string gameCode = reader.ReadString(3, 0xAC);
+                        char regionCode = reader.ReadChar(0xAF);
+                        byte version = reader.ReadByte(0xBC);
+                        scans.Add(string.Format("Code: {0}\tRegion: {1}\tVersion: {2}\tFile: {3}", gameCode, regionCode, version, file));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception loading \"{0}\" - {1}", file, ex.Message);
+                }
+            }
+            foreach (string s in scans.OrderBy(s => s))
+            {
+                Console.WriteLine(s);
+            }
+            Console.WriteLine($"{nameof(GBAGameCodeScan)} ended.");
         }
     }
 #endif

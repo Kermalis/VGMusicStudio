@@ -15,14 +15,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public readonly EndianBinaryReader Reader;
         public string GameCode;
         public byte Version;
+
         public string Name;
         public int[] SongTableOffsets;
         public long[] SongTableSizes;
-        public string Remap;
+        public int SampleRate;
         public ReverbType ReverbType;
         public byte Reverb;
         public byte Volume;
-        public int SampleRate;
         public bool HasGoldenSunSynths;
         public bool HasPokemonCompression;
 
@@ -53,76 +53,151 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KMissingGameCode, gcv)));
                     }
 
-                    Name = game.Children.GetValue(nameof(Name)).ToString();
+                    YamlNode nameNode = null,
+                        songTableOffsetsNode = null,
+                        songTableSizesNode = null,
+                        sampleRateNode = null,
+                        reverbTypeNode = null,
+                        reverbNode = null,
+                        volumeNode = null,
+                        hasGoldenSunSynthsNode = null,
+                        hasPokemonCompression = null;
+                    void Load(YamlMappingNode gameToLoad)
+                    {
+                        if (gameToLoad.Children.TryGetValue("Copy", out YamlNode node))
+                        {
+                            YamlMappingNode copyGame;
+                            try
+                            {
+                                copyGame = (YamlMappingNode)mapping.Children.GetValue(node);
+                            }
+                            catch (BetterKeyNotFoundException ex)
+                            {
+                                throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KCopyInvalidGameCode, ex.Key)));
+                            }
+                            Load(copyGame);
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(Name), out node))
+                        {
+                            nameNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(SongTableOffsets), out node))
+                        {
+                            songTableOffsetsNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(SongTableSizes), out node))
+                        {
+                            songTableSizesNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(SampleRate), out node))
+                        {
+                            sampleRateNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(ReverbType), out node))
+                        {
+                            reverbTypeNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(Reverb), out node))
+                        {
+                            reverbNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(Volume), out node))
+                        {
+                            volumeNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(HasGoldenSunSynths), out node))
+                        {
+                            hasGoldenSunSynthsNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(HasPokemonCompression), out node))
+                        {
+                            hasPokemonCompression = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(Playlists), out node))
+                        {
+                            var playlists = (YamlMappingNode)node;
+                            foreach (KeyValuePair<YamlNode, YamlNode> kvp in playlists)
+                            {
+                                string name = kvp.Key.ToString();
+                                var songs = new List<Song>();
+                                foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
+                                {
+                                    long songIndex = Util.Utils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, long.MaxValue);
+                                    if (songs.Any(s => s.Index == songIndex))
+                                    {
+                                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongRepeated, name, songIndex)));
+                                    }
+                                    songs.Add(new Song(songIndex, song.Value.ToString()));
+                                }
+                                Playlists.Add(new Playlist(name, songs));
+                            }
+                        }
+                    }
 
-                    string[] songTables = game.Children.GetValue(nameof(SongTableOffsets)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (songTables.Length == 0)
+                    Load(game);
+
+                    if (nameNode == null)
+                    {
+                        throw new BetterKeyNotFoundException(nameof(Name), null);
+                    }
+                    Name = nameNode.ToString();
+                    if (songTableOffsetsNode == null)
+                    {
+                        throw new BetterKeyNotFoundException(nameof(SongTableOffsets), null);
+                    }
+                    string[] songTables = songTableOffsetsNode.ToString().SplitSpace(StringSplitOptions.RemoveEmptyEntries);
+                    int numSongTables = songTables.Length;
+                    if (numSongTables == 0)
                     {
                         throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyNoEntries, nameof(SongTableOffsets))));
                     }
-
-                    if (game.Children.TryGetValue("Copy", out YamlNode copy))
+                    if (songTableSizesNode == null)
                     {
-                        try
-                        {
-                            game = (YamlMappingNode)mapping.Children.GetValue(copy);
-                        }
-                        catch (BetterKeyNotFoundException ex)
-                        {
-                            throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KCopyInvalidGameCode, ex.Key)));
-                        }
+                        throw new BetterKeyNotFoundException(nameof(SongTableSizes), null);
                     }
-
-                    string[] sizes = game.Children.GetValue(nameof(SongTableSizes)).ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (sizes.Length != songTables.Length)
+                    string[] sizes = songTableSizesNode.ToString().SplitSpace(StringSplitOptions.RemoveEmptyEntries);
+                    if (sizes.Length != numSongTables)
                     {
                         throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongTableCounts, nameof(SongTableSizes), nameof(SongTableOffsets))));
                     }
-                    SongTableOffsets = new int[songTables.Length];
-                    SongTableSizes = new long[songTables.Length];
-                    for (int i = 0; i < songTables.Length; i++)
+                    SongTableOffsets = new int[numSongTables];
+                    SongTableSizes = new long[numSongTables];
+                    int maxOffset = rom.Length - 1;
+                    for (int i = 0; i < numSongTables; i++)
                     {
-                        SongTableSizes[i] = Util.Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, rom.Length - 1);
-                        SongTableOffsets[i] = (int)Util.Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, rom.Length - 1);
+                        SongTableSizes[i] = Util.Utils.ParseValue(nameof(SongTableSizes), sizes[i], 1, maxOffset);
+                        SongTableOffsets[i] = (int)Util.Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, maxOffset);
                     }
-
-                    SampleRate = (int)game.GetValidValue(nameof(SampleRate), 0, Utils.FrequencyTable.Length - 1);
-                    try
+                    if (sampleRateNode == null)
                     {
-                        ReverbType = (ReverbType)Enum.Parse(typeof(ReverbType), game.Children.GetValue(nameof(ReverbType)).ToString());
+                        throw new BetterKeyNotFoundException(nameof(SampleRate), null);
                     }
-                    catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
+                    SampleRate = (int)Util.Utils.ParseValue(nameof(SampleRate), sampleRateNode.ToString(), 0, Utils.FrequencyTable.Length - 1);
+                    if (reverbTypeNode == null)
                     {
-                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyInvalid, nameof(ReverbType))));
+                        throw new BetterKeyNotFoundException(nameof(ReverbType), null);
                     }
-                    Reverb = (byte)game.GetValidValue(nameof(Reverb), byte.MinValue, byte.MaxValue);
-                    Volume = (byte)game.GetValidValue(nameof(Volume), 0, 15);
-                    HasGoldenSunSynths = game.GetValidBoolean(nameof(HasGoldenSunSynths));
-                    HasPokemonCompression = game.GetValidBoolean(nameof(HasPokemonCompression));
-                    if (game.Children.TryGetValue(nameof(Remap), out YamlNode remap))
+                    ReverbType = Util.Utils.ParseEnum<ReverbType>(nameof(ReverbType), reverbTypeNode.ToString());
+                    if (reverbNode == null)
                     {
-                        Remap = remap.ToString();
+                        throw new BetterKeyNotFoundException(nameof(Reverb), null);
                     }
-
-                    if (game.Children.TryGetValue(nameof(Playlists), out YamlNode _playlists))
+                    Reverb = (byte)Util.Utils.ParseValue(nameof(Reverb), reverbNode.ToString(), byte.MinValue, byte.MaxValue);
+                    if (volumeNode == null)
                     {
-                        var playlists = (YamlMappingNode)_playlists;
-                        foreach (KeyValuePair<YamlNode, YamlNode> kvp in playlists)
-                        {
-                            string name = kvp.Key.ToString();
-                            var songs = new List<Song>();
-                            foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
-                            {
-                                long songIndex = Util.Utils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, long.MaxValue);
-                                if (songs.Any(s => s.Index == songIndex))
-                                {
-                                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongRepeated, name, songIndex)));
-                                }
-                                songs.Add(new Song(songIndex, song.Value.ToString()));
-                            }
-                            Playlists.Add(new Playlist(name, songs));
-                        }
+                        throw new BetterKeyNotFoundException(nameof(Volume), null);
                     }
+                    Volume = (byte)Util.Utils.ParseValue(nameof(Volume), volumeNode.ToString(), 0, 15);
+                    if (hasGoldenSunSynthsNode == null)
+                    {
+                        throw new BetterKeyNotFoundException(nameof(HasGoldenSunSynths), null);
+                    }
+                    HasGoldenSunSynths = Util.Utils.ParseBoolean(nameof(HasGoldenSunSynths), hasGoldenSunSynthsNode.ToString());
+                    if (hasPokemonCompression == null)
+                    {
+                        throw new BetterKeyNotFoundException(nameof(HasPokemonCompression), null);
+                    }
+                    HasPokemonCompression = Util.Utils.ParseBoolean(nameof(HasPokemonCompression), hasPokemonCompression.ToString());
 
                     // The complete playlist
                     if (!Playlists.Any(p => p.Name == "Music"))

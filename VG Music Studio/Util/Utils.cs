@@ -11,18 +11,22 @@ namespace Kermalis.VGMusicStudio.Util
     {
         public const string ProgramName = "VG Music Studio";
 
-        private static readonly Random rng = new Random();
-
-        private static readonly string[] notes = null;
-        static Utils()
-        {
-            notes = Strings.Notes.Split(';');
-        }
+        private static readonly Random _rng = new Random();
+        private static readonly string[] _notes = Strings.Notes.Split(';');
+        private static readonly char[] _spaceArray = new char[1] { ' ' };
 
         public static bool TryParseValue(string value, long minValue, long maxValue, out long outValue)
         {
-            try { outValue = ParseValue(string.Empty, value, minValue, maxValue); return true; }
-            catch { outValue = 0; return false; }
+            try
+            {
+                outValue = ParseValue(string.Empty, value, minValue, maxValue);
+                return true;
+            }
+            catch
+            {
+                outValue = default;
+                return false;
+            }
         }
         /// <exception cref="InvalidValueException" />
         public static long ParseValue(string valueName, string value, long minValue, long maxValue)
@@ -59,6 +63,24 @@ namespace Kermalis.VGMusicStudio.Util
             }
             throw new InvalidValueException(value, string.Format(Strings.ErrorValueParse, valueName));
         }
+        /// <exception cref="InvalidValueException" />
+        public static bool ParseBoolean(string valueName, string value)
+        {
+            if (!bool.TryParse(value, out bool result))
+            {
+                throw new InvalidValueException(value, string.Format(Strings.ErrorBoolParse, valueName));
+            }
+            return result;
+        }
+        /// <exception cref="InvalidValueException" />
+        public static TEnum ParseEnum<TEnum>(string valueName, string value) where TEnum : struct
+        {
+            if (!Enum.TryParse(value, out TEnum result))
+            {
+                throw new InvalidValueException(value, string.Format(Strings.ErrorConfigKeyInvalid, valueName));
+            }
+            return result;
+        }
         /// <exception cref="BetterKeyNotFoundException" />
         public static TValue GetValue<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {
@@ -81,14 +103,17 @@ namespace Kermalis.VGMusicStudio.Util
         /// <exception cref="InvalidValueException" />
         public static bool GetValidBoolean(this YamlMappingNode yamlNode, string key)
         {
-            if (bool.TryParse(yamlNode.Children.GetValue(key).ToString(), out bool value))
-            {
-                return value;
-            }
-            else
-            {
-                throw new InvalidValueException(key, string.Format(Strings.ErrorBoolParse, key));
-            }
+            return ParseBoolean(key, yamlNode.Children.GetValue(key).ToString());
+        }
+        /// <exception cref="BetterKeyNotFoundException" />
+        /// <exception cref="InvalidValueException" />
+        public static TEnum GetValidEnum<TEnum>(this YamlMappingNode yamlNode, string key) where TEnum : struct
+        {
+            return ParseEnum<TEnum>(key, yamlNode.Children.GetValue(key).ToString());
+        }
+        public static string[] SplitSpace(this string str, StringSplitOptions options)
+        {
+            return str.Split(_spaceArray, options);
         }
 
         public static string Print<T>(this IEnumerable<T> source, bool parenthesis = true)
@@ -103,7 +128,7 @@ namespace Kermalis.VGMusicStudio.Util
         {
             for (int a = 0; a < source.Count - 1; a++)
             {
-                int b = rng.Next(a, source.Count);
+                int b = _rng.Next(a, source.Count);
                 T value = source[a];
                 source[a] = source[b];
                 source[b] = value;
@@ -112,11 +137,11 @@ namespace Kermalis.VGMusicStudio.Util
 
         public static string GetPianoKeyName(int key)
         {
-            return notes[key];
+            return _notes[key];
         }
         public static string GetNoteName(int key)
         {
-            return notes[key % 12] + ((key / 12) - 2);
+            return _notes[key % 12] + ((key / 12) - 2);
         }
 
         public static string CombineWithBaseDirectory(string path)

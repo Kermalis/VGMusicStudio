@@ -11,6 +11,9 @@ namespace Kermalis.VGMusicStudio
         [STAThread]
         private static void Main()
         {
+#if DEBUG
+            //Debug.GBAGameCodeScan(@"C:\Users\Kermalis\Documents\Emulation\GBA\Games");
+#endif
             try
             {
                 GlobalConfig.Init();

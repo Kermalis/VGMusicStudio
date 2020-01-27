@@ -41,14 +41,7 @@ namespace Kermalis.VGMusicStudio.Core
                     RefreshRate = (ushort)mapping.GetValidValue(nameof(RefreshRate), 1, 1000);
                     CenterIndicators = mapping.GetValidBoolean(nameof(CenterIndicators));
                     PanpotIndicators = mapping.GetValidBoolean(nameof(PanpotIndicators));
-                    try
-                    {
-                        PlaylistMode = (PlaylistMode)Enum.Parse(typeof(PlaylistMode), mapping.Children.GetValue(nameof(PlaylistMode)).ToString());
-                    }
-                    catch (Exception ex) when (ex is ArgumentException || ex is OverflowException)
-                    {
-                        throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyInvalid, nameof(PlaylistMode))));
-                    }
+                    PlaylistMode = mapping.GetValidEnum<PlaylistMode>(nameof(PlaylistMode));
                     PlaylistSongLoops = mapping.GetValidValue(nameof(PlaylistSongLoops), 0, long.MaxValue);
                     PlaylistFadeOutMilliseconds = mapping.GetValidValue(nameof(PlaylistFadeOutMilliseconds), 0, long.MaxValue);
 
@@ -83,7 +76,9 @@ namespace Kermalis.VGMusicStudio.Core
                                 throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigColorInvalidKey, i)));
                             }
                         }
-                        Colors[i] = Colors[i + 128] = new HSLColor(h, s, l);
+                        var co = new HSLColor(h, s, l);
+                        Colors[i] = co;
+                        Colors[i + 128] = co;
                     }
                     for (int i = 0; i < Colors.Length; i++)
                     {
