@@ -1,5 +1,6 @@
 A88E_00:
   Name: "Mario & Luigi - Superstar Saga (USA)"
+  SoundEngineVersion: 1
   SongTableOffsets: 0x21CB70
   SongTableSizes: 407
   VoiceTableOffset: 0x21D1CC
@@ -60,6 +61,7 @@ A88E_00:
       50: "Bean Time!"
 A88J_00:
   Name: "Mario & Luigi - Superstar Saga (Japan)"
+  SoundEngineVersion: 1
   SongTableOffsets: 0x205060
   SongTableSizes: 418
   VoiceTableOffset: 0x2056E8
@@ -68,7 +70,138 @@ A88J_00:
   Copy: "A88E_00"
 A88P_00:
   Name: "Mario & Luigi - Superstar Saga (Europe)"
+  SoundEngineVersion: 1
   SongTableOffsets: 0x21DC50
   VoiceTableOffset: 0x21E2AC
   SampleTableOffset: 0xA82088
   Copy: "A88E_00"
+A84P_00:
+  Name: "Hamtaro - Rainbow Rescue (Europe)"
+  SoundEngineVersion: 2
+  SongTableOffsets: 0x694300
+  SongTableSizes: 150
+  VoiceTableOffset: 0x694558
+  SampleTableOffset: 0xBCD510
+  SampleTableSize: 149
+  Remap: "MLSS"
+  Playlists:
+    Music:
+      1: "Title"
+      2: "Menu"
+      3: "Stickers"
+      4: "Coloring"
+      5: "The Clubhouse"
+      6: "Ham-Ham Lawn"
+      7: "Final Credits"
+      8: "Bo"
+      9: "Sunny Peak"
+      10: "Flower Ranch"
+      11: "Clover Elementary"
+      12: "Ticky-Ticky Park"
+      13: "Tip-Top Fair"
+      14: "Taiko Drumming"
+      15: "Sparkle Coast"
+      16: "Aquarium"
+      17: "Hamstarr Manor"
+      18: "Puntaros"
+      19: "Acorn Trail / Sea Spray Park"
+      20: "Rainbow Theater"
+      21: "Ham Game #1"
+      22: "Ham Game #2"
+      23: "Ham Game #3"
+      24: "Ham Game #4"
+      25: "Credits"
+      26: "Ham-Ham Lawn (again)"
+      27: "Ham-Ham March"
+      28: "That's Not Good..."
+      29: "Uh-Oh..."
+      30: "Success!"
+      31: "Oh No!"
+      32: "Headband-Ham"
+      33: "Bittersweet"
+      34: "We did it!"
+      35: "Pigeon Ride"
+      36: "Boss"
+      37: "Hamstarr"
+      38: "Jingle"
+      39: "Carrobo"
+A84J_00:
+  Name: "Hamtaro - Rainbow Rescue (Japan)"
+  SoundEngineVersion: 2
+  SongTableOffsets: 0x4DDE20
+  VoiceTableOffset: 0x4DE078
+  SampleTableOffset: 0x742FFC
+  Copy: "A84P_00"
+B85A_00:
+  Name: "Hamtaro - Ham-Ham Games (Japan/USA)"
+  SoundEngineVersion: 2
+  SongTableOffsets: 0xDED20
+  SongTableSizes: 212
+  VoiceTableOffset: 0xDF10C
+  SampleTableOffset: 0x100000
+  SampleTableSize: 368
+  Remap: "MLSS"
+  Playlists:
+    Music:
+      1: "Title"
+      2: "Menu"
+      3: "The Clubhouse"
+      4: "Cards / Crystal"
+      5: "Introduction"
+      6: "Credits"
+      7: "Hamigo"
+      8: "Event Preparation / Results"
+      9: "Synchronized Swimming"
+      10: "Other Events"
+      11: "Marathon #1"
+      12: "Marathon #2"
+      13: "Marathon #3"
+      14: "Marathon #4"
+      15: "Marathon #5"
+      16: "Results Ceremony"
+      17: "Ham Shopping Network"
+      18: "Ham Studio News"
+      19: "Ham Fortune Telling"
+      20: "Ham Studio Shows Introduction"
+      21: "BGM #1"
+      22: "BGM #2"
+      23: "BGM #3"
+      24: "BGM #4"
+      25: "BGM #5"
+      26: "BGM #6"
+      27: "BGM #7"
+      28: "BGM #8"
+      29: "BGM #9"
+      30: "BGM #10"
+      31: "BGM #11"
+      32: "Stadium Events"
+      33: "BGM #12"
+      34: "BGM #13"
+      35: "BGM #14"
+      36: "BGM #15"
+      37: "BGM #16"
+      38: "BGM #17"
+      39: "BGM #18"
+      40: "BGM #19"
+      41: "BGM #20"
+      42: "???"
+      43: "BGM #21"
+      44: "BGM #22"
+      45: "BGM #23"
+      46: "BGM #24"
+      47: "BGM #25"
+      48: "BGM #26"
+      49: "BGM #27"
+      50: "BGM #28"
+      51: "BGM #29"
+      52: "BGM #30"
+      53: "Minigame A"
+      54: "Minigame B"
+      55: "Carrobo"
+B85P_00:
+  Name: "Hamtaro - Ham-Ham Games (Europe)"
+  SoundEngineVersion: 2
+  SongTableOffsets: 0xDED20
+  VoiceTableOffset: 0xDF10C
+  SampleTableOffset: 0x100000
+  Copy: "B85A_00"

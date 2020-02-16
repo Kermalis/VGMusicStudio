@@ -139,6 +139,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             bool cont = true;
                             while (cont)
                             {
+                                int version = config.SoundEngineVersion; //Version of the engine used
+                                /*
+                                 * Version 2 adds 1 byte for the volume after every note event 
+                                 * while in version 1 the 0xF1 command is used to set the volume.
+                                 * I don't think there is any other difference besides that.
+                                 **/
                                 long offset = config.Reader.BaseStream.Position;
                                 void AddEvent(ICommand command)
                                 {
@@ -150,11 +156,25 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     case 0x00:
                                     {
                                         byte keyArg = config.Reader.ReadByte();
-                                        byte duration = config.Reader.ReadByte();
-                                        if (!EventExists(offset))
+                                        if (version==1) // Mario & Luigi
                                         {
-                                            AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                            byte duration = config.Reader.ReadByte();
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                            }
                                         }
+                                        if (version==2) // Hamtaro
+                                        {
+                                            byte volume = config.Reader.ReadByte();
+                                            byte duration = config.Reader.ReadByte();
+                                            if (!EventExists(offset))
+                                            {
+                                                AddEvent(new VolumeCommand { Volume = volume });
+                                                AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                            }
+                                        }
+                                        
                                         break;
                                     }
                                     case 0xF0:
@@ -249,9 +269,22 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                         if (cmd <= 0xEF)
                                         {
                                             byte key = config.Reader.ReadByte();
-                                            if (!EventExists(offset))
+                                             
+                                            if (version == 1) // Mario & Luigi
                                             {
-                                                AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                if (!EventExists(offset))
+                                                {
+                                                    AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                }
+                                            }
+                                            else if (version == 2) // Hamtaro
+                                            {
+                                                byte volume = config.Reader.ReadByte();
+                                                if (!EventExists(offset))
+                                                {
+                                                    AddEvent(new VolumeCommand { Volume = volume });
+                                                    AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                }
                                             }
                                         }
                                         else

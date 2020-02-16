@@ -17,6 +17,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public byte Version;
 
         public string Name;
+        public int SoundEngineVersion; //Version of the sound engine used by the game
         public int[] SongTableOffsets;
         public long[] SongTableSizes;
         public int VoiceTableOffset;
@@ -51,6 +52,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     }
 
                     YamlNode nameNode = null,
+                        soundEngineVersionNode = null,
                         songTableOffsetsNode = null,
                         voiceTableOffsetNode = null,
                         sampleTableOffsetNode = null,
@@ -74,6 +76,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         if (gameToLoad.Children.TryGetValue(nameof(Name), out node))
                         {
                             nameNode = node;
+                        }
+                        if (gameToLoad.Children.TryGetValue(nameof(SoundEngineVersion), out node))
+                        {
+                            soundEngineVersionNode = node;
                         }
                         if (gameToLoad.Children.TryGetValue(nameof(SongTableOffsets), out node))
                         {
@@ -150,6 +156,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         SongTableOffsets[i] = (int)Util.Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, maxOffset);
                         SongTableSizes[i] = Util.Utils.ParseValue(nameof(SongTableSizes), songTableSizes[i], 1, maxOffset);
                     }
+                    if (soundEngineVersionNode == null)
+                    {
+                        throw new BetterKeyNotFoundException(nameof(SoundEngineVersion), null);
+                    }
+                    SoundEngineVersion = (int)Util.Utils.ParseValue(nameof(SoundEngineVersion), soundEngineVersionNode.ToString(), 0, maxOffset);
                     if (voiceTableOffsetNode == null)
                     {
                         throw new BetterKeyNotFoundException(nameof(VoiceTableOffset), null);
