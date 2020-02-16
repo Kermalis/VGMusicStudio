@@ -466,11 +466,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 if (track.Index >= 8)
                 {
                     // TODO: "Sample" byte in VoiceEntry
-                    // TODO: Check if this check is necessary
+                    // TODO: Check if this check is necessary; edit: this check crashes the application in the 2nd version
+                    /*
                     if (track.Voice >= 190 && track.Voice < 200)
-                    {
-                        ((SquareChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, track.Volume, track.Panpot, track.GetPitch());
-                    }
+                    {*/
+                    ((SquareChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, track.Volume, track.Panpot, track.GetPitch());
+                    //}
                 }
                 else
                 {
