@@ -17,7 +17,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         private byte _tempo;
         private int _tempoStack;
         private long _elapsedLoops;
-        private bool _fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
@@ -57,8 +56,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         {
             _tempo = 120;
             _tempoStack = 0;
-            _elapsedLoops = ElapsedTicks = 0;
-            _fadeOutBegan = false;
+            _elapsedLoops = 0;
+            ElapsedTicks = 0;
+            _mixer.ResetFade();
             for (int i = 0; i < 0x10; i++)
             {
                 _tracks[i].Init();
@@ -579,8 +579,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         private void Tick()
         {
             _time.Start();
-            while (State == PlayerState.Playing || State == PlayerState.Recording)
+            while (true)
             {
+                PlayerState state = State;
+                bool playing = state == PlayerState.Playing;
+                bool recording = state == PlayerState.Recording;
+                if (!playing && !recording)
+                {
+                    goto stop;
+                }
+
+                void MixerProcess()
+                {
+                    _mixer.Process(_tracks, playing, recording);
+                }
+
                 while (_tempoStack >= 75)
                 {
                     _tempoStack -= 75;
@@ -605,9 +618,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                                     {
                                         ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
                                         _elapsedLoops++;
-                                        if (ShouldFadeOut && !_fadeOutBegan && _elapsedLoops > NumLoops)
+                                        if (ShouldFadeOut && !_mixer.IsFading() && _elapsedLoops > NumLoops)
                                         {
-                                            _fadeOutBegan = true;
                                             _mixer.BeginFadeOut();
                                         }
                                     }
@@ -636,23 +648,25 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                             }
                         }
                     }
-                    if (_fadeOutBegan && _mixer.IsFadeDone())
+                    if (_mixer.IsFadeDone())
                     {
                         allDone = true;
                     }
                     if (allDone)
                     {
+                        MixerProcess();
                         State = PlayerState.Stopped;
                         SongEnded?.Invoke();
                     }
                 }
                 _tempoStack += _tempo;
-                _mixer.Process(_tracks, State == PlayerState.Playing, State == PlayerState.Recording);
-                if (State == PlayerState.Playing)
+                MixerProcess();
+                if (playing)
                 {
                     _time.Wait();
                 }
             }
+        stop:
             _time.Stop();
         }
     }
