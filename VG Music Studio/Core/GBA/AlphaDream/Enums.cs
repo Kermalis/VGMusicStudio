@@ -2,8 +2,8 @@
 {
     internal enum AudioEngineVersion
     {
-        MLSS,
-        Hamtaro
+        Hamtaro,
+        MLSS
     }
 
     internal enum EnvelopeState

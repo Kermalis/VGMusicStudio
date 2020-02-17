@@ -8,7 +8,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public string Label => "Finish";
         public string Arguments => string.Empty;
     }
-    internal class FreeNoteCommand : ICommand
+    internal class FreeNoteHamtaroCommand : ICommand // TODO: When optimization comes, get rid of free note vs note and just have the label differ
+    {
+        public Color Color => Color.SkyBlue;
+        public string Label => "Free Note";
+        public string Arguments => $"{Util.Utils.GetNoteName(Key)} {Volume} {Duration}";
+
+        public byte Key { get; set; }
+        public byte Volume { get; set; }
+        public byte Duration { get; set; }
+    }
+    internal class FreeNoteMLSSCommand : ICommand
     {
         public Color Color => Color.SkyBlue;
         public string Label => "Free Note";
@@ -25,7 +35,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         public int Offset { get; set; }
     }
-    internal class NoteCommand : ICommand
+    internal class NoteHamtaroCommand : ICommand
+    {
+        public Color Color => Color.SkyBlue;
+        public string Label => "Note";
+        public string Arguments => $"{Util.Utils.GetNoteName(Key)} {Volume} {Duration}";
+
+        public byte Key { get; set; }
+        public byte Volume { get; set; }
+        public byte Duration { get; set; }
+    }
+    internal class NoteMLSSCommand : ICommand
     {
         public Color Color => Color.SkyBlue;
         public string Label => "Note";

@@ -152,23 +152,22 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                                         byte keyArg = config.Reader.ReadByte();
                                         switch (config.AudioEngineVersion)
                                         {
-                                            case AudioEngineVersion.MLSS:
-                                            {
-                                                byte duration = config.Reader.ReadByte();
-                                                if (!EventExists(offset))
-                                                {
-                                                    AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
-                                                }
-                                                break;
-                                            }
                                             case AudioEngineVersion.Hamtaro:
                                             {
                                                 byte volume = config.Reader.ReadByte();
                                                 byte duration = config.Reader.ReadByte();
                                                 if (!EventExists(offset))
                                                 {
-                                                    AddEvent(new VolumeCommand { Volume = volume });
-                                                    AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                                    AddEvent(new FreeNoteHamtaroCommand { Key = (byte)(keyArg - 0x80), Volume = volume, Duration = duration });
+                                                }
+                                                break;
+                                            }
+                                            case AudioEngineVersion.MLSS:
+                                            {
+                                                byte duration = config.Reader.ReadByte();
+                                                if (!EventExists(offset))
+                                                {
+                                                    AddEvent(new FreeNoteMLSSCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
                                                 }
                                                 break;
                                             }
@@ -269,21 +268,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                                             byte key = config.Reader.ReadByte();
                                             switch (config.AudioEngineVersion)
                                             {
-                                                case AudioEngineVersion.MLSS:
-                                                {
-                                                    if (!EventExists(offset))
-                                                    {
-                                                        AddEvent(new NoteCommand { Key = key, Duration = cmd });
-                                                    }
-                                                    break;
-                                                }
                                                 case AudioEngineVersion.Hamtaro:
                                                 {
                                                     byte volume = config.Reader.ReadByte();
                                                     if (!EventExists(offset))
                                                     {
-                                                        AddEvent(new VolumeCommand { Volume = volume });
-                                                        AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                        AddEvent(new NoteHamtaroCommand { Key = key, Volume = volume, Duration = cmd });
+                                                    }
+                                                    break;
+                                                }
+                                                case AudioEngineVersion.MLSS:
+                                                {
+                                                    if (!EventExists(offset))
+                                                    {
+                                                        AddEvent(new NoteMLSSCommand { Key = key, Duration = cmd });
                                                     }
                                                     break;
                                                 }
@@ -500,10 +498,25 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             ICommand cmd = ev[track.CurEvent].Command;
             switch (cmd)
             {
-                case FreeNoteCommand freeNote:
+                case FreeNoteHamtaroCommand freeNote:
+                {
+                    track.Volume = freeNote.Volume;
+                    update = true;
+                    track.Rest += freeNote.Duration;
+                    if (track.PrevCommand is FreeNoteHamtaroCommand && track.Channel.Key == freeNote.Key)
+                    {
+                        track.NoteDuration += freeNote.Duration;
+                    }
+                    else
+                    {
+                        PlayNote(track, freeNote.Key, freeNote.Duration);
+                    }
+                    break;
+                }
+                case FreeNoteMLSSCommand freeNote:
                 {
                     track.Rest += freeNote.Duration;
-                    if (track.PrevCommand is FreeNoteCommand && track.Channel.Key == freeNote.Key)
+                    if (track.PrevCommand is FreeNoteMLSSCommand && track.Channel.Key == freeNote.Key)
                     {
                         track.NoteDuration += freeNote.Duration;
                     }
@@ -527,10 +540,25 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 }
                 case TempoCommand tem: tempo = tem.Tempo; break;
                 case FinishCommand _: track.Stopped = true; increment = false; break;
-                case NoteCommand note:
+                case NoteHamtaroCommand note:
+                {
+                    track.Volume = note.Volume;
+                    update = true;
+                    track.Rest += note.Duration;
+                    if (track.PrevCommand is FreeNoteHamtaroCommand && track.Channel.Key == note.Key)
+                    {
+                        track.NoteDuration += note.Duration;
+                    }
+                    else
+                    {
+                        PlayNote(track, note.Key, note.Duration);
+                    }
+                    break;
+                }
+                case NoteMLSSCommand note:
                 {
                     track.Rest += note.Duration;
-                    if (track.PrevCommand is FreeNoteCommand && track.Channel.Key == note.Key)
+                    if (track.PrevCommand is FreeNoteMLSSCommand && track.Channel.Key == note.Key)
                     {
                         track.NoteDuration += note.Duration;
                     }
