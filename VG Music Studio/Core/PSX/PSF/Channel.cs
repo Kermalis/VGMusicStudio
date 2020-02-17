@@ -5,26 +5,28 @@
         public readonly byte Index;
 
         public Track Owner;
-        public ushort BaseTimer = NDS.Utils.ARM7_CLOCK / 44100, Timer;
+        public ushort BaseTimer = NDS.Utils.ARM7_CLOCK / 44100;
+        public ushort Timer;
         public byte NoteVelocity;
         public byte Volume = 0x7F;
         public sbyte Pan = 0x40;
         public byte BaseKey, Key;
         public byte PitchTune;
 
-        private int pos;
-        private short prevLeft, prevRight;
+        private int _pos;
+        private short _prevLeft;
+        private short _prevRight;
 
-        private long dataOffset;
-        private long loopOffset;
-        private short[] decompressedSample;
+        private long _dataOffset;
+        private long _loopOffset;
+        private short[] _decompressedSample;
 
         public Channel(byte i)
         {
             Index = i;
         }
 
-        private static readonly float[][] idk = new float[5][]
+        private static readonly float[][] _idk = new float[5][]
         {
             new float[2] { 0f, 0f },
             new float[2] { 60f / 64f, 0f },
@@ -37,12 +39,12 @@
             Stop();
             //State = EnvelopeState.Attack;
             //Velocity = -92544;
-            pos = 0;
-            prevLeft = prevRight = 0;
-            loopOffset = 0;
-            dataOffset = 0;
+            _pos = 0;
+            _prevLeft = _prevRight = 0;
+            _loopOffset = 0;
+            _dataOffset = 0;
             float prev1 = 0, prev2 = 0;
-            decompressedSample = new short[0x50000];
+            _decompressedSample = new short[0x50000];
             for (long i = 0; i < sampleSize; i += 16)
             {
                 byte b0 = exeBuffer[sampleOffset + i];
@@ -59,24 +61,24 @@
                 for (int j = 0; j < 14; j++)
                 {
                     sbyte bj = (sbyte)exeBuffer[sampleOffset + i + 2 + j];
-                    decompressedSample[pi + (j * 2)] = (short)((bj << 28) >> shift);
-                    decompressedSample[pi + (j * 2) + 1] = (short)(((bj & 0xF0) << 24) >> shift);
+                    _decompressedSample[pi + (j * 2)] = (short)((bj << 28) >> shift);
+                    _decompressedSample[pi + (j * 2) + 1] = (short)(((bj & 0xF0) << 24) >> shift);
                 }
                 if (filter == 0)
                 {
-                    prev1 = decompressedSample[pi + 27];
-                    prev2 = decompressedSample[pi + 26];
+                    prev1 = _decompressedSample[pi + 27];
+                    prev2 = _decompressedSample[pi + 26];
                 }
                 else
                 {
-                    float f1 = idk[filter][0];
-                    float f2 = idk[filter][1];
+                    float f1 = _idk[filter][0];
+                    float f2 = _idk[filter][1];
                     float p1 = prev1;
                     float p2 = prev2;
                     for (int j = 0; j < 28; j++)
                     {
-                        float t = decompressedSample[pi + j] + (p1 * f1) - (p2 * f2);
-                        decompressedSample[pi + j] = (short)t;
+                        float t = _decompressedSample[pi + j] + (p1 * f1) - (p2 * f2);
+                        _decompressedSample[pi + j] = (short)t;
                         p2 = p1;
                         p1 = t;
                     }
@@ -100,35 +102,35 @@
         {
             if (Timer != 0)
             {
-                int numSamples = (pos + 0x100) / Timer;
-                pos = (pos + 0x100) % Timer;
+                int numSamples = (_pos + 0x100) / Timer;
+                _pos = (_pos + 0x100) % Timer;
                 // prevLeft and prevRight are stored because numSamples can be 0.
                 for (int i = 0; i < numSamples; i++)
                 {
                     short samp;
                     // If hit end
-                    if (dataOffset >= decompressedSample.Length)
+                    if (_dataOffset >= _decompressedSample.Length)
                     {
                         if (true)
                         //if (swav.DoesLoop)
                         {
-                            dataOffset = loopOffset;
+                            _dataOffset = _loopOffset;
                         }
                         else
                         {
-                            left = right = prevLeft = prevRight = 0;
+                            left = right = _prevLeft = _prevRight = 0;
                             Stop();
                             return;
                         }
                     }
-                    samp = decompressedSample[dataOffset++];
+                    samp = _decompressedSample[_dataOffset++];
                     samp = (short)(samp * Volume / 0x7F);
-                    prevLeft = (short)(samp * (-Pan + 0x40) / 0x80);
-                    prevRight = (short)(samp * (Pan + 0x40) / 0x80);
+                    _prevLeft = (short)(samp * (-Pan + 0x40) / 0x80);
+                    _prevRight = (short)(samp * (Pan + 0x40) / 0x80);
                 }
             }
-            left = prevLeft;
-            right = prevRight;
+            left = _prevLeft;
+            right = _prevRight;
         }
     }
 }

@@ -49,7 +49,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
             public Tone[] Tones { get; set; }
         }
 
-        private const long InstrumentsOffset = 0x130000; // Crash Bandicoot 2
+        private const long _instrumentsOffset = 0x130000; // Crash Bandicoot 2
 
         public ushort NumPrograms { get; }
         public ushort NumTones { get; }
@@ -61,7 +61,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
         public VAB(EndianBinaryReader reader)
         {
             // Header
-            reader.BaseStream.Position = InstrumentsOffset;
+            reader.BaseStream.Position = _instrumentsOffset;
             reader.Endianness = Endianness.LittleEndian;
             reader.ReadString(4); // "pBAV"
             reader.ReadUInt32(); // Version

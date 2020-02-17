@@ -9,7 +9,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
 {
     internal class PSF
     {
-        private const int ExeBufferSize = 0x200000;
+        private const int _exeBufferSize = 0x200000;
 
         public string FilePath;
         public byte[] FileBytes;
@@ -18,7 +18,7 @@ namespace Kermalis.VGMusicStudio.Core.PSX.PSF
 
         public static void Open(string fileName, out byte[] exeBuffer, out PSF psf)
         {
-            exeBuffer = new byte[ExeBufferSize];
+            exeBuffer = new byte[_exeBufferSize];
             psf = new PSF(fileName);
             LoadLib1(psf, exeBuffer);
             PlaceEXE(psf, exeBuffer);
