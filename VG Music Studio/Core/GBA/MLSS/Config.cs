@@ -17,7 +17,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         public byte Version;
 
         public string Name;
-        public int SoundEngineVersion; //Version of the sound engine used by the game
+        public AudioEngineVersion AudioEngineVersion;
         public int[] SongTableOffsets;
         public long[] SongTableSizes;
         public int VoiceTableOffset;
@@ -52,7 +52,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     }
 
                     YamlNode nameNode = null,
-                        soundEngineVersionNode = null,
+                        audioEngineVersionNode = null,
                         songTableOffsetsNode = null,
                         voiceTableOffsetNode = null,
                         sampleTableOffsetNode = null,
@@ -77,9 +77,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         {
                             nameNode = node;
                         }
-                        if (gameToLoad.Children.TryGetValue(nameof(SoundEngineVersion), out node))
+                        if (gameToLoad.Children.TryGetValue(nameof(AudioEngineVersion), out node))
                         {
-                            soundEngineVersionNode = node;
+                            audioEngineVersionNode = node;
                         }
                         if (gameToLoad.Children.TryGetValue(nameof(SongTableOffsets), out node))
                         {
@@ -129,6 +129,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         throw new BetterKeyNotFoundException(nameof(Name), null);
                     }
                     Name = nameNode.ToString();
+                    if (audioEngineVersionNode == null)
+                    {
+                        throw new BetterKeyNotFoundException(nameof(AudioEngineVersion), null);
+                    }
+                    AudioEngineVersion = Util.Utils.ParseEnum<AudioEngineVersion>(nameof(AudioEngineVersion), audioEngineVersionNode.ToString());
                     if (songTableOffsetsNode == null)
                     {
                         throw new BetterKeyNotFoundException(nameof(SongTableOffsets), null);
@@ -156,11 +161,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         SongTableOffsets[i] = (int)Util.Utils.ParseValue(nameof(SongTableOffsets), songTables[i], 0, maxOffset);
                         SongTableSizes[i] = Util.Utils.ParseValue(nameof(SongTableSizes), songTableSizes[i], 1, maxOffset);
                     }
-                    if (soundEngineVersionNode == null)
-                    {
-                        throw new BetterKeyNotFoundException(nameof(SoundEngineVersion), null);
-                    }
-                    SoundEngineVersion = (int)Util.Utils.ParseValue(nameof(SoundEngineVersion), soundEngineVersionNode.ToString(), 0, maxOffset);
                     if (voiceTableOffsetNode == null)
                     {
                         throw new BetterKeyNotFoundException(nameof(VoiceTableOffset), null);

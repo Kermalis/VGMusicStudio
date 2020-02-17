@@ -1,6 +1,6 @@
 A88E_00:
   Name: "Mario & Luigi - Superstar Saga (USA)"
-  SoundEngineVersion: 1
+  AudioEngineVersion: "MLSS"
   SongTableOffsets: 0x21CB70
   SongTableSizes: 407
   VoiceTableOffset: 0x21D1CC
@@ -61,7 +61,6 @@ A88E_00:
       50: "Bean Time!"
 A88J_00:
   Name: "Mario & Luigi - Superstar Saga (Japan)"
-  SoundEngineVersion: 1
   SongTableOffsets: 0x205060
   SongTableSizes: 418
   VoiceTableOffset: 0x2056E8
@@ -70,14 +69,13 @@ A88J_00:
   Copy: "A88E_00"
 A88P_00:
   Name: "Mario & Luigi - Superstar Saga (Europe)"
-  SoundEngineVersion: 1
   SongTableOffsets: 0x21DC50
   VoiceTableOffset: 0x21E2AC
   SampleTableOffset: 0xA82088
   Copy: "A88E_00"
 A84P_00:
   Name: "Hamtaro - Rainbow Rescue (Europe)"
-  SoundEngineVersion: 2
+  AudioEngineVersion: "Hamtaro"
   SongTableOffsets: 0x694300
   SongTableSizes: 150
   VoiceTableOffset: 0x694558
@@ -127,14 +125,13 @@ A84P_00:
       39: "Carrobo"
 A84J_00:
   Name: "Hamtaro - Rainbow Rescue (Japan)"
-  SoundEngineVersion: 2
   SongTableOffsets: 0x4DDE20
   VoiceTableOffset: 0x4DE078
   SampleTableOffset: 0x742FFC
   Copy: "A84P_00"
 B85A_00:
   Name: "Hamtaro - Ham-Ham Games (Japan/USA)"
-  SoundEngineVersion: 2
+  AudioEngineVersion: "Hamtaro"
   SongTableOffsets: 0xDED20
   SongTableSizes: 212
   VoiceTableOffset: 0xDF10C
@@ -200,7 +197,6 @@ B85A_00:
       55: "Carrobo"
 B85P_00:
   Name: "Hamtaro - Ham-Ham Games (Europe)"
-  SoundEngineVersion: 2
   SongTableOffsets: 0xDED20
   VoiceTableOffset: 0xDF10C
   SampleTableOffset: 0x100000

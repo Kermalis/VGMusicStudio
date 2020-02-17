@@ -20,13 +20,18 @@
         public Track(byte i, Mixer mixer)
         {
             Index = i;
+            // TODO: PSG Channels 3 and 4 are also usable
             Type = i >= 8 ? i % 2 == 0 ? "Square 1" : "Square 2" : "PCM8";
             Channel = i >= 8 ? (Channel)new SquareChannel(mixer) : new PCMChannel(mixer);
         }
         public void Init()
         {
-            Voice = Rest = BendRange = NoteDuration = 0;
-            PitchBend = Panpot = 0;
+            Voice = 0;
+            Rest = 0;
+            BendRange = 2;
+            NoteDuration = 0;
+            PitchBend = 0;
+            Panpot = 0;
             CurEvent = 0;
             Stopped = false;
             Volume = 0x7F;
