@@ -263,7 +263,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                                     }
                                     default:
                                     {
-                                        if (cmd <= 0xEF)
+                                        if (cmd <= 0xDF)
                                         {
                                             byte key = _config.Reader.ReadByte();
                                             switch (_config.AudioEngineVersion)
