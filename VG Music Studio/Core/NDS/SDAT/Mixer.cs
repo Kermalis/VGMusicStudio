@@ -7,6 +7,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
     {
         private readonly float _samplesReciprocal;
         private readonly int _samplesPerBuffer;
+        private bool _isFading;
         private long _fadeMicroFramesLeft;
         private float _fadePos;
         private float _fadeStepPerMicroframe;
@@ -123,19 +124,26 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             _fadePos = 0f;
             _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
             _fadeStepPerMicroframe = 1f / _fadeMicroFramesLeft;
+            _isFading = true;
         }
         public void BeginFadeOut()
         {
             _fadePos = 1f;
             _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
             _fadeStepPerMicroframe = -1f / _fadeMicroFramesLeft;
+            _isFading = true;
+        }
+        public bool IsFading()
+        {
+            return _isFading;
         }
         public bool IsFadeDone()
         {
-            return _fadeMicroFramesLeft == 0;
+            return _isFading && _fadeMicroFramesLeft == 0;
         }
         public void ResetFade()
         {
+            _isFading = false;
             _fadeMicroFramesLeft = 0;
         }
 
@@ -164,17 +172,28 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public void Process(bool output, bool recording)
         {
-            float fromMaster = 1f, toMaster = 1f;
-            if (_fadeMicroFramesLeft > 0)
+            float masterStep;
+            float masterLevel;
+            if (_isFading && _fadeMicroFramesLeft == 0)
             {
-                const float scale = 10f / 6f;
-                fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
-                _fadePos += _fadeStepPerMicroframe;
-                toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
-                _fadeMicroFramesLeft--;
+                masterStep = 0;
+                masterLevel = 0;
             }
-            float masterStep = (toMaster - fromMaster) * _samplesReciprocal;
-            float masterLevel = fromMaster;
+            else
+            {
+                float fromMaster = 1f;
+                float toMaster = 1f;
+                if (_fadeMicroFramesLeft > 0)
+                {
+                    const float scale = 10f / 6f;
+                    fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                    _fadePos += _fadeStepPerMicroframe;
+                    toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                    _fadeMicroFramesLeft--;
+                }
+                masterStep = (toMaster - fromMaster) * _samplesReciprocal;
+                masterLevel = fromMaster;
+            }
             byte[] b = new byte[4];
             for (int i = 0; i < _samplesPerBuffer; i++)
             {

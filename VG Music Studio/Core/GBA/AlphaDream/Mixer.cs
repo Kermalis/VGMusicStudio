@@ -8,6 +8,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public readonly float SampleRateReciprocal;
         private readonly float _samplesReciprocal;
         public readonly int SamplesPerBuffer;
+        private bool _isFading;
         private long _fadeMicroFramesLeft;
         private float _fadePos;
         private float _fadeStepPerMicroframe;
@@ -49,19 +50,26 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             _fadePos = 0f;
             _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
             _fadeStepPerMicroframe = 1f / _fadeMicroFramesLeft;
+            _isFading = true;
         }
         public void BeginFadeOut()
         {
             _fadePos = 1f;
             _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
             _fadeStepPerMicroframe = -1f / _fadeMicroFramesLeft;
+            _isFading = true;
+        }
+        public bool IsFading()
+        {
+            return _isFading;
         }
         public bool IsFadeDone()
         {
-            return _fadeMicroFramesLeft == 0;
+            return _isFading && _fadeMicroFramesLeft == 0;
         }
         public void ResetFade()
         {
+            _isFading = false;
             _fadeMicroFramesLeft = 0;
         }
 
@@ -77,30 +85,42 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public void Process(Track[] tracks, bool output, bool recording)
         {
             _audio.Clear();
-            float fromMaster = 1f, toMaster = 1f;
-            if (_fadeMicroFramesLeft > 0)
+            float masterStep;
+            float masterLevel;
+            if (_isFading && _fadeMicroFramesLeft == 0)
             {
-                const float scale = 10f / 6f;
-                fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
-                _fadePos += _fadeStepPerMicroframe;
-                toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
-                _fadeMicroFramesLeft--;
+                masterStep = 0;
+                masterLevel = 0;
             }
-            float masterStep = (toMaster - fromMaster) * _samplesReciprocal;
+            else
+            {
+                float fromMaster = 1f;
+                float toMaster = 1f;
+                if (_fadeMicroFramesLeft > 0)
+                {
+                    const float scale = 10f / 6f;
+                    fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                    _fadePos += _fadeStepPerMicroframe;
+                    toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                    _fadeMicroFramesLeft--;
+                }
+                masterStep = (toMaster - fromMaster) * _samplesReciprocal;
+                masterLevel = fromMaster;
+            }
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
                 if (track.Enabled && track.NoteDuration != 0 && !track.Channel.Stopped && !Mutes[i])
                 {
-                    float masterLevel = fromMaster;
+                    float level = masterLevel;
                     float[] buf = _trackBuffers[i];
                     Array.Clear(buf, 0, buf.Length);
                     track.Channel.Process(buf);
                     for (int j = 0; j < SamplesPerBuffer; j++)
                     {
-                        _audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
-                        _audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * masterLevel;
-                        masterLevel += masterStep;
+                        _audio.FloatBuffer[j * 2] += buf[j * 2] * level;
+                        _audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * level;
+                        level += masterStep;
                     }
                 }
             }

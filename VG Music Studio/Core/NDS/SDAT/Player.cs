@@ -24,7 +24,6 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private ushort _tempo;
         private int _tempoStack;
         private long _elapsedLoops;
-        private bool _fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
@@ -64,8 +63,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             _tempo = 120; // Confirmed: default tempo is 120 (MKDS 75)
             _tempoStack = 0;
-            _elapsedLoops = ElapsedTicks = 0;
-            _fadeOutBegan = false;
+            _elapsedLoops = 0;
+            ElapsedTicks = 0;
+            _mixer.ResetFade();
             Volume = _seqInfo.Volume;
             _rand = new Random(_randSeed);
             for (int i = 0; i < 0x10; i++)
@@ -1639,8 +1639,22 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private void Tick()
         {
             _time.Start();
-            while (State == PlayerState.Playing || State == PlayerState.Recording)
+            while (true)
             {
+                PlayerState state = State;
+                bool playing = state == PlayerState.Playing;
+                bool recording = state == PlayerState.Recording;
+                if (!playing && !recording)
+                {
+                    goto stop;
+                }
+
+                void MixerProcess()
+                {
+                    _mixer.ChannelTick();
+                    _mixer.Process(playing, recording);
+                }
+
                 while (_tempoStack >= 240)
                 {
                     _tempoStack -= 240;
@@ -1664,9 +1678,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         List<long> t = Events[i][track.CurEvent].Ticks;
                                         ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
                                         _elapsedLoops++;
-                                        if (ShouldFadeOut && !_fadeOutBegan && _elapsedLoops > NumLoops)
+                                        if (ShouldFadeOut && !_mixer.IsFading() && _elapsedLoops > NumLoops)
                                         {
-                                            _fadeOutBegan = true;
                                             _mixer.BeginFadeOut();
                                         }
                                     }
@@ -1682,24 +1695,26 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                         }
                     }
-                    if (_fadeOutBegan && _mixer.IsFadeDone())
+                    if (_mixer.IsFadeDone())
                     {
                         allDone = true;
                     }
                     if (allDone)
                     {
+                        MixerProcess();
                         State = PlayerState.Stopped;
                         SongEnded?.Invoke();
+                        goto stop;
                     }
                 }
                 _tempoStack += _tempo;
-                _mixer.ChannelTick();
-                _mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
-                if (State == PlayerState.Playing)
+                MixerProcess();
+                if (playing)
                 {
                     _time.Wait();
                 }
             }
+        stop:
             _time.Stop();
         }
     }
