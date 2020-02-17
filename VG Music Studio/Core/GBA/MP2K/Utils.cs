@@ -82,7 +82,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
 
         // Pokémon Only
-        public static readonly sbyte[] CompressionLookup = { 0, 1, 4, 9, 16, 25, 36, 49, -64, -49, -36, -25, -16, -9, -4, -1 };
+        private static readonly sbyte[] _compressionLookup = new sbyte[16]
+        {
+            0, 1, 4, 9, 16, 25, 36, 49, -64, -49, -36, -25, -16, -9, -4, -1
+        };
         public static sbyte[] Decompress(int sampleOffset, int sampleLength)
         {
             var config = (Config)Engine.Instance.Config;
@@ -107,7 +110,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 {
                     if (compressionByte < 0x20)
                     {
-                        compressionLevel += CompressionLookup[b >> 4];
+                        compressionLevel += _compressionLookup[b >> 4];
                         samples.Add(compressionLevel);
                         if (++compressionIdx >= sampleLength)
                         {
@@ -115,7 +118,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         }
                     }
                     compressionByte--;
-                    compressionLevel += CompressionLookup[b & 0xF];
+                    compressionLevel += _compressionLookup[b & 0xF];
                     samples.Add(compressionLevel);
                     if (++compressionIdx >= sampleLength)
                     {

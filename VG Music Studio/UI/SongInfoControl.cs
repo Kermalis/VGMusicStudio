@@ -39,7 +39,7 @@ namespace Kermalis.VGMusicStudio.UI
                     }
                 }
             }
-            public const int MaxKeys = 33; // DSE is currently set to use 32 channels
+            public const int MaxKeys = 32 + 1; // DSE is currently set to use 32 channels
             public const int MaxTracks = 18; // PMD2 has a few songs with 18 tracks
 
             public ushort Tempo;
@@ -54,22 +54,22 @@ namespace Kermalis.VGMusicStudio.UI
             }
         }
 
-        private const int checkboxSize = 15;
+        private const int _checkboxSize = 15;
 
-        private readonly CheckBox[] mutes;
-        private readonly CheckBox[] pianos;
-        private readonly SolidBrush solidBrush = new SolidBrush(Theme.PlayerColor);
-        private readonly Pen pen = new Pen(Color.Transparent);
+        private readonly CheckBox[] _mutes;
+        private readonly CheckBox[] _pianos;
+        private readonly SolidBrush _solidBrush = new SolidBrush(Theme.PlayerColor);
+        private readonly Pen _pen = new Pen(Color.Transparent);
 
         public SongInfo Info;
-        private int numTracksToDraw;
+        private int _numTracksToDraw;
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                solidBrush.Dispose();
-                pen.Dispose();
+                _solidBrush.Dispose();
+                _pen.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -80,29 +80,29 @@ namespace Kermalis.VGMusicStudio.UI
             Font = new Font("Segoe UI", 10.5f, FontStyle.Regular, GraphicsUnit.Point);
             Size = new Size(675, 675);
 
-            pianos = new CheckBox[SongInfo.MaxTracks + 1];
-            mutes = new CheckBox[SongInfo.MaxTracks + 1];
+            _pianos = new CheckBox[SongInfo.MaxTracks + 1];
+            _mutes = new CheckBox[SongInfo.MaxTracks + 1];
             for (int i = 0; i < SongInfo.MaxTracks + 1; i++)
             {
-                pianos[i] = new CheckBox
+                _pianos[i] = new CheckBox
                 {
                     BackColor = Color.Transparent,
                     Checked = true,
-                    Size = new Size(checkboxSize, checkboxSize),
+                    Size = new Size(_checkboxSize, _checkboxSize),
                     TabStop = false
                 };
-                pianos[i].CheckStateChanged += TogglePiano;
-                mutes[i] = new CheckBox
+                _pianos[i].CheckStateChanged += TogglePiano;
+                _mutes[i] = new CheckBox
                 {
                     BackColor = Color.Transparent,
                     Checked = true,
-                    Size = new Size(checkboxSize, checkboxSize),
+                    Size = new Size(_checkboxSize, _checkboxSize),
                     TabStop = false
                 };
-                mutes[i].CheckStateChanged += ToggleMute;
+                _mutes[i].CheckStateChanged += ToggleMute;
             }
-            Controls.AddRange(pianos);
-            Controls.AddRange(mutes);
+            Controls.AddRange(_pianos);
+            Controls.AddRange(_mutes);
 
             SetNumTracks(0);
             DeleteData();
@@ -111,13 +111,13 @@ namespace Kermalis.VGMusicStudio.UI
         private void TogglePiano(object sender, EventArgs e)
         {
             var check = (CheckBox)sender;
-            CheckBox master = pianos[SongInfo.MaxTracks];
+            CheckBox master = _pianos[SongInfo.MaxTracks];
             if (check == master)
             {
                 bool b = check.CheckState != CheckState.Unchecked;
                 for (int i = 0; i < SongInfo.MaxTracks; i++)
                 {
-                    pianos[i].Checked = b;
+                    _pianos[i].Checked = b;
                 }
             }
             else
@@ -125,11 +125,11 @@ namespace Kermalis.VGMusicStudio.UI
                 int numChecked = 0;
                 for (int i = 0; i < SongInfo.MaxTracks; i++)
                 {
-                    if (pianos[i] == check)
+                    if (_pianos[i] == check)
                     {
-                        MainForm.Instance.PianoTracks[i] = pianos[i].Checked;
+                        MainForm.Instance.PianoTracks[i] = _pianos[i].Checked;
                     }
-                    if (pianos[i].Checked)
+                    if (_pianos[i].Checked)
                     {
                         numChecked++;
                     }
@@ -142,13 +142,13 @@ namespace Kermalis.VGMusicStudio.UI
         private void ToggleMute(object sender, EventArgs e)
         {
             var check = (CheckBox)sender;
-            CheckBox master = mutes[SongInfo.MaxTracks];
+            CheckBox master = _mutes[SongInfo.MaxTracks];
             if (check == master)
             {
                 bool b = check.CheckState != CheckState.Unchecked;
                 for (int i = 0; i < SongInfo.MaxTracks; i++)
                 {
-                    mutes[i].Checked = b;
+                    _mutes[i].Checked = b;
                 }
             }
             else
@@ -156,11 +156,11 @@ namespace Kermalis.VGMusicStudio.UI
                 int numChecked = 0;
                 for (int i = 0; i < SongInfo.MaxTracks; i++)
                 {
-                    if (mutes[i] == check)
+                    if (_mutes[i] == check)
                     {
                         Engine.Instance.Mixer.Mutes[i] = !check.Checked;
                     }
-                    if (mutes[i].Checked)
+                    if (_mutes[i].Checked)
                     {
                         numChecked++;
                     }
@@ -178,11 +178,11 @@ namespace Kermalis.VGMusicStudio.UI
         }
         public void SetNumTracks(int num)
         {
-            numTracksToDraw = num;
-            pianos[SongInfo.MaxTracks].Enabled = mutes[SongInfo.MaxTracks].Enabled = num > 0;
+            _numTracksToDraw = num;
+            _pianos[SongInfo.MaxTracks].Enabled = _mutes[SongInfo.MaxTracks].Enabled = num > 0;
             for (int i = 0; i < SongInfo.MaxTracks; i++)
             {
-                pianos[i].Visible = mutes[i].Visible = i < num;
+                _pianos[i].Visible = _mutes[i].Visible = i < num;
             }
             OnResize(EventArgs.Empty);
         }
@@ -190,53 +190,53 @@ namespace Kermalis.VGMusicStudio.UI
         {
             for (int i = 0; i < SongInfo.MaxTracks + 1; i++)
             {
-                CheckBox mute = mutes[i];
+                CheckBox mute = _mutes[i];
                 mute.CheckStateChanged -= ToggleMute;
                 mute.CheckState = CheckState.Checked;
                 mute.CheckStateChanged += ToggleMute;
             }
         }
 
-        private float infoHeight, infoY, positionX, keysX, delayX, typeEndX, typeX, voicesX, row2ElementAdditionX, yMargin, trackHeight, row2Offset, tempoX;
-        private int barHeight, barStartX, barWidth, bwd, barRightBoundX, barCenterX;
+        private float _infoHeight, _infoY, _positionX, _keysX, _delayX, _typeEndX, _typeX, _voicesX, _row2ElementAdditionX, _yMargin, _trackHeight, _row2Offset, _tempoX;
+        private int _barHeight, _barStartX, _barWidth, _bwd, _barRightBoundX, _barCenterX;
         protected override void OnResize(EventArgs e)
         {
-            infoHeight = Height / 30f;
-            infoY = infoHeight - (TextRenderer.MeasureText("A", Font).Height * 1.125f);
-            positionX = (checkboxSize * 2) + 2;
-            int fWidth = Width - (int)positionX; // Width between checkboxes' edges and the window edge
-            keysX = positionX + (fWidth / 4.4f);
-            delayX = positionX + (fWidth / 7.5f);
-            typeEndX = positionX + fWidth - (fWidth / 100f);
-            typeX = typeEndX - TextRenderer.MeasureText(Strings.PlayerType, Font).Width;
-            voicesX = positionX + (fWidth / 25f);
-            row2ElementAdditionX = fWidth / 15f;
+            _infoHeight = Height / 30f;
+            _infoY = _infoHeight - (TextRenderer.MeasureText("A", Font).Height * 1.125f);
+            _positionX = (_checkboxSize * 2) + 2;
+            int fWidth = Width - (int)_positionX; // Width between checkboxes' edges and the window edge
+            _keysX = _positionX + (fWidth / 4.4f);
+            _delayX = _positionX + (fWidth / 7.5f);
+            _typeEndX = _positionX + fWidth - (fWidth / 100f);
+            _typeX = _typeEndX - TextRenderer.MeasureText(Strings.PlayerType, Font).Width;
+            _voicesX = _positionX + (fWidth / 25f);
+            _row2ElementAdditionX = fWidth / 15f;
 
-            yMargin = Height / 200f;
-            trackHeight = (Height - yMargin) / ((numTracksToDraw < 16 ? 16 : numTracksToDraw) * 1.04f);
-            row2Offset = trackHeight / 2.5f;
-            barHeight = (int)(Height / 30.3f);
-            barStartX = (int)(positionX + (fWidth / 2.35f));
-            barWidth = (int)(fWidth / 2.95f);
-            bwd = barWidth % 2; // Add/Subtract by 1 if the bar width is odd
-            barRightBoundX = barStartX + barWidth - bwd;
-            barCenterX = barStartX + (barWidth / 2);
+            _yMargin = Height / 200f;
+            _trackHeight = (Height - _yMargin) / ((_numTracksToDraw < 16 ? 16 : _numTracksToDraw) * 1.04f);
+            _row2Offset = _trackHeight / 2.5f;
+            _barHeight = (int)(Height / 30.3f);
+            _barStartX = (int)(_positionX + (fWidth / 2.35f));
+            _barWidth = (int)(fWidth / 2.95f);
+            _bwd = _barWidth % 2; // Add/Subtract by 1 if the bar width is odd
+            _barRightBoundX = _barStartX + _barWidth - _bwd;
+            _barCenterX = _barStartX + (_barWidth / 2);
 
-            tempoX = barCenterX - (TextRenderer.MeasureText(string.Format("{0} - 999", Strings.PlayerTempo), Font).Width / 2);
+            _tempoX = _barCenterX - (TextRenderer.MeasureText(string.Format("{0} - 999", Strings.PlayerTempo), Font).Width / 2);
 
-            if (mutes != null)
+            if (_mutes != null)
             {
                 int x1 = 3;
-                int x2 = checkboxSize + 4;
-                int y = (int)infoY + 3;
-                mutes[SongInfo.MaxTracks].Location = new Point(x1, y);
-                pianos[SongInfo.MaxTracks].Location = new Point(x2, y);
-                for (int i = 0; i < numTracksToDraw; i++)
+                int x2 = _checkboxSize + 4;
+                int y = (int)_infoY + 3;
+                _mutes[SongInfo.MaxTracks].Location = new Point(x1, y);
+                _pianos[SongInfo.MaxTracks].Location = new Point(x2, y);
+                for (int i = 0; i < _numTracksToDraw; i++)
                 {
-                    float r1y = infoHeight + yMargin + (i * trackHeight);
+                    float r1y = _infoHeight + _yMargin + (i * _trackHeight);
                     y = (int)r1y + 4;
-                    mutes[i].Location = new Point(x1, y);
-                    pianos[i].Location = new Point(x2, y);
+                    _mutes[i].Location = new Point(x1, y);
+                    _pianos[i].Location = new Point(x2, y);
                 }
             }
 
@@ -244,52 +244,52 @@ namespace Kermalis.VGMusicStudio.UI
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            solidBrush.Color = Theme.PlayerColor;
-            e.Graphics.FillRectangle(solidBrush, e.ClipRectangle);
+            _solidBrush.Color = Theme.PlayerColor;
+            e.Graphics.FillRectangle(_solidBrush, e.ClipRectangle);
 
-            e.Graphics.DrawString(Strings.PlayerPosition, Font, Brushes.Lime, positionX, infoY);
-            e.Graphics.DrawString(Strings.PlayerRest, Font, Brushes.Crimson, delayX, infoY);
-            e.Graphics.DrawString(Strings.PlayerNotes, Font, Brushes.Turquoise, keysX, infoY);
-            e.Graphics.DrawString("L", Font, Brushes.GreenYellow, barStartX - 5, infoY);
-            e.Graphics.DrawString(string.Format("{0} - ", Strings.PlayerTempo) + Info.Tempo, Font, Brushes.Cyan, tempoX, infoY);
-            e.Graphics.DrawString("R", Font, Brushes.GreenYellow, barRightBoundX - 5, infoY);
-            e.Graphics.DrawString(Strings.PlayerType, Font, Brushes.DeepPink, typeX, infoY);
-            e.Graphics.DrawLine(Pens.Gold, 0, infoHeight, Width, infoHeight);
+            e.Graphics.DrawString(Strings.PlayerPosition, Font, Brushes.Lime, _positionX, _infoY);
+            e.Graphics.DrawString(Strings.PlayerRest, Font, Brushes.Crimson, _delayX, _infoY);
+            e.Graphics.DrawString(Strings.PlayerNotes, Font, Brushes.Turquoise, _keysX, _infoY);
+            e.Graphics.DrawString("L", Font, Brushes.GreenYellow, _barStartX - 5, _infoY);
+            e.Graphics.DrawString(string.Format("{0} - ", Strings.PlayerTempo) + Info.Tempo, Font, Brushes.Cyan, _tempoX, _infoY);
+            e.Graphics.DrawString("R", Font, Brushes.GreenYellow, _barRightBoundX - 5, _infoY);
+            e.Graphics.DrawString(Strings.PlayerType, Font, Brushes.DeepPink, _typeX, _infoY);
+            e.Graphics.DrawLine(Pens.Gold, 0, _infoHeight, Width, _infoHeight);
 
-            for (int i = 0; i < numTracksToDraw; i++)
+            for (int i = 0; i < _numTracksToDraw; i++)
             {
                 SongInfo.Track track = Info.Tracks[i];
-                float r1y = infoHeight + yMargin + (i * trackHeight); // Row 1 y
-                e.Graphics.DrawString(string.Format("0x{0:X}", track.Position), Font, Brushes.Lime, positionX, r1y);
-                e.Graphics.DrawString(track.Rest.ToString(), Font, Brushes.Crimson, delayX, r1y);
+                float r1y = _infoHeight + _yMargin + (i * _trackHeight); // Row 1 y
+                e.Graphics.DrawString(string.Format("0x{0:X}", track.Position), Font, Brushes.Lime, _positionX, r1y);
+                e.Graphics.DrawString(track.Rest.ToString(), Font, Brushes.Crimson, _delayX, r1y);
 
-                float r2y = r1y + row2Offset; // Row 2 y
-                e.Graphics.DrawString(track.Panpot.ToString(), Font, Brushes.OrangeRed, voicesX + row2ElementAdditionX, r2y);
-                e.Graphics.DrawString(track.Volume.ToString(), Font, Brushes.LightSeaGreen, voicesX + (row2ElementAdditionX * 2), r2y);
-                e.Graphics.DrawString(track.LFO.ToString(), Font, Brushes.SkyBlue, voicesX + (row2ElementAdditionX * 3), r2y);
-                e.Graphics.DrawString(track.PitchBend.ToString(), Font, Brushes.Purple, voicesX + (row2ElementAdditionX * 4), r2y);
-                e.Graphics.DrawString(track.Extra.ToString(), Font, Brushes.HotPink, voicesX + (row2ElementAdditionX * 5), r2y);
+                float r2y = r1y + _row2Offset; // Row 2 y
+                e.Graphics.DrawString(track.Panpot.ToString(), Font, Brushes.OrangeRed, _voicesX + _row2ElementAdditionX, r2y);
+                e.Graphics.DrawString(track.Volume.ToString(), Font, Brushes.LightSeaGreen, _voicesX + (_row2ElementAdditionX * 2), r2y);
+                e.Graphics.DrawString(track.LFO.ToString(), Font, Brushes.SkyBlue, _voicesX + (_row2ElementAdditionX * 3), r2y);
+                e.Graphics.DrawString(track.PitchBend.ToString(), Font, Brushes.Purple, _voicesX + (_row2ElementAdditionX * 4), r2y);
+                e.Graphics.DrawString(track.Extra.ToString(), Font, Brushes.HotPink, _voicesX + (_row2ElementAdditionX * 5), r2y);
 
-                int by = (int)(r1y + yMargin); // Bar y
-                int byh = by + barHeight;
-                e.Graphics.DrawString(track.Type, Font, Brushes.DeepPink, typeEndX - e.Graphics.MeasureString(track.Type, Font).Width, by + (row2Offset / (Font.Size / 2.5f)));
-                e.Graphics.DrawLine(Pens.GreenYellow, barStartX, by, barStartX, byh); // Left bar bound line
-                e.Graphics.DrawLine(Pens.GreenYellow, barRightBoundX, by, barRightBoundX, byh); // Right bar bound line
+                int by = (int)(r1y + _yMargin); // Bar y
+                int byh = by + _barHeight;
+                e.Graphics.DrawString(track.Type, Font, Brushes.DeepPink, _typeEndX - e.Graphics.MeasureString(track.Type, Font).Width, by + (_row2Offset / (Font.Size / 2.5f)));
+                e.Graphics.DrawLine(Pens.GreenYellow, _barStartX, by, _barStartX, byh); // Left bar bound line
+                e.Graphics.DrawLine(Pens.GreenYellow, _barRightBoundX, by, _barRightBoundX, byh); // Right bar bound line
                 if (GlobalConfig.Instance.PanpotIndicators)
                 {
-                    int pax = (int)(barStartX + (barWidth / 2) + (barWidth / 2 * (track.Panpot / (float)0x40))); // Pan line x
+                    int pax = (int)(_barStartX + (_barWidth / 2) + (_barWidth / 2 * (track.Panpot / (float)0x40))); // Pan line x
                     e.Graphics.DrawLine(Pens.OrangeRed, pax, by, pax, byh); // Pan line
                 }
 
                 {
                     Color color = GlobalConfig.Instance.Colors[track.Voice];
-                    solidBrush.Color = color;
-                    pen.Color = color;
-                    e.Graphics.DrawString(track.Voice.ToString(), Font, solidBrush, voicesX, r2y);
-                    var rect = new Rectangle((int)(barStartX + (barWidth / 2) - (track.LeftVolume * barWidth / 2)) + bwd,
+                    _solidBrush.Color = color;
+                    _pen.Color = color;
+                    e.Graphics.DrawString(track.Voice.ToString(), Font, _solidBrush, _voicesX, r2y);
+                    var rect = new Rectangle((int)(_barStartX + (_barWidth / 2) - (track.LeftVolume * _barWidth / 2)) + _bwd,
                             by,
-                            (int)((track.LeftVolume + track.RightVolume) * barWidth / 2),
-                            barHeight);
+                            (int)((track.LeftVolume + track.RightVolume) * _barWidth / 2),
+                            _barHeight);
                     if (!rect.IsEmpty)
                     {
                         float velocity = (track.LeftVolume + track.RightVolume) * 2f;
@@ -297,13 +297,13 @@ namespace Kermalis.VGMusicStudio.UI
                         {
                             velocity = 1f;
                         }
-                        solidBrush.Color = Color.FromArgb((byte)(velocity * byte.MaxValue), color);
-                        e.Graphics.FillRectangle(solidBrush, rect);
-                        e.Graphics.DrawRectangle(pen, rect);
+                        _solidBrush.Color = Color.FromArgb((byte)(velocity * byte.MaxValue), color);
+                        e.Graphics.FillRectangle(_solidBrush, rect);
+                        e.Graphics.DrawRectangle(_pen, rect);
                     }
                     if (GlobalConfig.Instance.CenterIndicators)
                     {
-                        e.Graphics.DrawLine(pen, barCenterX, by, barCenterX, byh); // Center line
+                        e.Graphics.DrawLine(_pen, _barCenterX, by, _barCenterX, byh); // Center line
                     }
                 }
                 {
@@ -344,7 +344,7 @@ namespace Kermalis.VGMusicStudio.UI
                     }
                     if (keysString != string.Empty)
                     {
-                        e.Graphics.DrawString(keysString, Font, Brushes.Turquoise, keysX, r1y);
+                        e.Graphics.DrawString(keysString, Font, Brushes.Turquoise, _keysX, r1y);
                     }
                 }
             }

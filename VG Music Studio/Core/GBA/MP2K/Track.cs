@@ -81,7 +81,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             LFOPhase = 0;
             LFODepth = 0;
             CallStackDepth = 0;
-            PitchBend = 0; 
+            PitchBend = 0;
             Tune = 0;
             Panpot = 0;
             Transpose = 0;

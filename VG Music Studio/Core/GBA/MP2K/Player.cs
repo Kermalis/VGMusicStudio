@@ -17,57 +17,57 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             public List<(int AbsoluteTick, (byte Numerator, byte Denominator))> TimeSignatures;
         }
 
-        private readonly Mixer mixer;
-        private readonly Config config;
-        private readonly TimeBarrier time;
-        private Thread thread;
-        private int voiceTableOffset = -1;
-        private Track[] tracks;
-        private ushort tempo;
-        private int tempoStack;
-        private long elapsedLoops;
-        private bool fadeOutBegan;
+        private readonly Mixer _mixer;
+        private readonly Config _config;
+        private readonly TimeBarrier _time;
+        private Thread _thread;
+        private int _voiceTableOffset = -1;
+        private Track[] _tracks;
+        private ushort _tempo;
+        private int _tempoStack;
+        private long _elapsedLoops;
+        private bool _fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
         public long ElapsedTicks { get; private set; }
         public bool ShouldFadeOut { get; set; }
         public long NumLoops { get; set; }
-        private int longestTrack;
+        private int _longestTrack;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
         public Player(Mixer mixer, Config config)
         {
-            this.mixer = mixer;
-            this.config = config;
+            _mixer = mixer;
+            _config = config;
 
-            time = new TimeBarrier(GBA.Utils.AGB_FPS);
+            _time = new TimeBarrier(GBA.Utils.AGB_FPS);
         }
         private void CreateThread()
         {
-            thread = new Thread(Tick) { Name = "MP2K Player Tick" };
-            thread.Start();
+            _thread = new Thread(Tick) { Name = "MP2K Player Tick" };
+            _thread.Start();
         }
         private void WaitThread()
         {
-            if (thread != null && (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin))
+            if (_thread != null && (_thread.ThreadState == ThreadState.Running || _thread.ThreadState == ThreadState.WaitSleepJoin))
             {
-                thread.Join();
+                _thread.Join();
             }
         }
 
         private void InitEmulation()
         {
-            tempo = 150;
-            tempoStack = 0;
-            elapsedLoops = 0;
+            _tempo = 150;
+            _tempoStack = 0;
+            _elapsedLoops = 0;
             ElapsedTicks = 0;
-            fadeOutBegan = false;
-            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
+            _fadeOutBegan = false;
+            for (int trackIndex = 0; trackIndex < _tracks.Length; trackIndex++)
             {
-                tracks[trackIndex].Init();
+                _tracks[trackIndex].Init();
             }
         }
         private void SetTicks()
@@ -78,7 +78,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             {
                 Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
                 List<SongEvent> evs = Events[trackIndex];
-                Track track = tracks[trackIndex];
+                Track track = _tracks[trackIndex];
                 track.Init();
                 ElapsedTicks = 0;
                 while (true)
@@ -105,7 +105,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 if (ElapsedTicks > MaxTicks)
                 {
-                    longestTrack = trackIndex;
+                    _longestTrack = trackIndex;
                     MaxTicks = ElapsedTicks;
                 }
                 track.StopAllChannels();
@@ -113,29 +113,29 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public void LoadSong(long index)
         {
-            if (tracks != null)
+            if (_tracks != null)
             {
-                for (int i = 0; i < tracks.Length; i++)
+                for (int i = 0; i < _tracks.Length; i++)
                 {
-                    tracks[i].StopAllChannels();
+                    _tracks[i].StopAllChannels();
                 }
-                tracks = null;
+                _tracks = null;
             }
             Events = null;
-            SongEntry entry = config.Reader.ReadObject<SongEntry>(config.SongTableOffsets[0] + (index * 8));
-            SongHeader header = config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
-            int oldVoiceTableOffset = voiceTableOffset;
-            voiceTableOffset = header.VoiceTableOffset - GBA.Utils.CartridgeOffset;
-            if (oldVoiceTableOffset != voiceTableOffset)
+            SongEntry entry = _config.Reader.ReadObject<SongEntry>(_config.SongTableOffsets[0] + (index * 8));
+            SongHeader header = _config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
+            int oldVoiceTableOffset = _voiceTableOffset;
+            _voiceTableOffset = header.VoiceTableOffset - GBA.Utils.CartridgeOffset;
+            if (oldVoiceTableOffset != _voiceTableOffset)
             {
-                voiceTypeCache = new string[byte.MaxValue + 1];
+                _voiceTypeCache = new string[byte.MaxValue + 1];
             }
-            tracks = new Track[header.NumTracks];
+            _tracks = new Track[header.NumTracks];
             Events = new List<SongEvent>[header.NumTracks];
             for (byte trackIndex = 0; trackIndex < header.NumTracks; trackIndex++)
             {
                 long trackStart = header.TrackOffsets[trackIndex] - GBA.Utils.CartridgeOffset;
-                tracks[trackIndex] = new Track(trackIndex, trackStart);
+                _tracks[trackIndex] = new Track(trackIndex, trackStart);
                 Events[trackIndex] = new List<SongEvent>();
                 bool EventExists(long offset)
                 {
@@ -147,11 +147,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 AddEvents(trackStart);
                 void AddEvents(long startOffset)
                 {
-                    config.Reader.BaseStream.Position = startOffset;
+                    _config.Reader.BaseStream.Position = startOffset;
                     bool cont = true;
                     while (cont)
                     {
-                        long offset = config.Reader.BaseStream.Position;
+                        long offset = _config.Reader.BaseStream.Position;
                         void AddEvent(ICommand command)
                         {
                             Events[trackIndex].Add(new SongEvent(offset, command));
@@ -171,7 +171,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                         }
 
-                        byte cmd = config.Reader.ReadByte();
+                        byte cmd = _config.Reader.ReadByte();
                         if (cmd >= 0xBD) // Commands that work within running status
                         {
                             runCmd = cmd;
@@ -182,7 +182,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         if (runCmd >= 0xCF && cmd <= 0x7F) // Within running status
                         {
                             byte velocity, addedDuration;
-                            byte[] peek = config.Reader.PeekBytes(2);
+                            byte[] peek = _config.Reader.PeekBytes(2);
                             if (peek[0] > 0x7F)
                             {
                                 velocity = prevVelocity;
@@ -190,20 +190,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             else if (peek[1] > 3)
                             {
-                                velocity = config.Reader.ReadByte();
+                                velocity = _config.Reader.ReadByte();
                                 addedDuration = 0;
                             }
                             else
                             {
-                                velocity = config.Reader.ReadByte();
-                                addedDuration = config.Reader.ReadByte();
+                                velocity = _config.Reader.ReadByte();
+                                addedDuration = _config.Reader.ReadByte();
                             }
                             EmulateNote(cmd, velocity, addedDuration);
                         }
                         else if (cmd >= 0xCF)
                         {
                             byte key, velocity, addedDuration;
-                            byte[] peek = config.Reader.PeekBytes(3);
+                            byte[] peek = _config.Reader.PeekBytes(3);
                             if (peek[0] > 0x7F)
                             {
                                 key = prevKey;
@@ -212,22 +212,22 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             else if (peek[1] > 0x7F)
                             {
-                                key = config.Reader.ReadByte();
+                                key = _config.Reader.ReadByte();
                                 velocity = prevVelocity;
                                 addedDuration = 0;
                             }
                             // TIE (0xCF) cannot have an added duration so it needs to stop here
                             else if (cmd == 0xCF || peek[2] > 3)
                             {
-                                key = config.Reader.ReadByte();
-                                velocity = config.Reader.ReadByte();
+                                key = _config.Reader.ReadByte();
+                                velocity = _config.Reader.ReadByte();
                                 addedDuration = 0;
                             }
                             else
                             {
-                                key = config.Reader.ReadByte();
-                                velocity = config.Reader.ReadByte();
-                                addedDuration = config.Reader.ReadByte();
+                                key = _config.Reader.ReadByte();
+                                velocity = _config.Reader.ReadByte();
+                                addedDuration = _config.Reader.ReadByte();
                             }
                             EmulateNote(key, velocity, addedDuration);
                         }
@@ -334,7 +334,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xCD:
                                 {
-                                    byte arg = config.Reader.ReadByte();
+                                    byte arg = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new LibraryCommand { Command = cmd, Argument = arg });
@@ -369,7 +369,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xB2:
                                 {
-                                    int jumpOffset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
+                                    int jumpOffset = _config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new JumpCommand { Offset = jumpOffset });
@@ -383,17 +383,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xB3:
                                 {
-                                    int callOffset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
+                                    int callOffset = _config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new CallCommand { Offset = callOffset });
                                     }
                                     if (callStackDepth < 3)
                                     {
-                                        long backup = config.Reader.BaseStream.Position;
+                                        long backup = _config.Reader.BaseStream.Position;
                                         callStackDepth++;
                                         AddEvents(callOffset);
-                                        config.Reader.BaseStream.Position = backup;
+                                        _config.Reader.BaseStream.Position = backup;
                                     }
                                     else
                                     {
@@ -426,9 +426,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }*/
                                 case 0xB9:
                                 {
-                                    byte op = config.Reader.ReadByte();
-                                    byte address = config.Reader.ReadByte();
-                                    byte data = config.Reader.ReadByte();
+                                    byte op = _config.Reader.ReadByte();
+                                    byte address = _config.Reader.ReadByte();
+                                    byte data = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new MemoryAccessCommand { Operator = op, Address = address, Data = data });
@@ -437,7 +437,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xBA:
                                 {
-                                    byte priority = config.Reader.ReadByte();
+                                    byte priority = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new PriorityCommand { Priority = priority });
@@ -446,7 +446,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xBB:
                                 {
-                                    byte tempoArg = config.Reader.ReadByte();
+                                    byte tempoArg = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new TempoCommand { Tempo = (ushort)(tempoArg * 2) });
@@ -455,7 +455,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xBC:
                                 {
-                                    sbyte transpose = config.Reader.ReadSByte();
+                                    sbyte transpose = _config.Reader.ReadSByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new TransposeCommand { Transpose = transpose });
@@ -465,7 +465,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 // Commands that work within running status:
                                 case 0xBD:
                                 {
-                                    byte voice = config.Reader.ReadByte();
+                                    byte voice = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new VoiceCommand { Voice = voice });
@@ -474,7 +474,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xBE:
                                 {
-                                    byte volume = config.Reader.ReadByte();
+                                    byte volume = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new VolumeCommand { Volume = volume });
@@ -483,7 +483,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xBF:
                                 {
-                                    byte panArg = config.Reader.ReadByte();
+                                    byte panArg = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new PanpotCommand { Panpot = (sbyte)(panArg - 0x40) });
@@ -492,7 +492,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xC0:
                                 {
-                                    byte bendArg = config.Reader.ReadByte();
+                                    byte bendArg = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new PitchBendCommand { Bend = (sbyte)(bendArg - 0x40) });
@@ -501,7 +501,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xC1:
                                 {
-                                    byte range = config.Reader.ReadByte();
+                                    byte range = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new PitchBendRangeCommand { Range = range });
@@ -510,7 +510,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xC2:
                                 {
-                                    byte speed = config.Reader.ReadByte();
+                                    byte speed = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new LFOSpeedCommand { Speed = speed });
@@ -519,7 +519,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xC3:
                                 {
-                                    byte delay = config.Reader.ReadByte();
+                                    byte delay = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new LFODelayCommand { Delay = delay });
@@ -528,7 +528,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xC4:
                                 {
-                                    byte depth = config.Reader.ReadByte();
+                                    byte depth = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new LFODepthCommand { Depth = depth });
@@ -537,7 +537,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xC5:
                                 {
-                                    byte type = config.Reader.ReadByte();
+                                    byte type = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new LFOTypeCommand { Type = (LFOType)type });
@@ -546,7 +546,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xC8:
                                 {
-                                    byte tuneArg = config.Reader.ReadByte();
+                                    byte tuneArg = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new TuneCommand { Tune = (sbyte)(tuneArg - 0x40) });
@@ -555,8 +555,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xCD:
                                 {
-                                    byte command = config.Reader.ReadByte();
-                                    byte arg = config.Reader.ReadByte();
+                                    byte command = _config.Reader.ReadByte();
+                                    byte arg = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new LibraryCommand { Command = command, Argument = arg });
@@ -565,7 +565,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 }
                                 case 0xCE:
                                 {
-                                    int key = config.Reader.PeekByte() <= 0x7F ? (prevKey = config.Reader.ReadByte()) : -1;
+                                    int key = _config.Reader.PeekByte() <= 0x7F ? (prevKey = _config.Reader.ReadByte()) : -1;
                                     if (!EventExists(offset))
                                     {
                                         AddEvent(new EndOfTieCommand { Key = key });
@@ -604,12 +604,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     else
                     {
-                        while (tempoStack >= 150)
+                        while (_tempoStack >= 150)
                         {
-                            tempoStack -= 150;
-                            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
+                            _tempoStack -= 150;
+                            for (int trackIndex = 0; trackIndex < _tracks.Length; trackIndex++)
                             {
-                                Track track = tracks[trackIndex];
+                                Track track = _tracks[trackIndex];
                                 if (!track.Stopped)
                                 {
                                     track.Tick();
@@ -625,13 +625,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 goto finish;
                             }
                         }
-                        tempoStack += tempo;
+                        _tempoStack += _tempo;
                     }
                 }
             finish:
-                for (int i = 0; i < tracks.Length; i++)
+                for (int i = 0; i < _tracks.Length; i++)
                 {
-                    tracks[i].StopAllChannels();
+                    _tracks[i].StopAllChannels();
                 }
                 Pause();
             }
@@ -906,12 +906,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public void Record(string fileName)
         {
-            mixer.CreateWaveWriter(fileName);
+            _mixer.CreateWaveWriter(fileName);
             InitEmulation();
             State = PlayerState.Recording;
             CreateThread();
             WaitThread();
-            mixer.CloseWaveWriter();
+            _mixer.CloseWaveWriter();
         }
         public void Dispose()
         {
@@ -921,45 +921,45 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 WaitThread();
             }
         }
-        private string[] voiceTypeCache;
+        private string[] _voiceTypeCache;
         public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
-            info.Tempo = tempo;
-            for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
+            info.Tempo = _tempo;
+            for (int trackIndex = 0; trackIndex < _tracks.Length; trackIndex++)
             {
-                Track track = tracks[trackIndex];
+                Track track = _tracks[trackIndex];
                 UI.SongInfoControl.SongInfo.Track tin = info.Tracks[trackIndex];
                 tin.Position = track.CurOffset;
                 tin.Rest = track.Rest;
                 tin.Voice = track.Voice;
                 tin.LFO = track.LFODepth;
-                if (voiceTypeCache[track.Voice] == null)
+                if (_voiceTypeCache[track.Voice] == null)
                 {
-                    byte t = config.ROM[voiceTableOffset + (track.Voice * 0xC)];
+                    byte t = _config.ROM[_voiceTableOffset + (track.Voice * 0xC)];
                     if (t == (byte)VoiceFlags.KeySplit)
                     {
-                        voiceTypeCache[track.Voice] = "Key Split";
+                        _voiceTypeCache[track.Voice] = "Key Split";
                     }
                     else if (t == (byte)VoiceFlags.Drum)
                     {
-                        voiceTypeCache[track.Voice] = "Drum";
+                        _voiceTypeCache[track.Voice] = "Drum";
                     }
                     else
                     {
                         switch ((VoiceType)(t & 0x7))
                         {
-                            case VoiceType.PCM8: voiceTypeCache[track.Voice] = "PCM8"; break; // TODO: Golden Sun
-                            case VoiceType.Square1: voiceTypeCache[track.Voice] = "Square 1"; break;
-                            case VoiceType.Square2: voiceTypeCache[track.Voice] = "Square 2"; break;
-                            case VoiceType.PCM4: voiceTypeCache[track.Voice] = "PCM4"; break;
-                            case VoiceType.Noise: voiceTypeCache[track.Voice] = "Noise"; break;
-                            case VoiceType.Invalid5: voiceTypeCache[track.Voice] = "Invalid 5"; break;
-                            case VoiceType.Invalid6: voiceTypeCache[track.Voice] = "Invalid 6"; break;
-                            case VoiceType.Invalid7: voiceTypeCache[track.Voice] = "Invalid 7"; break;
+                            case VoiceType.PCM8: _voiceTypeCache[track.Voice] = "PCM8"; break;
+                            case VoiceType.Square1: _voiceTypeCache[track.Voice] = "Square 1"; break;
+                            case VoiceType.Square2: _voiceTypeCache[track.Voice] = "Square 2"; break;
+                            case VoiceType.PCM4: _voiceTypeCache[track.Voice] = "PCM4"; break;
+                            case VoiceType.Noise: _voiceTypeCache[track.Voice] = "Noise"; break;
+                            case VoiceType.Invalid5: _voiceTypeCache[track.Voice] = "Invalid 5"; break;
+                            case VoiceType.Invalid6: _voiceTypeCache[track.Voice] = "Invalid 6"; break;
+                            case VoiceType.Invalid7: _voiceTypeCache[track.Voice] = "Invalid 7"; break;
                         }
                     }
                 }
-                tin.Type = voiceTypeCache[track.Voice];
+                tin.Type = _voiceTypeCache[track.Voice];
                 tin.Volume = track.GetVolume();
                 tin.PitchBend = track.GetPitch();
                 tin.Panpot = track.GetPanpot();
@@ -1018,14 +1018,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             if (track.Ready)
             {
                 bool fromDrum = false;
-                int offset = voiceTableOffset + (track.Voice * 12);
+                int offset = _voiceTableOffset + (track.Voice * 12);
                 while (true)
                 {
-                    VoiceEntry v = config.Reader.ReadObject<VoiceEntry>(offset);
+                    VoiceEntry v = _config.Reader.ReadObject<VoiceEntry>(offset);
                     if (v.Type == (int)VoiceFlags.KeySplit)
                     {
                         fromDrum = false; // In case there is a multi within a drum
-                        byte inst = config.Reader.ReadByte(v.Int8 - GBA.Utils.CartridgeOffset + key);
+                        byte inst = _config.Reader.ReadByte(v.Int8 - GBA.Utils.CartridgeOffset + key);
                         offset = v.Int4 - GBA.Utils.CartridgeOffset + (inst * 12);
                     }
                     else if (v.Type == (int)VoiceFlags.Drum)
@@ -1048,8 +1048,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             case VoiceType.PCM8:
                             {
                                 bool bFixed = (v.Type & (int)VoiceFlags.Fixed) != 0;
-                                bool bCompressed = config.HasPokemonCompression && ((v.Type & (int)VoiceFlags.Compressed) != 0);
-                                mixer.AllocPCM8Channel(track, v.ADSR, note,
+                                bool bCompressed = _config.HasPokemonCompression && ((v.Type & (int)VoiceFlags.Compressed) != 0);
+                                _mixer.AllocPCM8Channel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     bFixed, bCompressed, v.Int4 - GBA.Utils.CartridgeOffset);
                                 return;
@@ -1057,21 +1057,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             case VoiceType.Square1:
                             case VoiceType.Square2:
                             {
-                                mixer.AllocPSGChannel(track, v.ADSR, note,
+                                _mixer.AllocPSGChannel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     type, (SquarePattern)v.Int4);
                                 return;
                             }
                             case VoiceType.PCM4:
                             {
-                                mixer.AllocPSGChannel(track, v.ADSR, note,
+                                _mixer.AllocPSGChannel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     type, v.Int4 - GBA.Utils.CartridgeOffset);
                                 return;
                             }
                             case VoiceType.Noise:
                             {
-                                mixer.AllocPSGChannel(track, v.ADSR, note,
+                                _mixer.AllocPSGChannel(track, v.ADSR, note,
                                     track.GetVolume(), track.GetPanpot(), track.GetPitch(),
                                     type, (NoisePattern)v.Int4);
                                 return;
@@ -1083,15 +1083,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         private void ExecuteNext(Track track, ref bool update)
         {
-            byte cmd = config.ROM[track.CurOffset++];
+            byte cmd = _config.ROM[track.CurOffset++];
             if (cmd >= 0xBD) // Commands that work within running status
             {
                 track.RunCmd = cmd;
             }
             if (track.RunCmd >= 0xCF && cmd <= 0x7F) // Within running status
             {
-                byte peek0 = config.ROM[track.CurOffset];
-                byte peek1 = config.ROM[track.CurOffset + 1];
+                byte peek0 = _config.ROM[track.CurOffset];
+                byte peek1 = _config.ROM[track.CurOffset + 1];
                 byte velocity, addedDuration;
                 if (peek0 > 0x7F)
                 {
@@ -1114,9 +1114,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
             else if (cmd >= 0xCF)
             {
-                byte peek0 = config.ROM[track.CurOffset];
-                byte peek1 = config.ROM[track.CurOffset + 1];
-                byte peek2 = config.ROM[track.CurOffset + 2];
+                byte peek0 = _config.ROM[track.CurOffset];
+                byte peek1 = _config.ROM[track.CurOffset + 1];
+                byte peek2 = _config.ROM[track.CurOffset + 2];
                 byte key, velocity, addedDuration;
                 if (peek0 > 0x7F)
                 {
@@ -1255,14 +1255,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xB2:
                     {
-                        track.CurOffset = (config.ROM[track.CurOffset++] | (config.ROM[track.CurOffset++] << 8) | (config.ROM[track.CurOffset++] << 16) | (config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                        track.CurOffset = (_config.ROM[track.CurOffset++] | (_config.ROM[track.CurOffset++] << 8) | (_config.ROM[track.CurOffset++] << 16) | (_config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
                         break;
                     }
                     case 0xB3:
                     {
                         if (track.CallStackDepth < 3)
                         {
-                            long callOffset = (config.ROM[track.CurOffset++] | (config.ROM[track.CurOffset++] << 8) | (config.ROM[track.CurOffset++] << 16) | (config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                            long callOffset = (_config.ROM[track.CurOffset++] | (_config.ROM[track.CurOffset++] << 8) | (_config.ROM[track.CurOffset++] << 16) | (_config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
                             track.CallStack[track.CallStackDepth] = track.CurOffset;
                             track.CallStackDepth++;
                             track.CurOffset = callOffset;
@@ -1299,53 +1299,53 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xBA:
                     {
-                        track.Priority = config.ROM[track.CurOffset++];
+                        track.Priority = _config.ROM[track.CurOffset++];
                         break;
                     }
                     case 0xBB:
                     {
-                        tempo = (ushort)(config.ROM[track.CurOffset++] * 2);
+                        _tempo = (ushort)(_config.ROM[track.CurOffset++] * 2);
                         break;
                     }
                     case 0xBC:
                     {
-                        track.Transpose = (sbyte)config.ROM[track.CurOffset++];
+                        track.Transpose = (sbyte)_config.ROM[track.CurOffset++];
                         break;
                     }
                     // Commands that work within running status:
                     case 0xBD:
                     {
-                        track.Voice = config.ROM[track.CurOffset++];
+                        track.Voice = _config.ROM[track.CurOffset++];
                         track.Ready = true;
                         break;
                     }
                     case 0xBE:
                     {
-                        track.Volume = config.ROM[track.CurOffset++];
+                        track.Volume = _config.ROM[track.CurOffset++];
                         update = true;
                         break;
                     }
                     case 0xBF:
                     {
-                        track.Panpot = (sbyte)(config.ROM[track.CurOffset++] - 0x40);
+                        track.Panpot = (sbyte)(_config.ROM[track.CurOffset++] - 0x40);
                         update = true;
                         break;
                     }
                     case 0xC0:
                     {
-                        track.PitchBend = (sbyte)(config.ROM[track.CurOffset++] - 0x40);
+                        track.PitchBend = (sbyte)(_config.ROM[track.CurOffset++] - 0x40);
                         update = true;
                         break;
                     }
                     case 0xC1:
                     {
-                        track.PitchBendRange = config.ROM[track.CurOffset++];
+                        track.PitchBendRange = _config.ROM[track.CurOffset++];
                         update = true;
                         break;
                     }
                     case 0xC2:
                     {
-                        track.LFOSpeed = config.ROM[track.CurOffset++];
+                        track.LFOSpeed = _config.ROM[track.CurOffset++];
                         track.LFOPhase = 0;
                         track.LFODelayCount = 0;
                         update = true;
@@ -1353,7 +1353,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xC3:
                     {
-                        track.LFODelay = config.ROM[track.CurOffset++];
+                        track.LFODelay = _config.ROM[track.CurOffset++];
                         track.LFOPhase = 0;
                         track.LFODelayCount = 0;
                         update = true;
@@ -1361,19 +1361,19 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xC4:
                     {
-                        track.LFODepth = config.ROM[track.CurOffset++];
+                        track.LFODepth = _config.ROM[track.CurOffset++];
                         update = true;
                         break;
                     }
                     case 0xC5:
                     {
-                        track.LFOType = (LFOType)config.ROM[track.CurOffset++];
+                        track.LFOType = (LFOType)_config.ROM[track.CurOffset++];
                         update = true;
                         break;
                     }
                     case 0xC8:
                     {
-                        track.Tune = (sbyte)(config.ROM[track.CurOffset++] - 0x40);
+                        track.Tune = (sbyte)(_config.ROM[track.CurOffset++] - 0x40);
                         update = true;
                         break;
                     }
@@ -1384,7 +1384,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xCE:
                     {
-                        byte peek = config.ROM[track.CurOffset];
+                        byte peek = _config.ROM[track.CurOffset];
                         if (peek > 0x7F)
                         {
                             track.ReleaseChannels(track.PrevKey);
@@ -1413,23 +1413,23 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         private void Tick()
         {
-            time.Start();
+            _time.Start();
             while (State == PlayerState.Playing || State == PlayerState.Recording)
             {
-                while (tempoStack >= 150)
+                while (_tempoStack >= 150)
                 {
-                    tempoStack -= 150;
+                    _tempoStack -= 150;
                     bool allDone = true;
-                    for (int trackIndex = 0; trackIndex < tracks.Length; trackIndex++)
+                    for (int trackIndex = 0; trackIndex < _tracks.Length; trackIndex++)
                     {
-                        Track track = tracks[trackIndex];
+                        Track track = _tracks[trackIndex];
                         track.Tick();
                         bool update = false;
                         while (track.Rest == 0 && !track.Stopped)
                         {
                             ExecuteNext(track, ref update);
                         }
-                        if (trackIndex == longestTrack)
+                        if (trackIndex == _longestTrack)
                         {
                             if (ElapsedTicks == MaxTicks)
                             {
@@ -1445,11 +1445,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                             break;
                                         }
                                     }
-                                    elapsedLoops++;
-                                    if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
+                                    _elapsedLoops++;
+                                    if (ShouldFadeOut && !_fadeOutBegan && _elapsedLoops > NumLoops)
                                     {
-                                        fadeOutBegan = true;
-                                        mixer.BeginFadeOut();
+                                        _fadeOutBegan = true;
+                                        _mixer.BeginFadeOut();
                                     }
                                 }
                             }
@@ -1471,7 +1471,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                         }
                     }
-                    if (fadeOutBegan && mixer.IsFadeDone())
+                    if (_fadeOutBegan && _mixer.IsFadeDone())
                     {
                         allDone = true;
                     }
@@ -1481,14 +1481,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         SongEnded?.Invoke();
                     }
                 }
-                tempoStack += tempo;
-                mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
+                _tempoStack += _tempo;
+                _mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
                 if (State == PlayerState.Playing)
                 {
-                    time.Wait();
+                    _time.Wait();
                 }
             }
-            time.Stop();
+            _time.Stop();
         }
     }
 }

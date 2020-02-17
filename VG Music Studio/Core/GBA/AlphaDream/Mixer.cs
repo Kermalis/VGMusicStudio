@@ -6,16 +6,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
     internal class Mixer : Core.Mixer
     {
         public readonly float SampleRateReciprocal;
-        private readonly float samplesReciprocal;
+        private readonly float _samplesReciprocal;
         public readonly int SamplesPerBuffer;
-        private long fadeMicroFramesLeft;
-        private float fadePos;
-        private float fadeStepPerMicroframe;
+        private long _fadeMicroFramesLeft;
+        private float _fadePos;
+        private float _fadeStepPerMicroframe;
 
         public readonly Config Config;
-        private readonly WaveBuffer audio;
-        private readonly float[][] trackBuffers = new float[0x10][];
-        private readonly BufferedWaveProvider buffer;
+        private readonly WaveBuffer _audio;
+        private readonly float[][] _trackBuffers = new float[0x10][];
+        private readonly BufferedWaveProvider _buffer;
 
         public Mixer(Config config)
         {
@@ -23,20 +23,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             const int sampleRate = 13379; // TODO: Actual value unknown
             SamplesPerBuffer = 224; // TODO
             SampleRateReciprocal = 1f / sampleRate;
-            samplesReciprocal = 1f / SamplesPerBuffer;
+            _samplesReciprocal = 1f / SamplesPerBuffer;
 
             int amt = SamplesPerBuffer * 2;
-            audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
+            _audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
             for (int i = 0; i < 0x10; i++)
             {
-                trackBuffers[i] = new float[amt];
+                _trackBuffers[i] = new float[amt];
             }
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, 2)) // TODO
+            _buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, 2)) // TODO
             {
                 DiscardOnBufferOverflow = true,
                 BufferLength = SamplesPerBuffer * 64
             };
-            Init(buffer);
+            Init(_buffer);
         }
         public override void Dispose()
         {
@@ -46,71 +46,71 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         public void BeginFadeIn()
         {
-            fadePos = 0f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
-            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+            _fadePos = 0f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
+            _fadeStepPerMicroframe = 1f / _fadeMicroFramesLeft;
         }
         public void BeginFadeOut()
         {
-            fadePos = 1f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
-            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+            _fadePos = 1f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * Utils.AGB_FPS);
+            _fadeStepPerMicroframe = -1f / _fadeMicroFramesLeft;
         }
         public bool IsFadeDone()
         {
-            return fadeMicroFramesLeft == 0;
+            return _fadeMicroFramesLeft == 0;
         }
         public void ResetFade()
         {
-            fadeMicroFramesLeft = 0;
+            _fadeMicroFramesLeft = 0;
         }
 
-        private WaveFileWriter waveWriter;
+        private WaveFileWriter _waveWriter;
         public void CreateWaveWriter(string fileName)
         {
-            waveWriter = new WaveFileWriter(fileName, buffer.WaveFormat);
+            _waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
         }
         public void CloseWaveWriter()
         {
-            waveWriter?.Dispose();
+            _waveWriter?.Dispose();
         }
         public void Process(Track[] tracks, bool output, bool recording)
         {
-            audio.Clear();
+            _audio.Clear();
             float fromMaster = 1f, toMaster = 1f;
-            if (fadeMicroFramesLeft > 0)
+            if (_fadeMicroFramesLeft > 0)
             {
                 const float scale = 10f / 6f;
-                fromMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadePos += fadeStepPerMicroframe;
-                toMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadeMicroFramesLeft--;
+                fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadePos += _fadeStepPerMicroframe;
+                toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadeMicroFramesLeft--;
             }
-            float masterStep = (toMaster - fromMaster) * samplesReciprocal;
+            float masterStep = (toMaster - fromMaster) * _samplesReciprocal;
             for (int i = 0; i < 0x10; i++)
             {
                 Track track = tracks[i];
                 if (track.Enabled && track.NoteDuration != 0 && !track.Channel.Stopped && !Mutes[i])
                 {
                     float masterLevel = fromMaster;
-                    float[] buf = trackBuffers[i];
+                    float[] buf = _trackBuffers[i];
                     Array.Clear(buf, 0, buf.Length);
                     track.Channel.Process(buf);
                     for (int j = 0; j < SamplesPerBuffer; j++)
                     {
-                        audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
-                        audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * masterLevel;
+                        _audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
+                        _audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * masterLevel;
                         masterLevel += masterStep;
                     }
                 }
             }
             if (output)
             {
-                buffer.AddSamples(audio.ByteBuffer, 0, audio.ByteBufferCount);
+                _buffer.AddSamples(_audio.ByteBuffer, 0, _audio.ByteBufferCount);
             }
             if (recording)
             {
-                waveWriter.Write(audio.ByteBuffer, 0, audio.ByteBufferCount);
+                _waveWriter.Write(_audio.ByteBuffer, 0, _audio.ByteBufferCount);
             }
         }
     }

@@ -17,34 +17,34 @@ namespace Kermalis.VGMusicStudio.Core
             public string Label;
             public int BinaryOffset;
         }
-        private const string fileErrorFormat = "{0}{3}{3}Error reading file included in line {1}:{3}{2}",
-            mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}",
-            cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
+        private const string _fileErrorFormat = "{0}{3}{3}Error reading file included in line {1}:{3}{2}";
+        private const string _mathErrorFormat = "{0}{3}{3}Error parsing value in line {1} (Are you missing a definition?):{3}{2}";
+        private const string _cmdErrorFormat = "{0}{3}{3}Unknown command in line {1}:{3}\"{2}\"";
 
         public int BaseOffset { get; private set; }
-        private readonly List<string> loaded = new List<string>();
-        private readonly Dictionary<string, int> defines;
+        private readonly List<string> _loaded = new List<string>();
+        private readonly Dictionary<string, int> _defines;
 
-        private readonly Dictionary<string, Pair> labels = new Dictionary<string, Pair>();
-        private readonly List<Pointer> lPointers = new List<Pointer>();
-        private readonly List<byte> bytes = new List<byte>();
+        private readonly Dictionary<string, Pair> _labels = new Dictionary<string, Pair>();
+        private readonly List<Pointer> _lPointers = new List<Pointer>();
+        private readonly List<byte> _bytes = new List<byte>();
 
         public string FileName { get; }
-        public int this[string Label] => labels[FixLabel(Label)].Offset;
-        public byte[] Binary => bytes.ToArray();
-        public int BinaryLength => bytes.Count;
+        public int this[string Label] => _labels[FixLabel(Label)].Offset;
+        public byte[] Binary => _bytes.ToArray();
+        public int BinaryLength => _bytes.Count;
 
         public Assembler(string fileName, int baseOffset, Dictionary<string, int> initialDefines = null)
         {
             FileName = fileName;
-            defines = initialDefines ?? new Dictionary<string, int>();
+            _defines = initialDefines ?? new Dictionary<string, int>();
             Console.WriteLine(Read(fileName));
             SetBaseOffset(baseOffset);
         }
 
         public void SetBaseOffset(int baseOffset)
         {
-            foreach (Pointer p in lPointers)
+            foreach (Pointer p in _lPointers)
             {
                 // Our example label is SEQ_STUFF at the binary offset 0x1000, curBaseOffset is 0x500, baseOffset is 0x1800
                 // There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DFC
@@ -53,7 +53,7 @@ namespace Kermalis.VGMusicStudio.Core
                 byte[] newPointerBytes = BitConverter.GetBytes(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
                 for (int i = 0; i < 4; i++)
                 {
-                    bytes[p.BinaryOffset + i] = newPointerBytes[i]; // Copy the new pointer to binary offset 0x1DF4
+                    _bytes[p.BinaryOffset + i] = newPointerBytes[i]; // Copy the new pointer to binary offset 0x1DF4
                 }
             }
             BaseOffset = baseOffset;
@@ -82,13 +82,13 @@ namespace Kermalis.VGMusicStudio.Core
         // Returns a status
         private string Read(string fileName)
         {
-            if (loaded.Contains(fileName))
+            if (_loaded.Contains(fileName))
             {
                 return $"{fileName} was already loaded";
             }
 
             string[] file = File.ReadAllLines(fileName);
-            loaded.Add(fileName);
+            _loaded.Add(fileName);
 
             for (int i = 0; i < file.Length; i++)
             {
@@ -114,11 +114,11 @@ namespace Kermalis.VGMusicStudio.Core
                     }
                     else if (c == ':') // Labels
                     {
-                        if (!labels.ContainsKey(str))
+                        if (!_labels.ContainsKey(str))
                         {
-                            labels.Add(str, new Pair());
+                            _labels.Add(str, new Pair());
                         }
-                        labels[str].Offset = bytes.Count;
+                        _labels[str].Offset = _bytes.Count;
                         str = "";
                     }
                     else if (char.IsWhiteSpace(c))
@@ -157,7 +157,7 @@ namespace Kermalis.VGMusicStudio.Core
                         }
                         catch
                         {
-                            throw new IOException(string.Format(fileErrorFormat, fileName, i, args[0], Environment.NewLine));
+                            throw new IOException(string.Format(_fileErrorFormat, fileName, i, args[0], Environment.NewLine));
                         }
                         break;
                     }
@@ -165,21 +165,21 @@ namespace Kermalis.VGMusicStudio.Core
                     {
                         try
                         {
-                            defines.Add(args[0], ParseInt(args[1]));
+                            _defines.Add(args[0], ParseInt(args[1]));
                         }
                         catch
                         {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            throw new ArithmeticException(string.Format(_mathErrorFormat, fileName, i, line, Environment.NewLine));
                         }
                         break;
                     }
                     case "global":
                     {
-                        if (!labels.ContainsKey(args[0]))
+                        if (!_labels.ContainsKey(args[0]))
                         {
-                            labels.Add(args[0], new Pair());
+                            _labels.Add(args[0], new Pair());
                         }
-                        labels[args[0]].Global = true;
+                        _labels[args[0]].Global = true;
                         break;
                     }
                     case "align":
@@ -187,7 +187,7 @@ namespace Kermalis.VGMusicStudio.Core
                         int align = ParseInt(args[0]);
                         for (int a = BinaryLength % align; a < align; a++)
                         {
-                            bytes.Add(0);
+                            _bytes.Add(0);
                         }
                         break;
                     }
@@ -197,12 +197,12 @@ namespace Kermalis.VGMusicStudio.Core
                         {
                             foreach (string a in args)
                             {
-                                bytes.Add((byte)ParseInt(a));
+                                _bytes.Add((byte)ParseInt(a));
                             }
                         }
                         catch
                         {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            throw new ArithmeticException(string.Format(_mathErrorFormat, fileName, i, line, Environment.NewLine));
                         }
                         break;
                     }
@@ -212,12 +212,12 @@ namespace Kermalis.VGMusicStudio.Core
                         {
                             foreach (string a in args)
                             {
-                                bytes.AddRange(BitConverter.GetBytes((short)ParseInt(a)));
+                                _bytes.AddRange(BitConverter.GetBytes((short)ParseInt(a)));
                             }
                         }
                         catch
                         {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            throw new ArithmeticException(string.Format(_mathErrorFormat, fileName, i, line, Environment.NewLine));
                         }
                         break;
                     }
@@ -228,12 +228,12 @@ namespace Kermalis.VGMusicStudio.Core
                         {
                             foreach (string a in args)
                             {
-                                bytes.AddRange(BitConverter.GetBytes(ParseInt(a)));
+                                _bytes.AddRange(BitConverter.GetBytes(ParseInt(a)));
                             }
                         }
                         catch
                         {
-                            throw new ArithmeticException(string.Format(mathErrorFormat, fileName, i, line, Environment.NewLine));
+                            throw new ArithmeticException(string.Format(_mathErrorFormat, fileName, i, line, Environment.NewLine));
                         }
                         break;
                     }
@@ -245,7 +245,7 @@ namespace Kermalis.VGMusicStudio.Core
                     {
                         break;
                     }
-                    default: throw new NotSupportedException(string.Format(cmdErrorFormat, fileName, i, cmd, Environment.NewLine));
+                    default: throw new NotSupportedException(string.Format(_cmdErrorFormat, fileName, i, cmd, Environment.NewLine));
                 }
             }
         end:
@@ -268,13 +268,13 @@ namespace Kermalis.VGMusicStudio.Core
                 return dec;
             }
             // Then check if it's defined
-            if (defines.TryGetValue(value, out int def))
+            if (_defines.TryGetValue(value, out int def))
             {
                 return def;
             }
-            if (labels.TryGetValue(value, out Pair pair))
+            if (_labels.TryGetValue(value, out Pair pair))
             {
-                lPointers.Add(new Pointer { Label = value, BinaryOffset = bytes.Count });
+                _lPointers.Add(new Pointer { Label = value, BinaryOffset = _bytes.Count });
                 return pair.Offset;
             }
 

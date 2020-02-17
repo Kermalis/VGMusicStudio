@@ -9,29 +9,29 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
     internal class Player : IPlayer
     {
-        private readonly short[] vars = new short[0x20]; // 16 player variables, then 16 global variables
-        private readonly Track[] tracks = new Track[0x10];
-        private readonly Mixer mixer;
-        private readonly Config config;
-        private readonly TimeBarrier time;
-        private Thread thread;
-        private int randSeed;
-        private Random rand;
-        private SDAT.INFO.SequenceInfo seqInfo;
-        private SSEQ sseq;
-        private SBNK sbnk;
+        private readonly short[] _vars = new short[0x20]; // 16 player variables, then 16 global variables
+        private readonly Track[] _tracks = new Track[0x10];
+        private readonly Mixer _mixer;
+        private readonly Config _config;
+        private readonly TimeBarrier _time;
+        private Thread _thread;
+        private int _randSeed;
+        private Random _rand;
+        private SDAT.INFO.SequenceInfo _seqInfo;
+        private SSEQ _sseq;
+        private SBNK _sbnk;
         public byte Volume;
-        private ushort tempo;
-        private int tempoStack;
-        private long elapsedLoops;
-        private bool fadeOutBegan;
+        private ushort _tempo;
+        private int _tempoStack;
+        private long _elapsedLoops;
+        private bool _fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
         public long ElapsedTicks { get; private set; }
         public bool ShouldFadeOut { get; set; }
         public long NumLoops { get; set; }
-        private int longestTrack;
+        private int _longestTrack;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -40,42 +40,42 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             for (byte i = 0; i < 0x10; i++)
             {
-                tracks[i] = new Track(i, this);
+                _tracks[i] = new Track(i, this);
             }
-            this.mixer = mixer;
-            this.config = config;
+            _mixer = mixer;
+            _config = config;
 
-            time = new TimeBarrier(192);
+            _time = new TimeBarrier(192);
         }
         private void CreateThread()
         {
-            thread = new Thread(Tick) { Name = "SDAT Player Tick" };
-            thread.Start();
+            _thread = new Thread(Tick) { Name = "SDAT Player Tick" };
+            _thread.Start();
         }
         private void WaitThread()
         {
-            if (thread != null && (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin))
+            if (_thread != null && (_thread.ThreadState == ThreadState.Running || _thread.ThreadState == ThreadState.WaitSleepJoin))
             {
-                thread.Join();
+                _thread.Join();
             }
         }
 
         private void InitEmulation()
         {
-            tempo = 120; // Confirmed: default tempo is 120 (MKDS 75)
-            tempoStack = 0;
-            elapsedLoops = ElapsedTicks = 0;
-            fadeOutBegan = false;
-            Volume = seqInfo.Volume;
-            rand = new Random(randSeed);
+            _tempo = 120; // Confirmed: default tempo is 120 (MKDS 75)
+            _tempoStack = 0;
+            _elapsedLoops = ElapsedTicks = 0;
+            _fadeOutBegan = false;
+            Volume = _seqInfo.Volume;
+            _rand = new Random(_randSeed);
             for (int i = 0; i < 0x10; i++)
             {
-                tracks[i].Init();
+                _tracks[i].Init();
             }
             // Initialize player and global variables. Global variables should not have an effect in this program.
             for (int i = 0; i < 0x20; i++)
             {
-                vars[i] = i % 8 == 0 ? short.MaxValue : (short)0;
+                _vars[i] = i % 8 == 0 ? short.MaxValue : (short)0;
             }
         }
         private void SetTicks()
@@ -91,14 +91,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
             InitEmulation();
             bool[] done = new bool[0x10]; // We use this instead of track.Stopped just to be certain that emulating Monophony works as intended
-            while (tracks.Any(t => t.Allocated && t.Enabled && !done[t.Index]))
+            while (_tracks.Any(t => t.Allocated && t.Enabled && !done[t.Index]))
             {
-                while (tempoStack >= 240)
+                while (_tempoStack >= 240)
                 {
-                    tempoStack -= 240;
+                    _tempoStack -= 240;
                     for (int i = 0; i < 0x10; i++)
                     {
-                        Track track = tracks[i];
+                        Track track = _tracks[i];
                         List<SongEvent> ev = Events[i];
                         if (track.Enabled && !track.Stopped)
                         {
@@ -115,7 +115,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         done[i] = true;
                                         if (ElapsedTicks > MaxTicks)
                                         {
-                                            longestTrack = i;
+                                            _longestTrack = i;
                                             MaxTicks = ElapsedTicks;
                                         }
                                     }
@@ -125,43 +125,43 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     }
                     ElapsedTicks++;
                 }
-                tempoStack += tempo;
-                mixer.ChannelTick();
-                mixer.EmulateProcess();
+                _tempoStack += _tempo;
+                _mixer.ChannelTick();
+                _mixer.EmulateProcess();
             }
             for (int i = 0; i < 0x10; i++)
             {
-                tracks[i].StopAllChannels();
+                _tracks[i].StopAllChannels();
             }
         }
         public void LoadSong(long index)
         {
             Stop();
-            SDAT.INFO.SequenceInfo oldSeqInfo = seqInfo;
-            seqInfo = config.SDAT.INFOBlock.SequenceInfos.Entries[index];
-            if (seqInfo == null)
+            SDAT.INFO.SequenceInfo oldSeqInfo = _seqInfo;
+            _seqInfo = _config.SDAT.INFOBlock.SequenceInfos.Entries[index];
+            if (_seqInfo == null)
             {
-                sseq = null;
-                sbnk = null;
+                _sseq = null;
+                _sbnk = null;
                 Events = null;
             }
             else
             {
-                if (oldSeqInfo == null || seqInfo.Bank != oldSeqInfo.Bank)
+                if (oldSeqInfo == null || _seqInfo.Bank != oldSeqInfo.Bank)
                 {
-                    voiceTypeCache = new string[byte.MaxValue + 1];
+                    _voiceTypeCache = new string[byte.MaxValue + 1];
                 }
-                sseq = new SSEQ(config.SDAT.FATBlock.Entries[seqInfo.FileId].Data);
-                SDAT.INFO.BankInfo bankInfo = config.SDAT.INFOBlock.BankInfos.Entries[seqInfo.Bank];
-                sbnk = new SBNK(config.SDAT.FATBlock.Entries[bankInfo.FileId].Data);
+                _sseq = new SSEQ(_config.SDAT.FATBlock.Entries[_seqInfo.FileId].Data);
+                SDAT.INFO.BankInfo bankInfo = _config.SDAT.INFOBlock.BankInfos.Entries[_seqInfo.Bank];
+                _sbnk = new SBNK(_config.SDAT.FATBlock.Entries[bankInfo.FileId].Data);
                 for (int i = 0; i < 4; i++)
                 {
                     if (bankInfo.SWARs[i] != 0xFFFF)
                     {
-                        sbnk.SWARs[i] = new SWAR(config.SDAT.FATBlock.Entries[config.SDAT.INFOBlock.WaveArchiveInfos.Entries[bankInfo.SWARs[i]].FileId].Data);
+                        _sbnk.SWARs[i] = new SWAR(_config.SDAT.FATBlock.Entries[_config.SDAT.INFOBlock.WaveArchiveInfos.Entries[bankInfo.SWARs[i]].FileId].Data);
                     }
                 }
-                randSeed = new Random().Next();
+                _randSeed = new Random().Next();
 
                 // RECURSION INCOMING
                 Events = new List<SongEvent>[0x10];
@@ -187,11 +187,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             {
                                 case ArgType.Byte:
                                 {
-                                    return sseq.Data[dataOffset++];
+                                    return _sseq.Data[dataOffset++];
                                 }
                                 case ArgType.Short:
                                 {
-                                    return sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8);
+                                    return _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8);
                                 }
                                 case ArgType.VarLen:
                                 {
@@ -199,7 +199,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     byte b;
                                     do
                                     {
-                                        b = sseq.Data[dataOffset++];
+                                        b = _sseq.Data[dataOffset++];
                                         val = (val << 7) | (b & 0x7F);
                                         read++;
                                     }
@@ -209,12 +209,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 case ArgType.Rand:
                                 {
                                     // Combine min and max into one int
-                                    return sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16) | (sseq.Data[dataOffset++] << 24);
+                                    return _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16) | (_sseq.Data[dataOffset++] << 24);
                                 }
                                 case ArgType.PlayerVar:
                                 {
                                     // Return var index
-                                    return sseq.Data[dataOffset++];
+                                    return _sseq.Data[dataOffset++];
                                 }
                                 default: throw new Exception();
                             }
@@ -226,7 +226,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             int offset = dataOffset;
                             ArgType argOverrideType = ArgType.None;
                         again:
-                            byte cmd = sseq.Data[dataOffset++];
+                            byte cmd = _sseq.Data[dataOffset++];
                             void AddEvent<T>(T command) where T : SDATCommand, ICommand
                             {
                                 command.RandMod = argOverrideType == ArgType.Rand;
@@ -240,7 +240,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
                             if (cmd <= 0x7F)
                             {
-                                byte velocity = sseq.Data[dataOffset++];
+                                byte velocity = _sseq.Data[dataOffset++];
                                 int duration = ReadArg(argOverrideType == ArgType.None ? ArgType.VarLen : argOverrideType);
                                 if (!EventExists(offset))
                                 {
@@ -280,8 +280,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         case 0x93:
                                         {
-                                            int trackIndex = sseq.Data[dataOffset++];
-                                            int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
+                                            int trackIndex = _sseq.Data[dataOffset++];
+                                            int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
                                             if (!EventExists(offset))
                                             {
                                                 AddEvent(new OpenTrackCommand { Track = trackIndex, Offset = offset24bit });
@@ -291,7 +291,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         }
                                         case 0x94:
                                         {
-                                            int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
+                                            int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
                                             if (!EventExists(offset))
                                             {
                                                 AddEvent(new JumpCommand { Offset = offset24bit });
@@ -308,7 +308,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                         }
                                         case 0x95:
                                         {
-                                            int offset24bit = sseq.Data[dataOffset++] | (sseq.Data[dataOffset++] << 8) | (sseq.Data[dataOffset++] << 16);
+                                            int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
                                             if (!EventExists(offset))
                                             {
                                                 AddEvent(new CallCommand { Offset = offset24bit });
@@ -369,7 +369,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 }
                                 else if (cmdGroup == 0xB0)
                                 {
-                                    byte varIndex = sseq.Data[dataOffset++];
+                                    byte varIndex = _sseq.Data[dataOffset++];
                                     int arg = ReadArg(argOverrideType == ArgType.None ? ArgType.Short : argOverrideType);
                                     switch (cmd)
                                     {
@@ -762,7 +762,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public void SetCurrentPosition(long ticks)
         {
-            if (seqInfo == null)
+            if (_seqInfo == null)
             {
                 SongEnded?.Invoke();
             }
@@ -781,12 +781,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     }
                     else
                     {
-                        while (tempoStack >= 240)
+                        while (_tempoStack >= 240)
                         {
-                            tempoStack -= 240;
+                            _tempoStack -= 240;
                             for (int i = 0; i < 0x10; i++)
                             {
-                                Track track = tracks[i];
+                                Track track = _tracks[i];
                                 if (track.Enabled && !track.Stopped)
                                 {
                                     track.Tick();
@@ -802,22 +802,22 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 goto finish;
                             }
                         }
-                        tempoStack += tempo;
-                        mixer.ChannelTick();
-                        mixer.EmulateProcess();
+                        _tempoStack += _tempo;
+                        _mixer.ChannelTick();
+                        _mixer.EmulateProcess();
                     }
                 }
             finish:
                 for (int i = 0; i < 0x10; i++)
                 {
-                    tracks[i].StopAllChannels();
+                    _tracks[i].StopAllChannels();
                 }
                 Pause();
             }
         }
         public void Play()
         {
-            if (seqInfo == null)
+            if (_seqInfo == null)
             {
                 SongEnded?.Invoke();
             }
@@ -852,12 +852,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         }
         public void Record(string fileName)
         {
-            mixer.CreateWaveWriter(fileName);
+            _mixer.CreateWaveWriter(fileName);
             InitEmulation();
             State = PlayerState.Recording;
             CreateThread();
             WaitThread();
-            mixer.CloseWaveWriter();
+            _mixer.CloseWaveWriter();
         }
         public void Dispose()
         {
@@ -867,13 +867,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 WaitThread();
             }
         }
-        private string[] voiceTypeCache;
+        private string[] _voiceTypeCache;
         public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
-            info.Tempo = tempo;
+            info.Tempo = _tempo;
             for (int i = 0; i < 0x10; i++)
             {
-                Track track = tracks[i];
+                Track track = _tracks[i];
                 if (track.Enabled)
                 {
                     UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
@@ -881,27 +881,27 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     tin.Rest = track.Rest;
                     tin.Voice = track.Voice;
                     tin.LFO = track.LFODepth * track.LFORange;
-                    if (voiceTypeCache[track.Voice] == null)
+                    if (_voiceTypeCache[track.Voice] == null)
                     {
-                        if (sbnk.NumInstruments <= track.Voice)
+                        if (_sbnk.NumInstruments <= track.Voice)
                         {
-                            voiceTypeCache[track.Voice] = "Empty";
+                            _voiceTypeCache[track.Voice] = "Empty";
                         }
                         else
                         {
-                            InstrumentType t = sbnk.Instruments[track.Voice].Type;
+                            InstrumentType t = _sbnk.Instruments[track.Voice].Type;
                             switch (t)
                             {
-                                case InstrumentType.PCM: voiceTypeCache[track.Voice] = "PCM"; break;
-                                case InstrumentType.PSG: voiceTypeCache[track.Voice] = "PSG"; break;
-                                case InstrumentType.Noise: voiceTypeCache[track.Voice] = "Noise"; break;
-                                case InstrumentType.Drum: voiceTypeCache[track.Voice] = "Drum"; break;
-                                case InstrumentType.KeySplit: voiceTypeCache[track.Voice] = "Key Split"; break;
-                                default: voiceTypeCache[track.Voice] = string.Format("Invalid {0}", (byte)t); break;
+                                case InstrumentType.PCM: _voiceTypeCache[track.Voice] = "PCM"; break;
+                                case InstrumentType.PSG: _voiceTypeCache[track.Voice] = "PSG"; break;
+                                case InstrumentType.Noise: _voiceTypeCache[track.Voice] = "Noise"; break;
+                                case InstrumentType.Drum: _voiceTypeCache[track.Voice] = "Drum"; break;
+                                case InstrumentType.KeySplit: _voiceTypeCache[track.Voice] = "Key Split"; break;
+                                default: _voiceTypeCache[track.Voice] = string.Format("Invalid {0}", (byte)t); break;
                             }
                         }
                     }
-                    tin.Type = voiceTypeCache[track.Voice];
+                    tin.Type = _voiceTypeCache[track.Voice];
                     tin.Volume = track.Volume;
                     tin.PitchBend = track.GetPitch();
                     tin.Extra = track.Portamento ? track.PortamentoTime : (byte)0;
@@ -956,11 +956,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
             else
             {
-                SBNK.InstrumentData inst = sbnk.GetInstrumentData(track.Voice, key);
+                SBNK.InstrumentData inst = _sbnk.GetInstrumentData(track.Voice, key);
                 if (inst != null)
                 {
                     InstrumentType type = inst.Type;
-                    channel = mixer.AllocateChannel(type, track);
+                    channel = _mixer.AllocateChannel(type, track);
                     if (channel != null)
                     {
                         if (track.Tie)
@@ -980,7 +980,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             case InstrumentType.PCM:
                             {
                                 ushort[] info = param.Info;
-                                SWAR.SWAV swav = sbnk.GetSWAV(info[1], info[0]);
+                                SWAR.SWAV swav = _sbnk.GetSWAV(info[1], info[0]);
                                 if (swav != null)
                                 {
                                     channel.StartPCM(swav, duration);
@@ -1081,17 +1081,17 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     {
                         short min = (short)value;
                         short max = (short)((value >> 16) & 0xFFFF);
-                        return rand.Next(min, max + 1);
+                        return _rand.Next(min, max + 1);
                     }
                     case ArgType.PlayerVar:
                     {
-                        return vars[value];
+                        return _vars[value];
                     }
                     default: throw new Exception();
                 }
             }
             List<SongEvent> ev = Events[trackIndex];
-            Track track = tracks[trackIndex];
+            Track track = _tracks[trackIndex];
             bool increment = true, resetOverride = true, resetCmdWork = true;
             switch (ev[track.CurEvent].Command)
             {
@@ -1104,7 +1104,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         {
                             if ((alloc.Tracks & (1 << i)) != 0)
                             {
-                                tracks[i].Allocated = true;
+                                _tracks[i].Allocated = true;
                             }
                         }
                     }
@@ -1319,7 +1319,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 {
                     if (trackIndex == 0)
                     {
-                        Track truck = tracks[open.Track];
+                        Track truck = _tracks[open.Track];
                         if (track.DoCommandWork && truck.Allocated && !truck.Enabled)
                         {
                             truck.Enabled = true;
@@ -1443,7 +1443,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, tem.Tempo);
                     if (track.DoCommandWork)
                     {
-                        tempo = (ushort)arg;
+                        _tempo = (ushort)arg;
                     }
                     break;
                 }
@@ -1489,7 +1489,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, add.Argument);
                     if (track.DoCommandWork)
                     {
-                        vars[add.Variable] += arg;
+                        _vars[add.Variable] += arg;
                     }
                     break;
                 }
@@ -1498,7 +1498,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpEE.Argument);
                     if (track.DoCommandWork)
                     {
-                        track.VariableFlag = vars[cmpEE.Variable] == arg;
+                        track.VariableFlag = _vars[cmpEE.Variable] == arg;
                     }
                     break;
                 }
@@ -1507,7 +1507,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpGE.Argument);
                     if (track.DoCommandWork)
                     {
-                        track.VariableFlag = vars[cmpGE.Variable] >= arg;
+                        track.VariableFlag = _vars[cmpGE.Variable] >= arg;
                     }
                     break;
                 }
@@ -1516,7 +1516,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpGG.Argument);
                     if (track.DoCommandWork)
                     {
-                        track.VariableFlag = vars[cmpGG.Variable] > arg;
+                        track.VariableFlag = _vars[cmpGG.Variable] > arg;
                     }
                     break;
                 }
@@ -1525,7 +1525,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpLE.Argument);
                     if (track.DoCommandWork)
                     {
-                        track.VariableFlag = vars[cmpLE.Variable] <= arg;
+                        track.VariableFlag = _vars[cmpLE.Variable] <= arg;
                     }
                     break;
                 }
@@ -1534,7 +1534,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpLL.Argument);
                     if (track.DoCommandWork)
                     {
-                        track.VariableFlag = vars[cmpLL.Variable] < arg;
+                        track.VariableFlag = _vars[cmpLL.Variable] < arg;
                     }
                     break;
                 }
@@ -1543,7 +1543,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpNE.Argument);
                     if (track.DoCommandWork)
                     {
-                        track.VariableFlag = vars[cmpNE.Variable] != arg;
+                        track.VariableFlag = _vars[cmpNE.Variable] != arg;
                     }
                     break;
                 }
@@ -1552,7 +1552,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, div.Argument);
                     if (track.DoCommandWork && arg != 0)
                     {
-                        vars[div.Variable] /= arg;
+                        _vars[div.Variable] /= arg;
                     }
                     break;
                 }
@@ -1561,7 +1561,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, mul.Argument);
                     if (track.DoCommandWork)
                     {
-                        vars[mul.Variable] *= arg;
+                        _vars[mul.Variable] *= arg;
                     }
                     break;
                 }
@@ -1576,12 +1576,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             negate = true;
                             arg = (short)-arg;
                         }
-                        short val = (short)rand.Next(arg + 1);
+                        short val = (short)_rand.Next(arg + 1);
                         if (negate)
                         {
                             val = (short)-val;
                         }
-                        vars[rnd.Variable] = val;
+                        _vars[rnd.Variable] = val;
                     }
                     break;
                 }
@@ -1590,7 +1590,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, set.Argument);
                     if (track.DoCommandWork)
                     {
-                        vars[set.Variable] = arg;
+                        _vars[set.Variable] = arg;
                     }
                     break;
                 }
@@ -1599,7 +1599,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, shift.Argument);
                     if (track.DoCommandWork)
                     {
-                        vars[shift.Variable] = arg < 0 ? (short)(vars[shift.Variable] >> -arg) : (short)(vars[shift.Variable] << arg);
+                        _vars[shift.Variable] = arg < 0 ? (short)(_vars[shift.Variable] >> -arg) : (short)(_vars[shift.Variable] << arg);
                     }
                     break;
                 }
@@ -1608,7 +1608,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, sub.Argument);
                     if (track.DoCommandWork)
                     {
-                        vars[sub.Variable] -= arg;
+                        _vars[sub.Variable] -= arg;
                     }
                     break;
                 }
@@ -1638,16 +1638,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         private void Tick()
         {
-            time.Start();
+            _time.Start();
             while (State == PlayerState.Playing || State == PlayerState.Recording)
             {
-                while (tempoStack >= 240)
+                while (_tempoStack >= 240)
                 {
-                    tempoStack -= 240;
+                    _tempoStack -= 240;
                     bool allDone = true;
                     for (int i = 0; i < 0x10; i++)
                     {
-                        Track track = tracks[i];
+                        Track track = _tracks[i];
                         if (track.Enabled)
                         {
                             track.Tick();
@@ -1655,7 +1655,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             {
                                 ExecuteNext(i);
                             }
-                            if (i == longestTrack)
+                            if (i == _longestTrack)
                             {
                                 if (ElapsedTicks == MaxTicks)
                                 {
@@ -1663,11 +1663,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                     {
                                         List<long> t = Events[i][track.CurEvent].Ticks;
                                         ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
-                                        elapsedLoops++;
-                                        if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
+                                        _elapsedLoops++;
+                                        if (ShouldFadeOut && !_fadeOutBegan && _elapsedLoops > NumLoops)
                                         {
-                                            fadeOutBegan = true;
-                                            mixer.BeginFadeOut();
+                                            _fadeOutBegan = true;
+                                            _mixer.BeginFadeOut();
                                         }
                                     }
                                 }
@@ -1682,7 +1682,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                         }
                     }
-                    if (fadeOutBegan && mixer.IsFadeDone())
+                    if (_fadeOutBegan && _mixer.IsFadeDone())
                     {
                         allDone = true;
                     }
@@ -1692,15 +1692,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         SongEnded?.Invoke();
                     }
                 }
-                tempoStack += tempo;
-                mixer.ChannelTick();
-                mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
+                _tempoStack += _tempo;
+                _mixer.ChannelTick();
+                _mixer.Process(State == PlayerState.Playing, State == PlayerState.Recording);
                 if (State == PlayerState.Playing)
                 {
-                    time.Wait();
+                    _time.Wait();
                 }
             }
-            time.Stop();
+            _time.Stop();
         }
     }
 }

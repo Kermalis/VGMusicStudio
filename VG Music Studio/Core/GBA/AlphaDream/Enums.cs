@@ -1,12 +1,12 @@
 ﻿namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
-    internal enum AudioEngineVersion
+    internal enum AudioEngineVersion : byte
     {
         Hamtaro,
         MLSS
     }
 
-    internal enum EnvelopeState
+    internal enum EnvelopeState : byte
     {
         Attack,
         Decay,

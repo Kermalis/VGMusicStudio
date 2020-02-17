@@ -80,7 +80,7 @@ namespace Kermalis.VGMusicStudio.UI
      *   - Initial Version
     */
 
-    public class FlexibleMessageBox
+    internal class FlexibleMessageBox
     {
         #region Public statics
 

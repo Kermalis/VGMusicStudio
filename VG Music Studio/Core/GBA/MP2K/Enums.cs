@@ -2,7 +2,7 @@
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 {
-    internal enum EnvelopeState
+    internal enum EnvelopeState : byte
     {
         Initializing,
         Rising,
@@ -12,7 +12,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         Dying,
         Dead
     }
-    internal enum ReverbType
+    internal enum ReverbType : byte
     {
         None,
         Normal,
@@ -45,7 +45,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         Fine,
         Rough
     }
-    internal enum VoiceType
+    internal enum VoiceType : byte
     {
         PCM8,
         Square1,

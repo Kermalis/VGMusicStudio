@@ -13,18 +13,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
-        public string GameCode;
-        public byte Version;
+        public readonly string GameCode;
+        public readonly byte Version;
 
-        public string Name;
-        public int[] SongTableOffsets;
-        public long[] SongTableSizes;
-        public int SampleRate;
-        public ReverbType ReverbType;
-        public byte Reverb;
-        public byte Volume;
-        public bool HasGoldenSunSynths;
-        public bool HasPokemonCompression;
+        public readonly string Name;
+        public readonly int[] SongTableOffsets;
+        public readonly long[] SongTableSizes;
+        public readonly int SampleRate;
+        public readonly ReverbType ReverbType;
+        public readonly byte Reverb;
+        public readonly byte Volume;
+        public readonly bool HasGoldenSunSynths;
+        public readonly bool HasPokemonCompression;
 
         public Config(byte[] rom)
         {

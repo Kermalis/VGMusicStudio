@@ -13,16 +13,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
-        public string GameCode;
-        public byte Version;
+        public readonly string GameCode;
+        public readonly byte Version;
 
-        public string Name;
-        public AudioEngineVersion AudioEngineVersion;
-        public int[] SongTableOffsets;
-        public long[] SongTableSizes;
-        public int VoiceTableOffset;
-        public int SampleTableOffset;
-        public long SampleTableSize;
+        public readonly string Name;
+        public readonly AudioEngineVersion AudioEngineVersion;
+        public readonly int[] SongTableOffsets;
+        public readonly long[] SongTableSizes;
+        public readonly int VoiceTableOffset;
+        public readonly int SampleTableOffset;
+        public readonly long SampleTableSize;
 
         public Config(byte[] rom)
         {

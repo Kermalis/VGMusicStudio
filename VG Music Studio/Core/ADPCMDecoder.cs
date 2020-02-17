@@ -2,11 +2,11 @@
 {
     internal class ADPCMDecoder
     {
-        private static readonly short[] indexTable = new short[8]
+        private static readonly short[] _indexTable = new short[8]
         {
             -1, -1, -1, -1, 2, 4, 6, 8
         };
-        private static readonly short[] stepTable = new short[89]
+        private static readonly short[] _stepTable = new short[89]
         {
             00007, 00008, 00009, 00010, 00011, 00012, 00013, 00014,
             00016, 00017, 00019, 00021, 00023, 00025, 00028, 00031,
@@ -22,7 +22,7 @@
             32767
         };
 
-        private readonly byte[] data;
+        private readonly byte[] _data;
         public short LastSample;
         public short StepIndex;
         public int DataOffset;
@@ -33,7 +33,7 @@
             LastSample = (short)(data[0] | (data[1] << 8));
             StepIndex = (short)((data[2] | (data[3] << 8)) & 0x7F);
             DataOffset = 4;
-            this.data = data;
+            _data = data;
         }
 
         public static short[] ADPCMToPCM16(byte[] data)
@@ -49,8 +49,8 @@
 
         public short GetSample()
         {
-            int val = (data[DataOffset] >> (OnSecondNibble ? 4 : 0)) & 0xF;
-            short step = stepTable[StepIndex];
+            int val = (_data[DataOffset] >> (OnSecondNibble ? 4 : 0)) & 0xF;
+            short step = _stepTable[StepIndex];
             int diff =
                 (step / 8) +
                 (step / 4 * (val & 1)) +
@@ -68,7 +68,7 @@
             }
             LastSample = (short)a;
 
-            a = StepIndex + indexTable[val & 7];
+            a = StepIndex + _indexTable[val & 7];
             if (a < 0)
             {
                 a = 0;

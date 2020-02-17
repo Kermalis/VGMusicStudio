@@ -9,50 +9,51 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public readonly int SampleRate;
         public readonly int SamplesPerBuffer;
         public readonly float SampleRateReciprocal;
-        private readonly float samplesReciprocal;
+        private readonly float _samplesReciprocal;
         public readonly float PCM8MasterVolume;
-        private long fadeMicroFramesLeft;
-        private float fadePos;
-        private float fadeStepPerMicroframe;
+        private long _fadeMicroFramesLeft;
+        private float _fadePos;
+        private float _fadeStepPerMicroframe;
 
         public readonly Config Config;
-        private readonly WaveBuffer audio;
-        private readonly float[][] trackBuffers;
-        private readonly PCM8Channel[] pcm8Channels;
-        private readonly SquareChannel sq1, sq2;
-        private readonly PCM4Channel pcm4;
-        private readonly NoiseChannel noise;
-        private readonly PSGChannel[] psgChannels;
-        private readonly BufferedWaveProvider buffer;
+        private readonly WaveBuffer _audio;
+        private readonly float[][] _trackBuffers;
+        private readonly PCM8Channel[] _pcm8Channels;
+        private readonly SquareChannel _sq1;
+        private readonly SquareChannel _sq2;
+        private readonly PCM4Channel _pcm4;
+        private readonly NoiseChannel _noise;
+        private readonly PSGChannel[] _psgChannels;
+        private readonly BufferedWaveProvider _buffer;
 
         public Mixer(Config config)
         {
             Config = config;
             (SampleRate, SamplesPerBuffer) = Utils.FrequencyTable[config.SampleRate];
             SampleRateReciprocal = 1f / SampleRate;
-            samplesReciprocal = 1f / SamplesPerBuffer;
+            _samplesReciprocal = 1f / SamplesPerBuffer;
             PCM8MasterVolume = config.Volume / 15f;
 
-            pcm8Channels = new PCM8Channel[24];
-            for (int i = 0; i < pcm8Channels.Length; i++)
+            _pcm8Channels = new PCM8Channel[24];
+            for (int i = 0; i < _pcm8Channels.Length; i++)
             {
-                pcm8Channels[i] = new PCM8Channel(this);
+                _pcm8Channels[i] = new PCM8Channel(this);
             }
-            psgChannels = new PSGChannel[] { sq1 = new SquareChannel(this), sq2 = new SquareChannel(this), pcm4 = new PCM4Channel(this), noise = new NoiseChannel(this) };
+            _psgChannels = new PSGChannel[] { _sq1 = new SquareChannel(this), _sq2 = new SquareChannel(this), _pcm4 = new PCM4Channel(this), _noise = new NoiseChannel(this) };
 
             int amt = SamplesPerBuffer * 2;
-            audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
-            trackBuffers = new float[0x10][];
-            for (int i = 0; i < trackBuffers.Length; i++)
+            _audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
+            _trackBuffers = new float[0x10][];
+            for (int i = 0; i < _trackBuffers.Length; i++)
             {
-                trackBuffers[i] = new float[amt];
+                _trackBuffers[i] = new float[amt];
             }
-            buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(SampleRate, 2))
+            _buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(SampleRate, 2))
             {
                 DiscardOnBufferOverflow = true,
                 BufferLength = SamplesPerBuffer * 64
             };
-            Init(buffer);
+            Init(_buffer);
         }
         public override void Dispose()
         {
@@ -63,7 +64,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public PCM8Channel AllocPCM8Channel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
         {
             PCM8Channel nChn = null;
-            IOrderedEnumerable<PCM8Channel> byOwner = pcm8Channels.OrderByDescending(c => c.Owner == null ? 0xFF : c.Owner.Index);
+            IOrderedEnumerable<PCM8Channel> byOwner = _pcm8Channels.OrderByDescending(c => c.Owner == null ? 0xFF : c.Owner.Index);
             foreach (PCM8Channel i in byOwner) // Find free
             {
                 if (i.State == EnvelopeState.Dead || i.Owner == null)
@@ -115,42 +116,42 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             {
                 case VoiceType.Square1:
                 {
-                    nChn = sq1;
+                    nChn = _sq1;
                     if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                     {
                         return null;
                     }
-                    sq1.Init(owner, note, env, (SquarePattern)arg);
+                    _sq1.Init(owner, note, env, (SquarePattern)arg);
                     break;
                 }
                 case VoiceType.Square2:
                 {
-                    nChn = sq2;
+                    nChn = _sq2;
                     if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                     {
                         return null;
                     }
-                    sq2.Init(owner, note, env, (SquarePattern)arg);
+                    _sq2.Init(owner, note, env, (SquarePattern)arg);
                     break;
                 }
                 case VoiceType.PCM4:
                 {
-                    nChn = pcm4;
+                    nChn = _pcm4;
                     if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                     {
                         return null;
                     }
-                    pcm4.Init(owner, note, env, (int)arg);
+                    _pcm4.Init(owner, note, env, (int)arg);
                     break;
                 }
                 case VoiceType.Noise:
                 {
-                    nChn = noise;
+                    nChn = _noise;
                     if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
                     {
                         return null;
                     }
-                    noise.Init(owner, note, env, (NoisePattern)arg);
+                    _noise.Init(owner, note, env, (NoisePattern)arg);
                     break;
                 }
                 default: return null;
@@ -162,92 +163,92 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         public void BeginFadeIn()
         {
-            fadePos = 0f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBA.Utils.AGB_FPS);
-            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+            _fadePos = 0f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBA.Utils.AGB_FPS);
+            _fadeStepPerMicroframe = 1f / _fadeMicroFramesLeft;
         }
         public void BeginFadeOut()
         {
-            fadePos = 1f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBA.Utils.AGB_FPS);
-            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+            _fadePos = 1f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * GBA.Utils.AGB_FPS);
+            _fadeStepPerMicroframe = -1f / _fadeMicroFramesLeft;
         }
         public bool IsFadeDone()
         {
-            return fadeMicroFramesLeft == 0;
+            return _fadeMicroFramesLeft == 0;
         }
         public void ResetFade()
         {
-            fadeMicroFramesLeft = 0;
+            _fadeMicroFramesLeft = 0;
         }
 
-        private WaveFileWriter waveWriter;
+        private WaveFileWriter _waveWriter;
         public void CreateWaveWriter(string fileName)
         {
-            waveWriter = new WaveFileWriter(fileName, buffer.WaveFormat);
+            _waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
         }
         public void CloseWaveWriter()
         {
-            waveWriter?.Dispose();
+            _waveWriter?.Dispose();
         }
         public void Process(bool output, bool recording)
         {
-            for (int i = 0; i < trackBuffers.Length; i++)
+            for (int i = 0; i < _trackBuffers.Length; i++)
             {
-                float[] buf = trackBuffers[i];
+                float[] buf = _trackBuffers[i];
                 Array.Clear(buf, 0, buf.Length);
             }
-            audio.Clear();
+            _audio.Clear();
 
-            for (int i = 0; i < pcm8Channels.Length; i++)
+            for (int i = 0; i < _pcm8Channels.Length; i++)
             {
-                PCM8Channel c = pcm8Channels[i];
+                PCM8Channel c = _pcm8Channels[i];
                 if (c.Owner != null)
                 {
-                    c.Process(trackBuffers[c.Owner.Index]);
+                    c.Process(_trackBuffers[c.Owner.Index]);
                 }
             }
 
-            for (int i = 0; i < psgChannels.Length; i++)
+            for (int i = 0; i < _psgChannels.Length; i++)
             {
-                PSGChannel c = psgChannels[i];
+                PSGChannel c = _psgChannels[i];
                 if (c.Owner != null)
                 {
-                    c.Process(trackBuffers[c.Owner.Index]);
+                    c.Process(_trackBuffers[c.Owner.Index]);
                 }
             }
 
             float fromMaster = 1f, toMaster = 1f;
-            if (fadeMicroFramesLeft > 0)
+            if (_fadeMicroFramesLeft > 0)
             {
                 const float scale = 10f / 6f;
-                fromMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadePos += fadeStepPerMicroframe;
-                toMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadeMicroFramesLeft--;
+                fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadePos += _fadeStepPerMicroframe;
+                toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadeMicroFramesLeft--;
             }
-            float masterStep = (toMaster - fromMaster) * samplesReciprocal;
-            for (int i = 0; i < trackBuffers.Length; i++)
+            float masterStep = (toMaster - fromMaster) * _samplesReciprocal;
+            for (int i = 0; i < _trackBuffers.Length; i++)
             {
                 if (!Mutes[i])
                 {
                     float masterLevel = fromMaster;
-                    float[] buf = trackBuffers[i];
+                    float[] buf = _trackBuffers[i];
                     for (int j = 0; j < SamplesPerBuffer; j++)
                     {
-                        audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
-                        audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * masterLevel;
+                        _audio.FloatBuffer[j * 2] += buf[j * 2] * masterLevel;
+                        _audio.FloatBuffer[(j * 2) + 1] += buf[(j * 2) + 1] * masterLevel;
                         masterLevel += masterStep;
                     }
                 }
             }
             if (output)
             {
-                buffer.AddSamples(audio.ByteBuffer, 0, audio.ByteBufferCount);
+                _buffer.AddSamples(_audio.ByteBuffer, 0, _audio.ByteBufferCount);
             }
             if (recording)
             {
-                waveWriter.Write(audio.ByteBuffer, 0, audio.ByteBufferCount);
+                _waveWriter.Write(_audio.ByteBuffer, 0, _audio.ByteBufferCount);
             }
         }
     }
