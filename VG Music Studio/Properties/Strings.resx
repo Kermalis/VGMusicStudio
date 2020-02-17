@@ -121,8 +121,8 @@
     <value>Error Loading Song {0}</value>
     <comment>{0} is the song number.</comment>
   </data>
-  <data name="ErrorOpenMLSS" xml:space="preserve">
-    <value>Error Loading GBA ROM (MLSS)</value>
+  <data name="ErrorOpenAlphaDream" xml:space="preserve">
+    <value>Error Loading GBA ROM (AlphaDream)</value>
   </data>
   <data name="ErrorSaveMIDI" xml:space="preserve">
     <value>Error Exporting MIDI</value>
@@ -210,8 +210,8 @@
   <data name="MenuOpenDSE" xml:space="preserve">
     <value>Open DSE Folder</value>
   </data>
-  <data name="MenuOpenMLSS" xml:space="preserve">
-    <value>Open GBA ROM (MLSS)</value>
+  <data name="MenuOpenAlphaDream" xml:space="preserve">
+    <value>Open GBA ROM (AlphaDream)</value>
   </data>
   <data name="MenuOpenSDAT" xml:space="preserve">
     <value>Open SDAT File</value>
@@ -281,7 +281,7 @@
     <value>Invalid key in track {0} at 0x{1:X}: {2}</value>
     <comment>{0} is the track number, {1} is the offset, {2} is the key.</comment>
   </data>
-  <data name="ErrorDSEMLSSMP2KSDATInvalidCommand" xml:space="preserve">
+  <data name="ErrorAlphaDreamDSEMP2KSDATInvalidCommand" xml:space="preserve">
     <value>Invalid command in track {0} at 0x{1:X}: 0x{2:X}</value>
     <comment>{0} is the track number, {1} is the offset, {2} is the command.</comment>
   </data>
@@ -291,23 +291,23 @@
   <data name="ErrorGlobalConfig" xml:space="preserve">
     <value>Error Loading Global Config</value>
   </data>
-  <data name="ErrorMLSSMP2KCopyInvalidGameCode" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KCopyInvalidGameCode" xml:space="preserve">
     <value>Cannot copy invalid game code "{0}"</value>
     <comment>{0} is the invalid game code.</comment>
   </data>
-  <data name="ErrorMLSSMP2KMissingGameCode" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KMissingGameCode" xml:space="preserve">
     <value>Game code "{0}" is missing.</value>
     <comment>{0} is the game code.</comment>
   </data>
-  <data name="ErrorMLSSMP2KParseGameCode" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KParseGameCode" xml:space="preserve">
     <value>Error parsing game code "{0}" in "{1}"{2}</value>
     <comment>{0} is the game code, {1} is the config filename, {2} is a newline character followed by the error message.</comment>
   </data>
-  <data name="ErrorMLSSMP2KSongRepeated" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KSongRepeated" xml:space="preserve">
     <value>Playlist "{0}" has song {1} defined more than once between decimal and hexadecimal.</value>
     <comment>{0} is the playlist name, {1} is the song index.</comment>
   </data>
-  <data name="ErrorMLSSMP2KSongTableCounts" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KSongTableCounts" xml:space="preserve">
     <value>"{0}" count must be the same as "{1}" count.</value>
     <comment>{0} is key 1, {1} is key 2.</comment>
   </data>

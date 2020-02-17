@@ -1,7 +1,7 @@
 ﻿using NAudio.Wave;
 using System;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal class Mixer : Core.Mixer
     {

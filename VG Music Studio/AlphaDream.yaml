@@ -81,7 +81,6 @@ A84P_00:
   VoiceTableOffset: 0x694558
   SampleTableOffset: 0xBCD510
   SampleTableSize: 149
-  Remap: "MLSS"
   Playlists:
     Music:
       1: "Title"
@@ -137,7 +136,6 @@ B85A_00:
   VoiceTableOffset: 0xDF10C
   SampleTableOffset: 0x100000
   SampleTableSize: 368
-  Remap: "MLSS"
   Playlists:
     Music:
       1: "Title"
@@ -181,7 +179,7 @@ B85A_00:
       39: "BGM #18"
       40: "BGM #19"
       41: "BGM #20"
-      42: "???"
+      42: "42"
       43: "BGM #21"
       44: "BGM #22"
       45: "BGM #23"

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal class Player : IPlayer
     {
@@ -42,7 +42,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         }
         private void CreateThread()
         {
-            thread = new Thread(Tick) { Name = "MLSS Player Tick" };
+            thread = new Thread(Tick) { Name = "AlphaDream Player Tick" };
             thread.Start();
         }
         private void WaitThread()
@@ -291,7 +291,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                         }
                                         else
                                         {
-                                            throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
+                                            throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, i, offset, cmd));
                                         }
                                         break;
                                     }

@@ -34,7 +34,7 @@ namespace Kermalis.VGMusicStudio.UI
         #region Controls
 
         private readonly MenuStrip mainMenu;
-        private readonly ToolStripMenuItem fileItem, openDSEItem, openMLSSItem, openMP2KItem, openSDATItem,
+        private readonly ToolStripMenuItem fileItem, openDSEItem, openAlphaDreamItem, openMP2KItem, openSDATItem,
             dataItem, trackViewerItem, exportMIDIItem, exportWAVItem,
             playlistItem, endPlaylistItem;
         private readonly Timer timer;
@@ -67,14 +67,14 @@ namespace Kermalis.VGMusicStudio.UI
             // File Menu
             openDSEItem = new ToolStripMenuItem { Text = Strings.MenuOpenDSE };
             openDSEItem.Click += OpenDSE;
-            openMLSSItem = new ToolStripMenuItem { Text = Strings.MenuOpenMLSS };
-            openMLSSItem.Click += OpenMLSS;
+            openAlphaDreamItem = new ToolStripMenuItem { Text = Strings.MenuOpenAlphaDream };
+            openAlphaDreamItem.Click += OpenAlphaDream;
             openMP2KItem = new ToolStripMenuItem { Text = Strings.MenuOpenMP2K };
             openMP2KItem.Click += OpenMP2K;
             openSDATItem = new ToolStripMenuItem { Text = Strings.MenuOpenSDAT };
             openSDATItem.Click += OpenSDAT;
             fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
-            fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openMLSSItem, openMP2KItem, openSDATItem });
+            fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openAlphaDreamItem, openMP2KItem, openSDATItem });
 
             // Data Menu
             trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = Strings.TrackViewerTitle };
@@ -338,11 +338,11 @@ namespace Kermalis.VGMusicStudio.UI
                 }
             }
         }
-        private void OpenMLSS(object sender, EventArgs e)
+        private void OpenAlphaDream(object sender, EventArgs e)
         {
             var d = new CommonOpenFileDialog
             {
-                Title = Strings.MenuOpenMLSS,
+                Title = Strings.MenuOpenAlphaDream,
                 Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
@@ -351,17 +351,17 @@ namespace Kermalis.VGMusicStudio.UI
                 bool success;
                 try
                 {
-                    new Engine(Engine.EngineType.GBA_MLSS, File.ReadAllBytes(d.FileName));
+                    new Engine(Engine.EngineType.GBA_AlphaDream, File.ReadAllBytes(d.FileName));
                     success = true;
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenMLSS);
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenAlphaDream);
                     success = false;
                 }
                 if (success)
                 {
-                    var config = (Core.GBA.MLSS.Config)Engine.Instance.Config;
+                    var config = (Core.GBA.AlphaDream.Config)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
                 }
             }

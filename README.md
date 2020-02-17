@@ -1,6 +1,6 @@
 # Kermalis's VG Music Studio
 
-VG Music Studio is a music player and visualizer for the most common GBA music format (MP2K), Mario & Luigi: Superstar Saga, the most common NDS music format (SDAT), and a more rare NDS/WII music format (DSE) [found in PMD2 among others].
+VG Music Studio is a music player and visualizer for the most common GBA music format (MP2K), AlphaDream's GBA music format, the most common NDS music format (SDAT), and a more rare NDS/WII music format (DSE) [found in PMD2 among others].
 
 [![VG Music Studio Preview](https://i.imgur.com/hWJGG83.png)](https://www.youtube.com/watch?v=s1BZ7cRbtBU "VG Music Studio Preview")
 
@@ -17,6 +17,20 @@ Discord Server: https://discord.gg/mBQXCTs
 * Tempo numerical (it fits)
 * Help dialog that explains the commands and config for each engine
 
+## AlphaDream Engine
+* ADSR
+* Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
+* PSG channels 3 and 4
+* Some more unknown commands
+* Optimize playback
+
+## DSE Engine
+* ADSR
+* Pitch bend
+* LFO
+* Ability to load SMDB and SWDB (Big Endian as opposed to SMDL and SWDL for Little Endian)
+* Some more unknown commands
+
 ## MP2K Engine
 * Add Golden Sun 2 reverb effect
 * Add reverse playback
@@ -27,45 +41,32 @@ Discord Server: https://discord.gg/mBQXCTs
 * Running status in song disassembler
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 
-## Mario & Luigi: Superstar Saga Engine
-* ADSR
-* Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
-* PSG channels 3 and 4
-* Some more unknown commands
-* Optimize playback
-* Rename to Alphadream Engine
-
 ## SDAT Engine
 * Find proper formulas for LFO
 * Optimize playback
 
-## DSE Engine
-* ADSR
-* Pitch bend
-* Ability to load SMDB and SWDB (Big Endian as opposed to SMDL and SWDL for Little Endian)
-* Some more unknown commands
-
 ----
 # Special Thanks To:
 ## General
-* tuku473 - Design suggestions, colors, Spanish translation
 * Stich991 - Italian translation
+* tuku473 - Design suggestions, colors, Spanish translation
 
-## MP2K Engine
-* Ipatix - Engine research, help, [(and his MP2K music player)](https://github.com/ipatix/agbplay) from which some of my code is based on
-* Bregalad - Extensive documentation
-* mimi - Told me about a hidden feature of the engine
-* SomeShrug - Engine research and helped me understand more about the engine parameters
-
-## Mario & Luigi: Superstar Saga Engine
+## AlphaDream Engine
+* irdkwia - Finding games that used the engine
 * Jesse (jelle) - Engine research
 * Platinum Lucario - Engine research
 
-## SDAT Engine
-* kiwi.ds SDAT Specification - Extensive documentation
-
 ## DSE Engine
 * PsyCommando - Extensive research [(and his DSE music tools)](https://github.com/PsyCommando/ppmdu)
+
+## MP2K Engine
+* Bregalad - Extensive documentation
+* Ipatix - Engine research, help, [(and his MP2K music player)](https://github.com/ipatix/agbplay) from which some of my code is based on
+* mimi - Told me about a hidden feature of the engine
+* SomeShrug - Engine research and helped me understand more about the engine parameters
+
+## SDAT Engine
+* kiwi.ds SDAT Specification - Extensive documentation
 
 ----
 # VG Music Studio Uses:

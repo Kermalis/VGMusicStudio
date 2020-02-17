@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal class FinishCommand : ICommand
     {

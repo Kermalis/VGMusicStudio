@@ -235,7 +235,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             }
                             void Invalid()
                             {
-                                throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
+                                throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, i, offset, cmd));
                             }
 
                             if (cmd <= 0x7F)

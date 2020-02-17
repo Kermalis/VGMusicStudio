@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal abstract class Channel
     {

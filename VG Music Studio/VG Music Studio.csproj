@@ -105,8 +105,8 @@
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\GBA\MP2K\Commands.cs" />
-    <Compile Include="Core\GBA\MLSS\Commands.cs" />
-    <Compile Include="Core\GBA\MLSS\Config.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Commands.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Config.cs" />
     <Compile Include="Core\GlobalConfig.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\GBA\Utils.cs" />
@@ -118,12 +118,12 @@
     <Compile Include="Core\GBA\MP2K\Utils.cs" />
     <Compile Include="Core\GBA\MP2K\Structs.cs" />
     <Compile Include="Core\GBA\MP2K\Track.cs" />
-    <Compile Include="Core\GBA\MLSS\Channel.cs" />
-    <Compile Include="Core\GBA\MLSS\Enums.cs" />
-    <Compile Include="Core\GBA\MLSS\Mixer.cs" />
-    <Compile Include="Core\GBA\MLSS\Player.cs" />
-    <Compile Include="Core\GBA\MLSS\Structs.cs" />
-    <Compile Include="Core\GBA\MLSS\Track.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Channel.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Enums.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Mixer.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Player.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Structs.cs" />
+    <Compile Include="Core\GBA\AlphaDream\Track.cs" />
     <Compile Include="Core\Mixer.cs" />
     <Compile Include="Core\NDS\DSE\Channel.cs" />
     <Compile Include="Core\NDS\DSE\Commands.cs" />
@@ -176,7 +176,7 @@
     <Compile Include="Util\HSLColor.cs" />
     <Compile Include="Util\TimeBarrier.cs" />
     <Compile Include="Util\Utils.cs" />
-    <None Include="MLSS.yaml">
+    <None Include="AlphaDream.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Properties\Previous.ico" />

@@ -572,7 +572,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     }
                                     break;
                                 }
-                                default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, trackIndex, offset, cmd));
+                                default: throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, trackIndex, offset, cmd));
                             }
                         }
 
@@ -1406,7 +1406,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         }
                         break;
                     }
-                    default: throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, track.Index, track.CurOffset, cmd));
+                    default: throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, track.Index, track.CurOffset, cmd));
                 }
             }
         }
