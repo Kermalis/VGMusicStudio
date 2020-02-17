@@ -94,6 +94,23 @@ A7KP_00:
   Name: "Kirby: Nightmare in Dream Land (Europe)"
   SongTableOffsets: 0x843B50
   Copy: "A7KE_00"
+A88E_00:
+  Name: "Mario & Luigi - Superstar Saga (USA)"
+  SongTableOffsets: 0xFB5DA4
+  SongTableSizes: 323
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+A88J_00:
+  Name: "Mario & Luigi - Superstar Saga (Japan)"
+  SongTableOffsets: 0xFB5E00
+  Copy: "A88E_00"
+A88P_00:
+  Name: "Mario & Luigi - Superstar Saga (Europe)"
+  Copy: "A88E_00"
 AE7E_00:
   Name: "Fire Emblem: The Blazing Blade (USA)"
   SongTableOffsets: 0x69D6D8

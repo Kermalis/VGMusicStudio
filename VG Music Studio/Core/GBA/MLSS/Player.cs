@@ -150,10 +150,28 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     case 0x00:
                                     {
                                         byte keyArg = config.Reader.ReadByte();
-                                        byte duration = config.Reader.ReadByte();
-                                        if (!EventExists(offset))
+                                        switch (config.AudioEngineVersion)
                                         {
-                                            AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                            case AudioEngineVersion.MLSS:
+                                            {
+                                                byte duration = config.Reader.ReadByte();
+                                                if (!EventExists(offset))
+                                                {
+                                                    AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                                }
+                                                break;
+                                            }
+                                            case AudioEngineVersion.Hamtaro:
+                                            {
+                                                byte volume = config.Reader.ReadByte();
+                                                byte duration = config.Reader.ReadByte();
+                                                if (!EventExists(offset))
+                                                {
+                                                    AddEvent(new VolumeCommand { Volume = volume });
+                                                    AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                                }
+                                                break;
+                                            }
                                         }
                                         break;
                                     }
@@ -249,9 +267,26 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                         if (cmd <= 0xEF)
                                         {
                                             byte key = config.Reader.ReadByte();
-                                            if (!EventExists(offset))
+                                            switch (config.AudioEngineVersion)
                                             {
-                                                AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                case AudioEngineVersion.MLSS:
+                                                {
+                                                    if (!EventExists(offset))
+                                                    {
+                                                        AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                    }
+                                                    break;
+                                                }
+                                                case AudioEngineVersion.Hamtaro:
+                                                {
+                                                    byte volume = config.Reader.ReadByte();
+                                                    if (!EventExists(offset))
+                                                    {
+                                                        AddEvent(new VolumeCommand { Volume = volume });
+                                                        AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                    }
+                                                    break;
+                                                }
                                             }
                                         }
                                         else
@@ -411,38 +446,47 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             }
         }
 
+        private VoiceEntry GetVoiceEntry(byte voice, byte key)
+        {
+            int vto = config.VoiceTableOffset;
+            short voiceOffset = config.Reader.ReadInt16(vto + (voice * 2));
+            short nextVoiceOffset = config.Reader.ReadInt16(vto + ((voice + 1) * 2));
+            if (voiceOffset == nextVoiceOffset)
+            {
+                return null;
+            }
+            else
+            {
+                long pos = vto + voiceOffset; // Prevent object creation in the last iteration
+                VoiceEntry e = config.Reader.ReadObject<VoiceEntry>(pos);
+                while (e.MinKey > key || e.MaxKey < key)
+                {
+                    pos += 8;
+                    if (pos == nextVoiceOffset)
+                    {
+                        return null;
+                    }
+                    e = config.Reader.ReadObject<VoiceEntry>();
+                }
+                return e;
+            }
+        }
         private void PlayNote(Track track, byte key, byte duration)
         {
-            short voiceOffset = config.Reader.ReadInt16(config.VoiceTableOffset + (track.Voice * 2));
-            short nextVoiceOffset = config.Reader.ReadInt16(config.VoiceTableOffset + ((track.Voice + 1) * 2));
-            int numEntries = (nextVoiceOffset - voiceOffset) / 8; // Each entry is 8 bytes
-            VoiceEntry entry = null;
-            config.Reader.BaseStream.Position = config.VoiceTableOffset + voiceOffset;
-            for (int i = 0; i < numEntries; i++)
-            {
-                VoiceEntry e = config.Reader.ReadObject<VoiceEntry>();
-                if (e.MinKey <= key && e.MaxKey >= key)
-                {
-                    entry = e;
-                    break;
-                }
-            }
+            VoiceEntry entry = GetVoiceEntry(track.Voice, key);
             if (entry != null)
             {
                 track.NoteDuration = duration;
                 if (track.Index >= 8)
                 {
                     // TODO: "Sample" byte in VoiceEntry
-                    // TODO: Check if this check is necessary
-                    if (track.Voice >= 190 && track.Voice < 200)
-                    {
-                        ((SquareChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, track.Volume, track.Panpot, track.GetPitch());
-                    }
+                    ((SquareChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, track.Volume, track.Panpot, track.GetPitch());
                 }
                 else
                 {
-                    int sampleOffset = config.Reader.ReadInt32(config.SampleTableOffset + (entry.Sample * 4)); // Some entries are 0. If you play them, are they silent, or does it not care if they are 0?
-                    ((PCMChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, config.SampleTableOffset + sampleOffset, entry.IsFixedFrequency == 0x80);
+                    int sto = config.SampleTableOffset;
+                    int sampleOffset = config.Reader.ReadInt32(sto + (entry.Sample * 4)); // Some entries are 0. If you play them, are they silent, or does it not care if they are 0?
+                    ((PCMChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, sto + sampleOffset, entry.IsFixedFrequency == 0x80);
                     track.Channel.SetVolume(track.Volume, track.Panpot);
                     track.Channel.SetPitch(track.GetPitch());
                 }
