@@ -5,15 +5,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
     internal class Mixer : Core.Mixer
     {
-        private const int numChannels = 0x20;
-        private readonly float samplesReciprocal;
-        private readonly int samplesPerBuffer;
-        private long fadeMicroFramesLeft;
-        private float fadePos;
-        private float fadeStepPerMicroframe;
+        private const int _numChannels = 0x20;
+        private readonly float _samplesReciprocal;
+        private readonly int _samplesPerBuffer;
+        private long _fadeMicroFramesLeft;
+        private float _fadePos;
+        private float _fadeStepPerMicroframe;
 
-        private readonly Channel[] channels;
-        private readonly BufferedWaveProvider buffer;
+        private readonly Channel[] _channels;
+        private readonly BufferedWaveProvider _buffer;
 
         public Mixer()
         {
@@ -21,21 +21,21 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             // - gbatek
             // I'm not using either of those because the samples per buffer leads to an overflow eventually
             const int sampleRate = 65456;
-            samplesPerBuffer = 341; // TODO
-            samplesReciprocal = 1f / samplesPerBuffer;
+            _samplesPerBuffer = 341; // TODO
+            _samplesReciprocal = 1f / _samplesPerBuffer;
 
-            channels = new Channel[numChannels];
-            for (byte i = 0; i < numChannels; i++)
+            _channels = new Channel[_numChannels];
+            for (byte i = 0; i < _numChannels; i++)
             {
-                channels[i] = new Channel(i);
+                _channels[i] = new Channel(i);
             }
 
-            buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
+            _buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
             {
                 DiscardOnBufferOverflow = true,
-                BufferLength = samplesPerBuffer * 64
+                BufferLength = _samplesPerBuffer * 64
             };
-            Init(buffer);
+            Init(_buffer);
         }
         public override void Dispose()
         {
@@ -51,9 +51,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 return c.Owner == null ? -2 : Utils.IsStateRemovable(c.State) ? -1 : 0;
             }
             Channel nChan = null;
-            for (int i = 0; i < numChannels; i++)
+            for (int i = 0; i < _numChannels; i++)
             {
-                Channel c = channels[i];
+                Channel c = _channels[i];
                 if (nChan != null)
                 {
                     int nScore = GetScore(nChan);
@@ -73,9 +73,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public void ChannelTick()
         {
-            for (int i = 0; i < numChannels; i++)
+            for (int i = 0; i < _numChannels; i++)
             {
-                Channel chan = channels[i];
+                Channel chan = _channels[i];
                 if (chan.Owner != null)
                 {
                     chan.Volume = (byte)chan.StepEnvelope();
@@ -102,55 +102,55 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public void BeginFadeIn()
         {
-            fadePos = 0f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
-            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+            _fadePos = 0f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
+            _fadeStepPerMicroframe = 1f / _fadeMicroFramesLeft;
         }
         public void BeginFadeOut()
         {
-            fadePos = 1f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
-            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+            _fadePos = 1f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
+            _fadeStepPerMicroframe = -1f / _fadeMicroFramesLeft;
         }
         public bool IsFadeDone()
         {
-            return fadeMicroFramesLeft == 0;
+            return _fadeMicroFramesLeft == 0;
         }
         public void ResetFade()
         {
-            fadeMicroFramesLeft = 0;
+            _fadeMicroFramesLeft = 0;
         }
 
-        private WaveFileWriter waveWriter;
+        private WaveFileWriter _waveWriter;
         public void CreateWaveWriter(string fileName)
         {
-            waveWriter = new WaveFileWriter(fileName, buffer.WaveFormat);
+            _waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
         }
         public void CloseWaveWriter()
         {
-            waveWriter?.Dispose();
+            _waveWriter?.Dispose();
         }
         public void Process(bool output, bool recording)
         {
             float fromMaster = 1f, toMaster = 1f;
-            if (fadeMicroFramesLeft > 0)
+            if (_fadeMicroFramesLeft > 0)
             {
                 const float scale = 10f / 6f;
-                fromMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadePos += fadeStepPerMicroframe;
-                toMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadeMicroFramesLeft--;
+                fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadePos += _fadeStepPerMicroframe;
+                toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadeMicroFramesLeft--;
             }
-            float masterStep = (toMaster - fromMaster) * samplesReciprocal;
+            float masterStep = (toMaster - fromMaster) * _samplesReciprocal;
             float masterLevel = fromMaster;
             byte[] b = new byte[4];
-            for (int i = 0; i < samplesPerBuffer; i++)
+            for (int i = 0; i < _samplesPerBuffer; i++)
             {
                 int left = 0,
                     right = 0;
-                for (int j = 0; j < numChannels; j++)
+                for (int j = 0; j < _numChannels; j++)
                 {
-                    Channel chan = channels[j];
+                    Channel chan = _channels[j];
                     if (chan.Owner != null)
                     {
                         bool muted = Mutes[chan.Owner.Index]; // Get mute first because chan.Process() can call chan.Stop() which sets chan.Owner to null
@@ -189,11 +189,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 masterLevel += masterStep;
                 if (output)
                 {
-                    buffer.AddSamples(b, 0, 4);
+                    _buffer.AddSamples(b, 0, 4);
                 }
                 if (recording)
                 {
-                    waveWriter.Write(b, 0, 4);
+                    _waveWriter.Write(b, 0, 4);
                 }
             }
         }

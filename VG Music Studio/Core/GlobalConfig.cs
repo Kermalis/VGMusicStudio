@@ -7,7 +7,7 @@ using YamlDotNet.RepresentationModel;
 
 namespace Kermalis.VGMusicStudio.Core
 {
-    public enum PlaylistMode : byte
+    internal enum PlaylistMode : byte
     {
         Random,
         Sequential
@@ -17,14 +17,14 @@ namespace Kermalis.VGMusicStudio.Core
     {
         public static GlobalConfig Instance { get; private set; }
 
-        public bool TaskbarProgress;
-        public ushort RefreshRate;
-        public bool CenterIndicators;
-        public bool PanpotIndicators;
-        public PlaylistMode PlaylistMode;
-        public long PlaylistSongLoops;
-        public long PlaylistFadeOutMilliseconds;
-        public HSLColor[] Colors;
+        public readonly bool TaskbarProgress;
+        public readonly ushort RefreshRate;
+        public readonly bool CenterIndicators;
+        public readonly bool PanpotIndicators;
+        public readonly PlaylistMode PlaylistMode;
+        public readonly long PlaylistSongLoops;
+        public readonly long PlaylistFadeOutMilliseconds;
+        public readonly HSLColor[] Colors;
 
         private GlobalConfig()
         {

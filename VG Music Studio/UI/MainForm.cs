@@ -16,36 +16,36 @@ namespace Kermalis.VGMusicStudio.UI
     [DesignerCategory("")]
     internal class MainForm : ThemedForm
     {
-        private const int intendedWidth = 675,
-            intendedHeight = 675 + 1 + 125 + 24;
+        private const int _intendedWidth = 675;
+        private const int _intendedHeight = 675 + 1 + 125 + 24;
 
         public static MainForm Instance { get; } = new MainForm();
 
         public readonly bool[] PianoTracks = new bool[SongInfoControl.SongInfo.MaxTracks];
 
-        private bool playlistPlaying;
-        private Config.Playlist curPlaylist;
-        private long curSong = -1;
-        private readonly List<long> playedSongs = new List<long>(),
-            remainingSongs = new List<long>();
+        private bool _playlistPlaying;
+        private Config.Playlist _curPlaylist;
+        private long _curSong = -1;
+        private readonly List<long> _playedSongs = new List<long>();
+        private readonly List<long> _remainingSongs = new List<long>();
 
-        private TrackViewer trackViewer;
+        private TrackViewer _trackViewer;
 
         #region Controls
 
-        private readonly MenuStrip mainMenu;
-        private readonly ToolStripMenuItem fileItem, openDSEItem, openMLSSItem, openMP2KItem, openPSFItem, openSDATItem,
-            dataItem, trackViewerItem, exportMIDIItem, exportWAVItem,
-            playlistItem, endPlaylistItem;
-        private readonly Timer timer;
-        private readonly ThemedNumeric songNumerical;
-        private readonly ThemedButton playButton, pauseButton, stopButton;
-        private readonly SplitContainer splitContainer;
-        private readonly PianoControl piano;
-        private readonly ColorSlider volumeBar, positionBar;
-        private readonly SongInfoControl songInfo;
-        private readonly ImageComboBox songsComboBox;
-        private readonly ThumbnailToolBarButton prevTButton, toggleTButton, nextTButton;
+        private readonly MenuStrip _mainMenu;
+        private readonly ToolStripMenuItem _fileItem, _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openPSFItem, _openSDATItem,
+            _dataItem, _trackViewerItem, _exportMIDIItem, _exportWAVItem,
+            _playlistItem, _endPlaylistItem;
+        private readonly Timer _timer;
+        private readonly ThemedNumeric _songNumerical;
+        private readonly ThemedButton _playButton, _pauseButton, _stopButton;
+        private readonly SplitContainer _splitContainer;
+        private readonly PianoControl _piano;
+        private readonly ColorSlider _volumeBar, _positionBar;
+        private readonly SongInfoControl _songInfo;
+        private readonly ImageComboBox _songsComboBox;
+        private readonly ThumbnailToolBarButton _prevTButton, _toggleTButton, _nextTButton;
 
         #endregion
 
@@ -53,7 +53,7 @@ namespace Kermalis.VGMusicStudio.UI
         {
             if (disposing)
             {
-                timer.Dispose();
+                _timer.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -65,98 +65,98 @@ namespace Kermalis.VGMusicStudio.UI
             }
 
             // File Menu
-            openDSEItem = new ToolStripMenuItem { Text = Strings.MenuOpenDSE };
-            openDSEItem.Click += OpenDSE;
-            openMLSSItem = new ToolStripMenuItem { Text = Strings.MenuOpenMLSS };
-            openMLSSItem.Click += OpenMLSS;
-            openMP2KItem = new ToolStripMenuItem { Text = Strings.MenuOpenMP2K };
-            openMP2KItem.Click += OpenMP2K;
-            openPSFItem = new ToolStripMenuItem { Text = "TODO" };
-            openPSFItem.Click += OpenPSF;
-            openSDATItem = new ToolStripMenuItem { Text = Strings.MenuOpenSDAT };
-            openSDATItem.Click += OpenSDAT;
-            fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
-            fileItem.DropDownItems.AddRange(new ToolStripItem[] { openDSEItem, openMLSSItem, openMP2KItem, openPSFItem, openSDATItem });
+            _openDSEItem = new ToolStripMenuItem { Text = Strings.MenuOpenDSE };
+            _openDSEItem.Click += OpenDSE;
+            _openAlphaDreamItem = new ToolStripMenuItem { Text = Strings.MenuOpenAlphaDream };
+            _openAlphaDreamItem.Click += OpenAlphaDream;
+            _openMP2KItem = new ToolStripMenuItem { Text = Strings.MenuOpenMP2K };
+            _openMP2KItem.Click += OpenMP2K;
+            _openPSFItem = new ToolStripMenuItem { Text = "TODO" };
+            _openPSFItem.Click += OpenPSF;
+            _openSDATItem = new ToolStripMenuItem { Text = Strings.MenuOpenSDAT };
+            _openSDATItem.Click += OpenSDAT;
+            _fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
+            _fileItem.DropDownItems.AddRange(new ToolStripItem[] { _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openPSFItem, _openSDATItem });
 
             // Data Menu
-            trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = Strings.TrackViewerTitle };
-            trackViewerItem.Click += OpenTrackViewer;
-            exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDI };
-            exportMIDIItem.Click += ExportMIDI;
-            exportWAVItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveWAV };
-            exportWAVItem.Click += ExportWAV;
-            dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
-            dataItem.DropDownItems.AddRange(new ToolStripItem[] { trackViewerItem, exportMIDIItem, exportWAVItem });
+            _trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = Strings.TrackViewerTitle };
+            _trackViewerItem.Click += OpenTrackViewer;
+            _exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDI };
+            _exportMIDIItem.Click += ExportMIDI;
+            _exportWAVItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveWAV };
+            _exportWAVItem.Click += ExportWAV;
+            _dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
+            _dataItem.DropDownItems.AddRange(new ToolStripItem[] { _trackViewerItem, _exportMIDIItem, _exportWAVItem });
 
             // Playlist Menu
-            endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuEndPlaylist };
-            endPlaylistItem.Click += EndCurrentPlaylist;
-            playlistItem = new ToolStripMenuItem { Text = Strings.MenuPlaylist };
-            playlistItem.DropDownItems.AddRange(new ToolStripItem[] { endPlaylistItem });
+            _endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuEndPlaylist };
+            _endPlaylistItem.Click += EndCurrentPlaylist;
+            _playlistItem = new ToolStripMenuItem { Text = Strings.MenuPlaylist };
+            _playlistItem.DropDownItems.AddRange(new ToolStripItem[] { _endPlaylistItem });
 
             // Main Menu
-            mainMenu = new MenuStrip { Size = new Size(intendedWidth, 24) };
-            mainMenu.Items.AddRange(new ToolStripItem[] { fileItem, dataItem, playlistItem });
+            _mainMenu = new MenuStrip { Size = new Size(_intendedWidth, 24) };
+            _mainMenu.Items.AddRange(new ToolStripItem[] { _fileItem, _dataItem, _playlistItem });
 
             // Buttons
-            playButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumSpringGreen, Text = Strings.PlayerPlay };
-            playButton.Click += (o, e) => Play();
-            pauseButton = new ThemedButton { Enabled = false, ForeColor = Color.DeepSkyBlue, Text = Strings.PlayerPause };
-            pauseButton.Click += (o, e) => Pause();
-            stopButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumVioletRed, Text = Strings.PlayerStop };
-            stopButton.Click += (o, e) => Stop();
+            _playButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumSpringGreen, Text = Strings.PlayerPlay };
+            _playButton.Click += (o, e) => Play();
+            _pauseButton = new ThemedButton { Enabled = false, ForeColor = Color.DeepSkyBlue, Text = Strings.PlayerPause };
+            _pauseButton.Click += (o, e) => Pause();
+            _stopButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumVioletRed, Text = Strings.PlayerStop };
+            _stopButton.Click += (o, e) => Stop();
 
             // Numerical
-            songNumerical = new ThemedNumeric { Enabled = false, Minimum = 0, Visible = false };
-            songNumerical.ValueChanged += SongNumerical_ValueChanged;
+            _songNumerical = new ThemedNumeric { Enabled = false, Minimum = 0, Visible = false };
+            _songNumerical.ValueChanged += SongNumerical_ValueChanged;
 
             // Timer
-            timer = new Timer();
-            timer.Tick += UpdateUI;
+            _timer = new Timer();
+            _timer.Tick += UpdateUI;
 
             // Piano
-            piano = new PianoControl();
+            _piano = new PianoControl();
 
             // Volume bar
-            volumeBar = new ColorSlider { Enabled = false, LargeChange = 20, Maximum = 100, SmallChange = 5 };
-            volumeBar.ValueChanged += VolumeBar_ValueChanged;
+            _volumeBar = new ColorSlider { Enabled = false, LargeChange = 20, Maximum = 100, SmallChange = 5 };
+            _volumeBar.ValueChanged += VolumeBar_ValueChanged;
 
             // Position bar
-            positionBar = new ColorSlider { AcceptKeys = false, Enabled = false, Maximum = 0 };
-            positionBar.MouseUp += PositionBar_MouseUp;
-            positionBar.MouseDown += PositionBar_MouseDown;
+            _positionBar = new ColorSlider { AcceptKeys = false, Enabled = false, Maximum = 0 };
+            _positionBar.MouseUp += PositionBar_MouseUp;
+            _positionBar.MouseDown += PositionBar_MouseDown;
 
             // Playlist box
-            songsComboBox = new ImageComboBox { Enabled = false };
-            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
+            _songsComboBox = new ImageComboBox { Enabled = false };
+            _songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
 
             // Track info
-            songInfo = new SongInfoControl { Dock = DockStyle.Fill };
+            _songInfo = new SongInfoControl { Dock = DockStyle.Fill };
 
             // Split container
-            splitContainer = new SplitContainer { BackColor = Theme.TitleBar, Dock = DockStyle.Fill, IsSplitterFixed = true, Orientation = Orientation.Horizontal, SplitterWidth = 1 };
-            splitContainer.Panel1.Controls.AddRange(new Control[] { playButton, pauseButton, stopButton, songNumerical, songsComboBox, piano, volumeBar, positionBar });
-            splitContainer.Panel2.Controls.Add(songInfo);
+            _splitContainer = new SplitContainer { BackColor = Theme.TitleBar, Dock = DockStyle.Fill, IsSplitterFixed = true, Orientation = Orientation.Horizontal, SplitterWidth = 1 };
+            _splitContainer.Panel1.Controls.AddRange(new Control[] { _playButton, _pauseButton, _stopButton, _songNumerical, _songsComboBox, _piano, _volumeBar, _positionBar });
+            _splitContainer.Panel2.Controls.Add(_songInfo);
 
             // MainForm
-            ClientSize = new Size(intendedWidth, intendedHeight);
-            Controls.AddRange(new Control[] { splitContainer, mainMenu });
-            MainMenuStrip = mainMenu;
-            MinimumSize = new Size(intendedWidth + (Width - intendedWidth), intendedHeight + (Height - intendedHeight)); // Borders
+            ClientSize = new Size(_intendedWidth, _intendedHeight);
+            Controls.AddRange(new Control[] { _splitContainer, _mainMenu });
+            MainMenuStrip = _mainMenu;
+            MinimumSize = new Size(_intendedWidth + (Width - _intendedWidth), _intendedHeight + (Height - _intendedHeight)); // Borders
             Resize += OnResize;
             Text = Utils.ProgramName;
 
             // Taskbar Buttons
             if (TaskbarManager.IsPlatformSupported)
             {
-                prevTButton = new ThumbnailToolBarButton(Resources.IconPrevious, Strings.PlayerPreviousSong);
-                prevTButton.Click += PlayPreviousSong;
-                toggleTButton = new ThumbnailToolBarButton(Resources.IconPlay, Strings.PlayerPlay);
-                toggleTButton.Click += TogglePlayback;
-                nextTButton = new ThumbnailToolBarButton(Resources.IconNext, Strings.PlayerNextSong);
-                nextTButton.Click += PlayNextSong;
-                prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = false;
-                TaskbarManager.Instance.ThumbnailToolBars.AddButtons(Handle, prevTButton, toggleTButton, nextTButton);
+                _prevTButton = new ThumbnailToolBarButton(Resources.IconPrevious, Strings.PlayerPreviousSong);
+                _prevTButton.Click += PlayPreviousSong;
+                _toggleTButton = new ThumbnailToolBarButton(Resources.IconPlay, Strings.PlayerPlay);
+                _toggleTButton.Click += TogglePlayback;
+                _nextTButton = new ThumbnailToolBarButton(Resources.IconNext, Strings.PlayerNextSong);
+                _nextTButton.Click += PlayNextSong;
+                _prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = false;
+                TaskbarManager.Instance.ThumbnailToolBars.AddButtons(Handle, _prevTButton, _toggleTButton, _nextTButton);
             }
 
             OnResize(null, null);
@@ -164,21 +164,21 @@ namespace Kermalis.VGMusicStudio.UI
 
         private void VolumeBar_ValueChanged(object sender, EventArgs e)
         {
-            Engine.Instance.Mixer.SetVolume(volumeBar.Value / (float)volumeBar.Maximum);
+            Engine.Instance.Mixer.SetVolume(_volumeBar.Value / (float)_volumeBar.Maximum);
         }
         public void SetVolumeBarValue(float volume)
         {
-            volumeBar.ValueChanged -= VolumeBar_ValueChanged;
-            volumeBar.Value = (int)(volume * volumeBar.Maximum);
-            volumeBar.ValueChanged += VolumeBar_ValueChanged;
+            _volumeBar.ValueChanged -= VolumeBar_ValueChanged;
+            _volumeBar.Value = (int)(volume * _volumeBar.Maximum);
+            _volumeBar.ValueChanged += VolumeBar_ValueChanged;
         }
-        private bool positionBarFree = true;
+        private bool _positionBarFree = true;
         private void PositionBar_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                Engine.Instance.Player.SetCurrentPosition(positionBar.Value);
-                positionBarFree = true;
+                Engine.Instance.Player.SetCurrentPosition(_positionBar.Value);
+                _positionBarFree = true;
                 LetUIKnowPlayerIsPlaying();
             }
         }
@@ -186,20 +186,20 @@ namespace Kermalis.VGMusicStudio.UI
         {
             if (e.Button == MouseButtons.Left)
             {
-                positionBarFree = false;
+                _positionBarFree = false;
             }
         }
 
-        private bool autoplay = false;
+        private bool _autoplay = false;
         private void SongNumerical_ValueChanged(object sender, EventArgs e)
         {
-            songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
+            _songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
 
-            long index = (long)songNumerical.Value;
+            long index = (long)_songNumerical.Value;
             Stop();
             Text = Utils.ProgramName;
-            songsComboBox.SelectedIndex = 0;
-            songInfo.DeleteData();
+            _songsComboBox.SelectedIndex = 0;
+            _songInfo.DeleteData();
             bool success;
             try
             {
@@ -212,7 +212,7 @@ namespace Kermalis.VGMusicStudio.UI
                 success = false;
             }
 
-            trackViewer?.UpdateTracks();
+            _trackViewer?.UpdateTracks();
             if (success)
             {
                 Config config = Engine.Instance.Config;
@@ -221,31 +221,31 @@ namespace Kermalis.VGMusicStudio.UI
                 if (song != null)
                 {
                     Text = $"{Utils.ProgramName} - {song.Name}";
-                    songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
+                    _songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
                 }
-                positionBar.Maximum = Engine.Instance.Player.MaxTicks;
-                positionBar.LargeChange = positionBar.Maximum / 10;
-                positionBar.SmallChange = positionBar.LargeChange / 4;
-                songInfo.SetNumTracks(Engine.Instance.Player.Events.Length);
-                if (autoplay)
+                _positionBar.Maximum = Engine.Instance.Player.MaxTicks;
+                _positionBar.LargeChange = _positionBar.Maximum / 10;
+                _positionBar.SmallChange = _positionBar.LargeChange / 4;
+                _songInfo.SetNumTracks(Engine.Instance.Player.Events.Length);
+                if (_autoplay)
                 {
                     Play();
                 }
             }
             else
             {
-                songInfo.SetNumTracks(0);
+                _songInfo.SetNumTracks(0);
             }
             int numTracks = (Engine.Instance.Player.Events?.Length).GetValueOrDefault();
-            positionBar.Enabled = exportWAVItem.Enabled = success && numTracks > 0;
-            exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && numTracks > 0;
+            _positionBar.Enabled = _exportWAVItem.Enabled = success && numTracks > 0;
+            _exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && numTracks > 0;
 
-            autoplay = true;
-            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
+            _autoplay = true;
+            _songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
         }
         private void SongsComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var item = (ImageComboBoxItem)songsComboBox.SelectedItem;
+            var item = (ImageComboBoxItem)_songsComboBox.SelectedItem;
             if (item.Item is Config.Song song)
             {
                 SetAndLoadSong(song.Index);
@@ -256,38 +256,38 @@ namespace Kermalis.VGMusicStudio.UI
                     && FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.MenuPlaylist, MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ResetPlaylistStuff(false);
-                    curPlaylist = playlist;
-                    Engine.Instance.Player.ShouldFadeOut = playlistPlaying = true;
+                    _curPlaylist = playlist;
+                    Engine.Instance.Player.ShouldFadeOut = _playlistPlaying = true;
                     Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
-                    endPlaylistItem.Enabled = true;
+                    _endPlaylistItem.Enabled = true;
                     SetAndLoadNextPlaylistSong();
                 }
             }
         }
         private void SetAndLoadSong(long index)
         {
-            curSong = index;
-            if (songNumerical.Value == index)
+            _curSong = index;
+            if (_songNumerical.Value == index)
             {
                 SongNumerical_ValueChanged(null, null);
             }
             else
             {
-                songNumerical.Value = index;
+                _songNumerical.Value = index;
             }
         }
         private void SetAndLoadNextPlaylistSong()
         {
-            if (remainingSongs.Count == 0)
+            if (_remainingSongs.Count == 0)
             {
-                remainingSongs.AddRange(curPlaylist.Songs.Select(s => s.Index));
+                _remainingSongs.AddRange(_curPlaylist.Songs.Select(s => s.Index));
                 if (GlobalConfig.Instance.PlaylistMode == PlaylistMode.Random)
                 {
-                    remainingSongs.Shuffle();
+                    _remainingSongs.Shuffle();
                 }
             }
-            long nextSong = remainingSongs[0];
-            remainingSongs.RemoveAt(0);
+            long nextSong = _remainingSongs[0];
+            _remainingSongs.RemoveAt(0);
             SetAndLoadSong(nextSong);
         }
         private void ResetPlaylistStuff(bool enableds)
@@ -296,13 +296,13 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 Engine.Instance.Player.ShouldFadeOut = false;
             }
-            playlistPlaying = false;
-            curPlaylist = null;
-            curSong = -1;
-            remainingSongs.Clear();
-            playedSongs.Clear();
-            endPlaylistItem.Enabled = false;
-            songNumerical.Enabled = songsComboBox.Enabled = enableds;
+            _playlistPlaying = false;
+            _curPlaylist = null;
+            _curSong = -1;
+            _remainingSongs.Clear();
+            _playedSongs.Clear();
+            _endPlaylistItem.Enabled = false;
+            _songNumerical.Enabled = _songsComboBox.Enabled = enableds;
         }
         private void EndCurrentPlaylist(object sender, EventArgs e)
         {
@@ -340,11 +340,11 @@ namespace Kermalis.VGMusicStudio.UI
                 }
             }
         }
-        private void OpenMLSS(object sender, EventArgs e)
+        private void OpenAlphaDream(object sender, EventArgs e)
         {
             var d = new CommonOpenFileDialog
             {
-                Title = Strings.MenuOpenMLSS,
+                Title = Strings.MenuOpenAlphaDream,
                 Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
             };
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
@@ -353,17 +353,17 @@ namespace Kermalis.VGMusicStudio.UI
                 bool success;
                 try
                 {
-                    new Engine(Engine.EngineType.GBA_MLSS, File.ReadAllBytes(d.FileName));
+                    new Engine(Engine.EngineType.GBA_AlphaDream, File.ReadAllBytes(d.FileName));
                     success = true;
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenMLSS);
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenAlphaDream);
                     success = false;
                 }
                 if (success)
                 {
-                    var config = (Core.GBA.MLSS.Config)Engine.Instance.Config;
+                    var config = (Core.GBA.AlphaDream.Config)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
                 }
             }
@@ -508,18 +508,18 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 Engine.Instance.Player.ShouldFadeOut = oldFade;
                 Engine.Instance.Player.NumLoops = oldLoops;
-                stopUI = false;
+                _stopUI = false;
             }
         }
 
         public void LetUIKnowPlayerIsPlaying()
         {
-            if (!timer.Enabled)
+            if (!_timer.Enabled)
             {
-                pauseButton.Enabled = stopButton.Enabled = true;
-                pauseButton.Text = Strings.PlayerPause;
-                timer.Interval = (int)(1000.0 / GlobalConfig.Instance.RefreshRate);
-                timer.Start();
+                _pauseButton.Enabled = _stopButton.Enabled = true;
+                _pauseButton.Text = Strings.PlayerPause;
+                _timer.Interval = (int)(1000.0 / GlobalConfig.Instance.RefreshRate);
+                _timer.Start();
                 UpdateTaskbarState();
                 UpdateTaskbarButtons();
             }
@@ -534,13 +534,13 @@ namespace Kermalis.VGMusicStudio.UI
             Engine.Instance.Player.Pause();
             if (Engine.Instance.Player.State == PlayerState.Paused)
             {
-                pauseButton.Text = Strings.PlayerUnpause;
-                timer.Stop();
+                _pauseButton.Text = Strings.PlayerUnpause;
+                _timer.Stop();
             }
             else
             {
-                pauseButton.Text = Strings.PlayerPause;
-                timer.Start();
+                _pauseButton.Text = Strings.PlayerPause;
+                _timer.Start();
             }
             UpdateTaskbarState();
             UpdateTaskbarButtons();
@@ -548,11 +548,11 @@ namespace Kermalis.VGMusicStudio.UI
         private void Stop()
         {
             Engine.Instance.Player.Stop();
-            pauseButton.Enabled = stopButton.Enabled = false;
-            pauseButton.Text = Strings.PlayerPause;
-            timer.Stop();
-            songInfo.DeleteData();
-            piano.UpdateKeys(songInfo.Info, PianoTracks);
+            _pauseButton.Enabled = _stopButton.Enabled = false;
+            _pauseButton.Text = Strings.PlayerPause;
+            _timer.Stop();
+            _songInfo.DeleteData();
+            _piano.UpdateKeys(_songInfo.Info, PianoTracks);
             UpdatePositionIndicators(0L);
             UpdateTaskbarState();
             UpdateTaskbarButtons();
@@ -571,29 +571,29 @@ namespace Kermalis.VGMusicStudio.UI
         private void PlayPreviousSong(object sender, EventArgs e)
         {
             long prevSong;
-            if (playlistPlaying)
+            if (_playlistPlaying)
             {
-                int index = playedSongs.Count - 1;
-                prevSong = playedSongs[index];
-                playedSongs.RemoveAt(index);
-                remainingSongs.Insert(0, curSong);
+                int index = _playedSongs.Count - 1;
+                prevSong = _playedSongs[index];
+                _playedSongs.RemoveAt(index);
+                _remainingSongs.Insert(0, _curSong);
             }
             else
             {
-                prevSong = (long)songNumerical.Value - 1;
+                prevSong = (long)_songNumerical.Value - 1;
             }
             SetAndLoadSong(prevSong);
         }
         private void PlayNextSong(object sender, EventArgs e)
         {
-            if (playlistPlaying)
+            if (_playlistPlaying)
             {
-                playedSongs.Add(curSong);
+                _playedSongs.Add(_curSong);
                 SetAndLoadNextPlaylistSong();
             }
             else
             {
-                SetAndLoadSong((long)songNumerical.Value + 1);
+                SetAndLoadSong((long)_songNumerical.Value + 1);
             }
         }
 
@@ -602,17 +602,17 @@ namespace Kermalis.VGMusicStudio.UI
             Engine.Instance.Player.SongEnded += SongEnded;
             foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
             {
-                songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
-                songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBoxItem(s, Resources.IconSong, 1)).ToArray());
+                _songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
+                _songsComboBox.Items.AddRange(playlist.Songs.Select(s => new ImageComboBoxItem(s, Resources.IconSong, 1)).ToArray());
             }
-            songNumerical.Maximum = numSongs - 1;
+            _songNumerical.Maximum = numSongs - 1;
 #if DEBUG
             //Debug.EventScan(Engine.Instance.Config.Playlists[0].Songs, numericalVisible);
 #endif
-            autoplay = false;
+            _autoplay = false;
             SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
-            songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = true;
-            songNumerical.Visible = numericalVisible;
+            _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = true;
+            _songNumerical.Visible = numericalVisible;
             UpdateTaskbarButtons();
         }
         private void DisposeEngine()
@@ -622,32 +622,32 @@ namespace Kermalis.VGMusicStudio.UI
                 Stop();
                 Engine.Instance.Dispose();
             }
-            trackViewer?.UpdateTracks();
-            prevTButton.Enabled = toggleTButton.Enabled = nextTButton.Enabled = songsComboBox.Enabled = songNumerical.Enabled = playButton.Enabled = volumeBar.Enabled = positionBar.Enabled = false;
+            _trackViewer?.UpdateTracks();
+            _prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = _positionBar.Enabled = false;
             Text = Utils.ProgramName;
-            songInfo.SetNumTracks(0);
-            songInfo.ResetMutes();
+            _songInfo.SetNumTracks(0);
+            _songInfo.ResetMutes();
             ResetPlaylistStuff(false);
             UpdatePositionIndicators(0L);
             UpdateTaskbarState();
-            songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
-            songNumerical.ValueChanged -= SongNumerical_ValueChanged;
-            songNumerical.Visible = false;
-            songNumerical.Value = songNumerical.Maximum = 0;
-            songsComboBox.SelectedItem = null;
-            songsComboBox.Items.Clear();
-            songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
-            songNumerical.ValueChanged += SongNumerical_ValueChanged;
+            _songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
+            _songNumerical.ValueChanged -= SongNumerical_ValueChanged;
+            _songNumerical.Visible = false;
+            _songNumerical.Value = _songNumerical.Maximum = 0;
+            _songsComboBox.SelectedItem = null;
+            _songsComboBox.Items.Clear();
+            _songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
+            _songNumerical.ValueChanged += SongNumerical_ValueChanged;
         }
-        private bool stopUI = false;
+        private bool _stopUI = false;
         private void UpdateUI(object sender, EventArgs e)
         {
-            if (stopUI)
+            if (_stopUI)
             {
-                stopUI = false;
-                if (playlistPlaying)
+                _stopUI = false;
+                if (_playlistPlaying)
                 {
-                    playedSongs.Add(curSong);
+                    _playedSongs.Add(_curSong);
                     SetAndLoadNextPlaylistSong();
                 }
                 else
@@ -659,27 +659,27 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 if (WindowState != FormWindowState.Minimized)
                 {
-                    SongInfoControl.SongInfo info = songInfo.Info;
+                    SongInfoControl.SongInfo info = _songInfo.Info;
                     Engine.Instance.Player.GetSongState(info);
-                    piano.UpdateKeys(info, PianoTracks);
-                    songInfo.Invalidate();
+                    _piano.UpdateKeys(info, PianoTracks);
+                    _songInfo.Invalidate();
                 }
                 UpdatePositionIndicators(Engine.Instance.Player.ElapsedTicks);
             }
         }
         private void SongEnded()
         {
-            stopUI = true;
+            _stopUI = true;
         }
         private void UpdatePositionIndicators(long ticks)
         {
-            if (positionBarFree)
+            if (_positionBarFree)
             {
-                positionBar.Value = ticks;
+                _positionBar.Value = ticks;
             }
             if (GlobalConfig.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
             {
-                TaskbarManager.Instance.SetProgressValue((int)ticks, (int)positionBar.Maximum);
+                TaskbarManager.Instance.SetProgressValue((int)ticks, (int)_positionBar.Maximum);
             }
         }
         private void UpdateTaskbarState()
@@ -700,36 +700,36 @@ namespace Kermalis.VGMusicStudio.UI
         {
             if (TaskbarManager.IsPlatformSupported)
             {
-                if (playlistPlaying)
+                if (_playlistPlaying)
                 {
-                    prevTButton.Enabled = playedSongs.Count > 0;
-                    nextTButton.Enabled = true;
+                    _prevTButton.Enabled = _playedSongs.Count > 0;
+                    _nextTButton.Enabled = true;
                 }
                 else
                 {
-                    prevTButton.Enabled = curSong > 0;
-                    nextTButton.Enabled = curSong < songNumerical.Maximum;
+                    _prevTButton.Enabled = _curSong > 0;
+                    _nextTButton.Enabled = _curSong < _songNumerical.Maximum;
                 }
                 switch (Engine.Instance.Player.State)
                 {
-                    case PlayerState.Stopped: toggleTButton.Icon = Resources.IconPlay; toggleTButton.Tooltip = Strings.PlayerPlay; break;
-                    case PlayerState.Playing: toggleTButton.Icon = Resources.IconPause; toggleTButton.Tooltip = Strings.PlayerPause; break;
-                    case PlayerState.Paused: toggleTButton.Icon = Resources.IconPlay; toggleTButton.Tooltip = Strings.PlayerUnpause; break;
+                    case PlayerState.Stopped: _toggleTButton.Icon = Resources.IconPlay; _toggleTButton.Tooltip = Strings.PlayerPlay; break;
+                    case PlayerState.Playing: _toggleTButton.Icon = Resources.IconPause; _toggleTButton.Tooltip = Strings.PlayerPause; break;
+                    case PlayerState.Paused: _toggleTButton.Icon = Resources.IconPlay; _toggleTButton.Tooltip = Strings.PlayerUnpause; break;
                 }
-                toggleTButton.Enabled = true;
+                _toggleTButton.Enabled = true;
             }
         }
 
         private void OpenTrackViewer(object sender, EventArgs e)
         {
-            if (trackViewer != null)
+            if (_trackViewer != null)
             {
-                trackViewer.Focus();
+                _trackViewer.Focus();
                 return;
             }
-            trackViewer = new TrackViewer { Owner = this };
-            trackViewer.FormClosed += (o, s) => trackViewer = null;
-            trackViewer.Show();
+            _trackViewer = new TrackViewer { Owner = this };
+            _trackViewer.FormClosed += (o, s) => _trackViewer = null;
+            _trackViewer.Show();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -741,46 +741,46 @@ namespace Kermalis.VGMusicStudio.UI
         {
             if (WindowState != FormWindowState.Minimized)
             {
-                splitContainer.SplitterDistance = (int)(ClientSize.Height / 5.5) - 25; // -25 for menustrip (24) and itself (1)
+                _splitContainer.SplitterDistance = (int)(ClientSize.Height / 5.5) - 25; // -25 for menustrip (24) and itself (1)
 
-                int w1 = (int)(splitContainer.Panel1.Width / 2.35);
-                int h1 = (int)(splitContainer.Panel1.Height / 5.0);
+                int w1 = (int)(_splitContainer.Panel1.Width / 2.35);
+                int h1 = (int)(_splitContainer.Panel1.Height / 5.0);
 
-                int xoff = splitContainer.Panel1.Width / 83;
-                int yoff = splitContainer.Panel1.Height / 25;
+                int xoff = _splitContainer.Panel1.Width / 83;
+                int yoff = _splitContainer.Panel1.Height / 25;
                 int a, b, c, d;
 
                 // Buttons
                 a = (w1 / 3) - xoff;
                 b = (xoff / 2) + 1;
-                playButton.Location = new Point(xoff + b, yoff);
-                pauseButton.Location = new Point((xoff * 2) + a + b, yoff);
-                stopButton.Location = new Point((xoff * 3) + (a * 2) + b, yoff);
-                playButton.Size = pauseButton.Size = stopButton.Size = new Size(a, h1);
+                _playButton.Location = new Point(xoff + b, yoff);
+                _pauseButton.Location = new Point((xoff * 2) + a + b, yoff);
+                _stopButton.Location = new Point((xoff * 3) + (a * 2) + b, yoff);
+                _playButton.Size = _pauseButton.Size = _stopButton.Size = new Size(a, h1);
                 c = yoff + ((h1 - 21) / 2);
-                songNumerical.Location = new Point((xoff * 4) + (a * 3) + b, c);
-                songNumerical.Size = new Size((int)(a / 1.175), 21);
+                _songNumerical.Location = new Point((xoff * 4) + (a * 3) + b, c);
+                _songNumerical.Size = new Size((int)(a / 1.175), 21);
                 // Song combobox
-                d = splitContainer.Panel1.Width - w1 - xoff;
-                songsComboBox.Location = new Point(d, c);
-                songsComboBox.Size = new Size(w1, 21);
+                d = _splitContainer.Panel1.Width - w1 - xoff;
+                _songsComboBox.Location = new Point(d, c);
+                _songsComboBox.Size = new Size(w1, 21);
 
                 // Volume bar
-                c = (int)(splitContainer.Panel1.Height / 3.5);
-                volumeBar.Location = new Point(xoff, c);
-                volumeBar.Size = new Size(w1, h1);
+                c = (int)(_splitContainer.Panel1.Height / 3.5);
+                _volumeBar.Location = new Point(xoff, c);
+                _volumeBar.Size = new Size(w1, h1);
                 // Position bar
-                positionBar.Location = new Point(d, c);
-                positionBar.Size = new Size(w1, h1);
+                _positionBar.Location = new Point(d, c);
+                _positionBar.Size = new Size(w1, h1);
 
                 // Piano
-                piano.Size = new Size(splitContainer.Panel1.Width, (int)(splitContainer.Panel1.Height / 2.5)); // Force it to initialize piano keys again
-                piano.Location = new Point((splitContainer.Panel1.Width - (piano.WhiteKeyWidth * PianoControl.WhiteKeyCount)) / 2, splitContainer.Panel1.Height - piano.Height - 1);
+                _piano.Size = new Size(_splitContainer.Panel1.Width, (int)(_splitContainer.Panel1.Height / 2.5)); // Force it to initialize piano keys again
+                _piano.Location = new Point((_splitContainer.Panel1.Width - (_piano.WhiteKeyWidth * PianoControl.WhiteKeyCount)) / 2, _splitContainer.Panel1.Height - _piano.Height - 1);
             }
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (keyData == Keys.Space && playButton.Enabled && !songsComboBox.Focused)
+            if (keyData == Keys.Space && _playButton.Enabled && !_songsComboBox.Focused)
             {
                 TogglePlayback(null, null);
                 return true;

@@ -126,8 +126,8 @@
   <data name="ErrorOpenDSE" xml:space="preserve">
     <value>Error al Abrir Carpeta DSE</value>
   </data>
-  <data name="ErrorOpenMLSS" xml:space="preserve">
-    <value>Error al Abrir GBA ROM (MLSS)</value>
+  <data name="ErrorOpenAlphaDream" xml:space="preserve">
+    <value>Error al Abrir GBA ROM (AlphaDream)</value>
   </data>
   <data name="ErrorOpenMP2K" xml:space="preserve">
     <value>Error al Abrir GBA ROM (MP2K)</value>
@@ -159,8 +159,8 @@
   <data name="MenuOpenDSE" xml:space="preserve">
     <value>Abrir Carpeta DSE</value>
   </data>
-  <data name="MenuOpenMLSS" xml:space="preserve">
-    <value>Abrir GBA ROM (MLSS)</value>
+  <data name="MenuOpenAlphaDream" xml:space="preserve">
+    <value>Abrir GBA ROM (AlphaDream)</value>
   </data>
   <data name="MenuOpenMP2K" xml:space="preserve">
     <value>Abrir GBA ROM (MP2K)</value>
@@ -267,7 +267,7 @@
   <data name="ErrorDSEInvalidKey" xml:space="preserve">
     <value>Clave inválida en la pista {0} en 0x{1:X}: {2}</value>
   </data>
-  <data name="ErrorDSEMLSSMP2KSDATInvalidCommand" xml:space="preserve">
+  <data name="ErrorAlphaDreamDSEMP2KSDATInvalidCommand" xml:space="preserve">
     <value>Comando inválido en la pista {0} en 0x{1:X}: 0x{2:X}</value>
   </data>
   <data name="ErrorDSENoSequences" xml:space="preserve">
@@ -276,19 +276,19 @@
   <data name="ErrorGlobalConfig" xml:space="preserve">
     <value>Error al Cargar Configuración Global</value>
   </data>
-  <data name="ErrorMLSSMP2KCopyInvalidGameCode" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KCopyInvalidGameCode" xml:space="preserve">
     <value>No se puede copiar, el código del juego "{0}" es inválido.</value>
   </data>
-  <data name="ErrorMLSSMP2KMissingGameCode" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KMissingGameCode" xml:space="preserve">
     <value>No se encuentra el código del juego "{0}".</value>
   </data>
-  <data name="ErrorMLSSMP2KParseGameCode" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KParseGameCode" xml:space="preserve">
     <value>Error analizando el código del juego "{0}" en "{1}"{2}</value>
   </data>
-  <data name="ErrorMLSSMP2KSongRepeated" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KSongRepeated" xml:space="preserve">
     <value>La Lista de Reproducción "{0}" tiene a la canción {1} definida más de una vez entre decimal y hexadecimal.</value>
   </data>
-  <data name="ErrorMLSSMP2KSongTableCounts" xml:space="preserve">
+  <data name="ErrorAlphaDreamMP2KSongTableCounts" xml:space="preserve">
     <value>El número de "{0}" debe ser igual al de "{1}".</value>
   </data>
   <data name="ErrorMP2KInvalidRunningStatusCommand" xml:space="preserve">

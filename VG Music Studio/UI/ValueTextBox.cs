@@ -6,34 +6,34 @@ namespace Kermalis.VGMusicStudio.UI
 {
     internal class ValueTextBox : ThemedTextBox
     {
-        private bool hex = false;
+        private bool _hex = false;
         public bool Hexadecimal
         {
-            get => hex;
+            get => _hex;
             set
             {
-                hex = value;
+                _hex = value;
                 OnTextChanged(EventArgs.Empty);
                 SelectionStart = Text.Length;
             }
         }
-        private long max = long.MaxValue;
+        private long _max = long.MaxValue;
         public long Maximum
         {
-            get => max;
+            get => _max;
             set
             {
-                max = value;
+                _max = value;
                 OnTextChanged(EventArgs.Empty);
             }
         }
-        private long min = 0;
+        private long _min = 0;
         public long Minimum
         {
-            get => min;
+            get => _min;
             set
             {
-                min = value;
+                _min = value;
                 OnTextChanged(EventArgs.Empty);
             }
         }
@@ -43,12 +43,12 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 if (TextLength > 0)
                 {
-                    if (Utils.TryParseValue(Text, min, max, out long l))
+                    if (Utils.TryParseValue(Text, _min, _max, out long l))
                     {
                         return l;
                     }
                 }
-                return min;
+                return _min;
             }
             set
             {
@@ -90,15 +90,15 @@ namespace Kermalis.VGMusicStudio.UI
             Value = Value;
         }
 
-        private EventHandler onValueChanged = null;
+        private EventHandler _onValueChanged = null;
         public event EventHandler ValueChanged
         {
-            add => onValueChanged += value;
-            remove => onValueChanged -= value;
+            add => _onValueChanged += value;
+            remove => _onValueChanged -= value;
         }
         protected virtual void OnValueChanged(EventArgs e)
         {
-            onValueChanged?.Invoke(this, e);
+            _onValueChanged?.Invoke(this, e);
         }
     }
 }

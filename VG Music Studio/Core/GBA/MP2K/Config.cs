@@ -13,18 +13,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
-        public string GameCode;
-        public byte Version;
+        public readonly string GameCode;
+        public readonly byte Version;
 
-        public string Name;
-        public int[] SongTableOffsets;
-        public long[] SongTableSizes;
-        public int SampleRate;
-        public ReverbType ReverbType;
-        public byte Reverb;
-        public byte Volume;
-        public bool HasGoldenSunSynths;
-        public bool HasPokemonCompression;
+        public readonly string Name;
+        public readonly int[] SongTableOffsets;
+        public readonly long[] SongTableSizes;
+        public readonly int SampleRate;
+        public readonly ReverbType ReverbType;
+        public readonly byte Reverb;
+        public readonly byte Volume;
+        public readonly bool HasGoldenSunSynths;
+        public readonly bool HasPokemonCompression;
 
         public Config(byte[] rom)
         {
@@ -50,7 +50,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     catch (BetterKeyNotFoundException)
                     {
-                        throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KMissingGameCode, gcv)));
+                        throw new Exception(string.Format(Strings.ErrorParseConfig, configFile, Environment.NewLine + string.Format(Strings.ErrorAlphaDreamMP2KMissingGameCode, gcv)));
                     }
 
                     YamlNode nameNode = null,
@@ -73,7 +73,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             catch (BetterKeyNotFoundException ex)
                             {
-                                throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KCopyInvalidGameCode, ex.Key)));
+                                throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorAlphaDreamMP2KCopyInvalidGameCode, ex.Key)));
                             }
                             Load(copyGame);
                         }
@@ -125,7 +125,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     long songIndex = Util.Utils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, long.MaxValue);
                                     if (songs.Any(s => s.Index == songIndex))
                                     {
-                                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongRepeated, name, songIndex)));
+                                        throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorAlphaDreamMP2KSongRepeated, name, songIndex)));
                                     }
                                     songs.Add(new Song(songIndex, song.Value.ToString()));
                                 }
@@ -149,7 +149,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     int numSongTables = songTables.Length;
                     if (numSongTables == 0)
                     {
-                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyNoEntries, nameof(SongTableOffsets))));
+                        throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyNoEntries, nameof(SongTableOffsets))));
                     }
                     if (songTableSizesNode == null)
                     {
@@ -158,7 +158,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     string[] sizes = songTableSizesNode.ToString().SplitSpace(StringSplitOptions.RemoveEmptyEntries);
                     if (sizes.Length != numSongTables)
                     {
-                        throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorMLSSMP2KSongTableCounts, nameof(SongTableSizes), nameof(SongTableOffsets))));
+                        throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorAlphaDreamMP2KSongTableCounts, nameof(SongTableSizes), nameof(SongTableOffsets))));
                     }
                     SongTableOffsets = new int[numSongTables];
                     SongTableSizes = new long[numSongTables];
@@ -207,11 +207,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 catch (BetterKeyNotFoundException ex)
                 {
-                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyMissing, ex.Key)));
+                    throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, configFile, Environment.NewLine + string.Format(Strings.ErrorConfigKeyMissing, ex.Key)));
                 }
                 catch (InvalidValueException ex)
                 {
-                    throw new Exception(string.Format(Strings.ErrorMLSSMP2KParseGameCode, gcv, configFile, Environment.NewLine + ex.Message));
+                    throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, configFile, Environment.NewLine + ex.Message));
                 }
                 catch (YamlDotNet.Core.YamlException ex)
                 {

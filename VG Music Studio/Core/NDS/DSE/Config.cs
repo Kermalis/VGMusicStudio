@@ -8,8 +8,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
     internal class Config : Core.Config
     {
-        public string BGMPath;
-        public string[] BGMFiles;
+        public readonly string BGMPath;
+        public readonly string[] BGMFiles;
 
         public Config(string bgmPath)
         {

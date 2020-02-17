@@ -1,4 +1,4 @@
-﻿namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+﻿namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal class Track
     {
@@ -6,15 +6,21 @@
         public readonly string Type;
         public readonly Channel Channel;
 
-        public byte Voice, BendRange, Volume, Rest, NoteDuration;
-        public sbyte PitchBend, Panpot;
-        public bool Enabled, Stopped;
+        public byte Voice;
+        public byte PitchBendRange;
+        public byte Volume;
+        public byte Rest;
+        public byte NoteDuration;
+        public sbyte PitchBend;
+        public sbyte Panpot;
+        public bool Enabled;
+        public bool Stopped;
         public int CurEvent;
         public ICommand PrevCommand;
 
         public int GetPitch()
         {
-            return PitchBend * (BendRange / 2);
+            return PitchBend * (PitchBendRange / 2);
         }
 
         public Track(byte i, Mixer mixer)
@@ -28,7 +34,7 @@
         {
             Voice = 0;
             Rest = 0;
-            BendRange = 2;
+            PitchBendRange = 2;
             NoteDuration = 0;
             PitchBend = 0;
             Panpot = 0;

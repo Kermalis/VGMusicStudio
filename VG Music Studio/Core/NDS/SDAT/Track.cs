@@ -5,18 +5,36 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
     internal class Track
     {
         public readonly byte Index;
-        private readonly Player player;
+        private readonly Player _player;
 
-        public bool Allocated, Enabled, Stopped;
-        public bool Tie, Mono, Portamento,
-            WaitingForNoteToFinishBeforeContinuingXD; // Is this necessary?
-        public byte Voice, Priority, Volume, Expression,
-            LFORange, PitchBendRange, LFOSpeed, LFODepth;
-        public ushort LFODelay, LFOPhase, LFODelayCount;
+        public bool Allocated;
+        public bool Enabled;
+        public bool Stopped;
+        public bool Tie;
+        public bool Mono;
+        public bool Portamento;
+        public bool WaitingForNoteToFinishBeforeContinuingXD; // Is this necessary?
+        public byte Voice;
+        public byte Priority;
+        public byte Volume;
+        public byte Expression;
+        public byte LFORange;
+        public byte PitchBendRange;
+        public byte LFOSpeed;
+        public byte LFODepth;
+        public ushort LFODelay;
+        public ushort LFOPhase;
+        public ushort LFODelayCount;
         public LFOType LFOType;
-        public sbyte PitchBend, Panpot, Transpose;
-        public byte Attack, Decay, Sustain, Release;
-        public byte PortamentoKey, PortamentoTime;
+        public sbyte PitchBend;
+        public sbyte Panpot;
+        public sbyte Transpose;
+        public byte Attack;
+        public byte Decay;
+        public byte Sustain;
+        public byte Release;
+        public byte PortamentoKey;
+        public byte PortamentoTime;
         public short SweepPitch;
         public int Rest;
         public int[] CallStack = new int[3];
@@ -39,7 +57,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             int lfo = LFOType == LFOType.Volume ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
             lfo = (int)(((lfo & ~0xFC000000) >> 8) | ((lfo < 0 ? -1 : 0) << 6) | (((uint)lfo >> 26) << 18));
-            return Utils.SustainTable[player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + lfo;
+            return Utils.SustainTable[_player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + lfo;
         }
         public sbyte GetPan()
         {
@@ -60,7 +78,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public Track(byte i, Player player)
         {
             Index = i;
-            this.player = player;
+            _player = player;
         }
         public void Init()
         {

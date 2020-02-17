@@ -9,13 +9,13 @@ namespace Kermalis.VGMusicStudio.Core
     internal abstract class Mixer : IAudioSessionEventsHandler, IDisposable
     {
         public readonly bool[] Mutes = new bool[SongInfoControl.SongInfo.MaxTracks];
-        private IWavePlayer @out;
-        private AudioSessionControl appVolume;
+        private IWavePlayer _out;
+        private AudioSessionControl _appVolume;
 
         protected void Init(IWaveProvider waveProvider)
         {
-            @out = new WasapiOut();
-            @out.Init(waveProvider);
+            _out = new WasapiOut();
+            _out.Init(waveProvider);
             using (var en = new MMDeviceEnumerator())
             {
                 SessionCollection sessions = en.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia).AudioSessionManager.Sessions;
@@ -25,23 +25,23 @@ namespace Kermalis.VGMusicStudio.Core
                     AudioSessionControl session = sessions[i];
                     if (session.GetProcessID == id)
                     {
-                        appVolume = session;
-                        appVolume.RegisterEventClient(this);
+                        _appVolume = session;
+                        _appVolume.RegisterEventClient(this);
                         break;
                     }
                 }
             }
-            @out.Play();
+            _out.Play();
         }
 
-        private bool volChange = true;
+        private bool _volChange = true;
         public void OnVolumeChanged(float volume, bool isMuted)
         {
-            if (volChange)
+            if (_volChange)
             {
                 MainForm.Instance.SetVolumeBarValue(volume);
             }
-            volChange = true;
+            _volChange = true;
         }
         public void OnDisplayNameChanged(string displayName)
         {
@@ -64,7 +64,7 @@ namespace Kermalis.VGMusicStudio.Core
         {
             if (state == AudioSessionState.AudioSessionStateActive)
             {
-                OnVolumeChanged(appVolume.SimpleAudioVolume.Volume, appVolume.SimpleAudioVolume.Mute);
+                OnVolumeChanged(_appVolume.SimpleAudioVolume.Volume, _appVolume.SimpleAudioVolume.Mute);
             }
         }
         public void OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason)
@@ -73,15 +73,15 @@ namespace Kermalis.VGMusicStudio.Core
         }
         public void SetVolume(float volume)
         {
-            volChange = false;
-            appVolume.SimpleAudioVolume.Volume = volume;
+            _volChange = false;
+            _appVolume.SimpleAudioVolume.Volume = volume;
         }
 
         public virtual void Dispose()
         {
-            @out.Stop();
-            @out.Dispose();
-            appVolume.Dispose();
+            _out.Stop();
+            _out.Dispose();
+            _appVolume.Dispose();
         }
     }
 }

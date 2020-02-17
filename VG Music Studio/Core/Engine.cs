@@ -7,7 +7,7 @@ namespace Kermalis.VGMusicStudio.Core
         public enum EngineType : byte
         {
             None,
-            GBA_MLSS,
+            GBA_AlphaDream,
             GBA_MP2K,
             NDS_DSE,
             NDS_SDAT,
@@ -25,18 +25,18 @@ namespace Kermalis.VGMusicStudio.Core
         {
             switch (type)
             {
-                case EngineType.GBA_MLSS:
+                case EngineType.GBA_AlphaDream:
                 {
                     byte[] rom = (byte[])playerArg;
                     if (rom.Length > GBA.Utils.CartridgeCapacity)
                     {
                         throw new Exception($"The ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
                     }
-                    var config = new GBA.MLSS.Config(rom);
+                    var config = new GBA.AlphaDream.Config(rom);
                     Config = config;
-                    var mixer = new GBA.MLSS.Mixer(config);
+                    var mixer = new GBA.AlphaDream.Mixer(config);
                     Mixer = mixer;
-                    Player = new GBA.MLSS.Player(mixer, config);
+                    Player = new GBA.AlphaDream.Player(mixer, config);
                     break;
                 }
                 case EngineType.GBA_MP2K:

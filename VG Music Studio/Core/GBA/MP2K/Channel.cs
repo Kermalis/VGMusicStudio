@@ -6,20 +6,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     internal abstract class Channel
     {
         public EnvelopeState State = EnvelopeState.Dead;
-        public Track Owner = null;
-        protected readonly Mixer mixer;
+        public Track Owner;
+        protected readonly Mixer _mixer;
 
         public Note Note; // Must be a struct & field
-        protected ADSR adsr;
+        protected ADSR _adsr;
 
-        protected byte velocity;
-        protected int pos;
-        protected float interPos;
-        protected float frequency;
+        protected byte _velocity;
+        protected int _pos;
+        protected float _interPos;
+        protected float _frequency;
 
         protected Channel(Mixer mixer)
         {
-            this.mixer = mixer;
+            _mixer = mixer;
         }
 
         public abstract ChannelVolume GetVolume();
@@ -72,18 +72,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     }
     internal class PCM8Channel : Channel
     {
-        private SampleHeader sampleHeader;
-        private int sampleOffset;
-        private GoldenSunPSG gsPSG;
-        private bool bFixed, bGoldenSun, bCompressed;
-        private byte leftVol, rightVol;
-        private sbyte[] decompressedSample;
+        private SampleHeader _sampleHeader;
+        private int _sampleOffset;
+        private GoldenSunPSG _gsPSG;
+        private bool _bFixed;
+        private bool _bGoldenSun;
+        private bool _bCompressed;
+        private byte _leftVol;
+        private byte _rightVol;
+        private sbyte[] _decompressedSample;
 
         public PCM8Channel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR adsr, int sampleOffset, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed)
         {
             State = EnvelopeState.Initializing;
-            pos = 0; interPos = 0;
+            _pos = 0; _interPos = 0;
             if (Owner != null)
             {
                 Owner.Channels.Remove(this);
@@ -91,16 +94,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             Owner = owner;
             Owner.Channels.Add(this);
             Note = note;
-            this.adsr = adsr;
-            sampleHeader = mixer.Config.Reader.ReadObject<SampleHeader>(sampleOffset);
-            this.sampleOffset = sampleOffset + 0x10;
-            this.bFixed = bFixed;
-            this.bCompressed = bCompressed;
-            decompressedSample = bCompressed ? Utils.Decompress(this.sampleOffset, sampleHeader.Length) : null;
-            bGoldenSun = mixer.Config.HasGoldenSunSynths && sampleHeader.DoesLoop == 0x40000000 && sampleHeader.LoopOffset == 0 && sampleHeader.Length == 0;
-            if (bGoldenSun)
+            _adsr = adsr;
+            _sampleHeader = _mixer.Config.Reader.ReadObject<SampleHeader>(sampleOffset);
+            _sampleOffset = sampleOffset + 0x10;
+            _bFixed = bFixed;
+            _bCompressed = bCompressed;
+            _decompressedSample = bCompressed ? Utils.Decompress(_sampleOffset, _sampleHeader.Length) : null;
+            _bGoldenSun = _mixer.Config.HasGoldenSunSynths && _sampleHeader.DoesLoop == 0x40000000 && _sampleHeader.LoopOffset == 0 && _sampleHeader.Length == 0;
+            if (_bGoldenSun)
             {
-                gsPSG = mixer.Config.Reader.ReadObject<GoldenSunPSG>(this.sampleOffset);
+                _gsPSG = _mixer.Config.Reader.ReadObject<GoldenSunPSG>(_sampleOffset);
             }
             SetVolume(vol, pan);
             SetPitch(pitch);
@@ -111,8 +114,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             const float max = 0x10000;
             return new ChannelVolume
             {
-                LeftVol = leftVol * velocity / max * mixer.PCM8MasterVolume,
-                RightVol = rightVol * velocity / max * mixer.PCM8MasterVolume
+                LeftVol = _leftVol * _velocity / max * _mixer.PCM8MasterVolume,
+                RightVol = _rightVol * _velocity / max * _mixer.PCM8MasterVolume
             };
         }
         public override void SetVolume(byte vol, sbyte pan)
@@ -121,13 +124,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             if (State < EnvelopeState.Releasing)
             {
                 int a = Note.Velocity * vol;
-                leftVol = (byte)(a * (-pan + 0x40) / fix);
-                rightVol = (byte)(a * (pan + 0x40) / fix);
+                _leftVol = (byte)(a * (-pan + 0x40) / fix);
+                _rightVol = (byte)(a * (pan + 0x40) / fix);
             }
         }
         public override void SetPitch(int pitch)
         {
-            frequency = (sampleHeader.SampleRate >> 10) * (float)Math.Pow(2, ((Note.Key - 60) / 12f) + (pitch / 768f));
+            _frequency = (_sampleHeader.SampleRate >> 10) * (float)Math.Pow(2, ((Note.Key - 60) / 12f) + (pitch / 768f));
         }
 
         private void StepEnvelope()
@@ -136,35 +139,35 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             {
                 case EnvelopeState.Initializing:
                 {
-                    velocity = adsr.A;
+                    _velocity = _adsr.A;
                     State = EnvelopeState.Rising;
                     break;
                 }
                 case EnvelopeState.Rising:
                 {
-                    int nextVel = velocity + adsr.A;
+                    int nextVel = _velocity + _adsr.A;
                     if (nextVel >= 0xFF)
                     {
                         State = EnvelopeState.Decaying;
-                        velocity = 0xFF;
+                        _velocity = 0xFF;
                     }
                     else
                     {
-                        velocity = (byte)nextVel;
+                        _velocity = (byte)nextVel;
                     }
                     break;
                 }
                 case EnvelopeState.Decaying:
                 {
-                    int nextVel = (velocity * adsr.D) >> 8;
-                    if (nextVel <= adsr.S)
+                    int nextVel = (_velocity * _adsr.D) >> 8;
+                    if (nextVel <= _adsr.S)
                     {
                         State = EnvelopeState.Playing;
-                        velocity = adsr.S;
+                        _velocity = _adsr.S;
                     }
                     else
                     {
-                        velocity = (byte)nextVel;
+                        _velocity = (byte)nextVel;
                     }
                     break;
                 }
@@ -174,15 +177,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 case EnvelopeState.Releasing:
                 {
-                    int nextVel = (velocity * adsr.R) >> 8;
+                    int nextVel = (_velocity * _adsr.R) >> 8;
                     if (nextVel <= 0)
                     {
                         State = EnvelopeState.Dying;
-                        velocity = 0;
+                        _velocity = 0;
                     }
                     else
                     {
-                        velocity = (byte)nextVel;
+                        _velocity = (byte)nextVel;
                     }
                     break;
                 }
@@ -203,32 +206,32 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
 
             ChannelVolume vol = GetVolume();
-            float interStep = bFixed && !bGoldenSun ? mixer.SampleRate * mixer.SampleRateReciprocal : frequency * mixer.SampleRateReciprocal;
-            if (bGoldenSun) // Most Golden Sun processing is thanks to ipatix
+            float interStep = _bFixed && !_bGoldenSun ? _mixer.SampleRate * _mixer.SampleRateReciprocal : _frequency * _mixer.SampleRateReciprocal;
+            if (_bGoldenSun) // Most Golden Sun processing is thanks to ipatix
             {
                 interStep /= 0x40;
-                switch (gsPSG.Type)
+                switch (_gsPSG.Type)
                 {
                     case GoldenSunPSGType.Square:
                     {
-                        pos += gsPSG.CycleSpeed << 24;
-                        int iThreshold = (gsPSG.MinimumCycle << 24) + pos;
+                        _pos += _gsPSG.CycleSpeed << 24;
+                        int iThreshold = (_gsPSG.MinimumCycle << 24) + _pos;
                         iThreshold = (iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
-                        iThreshold = (iThreshold * gsPSG.CycleAmplitude) + (gsPSG.InitialCycle << 24);
+                        iThreshold = (iThreshold * _gsPSG.CycleAmplitude) + (_gsPSG.InitialCycle << 24);
                         float threshold = iThreshold / (float)0x100000000;
 
-                        int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+                        int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
                         do
                         {
-                            float samp = interPos < threshold ? 0.5f : -0.5f;
+                            float samp = _interPos < threshold ? 0.5f : -0.5f;
                             samp += 0.5f - threshold;
                             buffer[bufPos++] += samp * vol.LeftVol;
                             buffer[bufPos++] += samp * vol.RightVol;
 
-                            interPos += interStep;
-                            if (interPos >= 1)
+                            _interPos += interStep;
+                            if (_interPos >= 1)
                             {
-                                interPos--;
+                                _interPos--;
                             }
                         } while (--samplesPerBuffer > 0);
                         break;
@@ -237,20 +240,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     {
                         const int fix = 0x70;
 
-                        int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+                        int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
                         do
                         {
-                            interPos += interStep;
-                            if (interPos >= 1)
+                            _interPos += interStep;
+                            if (_interPos >= 1)
                             {
-                                interPos--;
+                                _interPos--;
                             }
-                            int var1 = (int)(interPos * 0x100) - fix;
-                            int var2 = (int)(interPos * 0x10000) << 17;
+                            int var1 = (int)(_interPos * 0x100) - fix;
+                            int var2 = (int)(_interPos * 0x10000) << 17;
                             int var3 = var1 - (var2 >> 27);
-                            pos = var3 + (pos >> 1);
+                            _pos = var3 + (_pos >> 1);
 
-                            float samp = pos / (float)0x100;
+                            float samp = _pos / (float)0x100;
 
                             buffer[bufPos++] += samp * vol.LeftVol;
                             buffer[bufPos++] += samp * vol.RightVol;
@@ -259,15 +262,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case GoldenSunPSGType.Triangle:
                     {
-                        int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+                        int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
                         do
                         {
-                            interPos += interStep;
-                            if (interPos >= 1)
+                            _interPos += interStep;
+                            if (_interPos >= 1)
                             {
-                                interPos--;
+                                _interPos--;
                             }
-                            float samp = interPos < 0.5f ? (interPos * 4) - 1 : 3 - (interPos * 4);
+                            float samp = _interPos < 0.5f ? (_interPos * 4) - 1 : 3 - (_interPos * 4);
 
                             buffer[bufPos++] += samp * vol.LeftVol;
                             buffer[bufPos++] += samp * vol.RightVol;
@@ -276,21 +279,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                 }
             }
-            else if (bCompressed)
+            else if (_bCompressed)
             {
-                int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+                int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
                 do
                 {
-                    float samp = decompressedSample[pos] / (float)0x80;
+                    float samp = _decompressedSample[_pos] / (float)0x80;
 
                     buffer[bufPos++] += samp * vol.LeftVol;
                     buffer[bufPos++] += samp * vol.RightVol;
 
-                    interPos += interStep;
-                    int posDelta = (int)interPos;
-                    interPos -= posDelta;
-                    pos += posDelta;
-                    if (pos >= decompressedSample.Length)
+                    _interPos += interStep;
+                    int posDelta = (int)_interPos;
+                    _interPos -= posDelta;
+                    _pos += posDelta;
+                    if (_pos >= _decompressedSample.Length)
                     {
                         Stop();
                         break;
@@ -299,23 +302,23 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
             else
             {
-                int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+                int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
                 do
                 {
-                    float samp = (sbyte)mixer.Config.ROM[pos + sampleOffset] / (float)0x80;
+                    float samp = (sbyte)_mixer.Config.ROM[_pos + _sampleOffset] / (float)0x80;
 
                     buffer[bufPos++] += samp * vol.LeftVol;
                     buffer[bufPos++] += samp * vol.RightVol;
 
-                    interPos += interStep;
-                    int posDelta = (int)interPos;
-                    interPos -= posDelta;
-                    pos += posDelta;
-                    if (pos >= sampleHeader.Length)
+                    _interPos += interStep;
+                    int posDelta = (int)_interPos;
+                    _interPos -= posDelta;
+                    _pos += posDelta;
+                    if (_pos >= _sampleHeader.Length)
                     {
-                        if (sampleHeader.DoesLoop == 0x40000000)
+                        if (_sampleHeader.DoesLoop == 0x40000000)
                         {
-                            pos = sampleHeader.LoopOffset;
+                            _pos = _sampleHeader.LoopOffset;
                         }
                         else
                         {
@@ -329,17 +332,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     }
     internal abstract class PSGChannel : Channel
     {
-        protected enum GBPan
+        protected enum GBPan : byte
         {
             Left,
             Center,
             Right
         }
 
-        private byte processStep;
-        private EnvelopeState nextState;
-        private byte peakVelocity, sustainVelocity;
-        protected GBPan panpot = GBPan.Center;
+        private byte _processStep;
+        private EnvelopeState _nextState;
+        private byte _peakVelocity;
+        private byte _sustainVelocity;
+        protected GBPan _panpot = GBPan.Center;
 
         public PSGChannel(Mixer mixer) : base(mixer) { }
         protected void Init(Track owner, Note note, ADSR env)
@@ -352,28 +356,28 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             Owner = owner;
             Owner.Channels.Add(this);
             Note = note;
-            adsr.A = (byte)(env.A & 0x7);
-            adsr.D = (byte)(env.D & 0x7);
-            adsr.S = (byte)(env.S & 0xF);
-            adsr.R = (byte)(env.R & 0x7);
+            _adsr.A = (byte)(env.A & 0x7);
+            _adsr.D = (byte)(env.D & 0x7);
+            _adsr.S = (byte)(env.S & 0xF);
+            _adsr.R = (byte)(env.R & 0x7);
         }
 
         public override void Release()
         {
             if (State < EnvelopeState.Releasing)
             {
-                if (adsr.R == 0)
+                if (_adsr.R == 0)
                 {
-                    velocity = 0;
+                    _velocity = 0;
                     Stop();
                 }
-                else if (velocity == 0)
+                else if (_velocity == 0)
                 {
                     Stop();
                 }
                 else
                 {
-                    nextState = EnvelopeState.Releasing;
+                    _nextState = EnvelopeState.Releasing;
                 }
             }
         }
@@ -386,7 +390,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     Note.Duration--;
                     if (Note.Duration == 0)
                     {
-                        if (velocity == 0)
+                        if (_velocity == 0)
                         {
                             Stop();
                         }
@@ -414,20 +418,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             const float max = 0x20;
             return new ChannelVolume
             {
-                LeftVol = panpot == GBPan.Right ? 0 : velocity / max,
-                RightVol = panpot == GBPan.Left ? 0 : velocity / max
+                LeftVol = _panpot == GBPan.Right ? 0 : _velocity / max,
+                RightVol = _panpot == GBPan.Left ? 0 : _velocity / max
             };
         }
         public override void SetVolume(byte vol, sbyte pan)
         {
             if (State < EnvelopeState.Releasing)
             {
-                panpot = pan < -0x20 ? GBPan.Left : pan > 0x20 ? GBPan.Right : GBPan.Center;
-                peakVelocity = (byte)((Note.Velocity * vol) >> 10);
-                sustainVelocity = (byte)(((peakVelocity * adsr.S) + 0xF) >> 4); // TODO
+                _panpot = pan < -0x20 ? GBPan.Left : pan > 0x20 ? GBPan.Right : GBPan.Center;
+                _peakVelocity = (byte)((Note.Velocity * vol) >> 10);
+                _sustainVelocity = (byte)(((_peakVelocity * _adsr.S) + 0xF) >> 4); // TODO
                 if (State == EnvelopeState.Playing)
                 {
-                    velocity = sustainVelocity;
+                    _velocity = _sustainVelocity;
                 }
             }
         }
@@ -436,39 +440,39 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         {
             void dec()
             {
-                processStep = 0;
-                if (velocity - 1 <= sustainVelocity)
+                _processStep = 0;
+                if (_velocity - 1 <= _sustainVelocity)
                 {
-                    velocity = sustainVelocity;
-                    nextState = EnvelopeState.Playing;
+                    _velocity = _sustainVelocity;
+                    _nextState = EnvelopeState.Playing;
                 }
-                else if (velocity != 0)
+                else if (_velocity != 0)
                 {
-                    velocity--;
+                    _velocity--;
                 }
             }
             void sus()
             {
-                processStep = 0;
+                _processStep = 0;
             }
             void rel()
             {
-                if (adsr.R == 0)
+                if (_adsr.R == 0)
                 {
-                    velocity = 0;
+                    _velocity = 0;
                     Stop();
                 }
                 else
                 {
-                    processStep = 0;
-                    if (velocity - 1 <= 0)
+                    _processStep = 0;
+                    if (_velocity - 1 <= 0)
                     {
-                        nextState = EnvelopeState.Dying;
-                        velocity = 0;
+                        _nextState = EnvelopeState.Dying;
+                        _velocity = 0;
                     }
                     else
                     {
-                        velocity--;
+                        _velocity--;
                     }
                 }
             }
@@ -477,77 +481,77 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             {
                 case EnvelopeState.Initializing:
                 {
-                    nextState = EnvelopeState.Rising;
-                    processStep = 0;
-                    if ((adsr.A | adsr.D) == 0 || (sustainVelocity == 0 && peakVelocity == 0))
+                    _nextState = EnvelopeState.Rising;
+                    _processStep = 0;
+                    if ((_adsr.A | _adsr.D) == 0 || (_sustainVelocity == 0 && _peakVelocity == 0))
                     {
                         State = EnvelopeState.Playing;
-                        velocity = sustainVelocity;
+                        _velocity = _sustainVelocity;
                         return;
                     }
-                    else if (adsr.A == 0 && adsr.S < 0xF)
+                    else if (_adsr.A == 0 && _adsr.S < 0xF)
                     {
                         State = EnvelopeState.Decaying;
-                        int next = peakVelocity - 1;
+                        int next = _peakVelocity - 1;
                         if (next < 0)
                         {
                             next = 0;
                         }
-                        velocity = (byte)next;
-                        if (velocity < sustainVelocity)
+                        _velocity = (byte)next;
+                        if (_velocity < _sustainVelocity)
                         {
-                            velocity = sustainVelocity;
+                            _velocity = _sustainVelocity;
                         }
                         return;
                     }
-                    else if (adsr.A == 0)
+                    else if (_adsr.A == 0)
                     {
                         State = EnvelopeState.Playing;
-                        velocity = sustainVelocity;
+                        _velocity = _sustainVelocity;
                         return;
                     }
                     else
                     {
                         State = EnvelopeState.Rising;
-                        velocity = 1;
+                        _velocity = 1;
                         return;
                     }
                 }
                 case EnvelopeState.Rising:
                 {
-                    if (++processStep >= adsr.A)
+                    if (++_processStep >= _adsr.A)
                     {
-                        if (nextState == EnvelopeState.Decaying)
+                        if (_nextState == EnvelopeState.Decaying)
                         {
                             State = EnvelopeState.Decaying;
                             dec(); return;
                         }
-                        if (nextState == EnvelopeState.Playing)
+                        if (_nextState == EnvelopeState.Playing)
                         {
                             State = EnvelopeState.Playing;
                             sus(); return;
                         }
-                        if (nextState == EnvelopeState.Releasing)
+                        if (_nextState == EnvelopeState.Releasing)
                         {
                             State = EnvelopeState.Releasing;
                             rel(); return;
                         }
-                        processStep = 0;
-                        if (++velocity >= peakVelocity)
+                        _processStep = 0;
+                        if (++_velocity >= _peakVelocity)
                         {
-                            if (adsr.D == 0)
+                            if (_adsr.D == 0)
                             {
-                                nextState = EnvelopeState.Playing;
+                                _nextState = EnvelopeState.Playing;
                             }
-                            else if (peakVelocity == sustainVelocity)
+                            else if (_peakVelocity == _sustainVelocity)
                             {
-                                nextState = EnvelopeState.Playing;
-                                velocity = peakVelocity;
+                                _nextState = EnvelopeState.Playing;
+                                _velocity = _peakVelocity;
                             }
                             else
                             {
-                                velocity = peakVelocity;
-                                nextState = EnvelopeState.Decaying;
+                                _velocity = _peakVelocity;
+                                _nextState = EnvelopeState.Decaying;
                             }
                         }
                     }
@@ -555,14 +559,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 case EnvelopeState.Decaying:
                 {
-                    if (++processStep >= adsr.D)
+                    if (++_processStep >= _adsr.D)
                     {
-                        if (nextState == EnvelopeState.Playing)
+                        if (_nextState == EnvelopeState.Playing)
                         {
                             State = EnvelopeState.Playing;
                             sus(); return;
                         }
-                        if (nextState == EnvelopeState.Releasing)
+                        if (_nextState == EnvelopeState.Releasing)
                         {
                             State = EnvelopeState.Releasing;
                             rel(); return;
@@ -573,9 +577,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 case EnvelopeState.Playing:
                 {
-                    if (++processStep >= 1)
+                    if (++_processStep >= 1)
                     {
-                        if (nextState == EnvelopeState.Releasing)
+                        if (_nextState == EnvelopeState.Releasing)
                         {
                             State = EnvelopeState.Releasing;
                             rel(); return;
@@ -586,9 +590,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 case EnvelopeState.Releasing:
                 {
-                    if (++processStep >= adsr.R)
+                    if (++_processStep >= _adsr.R)
                     {
-                        if (nextState == EnvelopeState.Dying)
+                        if (_nextState == EnvelopeState.Dying)
                         {
                             Stop();
                             return;
@@ -602,7 +606,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     }
     internal class SquareChannel : PSGChannel
     {
-        private float[] pat;
+        private float[] _pat;
 
         public SquareChannel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR env, SquarePattern pattern)
@@ -610,16 +614,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             Init(owner, note, env);
             switch (pattern)
             {
-                default: pat = Utils.SquareD12; break;
-                case SquarePattern.D12: pat = Utils.SquareD25; break;
-                case SquarePattern.D25: pat = Utils.SquareD50; break;
-                case SquarePattern.D75: pat = Utils.SquareD75; break;
+                default: _pat = Utils.SquareD12; break;
+                case SquarePattern.D12: _pat = Utils.SquareD25; break;
+                case SquarePattern.D25: _pat = Utils.SquareD50; break;
+                case SquarePattern.D75: _pat = Utils.SquareD75; break;
             }
         }
 
         public override void SetPitch(int pitch)
         {
-            frequency = 3520 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
+            _frequency = 3520 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
         }
 
         public override void Process(float[] buffer)
@@ -631,37 +635,37 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
 
             ChannelVolume vol = GetVolume();
-            float interStep = frequency * mixer.SampleRateReciprocal;
+            float interStep = _frequency * _mixer.SampleRateReciprocal;
 
-            int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+            int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
             do
             {
-                float samp = pat[pos];
+                float samp = _pat[_pos];
 
                 buffer[bufPos++] += samp * vol.LeftVol;
                 buffer[bufPos++] += samp * vol.RightVol;
 
-                interPos += interStep;
-                int posDelta = (int)interPos;
-                interPos -= posDelta;
-                pos = (pos + posDelta) & 0x7;
+                _interPos += interStep;
+                int posDelta = (int)_interPos;
+                _interPos -= posDelta;
+                _pos = (_pos + posDelta) & 0x7;
             } while (--samplesPerBuffer > 0);
         }
     }
     internal class PCM4Channel : PSGChannel
     {
-        private float[] sample;
+        private float[] _sample;
 
         public PCM4Channel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR env, int sampleOffset)
         {
             Init(owner, note, env);
-            sample = Utils.PCM4ToFloat(sampleOffset);
+            _sample = Utils.PCM4ToFloat(sampleOffset);
         }
 
         public override void SetPitch(int pitch)
         {
-            frequency = 7040 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
+            _frequency = 7040 * (float)Math.Pow(2, ((Note.Key - 69) / 12f) + (pitch / 768f));
         }
 
         public override void Process(float[] buffer)
@@ -673,32 +677,32 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
 
             ChannelVolume vol = GetVolume();
-            float interStep = frequency * mixer.SampleRateReciprocal;
+            float interStep = _frequency * _mixer.SampleRateReciprocal;
 
-            int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+            int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
             do
             {
-                float samp = sample[pos];
+                float samp = _sample[_pos];
 
                 buffer[bufPos++] += samp * vol.LeftVol;
                 buffer[bufPos++] += samp * vol.RightVol;
 
-                interPos += interStep;
-                int posDelta = (int)interPos;
-                interPos -= posDelta;
-                pos = (pos + posDelta) & 0x1F;
+                _interPos += interStep;
+                int posDelta = (int)_interPos;
+                _interPos -= posDelta;
+                _pos = (_pos + posDelta) & 0x1F;
             } while (--samplesPerBuffer > 0);
         }
     }
     internal class NoiseChannel : PSGChannel
     {
-        private BitArray pat;
+        private BitArray _pat;
 
         public NoiseChannel(Mixer mixer) : base(mixer) { }
         public void Init(Track owner, Note note, ADSR env, NoisePattern pattern)
         {
             Init(owner, note, env);
-            pat = pattern == NoisePattern.Fine ? Utils.NoiseFine : Utils.NoiseRough;
+            _pat = pattern == NoisePattern.Fine ? Utils.NoiseFine : Utils.NoiseRough;
         }
 
         public override void SetPitch(int pitch)
@@ -720,7 +724,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             // The following emulates 0x0400007C - SOUND4CNT_H
             int r = v & 7; // Bits 0-2
             int s = v >> 4; // Bits 4-7
-            frequency = 524288f / (r == 0 ? 0.5f : r) / (float)Math.Pow(2, s + 1);
+            _frequency = 524288f / (r == 0 ? 0.5f : r) / (float)Math.Pow(2, s + 1);
         }
 
         public override void Process(float[] buffer)
@@ -732,20 +736,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
 
             ChannelVolume vol = GetVolume();
-            float interStep = frequency * mixer.SampleRateReciprocal;
+            float interStep = _frequency * _mixer.SampleRateReciprocal;
 
-            int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+            int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
             do
             {
-                float samp = pat[pos & (pat.Length - 1)] ? 0.5f : -0.5f;
+                float samp = _pat[_pos & (_pat.Length - 1)] ? 0.5f : -0.5f;
 
                 buffer[bufPos++] += samp * vol.LeftVol;
                 buffer[bufPos++] += samp * vol.RightVol;
 
-                interPos += interStep;
-                int posDelta = (int)interPos;
-                interPos -= posDelta;
-                pos = (pos + posDelta) & (pat.Length - 1);
+                _interPos += interStep;
+                int posDelta = (int)_interPos;
+                _interPos -= posDelta;
+                _pos = (_pos + posDelta) & (_pat.Length - 1);
             } while (--samplesPerBuffer > 0);
         }
     }

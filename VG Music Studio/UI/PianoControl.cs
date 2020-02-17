@@ -37,7 +37,8 @@ namespace Kermalis.VGMusicStudio.UI
     {
         private enum KeyType : byte
         {
-            White, Black
+            Black,
+            White
         }
         private static readonly KeyType[] KeyTypeTable = new KeyType[12]
         {
@@ -47,16 +48,17 @@ namespace Kermalis.VGMusicStudio.UI
 
         public class PianoKey : Control
         {
-            public bool Dirty, Pressed;
+            public bool Dirty;
+            public bool Pressed;
 
             public readonly SolidBrush OnBrush = new SolidBrush(Color.Transparent);
-            private readonly SolidBrush offBrush;
+            private readonly SolidBrush _offBrush;
 
             public PianoKey(byte k)
             {
                 SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw | ControlStyles.UserPaint, true);
                 SetStyle(ControlStyles.Selectable, false);
-                offBrush = new SolidBrush(new HSLColor(160.0, 0.0, KeyTypeTable[k % 12] == KeyType.White ? k / 12 % 2 == 0 ? 240.0 : 120.0 : 0.0));
+                _offBrush = new SolidBrush(new HSLColor(160.0, 0.0, KeyTypeTable[k % 12] == KeyType.White ? k / 12 % 2 == 0 ? 240.0 : 120.0 : 0.0));
             }
 
             protected override void Dispose(bool disposing)
@@ -64,19 +66,19 @@ namespace Kermalis.VGMusicStudio.UI
                 if (disposing)
                 {
                     OnBrush.Dispose();
-                    offBrush.Dispose();
+                    _offBrush.Dispose();
                 }
                 base.Dispose(disposing);
             }
             protected override void OnPaint(PaintEventArgs e)
             {
-                e.Graphics.FillRectangle(Pressed ? OnBrush : offBrush, 1, 1, Width - 2, Height - 2);
+                e.Graphics.FillRectangle(Pressed ? OnBrush : _offBrush, 1, 1, Width - 2, Height - 2);
                 e.Graphics.DrawRectangle(Pens.Black, 0, 0, Width - 1, Height - 1);
                 base.OnPaint(e);
             }
         }
 
-        private readonly PianoKey[] Keys = new PianoKey[0x80];
+        private readonly PianoKey[] _keys = new PianoKey[0x80];
         public const int WhiteKeyCount = 75;
         public int WhiteKeyWidth;
 
@@ -86,7 +88,7 @@ namespace Kermalis.VGMusicStudio.UI
             for (byte k = 0; k <= 0x7F; k++)
             {
                 var key = new PianoKey(k);
-                Keys[k] = key;
+                _keys[k] = key;
                 if (KeyTypeTable[k % 12] == KeyType.Black)
                 {
                     key.BringToFront();
@@ -104,7 +106,7 @@ namespace Kermalis.VGMusicStudio.UI
             int w = 0;
             for (int k = 0; k <= 0x7F; k++)
             {
-                PianoKey key = Keys[k];
+                PianoKey key = _keys[k];
                 if (KeyTypeTable[k % 12] == KeyType.White)
                 {
                     key.Height = Height;
@@ -126,7 +128,7 @@ namespace Kermalis.VGMusicStudio.UI
         {
             for (int k = 0; k <= 0x7F; k++)
             {
-                PianoKey key = Keys[k];
+                PianoKey key = _keys[k];
                 key.Dirty = key.Pressed;
                 key.Pressed = false;
             }
@@ -144,7 +146,7 @@ namespace Kermalis.VGMusicStudio.UI
                         }
                         else
                         {
-                            PianoKey key = Keys[k];
+                            PianoKey key = _keys[k];
                             key.OnBrush.Color = GlobalConfig.Instance.Colors[tin.Voice];
                             key.Pressed = key.Dirty = true;
                         }
@@ -153,7 +155,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             for (int k = 0; k <= 0x7F; k++)
             {
-                PianoKey key = Keys[k];
+                PianoKey key = _keys[k];
                 if (key.Dirty)
                 {
                     key.Invalidate();
@@ -172,7 +174,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 for (int k = 0; k < 0x80; k++)
                 {
-                    Keys[k].Dispose();
+                    _keys[k].Dispose();
                 }
             }
             base.Dispose(disposing);

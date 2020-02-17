@@ -5,63 +5,63 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal class Player : IPlayer
     {
-        private readonly Track[] tracks = new Track[0x10];
-        private readonly Mixer mixer;
-        private readonly Config config;
-        private readonly TimeBarrier time;
-        private Thread thread;
-        private byte tempo;
-        private int tempoStack;
-        private long elapsedLoops;
-        private bool fadeOutBegan;
+        private readonly Track[] _tracks = new Track[0x10];
+        private readonly Mixer _mixer;
+        private readonly Config _config;
+        private readonly TimeBarrier _time;
+        private Thread _thread;
+        private byte _tempo;
+        private int _tempoStack;
+        private long _elapsedLoops;
+        private bool _fadeOutBegan;
 
         public List<SongEvent>[] Events { get; private set; }
         public long MaxTicks { get; private set; }
         public long ElapsedTicks { get; private set; }
         public bool ShouldFadeOut { get; set; }
         public long NumLoops { get; set; }
-        private int longestTrack;
+        private int _longestTrack;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
 
         public Player(Mixer mixer, Config config)
         {
-            for (byte i = 0; i < tracks.Length; i++)
+            for (byte i = 0; i < _tracks.Length; i++)
             {
-                tracks[i] = new Track(i, mixer);
+                _tracks[i] = new Track(i, mixer);
             }
-            this.mixer = mixer;
-            this.config = config;
+            _mixer = mixer;
+            _config = config;
 
-            time = new TimeBarrier(Utils.AGB_FPS);
+            _time = new TimeBarrier(Utils.AGB_FPS);
         }
         private void CreateThread()
         {
-            thread = new Thread(Tick) { Name = "MLSS Player Tick" };
-            thread.Start();
+            _thread = new Thread(Tick) { Name = "AlphaDream Player Tick" };
+            _thread.Start();
         }
         private void WaitThread()
         {
-            if (thread != null && (thread.ThreadState == ThreadState.Running || thread.ThreadState == ThreadState.WaitSleepJoin))
+            if (_thread != null && (_thread.ThreadState == ThreadState.Running || _thread.ThreadState == ThreadState.WaitSleepJoin))
             {
-                thread.Join();
+                _thread.Join();
             }
         }
 
         private void InitEmulation()
         {
-            tempo = 120;
-            tempoStack = 0;
-            elapsedLoops = ElapsedTicks = 0;
-            fadeOutBegan = false;
+            _tempo = 120;
+            _tempoStack = 0;
+            _elapsedLoops = ElapsedTicks = 0;
+            _fadeOutBegan = false;
             for (int i = 0; i < 0x10; i++)
             {
-                tracks[i].Init();
+                _tracks[i].Init();
             }
         }
         private void SetTicks()
@@ -74,7 +74,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 {
                     Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
                     List<SongEvent> evs = Events[trackIndex];
-                    Track track = tracks[trackIndex];
+                    Track track = _tracks[trackIndex];
                     track.Init();
                     ElapsedTicks = 0;
                     while (true)
@@ -101,7 +101,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     }
                     if (ElapsedTicks > MaxTicks)
                     {
-                        longestTrack = trackIndex;
+                        _longestTrack = trackIndex;
                         MaxTicks = ElapsedTicks;
                     }
                     track.NoteDuration = 0;
@@ -110,7 +110,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         }
         public void LoadSong(long index)
         {
-            int songOffset = config.Reader.ReadInt32(config.SongTableOffsets[0] + (index * 4));
+            int songOffset = _config.Reader.ReadInt32(_config.SongTableOffsets[0] + (index * 4));
             if (songOffset == 0)
             {
                 Events = null;
@@ -119,10 +119,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             {
                 Events = new List<SongEvent>[0x10];
                 songOffset -= Utils.CartridgeOffset;
-                ushort trackBits = config.Reader.ReadUInt16(songOffset);
+                ushort trackBits = _config.Reader.ReadUInt16(songOffset);
                 for (int i = 0, usedTracks = 0; i < 0x10; i++)
                 {
-                    Track track = tracks[i];
+                    Track track = _tracks[i];
                     if ((trackBits & (1 << i)) != 0)
                     {
                         track.Enabled = true;
@@ -132,43 +132,42 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             return Events[i].Any(e => e.Offset == offset);
                         }
 
-                        AddEvents(songOffset + config.Reader.ReadInt16(songOffset + 2 + (2 * usedTracks++)));
+                        AddEvents(songOffset + _config.Reader.ReadInt16(songOffset + 2 + (2 * usedTracks++)));
                         void AddEvents(int startOffset)
                         {
-                            config.Reader.BaseStream.Position = startOffset;
+                            _config.Reader.BaseStream.Position = startOffset;
                             bool cont = true;
                             while (cont)
                             {
-                                long offset = config.Reader.BaseStream.Position;
+                                long offset = _config.Reader.BaseStream.Position;
                                 void AddEvent(ICommand command)
                                 {
                                     Events[i].Add(new SongEvent(offset, command));
                                 }
-                                byte cmd = config.Reader.ReadByte();
+                                byte cmd = _config.Reader.ReadByte();
                                 switch (cmd)
                                 {
                                     case 0x00:
                                     {
-                                        byte keyArg = config.Reader.ReadByte();
-                                        switch (config.AudioEngineVersion)
+                                        byte keyArg = _config.Reader.ReadByte();
+                                        switch (_config.AudioEngineVersion)
                                         {
-                                            case AudioEngineVersion.MLSS:
+                                            case AudioEngineVersion.Hamtaro:
                                             {
-                                                byte duration = config.Reader.ReadByte();
+                                                byte volume = _config.Reader.ReadByte();
+                                                byte duration = _config.Reader.ReadByte();
                                                 if (!EventExists(offset))
                                                 {
-                                                    AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                                    AddEvent(new FreeNoteHamtaroCommand { Key = (byte)(keyArg - 0x80), Volume = volume, Duration = duration });
                                                 }
                                                 break;
                                             }
-                                            case AudioEngineVersion.Hamtaro:
+                                            case AudioEngineVersion.MLSS:
                                             {
-                                                byte volume = config.Reader.ReadByte();
-                                                byte duration = config.Reader.ReadByte();
+                                                byte duration = _config.Reader.ReadByte();
                                                 if (!EventExists(offset))
                                                 {
-                                                    AddEvent(new VolumeCommand { Volume = volume });
-                                                    AddEvent(new FreeNoteCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
+                                                    AddEvent(new FreeNoteMLSSCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
                                                 }
                                                 break;
                                             }
@@ -177,7 +176,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF0:
                                     {
-                                        byte voice = config.Reader.ReadByte();
+                                        byte voice = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
                                             AddEvent(new VoiceCommand { Voice = voice });
@@ -186,7 +185,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF1:
                                     {
-                                        byte volume = config.Reader.ReadByte();
+                                        byte volume = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
                                             AddEvent(new VolumeCommand { Volume = volume });
@@ -195,7 +194,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF2:
                                     {
-                                        byte panArg = config.Reader.ReadByte();
+                                        byte panArg = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
                                             AddEvent(new PanpotCommand { Panpot = (sbyte)(panArg - 0x80) });
@@ -204,7 +203,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF4:
                                     {
-                                        byte range = config.Reader.ReadByte();
+                                        byte range = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
                                             AddEvent(new PitchBendRangeCommand { Range = range });
@@ -213,7 +212,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF5:
                                     {
-                                        sbyte bend = config.Reader.ReadSByte();
+                                        sbyte bend = _config.Reader.ReadSByte();
                                         if (!EventExists(offset))
                                         {
                                             AddEvent(new PitchBendCommand { Bend = bend });
@@ -222,7 +221,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF6:
                                     {
-                                        byte rest = config.Reader.ReadByte();
+                                        byte rest = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
                                             AddEvent(new RestCommand { Rest = rest });
@@ -231,10 +230,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF8:
                                     {
-                                        short jumpOffset = config.Reader.ReadInt16();
+                                        short jumpOffset = _config.Reader.ReadInt16();
                                         if (!EventExists(offset))
                                         {
-                                            int off = (int)(config.Reader.BaseStream.Position + jumpOffset);
+                                            int off = (int)(_config.Reader.BaseStream.Position + jumpOffset);
                                             AddEvent(new JumpCommand { Offset = off });
                                             if (!EventExists(off))
                                             {
@@ -246,7 +245,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     }
                                     case 0xF9:
                                     {
-                                        byte tempoArg = config.Reader.ReadByte();
+                                        byte tempoArg = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
                                             AddEvent(new TempoCommand { Tempo = tempoArg });
@@ -266,24 +265,23 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                     {
                                         if (cmd <= 0xEF)
                                         {
-                                            byte key = config.Reader.ReadByte();
-                                            switch (config.AudioEngineVersion)
+                                            byte key = _config.Reader.ReadByte();
+                                            switch (_config.AudioEngineVersion)
                                             {
+                                                case AudioEngineVersion.Hamtaro:
+                                                {
+                                                    byte volume = _config.Reader.ReadByte();
+                                                    if (!EventExists(offset))
+                                                    {
+                                                        AddEvent(new NoteHamtaroCommand { Key = key, Volume = volume, Duration = cmd });
+                                                    }
+                                                    break;
+                                                }
                                                 case AudioEngineVersion.MLSS:
                                                 {
                                                     if (!EventExists(offset))
                                                     {
-                                                        AddEvent(new NoteCommand { Key = key, Duration = cmd });
-                                                    }
-                                                    break;
-                                                }
-                                                case AudioEngineVersion.Hamtaro:
-                                                {
-                                                    byte volume = config.Reader.ReadByte();
-                                                    if (!EventExists(offset))
-                                                    {
-                                                        AddEvent(new VolumeCommand { Volume = volume });
-                                                        AddEvent(new NoteCommand { Key = key, Duration = cmd });
+                                                        AddEvent(new NoteMLSSCommand { Key = key, Duration = cmd });
                                                     }
                                                     break;
                                                 }
@@ -291,7 +289,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                         }
                                         else
                                         {
-                                            throw new Exception(string.Format(Strings.ErrorDSEMLSSMP2KSDATInvalidCommand, i, offset, cmd));
+                                            throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, i, offset, cmd));
                                         }
                                         break;
                                     }
@@ -329,12 +327,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     }
                     else
                     {
-                        while (tempoStack >= 75)
+                        while (_tempoStack >= 75)
                         {
-                            tempoStack -= 75;
+                            _tempoStack -= 75;
                             for (int i = 0; i < 0x10; i++)
                             {
-                                Track track = tracks[i];
+                                Track track = _tracks[i];
                                 if (track.Enabled && !track.Stopped)
                                 {
                                     track.Tick();
@@ -350,13 +348,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                                 goto finish;
                             }
                         }
-                        tempoStack += tempo;
+                        _tempoStack += _tempo;
                     }
                 }
             finish:
                 for (int i = 0; i < 0x10; i++)
                 {
-                    tracks[i].NoteDuration = 0;
+                    _tracks[i].NoteDuration = 0;
                 }
                 Pause();
             }
@@ -398,12 +396,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         }
         public void Record(string fileName)
         {
-            mixer.CreateWaveWriter(fileName);
+            _mixer.CreateWaveWriter(fileName);
             InitEmulation();
             State = PlayerState.Recording;
             CreateThread();
             WaitThread();
-            mixer.CloseWaveWriter();
+            _mixer.CloseWaveWriter();
         }
         public void Dispose()
         {
@@ -415,10 +413,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         }
         public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
-            info.Tempo = tempo;
+            info.Tempo = _tempo;
             for (int i = 0; i < 0x10; i++)
             {
-                Track track = tracks[i];
+                Track track = _tracks[i];
                 if (track.Enabled)
                 {
                     UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
@@ -448,9 +446,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 
         private VoiceEntry GetVoiceEntry(byte voice, byte key)
         {
-            int vto = config.VoiceTableOffset;
-            short voiceOffset = config.Reader.ReadInt16(vto + (voice * 2));
-            short nextVoiceOffset = config.Reader.ReadInt16(vto + ((voice + 1) * 2));
+            int vto = _config.VoiceTableOffset;
+            short voiceOffset = _config.Reader.ReadInt16(vto + (voice * 2));
+            short nextVoiceOffset = _config.Reader.ReadInt16(vto + ((voice + 1) * 2));
             if (voiceOffset == nextVoiceOffset)
             {
                 return null;
@@ -458,7 +456,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             else
             {
                 long pos = vto + voiceOffset; // Prevent object creation in the last iteration
-                VoiceEntry e = config.Reader.ReadObject<VoiceEntry>(pos);
+                VoiceEntry e = _config.Reader.ReadObject<VoiceEntry>(pos);
                 while (e.MinKey > key || e.MaxKey < key)
                 {
                     pos += 8;
@@ -466,7 +464,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     {
                         return null;
                     }
-                    e = config.Reader.ReadObject<VoiceEntry>();
+                    e = _config.Reader.ReadObject<VoiceEntry>();
                 }
                 return e;
             }
@@ -484,8 +482,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 }
                 else
                 {
-                    int sto = config.SampleTableOffset;
-                    int sampleOffset = config.Reader.ReadInt32(sto + (entry.Sample * 4)); // Some entries are 0. If you play them, are they silent, or does it not care if they are 0?
+                    int sto = _config.SampleTableOffset;
+                    int sampleOffset = _config.Reader.ReadInt32(sto + (entry.Sample * 4)); // Some entries are 0. If you play them, are they silent, or does it not care if they are 0?
                     ((PCMChannel)track.Channel).Init(key, new ADSR { A = 0xFF, D = 0x00, S = 0xFF, R = 0x00 }, sto + sampleOffset, entry.IsFixedFrequency == 0x80);
                     track.Channel.SetVolume(track.Volume, track.Panpot);
                     track.Channel.SetPitch(track.GetPitch());
@@ -496,14 +494,29 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
         {
             bool increment = true;
             List<SongEvent> ev = Events[trackIndex];
-            Track track = tracks[trackIndex];
+            Track track = _tracks[trackIndex];
             ICommand cmd = ev[track.CurEvent].Command;
             switch (cmd)
             {
-                case FreeNoteCommand freeNote:
+                case FreeNoteHamtaroCommand freeNote:
+                {
+                    track.Volume = freeNote.Volume;
+                    update = true;
+                    track.Rest += freeNote.Duration;
+                    if (track.PrevCommand is FreeNoteHamtaroCommand && track.Channel.Key == freeNote.Key)
+                    {
+                        track.NoteDuration += freeNote.Duration;
+                    }
+                    else
+                    {
+                        PlayNote(track, freeNote.Key, freeNote.Duration);
+                    }
+                    break;
+                }
+                case FreeNoteMLSSCommand freeNote:
                 {
                     track.Rest += freeNote.Duration;
-                    if (track.PrevCommand is FreeNoteCommand && track.Channel.Key == freeNote.Key)
+                    if (track.PrevCommand is FreeNoteMLSSCommand && track.Channel.Key == freeNote.Key)
                     {
                         track.NoteDuration += freeNote.Duration;
                     }
@@ -516,7 +529,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                 case VoiceCommand voice: track.Voice = voice.Voice; break;
                 case VolumeCommand volume: track.Volume = volume.Volume; update = true; break;
                 case PanpotCommand panpot: track.Panpot = panpot.Panpot; update = true; break;
-                case PitchBendRangeCommand bendRange: track.BendRange = bendRange.Range; update = true; break;
+                case PitchBendRangeCommand bendRange: track.PitchBendRange = bendRange.Range; update = true; break;
                 case PitchBendCommand bend: track.PitchBend = bend.Bend; update = true; break;
                 case RestCommand rest: track.Rest = rest.Rest; break;
                 case JumpCommand jump:
@@ -525,12 +538,27 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                     increment = false;
                     break;
                 }
-                case TempoCommand tem: tempo = tem.Tempo; break;
+                case TempoCommand tem: _tempo = tem.Tempo; break;
                 case FinishCommand _: track.Stopped = true; increment = false; break;
-                case NoteCommand note:
+                case NoteHamtaroCommand note:
+                {
+                    track.Volume = note.Volume;
+                    update = true;
+                    track.Rest += note.Duration;
+                    if (track.PrevCommand is FreeNoteHamtaroCommand && track.Channel.Key == note.Key)
+                    {
+                        track.NoteDuration += note.Duration;
+                    }
+                    else
+                    {
+                        PlayNote(track, note.Key, note.Duration);
+                    }
+                    break;
+                }
+                case NoteMLSSCommand note:
                 {
                     track.Rest += note.Duration;
-                    if (track.PrevCommand is FreeNoteCommand && track.Channel.Key == note.Key)
+                    if (track.PrevCommand is FreeNoteMLSSCommand && track.Channel.Key == note.Key)
                     {
                         track.NoteDuration += note.Duration;
                     }
@@ -550,16 +578,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 
         private void Tick()
         {
-            time.Start();
+            _time.Start();
             while (State == PlayerState.Playing || State == PlayerState.Recording)
             {
-                while (tempoStack >= 75)
+                while (_tempoStack >= 75)
                 {
-                    tempoStack -= 75;
+                    _tempoStack -= 75;
                     bool allDone = true;
                     for (int i = 0; i < 0x10; i++)
                     {
-                        Track track = tracks[i];
+                        Track track = _tracks[i];
                         if (track.Enabled)
                         {
                             byte prevDuration = track.NoteDuration;
@@ -569,18 +597,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             {
                                 ExecuteNext(i, ref update);
                             }
-                            if (i == longestTrack)
+                            if (i == _longestTrack)
                             {
                                 if (ElapsedTicks == MaxTicks)
                                 {
                                     if (!track.Stopped)
                                     {
                                         ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
-                                        elapsedLoops++;
-                                        if (ShouldFadeOut && !fadeOutBegan && elapsedLoops > NumLoops)
+                                        _elapsedLoops++;
+                                        if (ShouldFadeOut && !_fadeOutBegan && _elapsedLoops > NumLoops)
                                         {
-                                            fadeOutBegan = true;
-                                            mixer.BeginFadeOut();
+                                            _fadeOutBegan = true;
+                                            _mixer.BeginFadeOut();
                                         }
                                     }
                                 }
@@ -608,7 +636,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                             }
                         }
                     }
-                    if (fadeOutBegan && mixer.IsFadeDone())
+                    if (_fadeOutBegan && _mixer.IsFadeDone())
                     {
                         allDone = true;
                     }
@@ -618,14 +646,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
                         SongEnded?.Invoke();
                     }
                 }
-                tempoStack += tempo;
-                mixer.Process(tracks, State == PlayerState.Playing, State == PlayerState.Recording);
+                _tempoStack += _tempo;
+                _mixer.Process(_tracks, State == PlayerState.Playing, State == PlayerState.Recording);
                 if (State == PlayerState.Playing)
                 {
-                    time.Wait();
+                    _time.Wait();
                 }
             }
-            time.Stop();
+            _time.Stop();
         }
     }
 }

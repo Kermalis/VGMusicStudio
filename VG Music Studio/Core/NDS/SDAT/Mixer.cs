@@ -5,14 +5,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
     internal class Mixer : Core.Mixer
     {
-        private readonly float samplesReciprocal;
-        private readonly int samplesPerBuffer;
-        private long fadeMicroFramesLeft;
-        private float fadePos;
-        private float fadeStepPerMicroframe;
+        private readonly float _samplesReciprocal;
+        private readonly int _samplesPerBuffer;
+        private long _fadeMicroFramesLeft;
+        private float _fadePos;
+        private float _fadeStepPerMicroframe;
 
         public Channel[] Channels;
-        private readonly BufferedWaveProvider buffer;
+        private readonly BufferedWaveProvider _buffer;
 
         public Mixer()
         {
@@ -20,8 +20,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             // - gbatek
             // I'm not using either of those because the samples per buffer leads to an overflow eventually
             const int sampleRate = 65456;
-            samplesPerBuffer = 341; // TODO
-            samplesReciprocal = 1f / samplesPerBuffer;
+            _samplesPerBuffer = 341; // TODO
+            _samplesReciprocal = 1f / _samplesPerBuffer;
 
             Channels = new Channel[0x10];
             for (byte i = 0; i < 0x10; i++)
@@ -29,12 +29,12 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 Channels[i] = new Channel(i);
             }
 
-            buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
+            _buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
             {
                 DiscardOnBufferOverflow = true,
-                BufferLength = samplesPerBuffer * 64
+                BufferLength = _samplesPerBuffer * 64
             };
-            Init(buffer);
+            Init(_buffer);
         }
         public override void Dispose()
         {
@@ -120,37 +120,37 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public void BeginFadeIn()
         {
-            fadePos = 0f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
-            fadeStepPerMicroframe = 1f / fadeMicroFramesLeft;
+            _fadePos = 0f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
+            _fadeStepPerMicroframe = 1f / _fadeMicroFramesLeft;
         }
         public void BeginFadeOut()
         {
-            fadePos = 1f;
-            fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
-            fadeStepPerMicroframe = -1f / fadeMicroFramesLeft;
+            _fadePos = 1f;
+            _fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1000.0 * 192);
+            _fadeStepPerMicroframe = -1f / _fadeMicroFramesLeft;
         }
         public bool IsFadeDone()
         {
-            return fadeMicroFramesLeft == 0;
+            return _fadeMicroFramesLeft == 0;
         }
         public void ResetFade()
         {
-            fadeMicroFramesLeft = 0;
+            _fadeMicroFramesLeft = 0;
         }
 
-        private WaveFileWriter waveWriter;
+        private WaveFileWriter _waveWriter;
         public void CreateWaveWriter(string fileName)
         {
-            waveWriter = new WaveFileWriter(fileName, buffer.WaveFormat);
+            _waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
         }
         public void CloseWaveWriter()
         {
-            waveWriter?.Dispose();
+            _waveWriter?.Dispose();
         }
         public void EmulateProcess()
         {
-            for (int i = 0; i < samplesPerBuffer; i++)
+            for (int i = 0; i < _samplesPerBuffer; i++)
             {
                 for (int j = 0; j < 0x10; j++)
                 {
@@ -165,18 +165,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public void Process(bool output, bool recording)
         {
             float fromMaster = 1f, toMaster = 1f;
-            if (fadeMicroFramesLeft > 0)
+            if (_fadeMicroFramesLeft > 0)
             {
                 const float scale = 10f / 6f;
-                fromMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadePos += fadeStepPerMicroframe;
-                toMaster *= (fadePos < 0f) ? 0f : (float)Math.Pow(fadePos, scale);
-                fadeMicroFramesLeft--;
+                fromMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadePos += _fadeStepPerMicroframe;
+                toMaster *= (_fadePos < 0f) ? 0f : (float)Math.Pow(_fadePos, scale);
+                _fadeMicroFramesLeft--;
             }
-            float masterStep = (toMaster - fromMaster) * samplesReciprocal;
+            float masterStep = (toMaster - fromMaster) * _samplesReciprocal;
             float masterLevel = fromMaster;
             byte[] b = new byte[4];
-            for (int i = 0; i < samplesPerBuffer; i++)
+            for (int i = 0; i < _samplesPerBuffer; i++)
             {
                 int left = 0,
                     right = 0;
@@ -221,11 +221,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 masterLevel += masterStep;
                 if (output)
                 {
-                    buffer.AddSamples(b, 0, 4);
+                    _buffer.AddSamples(b, 0, 4);
                 }
                 if (recording)
                 {
-                    waveWriter.Write(b, 0, 4);
+                    _waveWriter.Write(b, 0, 4);
                 }
             }
         }

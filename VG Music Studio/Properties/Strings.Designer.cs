@@ -79,6 +79,60 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid command in track {0} at 0x{1:X}: 0x{2:X}.
+        /// </summary>
+        internal static string ErrorAlphaDreamDSEMP2KSDATInvalidCommand {
+            get {
+                return ResourceManager.GetString("ErrorAlphaDreamDSEMP2KSDATInvalidCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot copy invalid game code &quot;{0}&quot;.
+        /// </summary>
+        internal static string ErrorAlphaDreamMP2KCopyInvalidGameCode {
+            get {
+                return ResourceManager.GetString("ErrorAlphaDreamMP2KCopyInvalidGameCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Game code &quot;{0}&quot; is missing..
+        /// </summary>
+        internal static string ErrorAlphaDreamMP2KMissingGameCode {
+            get {
+                return ResourceManager.GetString("ErrorAlphaDreamMP2KMissingGameCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error parsing game code &quot;{0}&quot; in &quot;{1}&quot;{2}.
+        /// </summary>
+        internal static string ErrorAlphaDreamMP2KParseGameCode {
+            get {
+                return ResourceManager.GetString("ErrorAlphaDreamMP2KParseGameCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Playlist &quot;{0}&quot; has song {1} defined more than once between decimal and hexadecimal..
+        /// </summary>
+        internal static string ErrorAlphaDreamMP2KSongRepeated {
+            get {
+                return ResourceManager.GetString("ErrorAlphaDreamMP2KSongRepeated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;{0}&quot; count must be the same as &quot;{1}&quot; count..
+        /// </summary>
+        internal static string ErrorAlphaDreamMP2KSongTableCounts {
+            get {
+                return ResourceManager.GetString("ErrorAlphaDreamMP2KSongTableCounts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &quot;{0}&quot; must be True or False..
         /// </summary>
         internal static string ErrorBoolParse {
@@ -160,15 +214,6 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid command in track {0} at 0x{1:X}: 0x{2:X}.
-        /// </summary>
-        internal static string ErrorDSEMLSSMP2KSDATInvalidCommand {
-            get {
-                return ResourceManager.GetString("ErrorDSEMLSSMP2KSDATInvalidCommand", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to There are no &quot;bgm(NNNN).smd&quot; files..
         /// </summary>
         internal static string ErrorDSENoSequences {
@@ -196,51 +241,6 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot copy invalid game code &quot;{0}&quot;.
-        /// </summary>
-        internal static string ErrorMLSSMP2KCopyInvalidGameCode {
-            get {
-                return ResourceManager.GetString("ErrorMLSSMP2KCopyInvalidGameCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Game code &quot;{0}&quot; is missing..
-        /// </summary>
-        internal static string ErrorMLSSMP2KMissingGameCode {
-            get {
-                return ResourceManager.GetString("ErrorMLSSMP2KMissingGameCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error parsing game code &quot;{0}&quot; in &quot;{1}&quot;{2}.
-        /// </summary>
-        internal static string ErrorMLSSMP2KParseGameCode {
-            get {
-                return ResourceManager.GetString("ErrorMLSSMP2KParseGameCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Playlist &quot;{0}&quot; has song {1} defined more than once between decimal and hexadecimal..
-        /// </summary>
-        internal static string ErrorMLSSMP2KSongRepeated {
-            get {
-                return ResourceManager.GetString("ErrorMLSSMP2KSongRepeated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &quot;{0}&quot; count must be the same as &quot;{1}&quot; count..
-        /// </summary>
-        internal static string ErrorMLSSMP2KSongTableCounts {
-            get {
-                return ResourceManager.GetString("ErrorMLSSMP2KSongTableCounts", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid running status command in track {0} at 0x{1:X}: 0x{2:X}.
         /// </summary>
         internal static string ErrorMP2KInvalidRunningStatusCommand {
@@ -259,20 +259,20 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error Loading GBA ROM (AlphaDream).
+        /// </summary>
+        internal static string ErrorOpenAlphaDream {
+            get {
+                return ResourceManager.GetString("ErrorOpenAlphaDream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error Loading DSE Folder.
         /// </summary>
         internal static string ErrorOpenDSE {
             get {
                 return ResourceManager.GetString("ErrorOpenDSE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error Loading GBA ROM (MLSS).
-        /// </summary>
-        internal static string ErrorOpenMLSS {
-            get {
-                return ResourceManager.GetString("ErrorOpenMLSS", resourceCulture);
             }
         }
         
@@ -412,20 +412,20 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open GBA ROM (AlphaDream).
+        /// </summary>
+        internal static string MenuOpenAlphaDream {
+            get {
+                return ResourceManager.GetString("MenuOpenAlphaDream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Open DSE Folder.
         /// </summary>
         internal static string MenuOpenDSE {
             get {
                 return ResourceManager.GetString("MenuOpenDSE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Open GBA ROM (MLSS).
-        /// </summary>
-        internal static string MenuOpenMLSS {
-            get {
-                return ResourceManager.GetString("MenuOpenMLSS", resourceCulture);
             }
         }
         

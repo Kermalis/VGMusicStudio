@@ -1,6 +1,6 @@
 ﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 {
-    internal enum EnvelopeState
+    internal enum EnvelopeState : byte
     {
         Zero = 0,
         One = 1,

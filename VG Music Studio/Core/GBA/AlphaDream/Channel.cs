@@ -1,25 +1,26 @@
 ﻿using System;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
+namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal abstract class Channel
     {
-        protected readonly Mixer mixer;
+        protected readonly Mixer _mixer;
         public EnvelopeState State;
         public byte Key;
         public bool Stopped;
 
-        protected ADSR adsr;
+        protected ADSR _adsr;
 
-        protected byte velocity;
-        protected int pos;
-        protected float interPos;
-        protected float frequency;
-        protected byte leftVol, rightVol;
+        protected byte _velocity;
+        protected int _pos;
+        protected float _interPos;
+        protected float _frequency;
+        protected byte _leftVol;
+        protected byte _rightVol;
 
         protected Channel(Mixer mixer)
         {
-            this.mixer = mixer;
+            _mixer = mixer;
         }
 
         public ChannelVolume GetVolume()
@@ -27,14 +28,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             const float max = 0x10000;
             return new ChannelVolume
             {
-                LeftVol = leftVol * velocity / max,
-                RightVol = rightVol * velocity / max
+                LeftVol = _leftVol * _velocity / max,
+                RightVol = _rightVol * _velocity / max
             };
         }
         public void SetVolume(byte vol, sbyte pan)
         {
-            leftVol = (byte)((vol * (-pan + 0x80)) >> 8);
-            rightVol = (byte)((vol * (pan + 0x80)) >> 8);
+            _leftVol = (byte)((vol * (-pan + 0x80)) >> 8);
+            _rightVol = (byte)((vol * (pan + 0x80)) >> 8);
         }
         public abstract void SetPitch(int pitch);
 
@@ -42,29 +43,29 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
     }
     internal class PCMChannel : Channel
     {
-        private SampleHeader sampleHeader;
-        private int sampleOffset;
-        private bool bFixed;
+        private SampleHeader _sampleHeader;
+        private int _sampleOffset;
+        private bool _bFixed;
 
         public PCMChannel(Mixer mixer) : base(mixer) { }
         public void Init(byte key, ADSR adsr, int sampleOffset, bool bFixed)
         {
-            velocity = adsr.A;
+            _velocity = adsr.A;
             State = EnvelopeState.Attack;
-            pos = 0; interPos = 0;
+            _pos = 0; _interPos = 0;
             Key = key;
-            this.adsr = adsr;
-            sampleHeader = mixer.Config.Reader.ReadObject<SampleHeader>(sampleOffset);
-            this.sampleOffset = sampleOffset + 0x10;
-            this.bFixed = bFixed;
+            _adsr = adsr;
+            _sampleHeader = _mixer.Config.Reader.ReadObject<SampleHeader>(sampleOffset);
+            _sampleOffset = sampleOffset + 0x10;
+            _bFixed = bFixed;
             Stopped = false;
         }
 
         public override void SetPitch(int pitch)
         {
-            if (sampleHeader != null)
+            if (_sampleHeader != null)
             {
-                frequency = (sampleHeader.SampleRate >> 10) * (float)Math.Pow(2, ((Key - 60) / 12f) + (pitch / 768f));
+                _frequency = (_sampleHeader.SampleRate >> 10) * (float)Math.Pow(2, ((Key - 60) / 12f) + (pitch / 768f));
             }
         }
 
@@ -74,40 +75,40 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             {
                 case EnvelopeState.Attack:
                 {
-                    int nextVel = velocity + adsr.A;
+                    int nextVel = _velocity + _adsr.A;
                     if (nextVel >= 0xFF)
                     {
                         State = EnvelopeState.Decay;
-                        velocity = 0xFF;
+                        _velocity = 0xFF;
                     }
                     else
                     {
-                        velocity = (byte)nextVel;
+                        _velocity = (byte)nextVel;
                     }
                     break;
                 }
                 case EnvelopeState.Decay:
                 {
-                    int nextVel = (velocity * adsr.D) >> 8;
-                    if (nextVel <= adsr.S)
+                    int nextVel = (_velocity * _adsr.D) >> 8;
+                    if (nextVel <= _adsr.S)
                     {
                         State = EnvelopeState.Sustain;
-                        velocity = adsr.S;
+                        _velocity = _adsr.S;
                     }
                     else
                     {
-                        velocity = (byte)nextVel;
+                        _velocity = (byte)nextVel;
                     }
                     break;
                 }
                 case EnvelopeState.Release:
                 {
-                    int next = (velocity * adsr.R) >> 8;
+                    int next = (_velocity * _adsr.R) >> 8;
                     if (next < 0)
                     {
                         next = 0;
                     }
-                    velocity = (byte)next;
+                    _velocity = (byte)next;
                     break;
                 }
             }
@@ -118,24 +119,24 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             StepEnvelope();
 
             ChannelVolume vol = GetVolume();
-            float interStep = (bFixed ? sampleHeader.SampleRate >> 10 : frequency) * mixer.SampleRateReciprocal;
-            int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+            float interStep = (_bFixed ? _sampleHeader.SampleRate >> 10 : _frequency) * _mixer.SampleRateReciprocal;
+            int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
             do
             {
-                float samp = (mixer.Config.ROM[pos + sampleOffset] - 0x80) / (float)0x80;
+                float samp = (_mixer.Config.ROM[_pos + _sampleOffset] - 0x80) / (float)0x80;
 
                 buffer[bufPos++] += samp * vol.LeftVol;
                 buffer[bufPos++] += samp * vol.RightVol;
 
-                interPos += interStep;
-                int posDelta = (int)interPos;
-                interPos -= posDelta;
-                pos += posDelta;
-                if (pos >= sampleHeader.Length)
+                _interPos += interStep;
+                int posDelta = (int)_interPos;
+                _interPos -= posDelta;
+                _pos += posDelta;
+                if (_pos >= _sampleHeader.Length)
                 {
-                    if (sampleHeader.DoesLoop == 0x40000000)
+                    if (_sampleHeader.DoesLoop == 0x40000000)
                     {
-                        pos = sampleHeader.LoopOffset;
+                        _pos = _sampleHeader.LoopOffset;
                     }
                     else
                     {
@@ -148,14 +149,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
     }
     internal class SquareChannel : Channel
     {
-        private float[] pat;
+        private float[] _pat;
 
         public SquareChannel(Mixer mixer) : base(mixer) { }
         public void Init(byte key, ADSR env, byte vol, sbyte pan, int pitch)
         {
-            pat = MP2K.Utils.SquareD50; // TODO
+            _pat = MP2K.Utils.SquareD50; // TODO
             Key = key;
-            adsr = env;
+            _adsr = env;
             SetVolume(vol, pan);
             SetPitch(pitch);
             State = EnvelopeState.Attack;
@@ -163,7 +164,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
 
         public override void SetPitch(int pitch)
         {
-            frequency = 3520 * (float)Math.Pow(2, ((Key - 69) / 12f) + (pitch / 768f));
+            _frequency = 3520 * (float)Math.Pow(2, ((Key - 69) / 12f) + (pitch / 768f));
         }
 
         private void StepEnvelope()
@@ -172,40 +173,40 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             {
                 case EnvelopeState.Attack:
                 {
-                    int next = velocity + adsr.A;
+                    int next = _velocity + _adsr.A;
                     if (next >= 0xF)
                     {
                         State = EnvelopeState.Decay;
-                        velocity = 0xF;
+                        _velocity = 0xF;
                     }
                     else
                     {
-                        velocity = (byte)next;
+                        _velocity = (byte)next;
                     }
                     break;
                 }
                 case EnvelopeState.Decay:
                 {
-                    int next = (velocity * adsr.D) >> 3;
-                    if (next <= adsr.S)
+                    int next = (_velocity * _adsr.D) >> 3;
+                    if (next <= _adsr.S)
                     {
                         State = EnvelopeState.Sustain;
-                        velocity = adsr.S;
+                        _velocity = _adsr.S;
                     }
                     else
                     {
-                        velocity = (byte)next;
+                        _velocity = (byte)next;
                     }
                     break;
                 }
                 case EnvelopeState.Release:
                 {
-                    int next = (velocity * adsr.R) >> 3;
+                    int next = (_velocity * _adsr.R) >> 3;
                     if (next < 0)
                     {
                         next = 0;
                     }
-                    velocity = (byte)next;
+                    _velocity = (byte)next;
                     break;
                 }
             }
@@ -216,20 +217,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MLSS
             StepEnvelope();
 
             ChannelVolume vol = GetVolume();
-            float interStep = frequency * mixer.SampleRateReciprocal;
+            float interStep = _frequency * _mixer.SampleRateReciprocal;
 
-            int bufPos = 0; int samplesPerBuffer = mixer.SamplesPerBuffer;
+            int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
             do
             {
-                float samp = pat[pos];
+                float samp = _pat[_pos];
 
                 buffer[bufPos++] += samp * vol.LeftVol;
                 buffer[bufPos++] += samp * vol.RightVol;
 
-                interPos += interStep;
-                int posDelta = (int)interPos;
-                interPos -= posDelta;
-                pos = (pos + posDelta) & 0x7;
+                _interPos += interStep;
+                int posDelta = (int)_interPos;
+                _interPos -= posDelta;
+                _pos = (_pos + posDelta) & 0x7;
             } while (--samplesPerBuffer > 0);
         }
     }
