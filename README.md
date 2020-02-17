@@ -30,14 +30,20 @@ Discord Server: https://discord.gg/mBQXCTs
 ## Mario & Luigi: Superstar Saga Engine
 * ADSR
 * Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
+* PSG channels 3 and 4
+* Some more unknown commands
+* Optimize playback
+* Rename to Alphadream Engine
 
 ## SDAT Engine
 * Find proper formulas for LFO
+* Optimize playback
 
 ## DSE Engine
 * ADSR
 * Pitch bend
 * Ability to load SMDB and SWDB (Big Endian as opposed to SMDL and SWDL for Little Endian)
+* Some more unknown commands
 
 ----
 # Special Thanks To:
