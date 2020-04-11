@@ -107,6 +107,14 @@
     <Compile Include="Core\GBA\MP2K\Commands.cs" />
     <Compile Include="Core\GBA\AlphaDream\Commands.cs" />
     <Compile Include="Core\GBA\AlphaDream\Config.cs" />
+    <Compile Include="Core\GBA\Rare\Channel.cs" />
+    <Compile Include="Core\GBA\Rare\Commands.cs" />
+    <Compile Include="Core\GBA\Rare\Config.cs" />
+    <Compile Include="Core\GBA\Rare\Enums.cs" />
+    <Compile Include="Core\GBA\Rare\Mixer.cs" />
+    <Compile Include="Core\GBA\Rare\Player.cs" />
+    <Compile Include="Core\GBA\Rare\Structs.cs" />
+    <Compile Include="Core\GBA\Rare\Track.cs" />
     <Compile Include="Core\GlobalConfig.cs" />
     <Compile Include="Core\Engine.cs" />
     <Compile Include="Core\GBA\Utils.cs" />

@@ -1,11 +1,9 @@
-﻿using Kermalis.VGMusicStudio.Properties;
-using Kermalis.VGMusicStudio.Util;
-using System;
+﻿using Kermalis.VGMusicStudio.Util;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
+namespace Kermalis.VGMusicStudio.Core.GBA.Rare
 {
     internal class Player : IPlayer
     {
@@ -23,7 +21,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public long ElapsedTicks { get; private set; }
         public bool ShouldFadeOut { get; set; }
         public long NumLoops { get; set; }
-        private int _longestTrack;
+        private readonly int _longestTrack;
 
         public PlayerState State { get; private set; }
         public event SongEndedEvent SongEnded;
@@ -32,7 +30,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         {
             for (byte i = 0; i < 0x10; i++)
             {
-                _tracks[i] = new Track(i, mixer);
+                _tracks[i] = new Track(i);
             }
             _mixer = mixer;
             _config = config;
@@ -41,7 +39,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         }
         private void CreateThread()
         {
-            _thread = new Thread(Tick) { Name = "AlphaDream Player Tick" };
+            _thread = new Thread(Tick) { Name = "Rare Player Tick" };
             _thread.Start();
         }
         private void WaitThread()
@@ -61,12 +59,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             _mixer.ResetFade();
             for (int i = 0; i < 0x10; i++)
             {
-                _tracks[i].Init();
+                //_tracks[i].Init();
             }
         }
         private void SetTicks()
         {
-            MaxTicks = 0;
+            /*MaxTicks = 0;
             bool u = false;
             for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
             {
@@ -106,208 +104,152 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     }
                     track.NoteDuration = 0;
                 }
-            }
+            }*/
         }
         public void LoadSong(long index)
         {
-            int songOffset = _config.Reader.ReadInt32(_config.SongTableOffsets[0] + (index * 4));
-            if (songOffset == 0)
+            const int songTable = 0x6B28CC; // TODO
+            int songOffset = _config.Reader.ReadInt32(songTable + (index * 4));
+            Events = new List<SongEvent>[0x10];
+            songOffset -= Utils.CartridgeOffset;
+            Events[0] = new List<SongEvent>();
+            bool EventExists(long offset)
             {
-                Events = null;
+                return Events[0].Any(e => e.Offset == offset);
             }
-            else
-            {
-                Events = new List<SongEvent>[0x10];
-                songOffset -= Utils.CartridgeOffset;
-                ushort trackBits = _config.Reader.ReadUInt16(songOffset);
-                for (int i = 0, usedTracks = 0; i < 0x10; i++)
-                {
-                    Track track = _tracks[i];
-                    if ((trackBits & (1 << i)) != 0)
-                    {
-                        track.Enabled = true;
-                        Events[i] = new List<SongEvent>();
-                        bool EventExists(long offset)
-                        {
-                            return Events[i].Any(e => e.Offset == offset);
-                        }
 
-                        AddEvents(songOffset + _config.Reader.ReadInt16(songOffset + 2 + (2 * usedTracks++)));
-                        void AddEvents(int startOffset)
-                        {
-                            _config.Reader.BaseStream.Position = startOffset;
-                            bool cont = true;
-                            while (cont)
-                            {
-                                long offset = _config.Reader.BaseStream.Position;
-                                void AddEvent(ICommand command)
-                                {
-                                    Events[i].Add(new SongEvent(offset, command));
-                                }
-                                byte cmd = _config.Reader.ReadByte();
-                                switch (cmd)
-                                {
-                                    case 0x00:
-                                    {
-                                        byte keyArg = _config.Reader.ReadByte();
-                                        switch (_config.AudioEngineVersion)
-                                        {
-                                            case AudioEngineVersion.Hamtaro:
-                                            {
-                                                byte volume = _config.Reader.ReadByte();
-                                                byte duration = _config.Reader.ReadByte();
-                                                if (!EventExists(offset))
-                                                {
-                                                    AddEvent(new FreeNoteHamtaroCommand { Key = (byte)(keyArg - 0x80), Volume = volume, Duration = duration });
-                                                }
-                                                break;
-                                            }
-                                            case AudioEngineVersion.MLSS:
-                                            {
-                                                byte duration = _config.Reader.ReadByte();
-                                                if (!EventExists(offset))
-                                                {
-                                                    AddEvent(new FreeNoteMLSSCommand { Key = (byte)(keyArg - 0x80), Duration = duration });
-                                                }
-                                                break;
-                                            }
-                                        }
-                                        break;
-                                    }
-                                    case 0xF0:
-                                    {
-                                        byte voice = _config.Reader.ReadByte();
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new VoiceCommand { Voice = voice });
-                                        }
-                                        break;
-                                    }
-                                    case 0xF1:
-                                    {
-                                        byte volume = _config.Reader.ReadByte();
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new VolumeCommand { Volume = volume });
-                                        }
-                                        break;
-                                    }
-                                    case 0xF2:
-                                    {
-                                        byte panArg = _config.Reader.ReadByte();
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new PanpotCommand { Panpot = (sbyte)(panArg - 0x80) });
-                                        }
-                                        break;
-                                    }
-                                    case 0xF4:
-                                    {
-                                        byte range = _config.Reader.ReadByte();
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new PitchBendRangeCommand { Range = range });
-                                        }
-                                        break;
-                                    }
-                                    case 0xF5:
-                                    {
-                                        sbyte bend = _config.Reader.ReadSByte();
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new PitchBendCommand { Bend = bend });
-                                        }
-                                        break;
-                                    }
-                                    case 0xF6:
-                                    {
-                                        byte rest = _config.Reader.ReadByte();
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new RestCommand { Rest = rest });
-                                        }
-                                        break;
-                                    }
-                                    case 0xF8:
-                                    {
-                                        short jumpOffset = _config.Reader.ReadInt16();
-                                        if (!EventExists(offset))
-                                        {
-                                            int off = (int)(_config.Reader.BaseStream.Position + jumpOffset);
-                                            AddEvent(new JumpCommand { Offset = off });
-                                            if (!EventExists(off))
-                                            {
-                                                AddEvents(off);
-                                            }
-                                        }
-                                        cont = false;
-                                        break;
-                                    }
-                                    case 0xF9:
-                                    {
-                                        byte tempoArg = _config.Reader.ReadByte();
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new TempoCommand { Tempo = tempoArg });
-                                        }
-                                        break;
-                                    }
-                                    case 0xFF:
-                                    {
-                                        if (!EventExists(offset))
-                                        {
-                                            AddEvent(new FinishCommand());
-                                        }
-                                        cont = false;
-                                        break;
-                                    }
-                                    default:
-                                    {
-                                        if (cmd <= 0xDF)
-                                        {
-                                            byte key = _config.Reader.ReadByte();
-                                            switch (_config.AudioEngineVersion)
-                                            {
-                                                case AudioEngineVersion.Hamtaro:
-                                                {
-                                                    byte volume = _config.Reader.ReadByte();
-                                                    if (!EventExists(offset))
-                                                    {
-                                                        AddEvent(new NoteHamtaroCommand { Key = key, Volume = volume, Duration = cmd });
-                                                    }
-                                                    break;
-                                                }
-                                                case AudioEngineVersion.MLSS:
-                                                {
-                                                    if (!EventExists(offset))
-                                                    {
-                                                        AddEvent(new NoteMLSSCommand { Key = key, Duration = cmd });
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, i, offset, cmd));
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
+            AddEvents(songOffset);
+            void AddEvents(int startOffset)
+            {
+                _config.Reader.BaseStream.Position = startOffset;
+                bool cont = true;
+                while (cont)
+                {
+                    long offset = _config.Reader.BaseStream.Position;
+                    void AddEvent(ICommand command)
                     {
-                        track.Enabled = false;
+                        Events[0].Add(new SongEvent(offset, command));
+                    }
+                    byte by = _config.Reader.ReadByte();
+                    byte channel = (byte)(by >> 4);
+                    byte cmd = (byte)(by & 0xF);
+                    switch (cmd)
+                    {
+                        case 0x0:
+                        {
+                            uint arg = (uint)(_config.Reader.ReadByte() | (_config.Reader.ReadByte() << 8) | (_config.Reader.ReadByte() << 16));
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new TempoCommand { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x1:
+                        {
+                            byte arg = _config.Reader.ReadByte();
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new Rest8Command { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x2:
+                        {
+                            ushort arg = _config.Reader.ReadUInt16();
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new Rest16Command { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x3:
+                        {
+                            uint arg = (uint)(_config.Reader.ReadByte() | (_config.Reader.ReadByte() << 8) | (_config.Reader.ReadByte() << 16));
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new Rest24Command { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x4:
+                        {
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new Unk4Command { Channel = channel });
+                            }
+                            break;
+                        }
+                        case 0x5:
+                        {
+                            byte[] arg = _config.Reader.ReadBytes(2);
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new NoteOnCommand { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x6:
+                        {
+                            byte[] arg = _config.Reader.ReadBytes(2);
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new NoteOffCommand { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x7:
+                        {
+                            byte[] arg = _config.Reader.ReadBytes(2);
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new VolumeCommand { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x8:
+                        {
+                            byte arg = _config.Reader.ReadByte();
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new VoiceCommand { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0x9:
+                        {
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new Unk9Command { Channel = channel });
+                            }
+                            break;
+                        }
+                        case 0xA:
+                        {
+                            byte[] arg = _config.Reader.ReadBytes(2);
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new PitchCommand { Channel = channel, Data = arg });
+                            }
+                            break;
+                        }
+                        case 0xB:
+                        {
+                            cont = false;
+                            if (!EventExists(offset))
+                            {
+                                AddEvent(new FinishCommand { Channel = channel });
+                            }
+                            break;
+                        }
+                        default: throw new System.Exception("TODO");
                     }
                 }
-                SetTicks();
             }
+            SetTicks();
         }
         public void SetCurrentPosition(long ticks)
         {
-            if (Events == null)
+            /*if (Events == null)
             {
                 SongEnded?.Invoke();
             }
@@ -357,7 +299,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     _tracks[i].NoteDuration = 0;
                 }
                 Pause();
-            }
+            }*/
         }
         public void Play()
         {
@@ -416,7 +358,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             info.Tempo = _tempo;
             for (int i = 0; i < 0x10; i++)
             {
-                Track track = _tracks[i];
+                UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
+                tin.Type = "Test";
+                /*Track track = _tracks[i];
                 if (track.Enabled)
                 {
                     UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
@@ -440,11 +384,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                         tin.LeftVolume = 0f;
                         tin.RightVolume = 0f;
                     }
-                }
+                }*/
             }
         }
 
-        private VoiceEntry GetVoiceEntry(byte voice, byte key)
+        /*private VoiceEntry GetVoiceEntry(byte voice, byte key)
         {
             int vto = _config.VoiceTableOffset;
             short voiceOffset = _config.Reader.ReadInt16(vto + (voice * 2));
@@ -468,10 +412,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 }
                 return e;
             }
-        }
+        }*/
         private void PlayNote(Track track, byte key, byte duration)
         {
-            VoiceEntry entry = GetVoiceEntry(track.Voice, key);
+            /*VoiceEntry entry = GetVoiceEntry(track.Voice, key);
             if (entry != null)
             {
                 track.NoteDuration = duration;
@@ -488,11 +432,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     track.Channel.SetVolume(track.Volume, track.Panpot);
                     track.Channel.SetPitch(track.GetPitch());
                 }
-            }
+            }*/
         }
         private void ExecuteNext(int trackIndex, ref bool update)
         {
-            bool increment = true;
+            /*bool increment = true;
             List<SongEvent> ev = Events[trackIndex];
             Track track = _tracks[trackIndex];
             ICommand cmd = ev[track.CurEvent].Command;
@@ -573,12 +517,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             if (increment)
             {
                 track.CurEvent++;
-            }
+            }*/
         }
 
         private void Tick()
         {
-            _time.Start();
+            /*_time.Start();
             while (true)
             {
                 PlayerState state = State;
@@ -667,7 +611,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 }
             }
         stop:
-            _time.Stop();
+            _time.Stop();*/
         }
     }
 }

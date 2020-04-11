@@ -9,9 +9,12 @@ namespace Kermalis.VGMusicStudio.Core
             None,
             GBA_AlphaDream,
             GBA_MP2K,
+            GBA_Rare,
             NDS_DSE,
             NDS_SDAT
         }
+
+        private static readonly Exception _gbaRomTooLargeException = new Exception($"The ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
 
         public static Engine Instance { get; private set; }
 
@@ -29,7 +32,7 @@ namespace Kermalis.VGMusicStudio.Core
                     byte[] rom = (byte[])playerArg;
                     if (rom.Length > GBA.Utils.CartridgeCapacity)
                     {
-                        throw new Exception($"The ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
+                        throw _gbaRomTooLargeException;
                     }
                     var config = new GBA.AlphaDream.Config(rom);
                     Config = config;
@@ -43,13 +46,27 @@ namespace Kermalis.VGMusicStudio.Core
                     byte[] rom = (byte[])playerArg;
                     if (rom.Length > GBA.Utils.CartridgeCapacity)
                     {
-                        throw new Exception($"The ROM is too large. Maximum size is 0x{GBA.Utils.CartridgeCapacity:X7} bytes.");
+                        throw _gbaRomTooLargeException;
                     }
                     var config = new GBA.MP2K.Config(rom);
                     Config = config;
                     var mixer = new GBA.MP2K.Mixer(config);
                     Mixer = mixer;
                     Player = new GBA.MP2K.Player(mixer, config);
+                    break;
+                }
+                case EngineType.GBA_Rare:
+                {
+                    byte[] rom = (byte[])playerArg;
+                    if (rom.Length > GBA.Utils.CartridgeCapacity)
+                    {
+                        throw _gbaRomTooLargeException;
+                    }
+                    var config = new GBA.Rare.Config(rom);
+                    Config = config;
+                    var mixer = new GBA.Rare.Mixer(config);
+                    Mixer = mixer;
+                    Player = new GBA.Rare.Player(mixer, config);
                     break;
                 }
                 case EngineType.NDS_DSE:
