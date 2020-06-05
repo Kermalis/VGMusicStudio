@@ -426,7 +426,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         {
             if (State < EnvelopeState.Releasing)
             {
-                _panpot = pan < -0x20 ? GBPan.Left : pan > 0x20 ? GBPan.Right : GBPan.Center;
+                _panpot = pan < -21 ? GBPan.Left : pan > 20 ? GBPan.Right : GBPan.Center;
                 _peakVelocity = (byte)((Note.Velocity * vol) >> 10);
                 _sustainVelocity = (byte)(((_peakVelocity * _adsr.S) + 0xF) >> 4); // TODO
                 if (State == EnvelopeState.Playing)
