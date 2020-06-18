@@ -1,5 +1,7 @@
 # Kermalis's VG Music Studio
 
+[![LatestVer](https://img.shields.io/github/v/release/Kermalis/VGMusicStudio.svg?include_prereleases)](https://github.com/Kermalis/VGMusicStudio/releases/latest) [![Releases](https://img.shields.io/github/downloads/Kermalis/VGMusicStudio/total.svg)](https://github.com/Kermalis/VGMusicStudio/releases/latest) [![License](https://img.shields.io/badge/License-LGPLv3-blue.svg)](LICENSE.md)
+
 VG Music Studio is a music player and visualizer for the most common GBA music format (MP2K), AlphaDream's GBA music format, the most common NDS music format (SDAT), and a more rare NDS/WII music format (DSE) [found in PMD2 among others].
 
 [![VG Music Studio Preview](https://i.imgur.com/hWJGG83.png)](https://www.youtube.com/watch?v=s1BZ7cRbtBU "VG Music Studio Preview")
