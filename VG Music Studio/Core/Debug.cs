@@ -75,7 +75,7 @@ namespace Kermalis.VGMusicStudio.Core
             }
             foreach (KeyValuePair<string, List<Config.Song>> kvp in scans.OrderBy(k => k.Key))
             {
-                Console.WriteLine("{0} ({1})", kvp.Key, string.Join(", ", showIndexes ? (IEnumerable<object>)kvp.Value.Select(s => s.Index) : kvp.Value.Select(s => s.Name)));
+                Console.WriteLine("{0} ({1})", kvp.Key, showIndexes ? string.Join(", ", kvp.Value.Select(s => s.Index)) : string.Join(", ", kvp.Value.Select(s => s.Name)));
             }
             Console.WriteLine($"{nameof(EventScan)} ended.");
         }
