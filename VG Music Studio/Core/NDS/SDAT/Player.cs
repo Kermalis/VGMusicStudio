@@ -1651,6 +1651,14 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
                 void MixerProcess()
                 {
+                    for (int i = 0; i < 0x10; i++)
+                    {
+                        Track track = _tracks[i];
+                        if (track.Enabled)
+                        {
+                            track.LFOTick();
+                        }
+                    }
                     _mixer.ChannelTick();
                     _mixer.Process(playing, recording);
                 }
@@ -1662,37 +1670,38 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     for (int i = 0; i < 0x10; i++)
                     {
                         Track track = _tracks[i];
-                        if (track.Enabled)
+                        if (!track.Enabled)
                         {
-                            track.Tick();
-                            while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
+                            continue;
+                        }
+                        track.Tick();
+                        while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
+                        {
+                            ExecuteNext(i);
+                        }
+                        if (i == _longestTrack)
+                        {
+                            if (ElapsedTicks == MaxTicks)
                             {
-                                ExecuteNext(i);
-                            }
-                            if (i == _longestTrack)
-                            {
-                                if (ElapsedTicks == MaxTicks)
+                                if (!track.Stopped)
                                 {
-                                    if (!track.Stopped)
+                                    List<long> t = Events[i][track.CurEvent].Ticks;
+                                    ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
+                                    _elapsedLoops++;
+                                    if (ShouldFadeOut && !_mixer.IsFading() && _elapsedLoops > NumLoops)
                                     {
-                                        List<long> t = Events[i][track.CurEvent].Ticks;
-                                        ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
-                                        _elapsedLoops++;
-                                        if (ShouldFadeOut && !_mixer.IsFading() && _elapsedLoops > NumLoops)
-                                        {
-                                            _mixer.BeginFadeOut();
-                                        }
+                                        _mixer.BeginFadeOut();
                                     }
                                 }
-                                else
-                                {
-                                    ElapsedTicks++;
-                                }
                             }
-                            if (!track.Stopped || track.Channels.Count != 0)
+                            else
                             {
-                                allDone = false;
+                                ElapsedTicks++;
                             }
+                        }
+                        if (!track.Stopped || track.Channels.Count != 0)
+                        {
+                            allDone = false;
                         }
                     }
                     if (_mixer.IsFadeDone())

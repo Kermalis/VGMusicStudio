@@ -24,6 +24,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public byte LFODepth;
         public ushort LFODelay;
         public ushort LFOPhase;
+        public int LFOParam;
         public ushort LFODelayCount;
         public LFOType LFOType;
         public sbyte PitchBend;
@@ -49,20 +50,17 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public int GetPitch()
         {
-            int lfo = LFOType == LFOType.Pitch ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            lfo = (int)(((long)lfo * 60) >> 14);
+            int lfo = LFOType == LFOType.Pitch ? LFOParam : 0;
             return (PitchBend * PitchBendRange / 2) + lfo;
         }
         public int GetVolume()
         {
-            int lfo = LFOType == LFOType.Volume ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            lfo = (int)(((lfo & ~0xFC000000) >> 8) | ((lfo < 0 ? -1 : 0) << 6) | (((uint)lfo >> 26) << 18));
+            int lfo = LFOType == LFOType.Volume ? LFOParam : 0;
             return Utils.SustainTable[_player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + lfo;
         }
         public sbyte GetPan()
         {
-            int lfo = LFOType == LFOType.Panpot ? (LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth) : 0;
-            lfo = (int)(((lfo & ~0xFC000000) >> 8) | ((lfo < 0 ? -1 : 0) << 6) | (((uint)lfo >> 26) << 18));
+            int lfo = LFOType == LFOType.Panpot ? LFOParam : 0;
             int p = Panpot + lfo;
             if (p < -0x40)
             {
@@ -104,6 +102,42 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             Rest = 0;
             StopAllChannels();
         }
+        public void LFOTick()
+        {
+            if (Channels.Count != 0)
+            {
+                if (LFODelayCount > 0)
+                {
+                    LFODelayCount--;
+                    LFOPhase = 0;
+                }
+                else
+                {
+                    int param = LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth;
+                    if (LFOType == LFOType.Volume)
+                    {
+                        param = (param * 60) >> 14;
+                    }
+                    else
+                    {
+                        param >>= 8;
+                    }
+                    LFOParam = param;
+                    int counter = LFOPhase + (LFOSpeed << 6); // "<< 6" is "* 0x40"
+                    while (counter >= 0x8000)
+                    {
+                        counter -= 0x8000;
+                    }
+                    LFOPhase = (ushort)counter;
+                }
+            }
+            else
+            {
+                LFOPhase = 0;
+                LFOParam = 0;
+                LFODelayCount = LFODelay;
+            }
+        }
         public void Tick()
         {
             if (Rest > 0)
@@ -125,30 +159,10 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         c.SweepCounter++;
                     }
                 }
-                // LFO:
-                if (LFODelayCount > 0)
-                {
-                    LFODelayCount--;
-                    LFOPhase = 0;
-                }
-                else
-                {
-                    int speed = LFOSpeed << 6; // "<< 6" is "* 0x40"
-                    int counter = (LFOPhase + speed) >> 8; // ">> 8" is "/ 0x100"
-                    while (counter >= 0x80)
-                    {
-                        counter -= 0x80;
-                    }
-                    LFOPhase += (ushort)speed;
-                    LFOPhase &= 0xFF;
-                    LFOPhase |= (ushort)(counter << 8); // "<< 8" is "* 0x100"
-                }
             }
             else
             {
                 WaitingForNoteToFinishBeforeContinuingXD = false;
-                LFOPhase = 0;
-                LFODelayCount = LFODelay;
             }
         }
 
