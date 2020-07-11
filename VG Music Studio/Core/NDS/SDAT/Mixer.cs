@@ -43,43 +43,34 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             CloseWaveWriter();
         }
 
+        private static readonly int[] _pcmChanOrder = new int[] { 4, 5, 6, 7, 2, 0, 3, 1, 8, 9, 10, 11, 14, 12, 15, 13 };
+        private static readonly int[] _psgChanOrder = new int[] { 8, 9, 10, 11, 12, 13 };
+        private static readonly int[] _noiseChanOrder = new int[] { 14, 15 };
         public Channel AllocateChannel(InstrumentType type, Track track)
         {
-            ushort allowedChannels;
+            int[] allowedChannels;
             switch (type)
             {
-                case InstrumentType.PCM: allowedChannels = 0b1111111111111111; break; // All channels (0-15)
-                case InstrumentType.PSG: allowedChannels = 0b0011111100000000; break; // Only 8 9 10 11 12 13
-                case InstrumentType.Noise: allowedChannels = 0b1100000000000000; break; // Only 14 15
+                case InstrumentType.PCM: allowedChannels = _pcmChanOrder; break;
+                case InstrumentType.PSG: allowedChannels = _psgChanOrder; break;
+                case InstrumentType.Noise: allowedChannels = _noiseChanOrder; break;
                 default: return null;
             }
-            int GetScore(Channel c)
-            {
-                // Free channels should be used before releasing channels which should be used before track priority
-                return c.Owner == null ? -2 : c.State == EnvelopeState.Release ? -1 : c.Owner.Priority;
-            }
             Channel nChan = null;
-            for (int i = 0; i < 0x10; i++)
+            for (int i = 0; i < allowedChannels.Length; i++)
             {
-                if ((allowedChannels & (1 << i)) != 0)
+                Channel c = Channels[allowedChannels[i]];
+                if (nChan != null && c.Priority >= nChan.Priority && (c.Priority != nChan.Priority || nChan.Volume <= c.Volume))
                 {
-                    Channel c = Channels[i];
-                    if (nChan != null)
-                    {
-                        int nScore = GetScore(nChan);
-                        int cScore = GetScore(c);
-                        if (cScore <= nScore && (cScore < nScore || c.Volume <= nChan.Volume))
-                        {
-                            nChan = c;
-                        }
-                    }
-                    else
-                    {
-                        nChan = c;
-                    }
+                    continue;
                 }
+                nChan = c;
             }
-            return nChan != null && track.Priority >= GetScore(nChan) ? nChan : null;
+            if (nChan == null || track.Priority < nChan.Priority)
+            {
+                return null;
+            }
+            return nChan;
         }
 
         public void ChannelTick()
@@ -92,10 +83,19 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     chan.StepEnvelope();
                     if (chan.NoteDuration == 0 && !chan.Owner.WaitingForNoteToFinishBeforeContinuingXD)
                     {
+                        chan.Priority = 1;
                         chan.State = EnvelopeState.Release;
                     }
                     int vol = Utils.SustainTable[chan.NoteVelocity] + chan.Velocity + chan.Owner.GetVolume();
                     int pitch = ((chan.Key - chan.BaseKey) << 6) + chan.SweepMain() + chan.Owner.GetPitch(); // "<< 6" is "* 0x40"
+                    int pan = 0;
+                    chan.LFOTick();
+                    switch (chan.LFOType)
+                    {
+                        case LFOType.Pitch: pitch += chan.LFOParam; break;
+                        case LFOType.Volume: vol += chan.LFOParam; break;
+                        case LFOType.Panpot: pan += chan.LFOParam; break;
+                    }
                     if (chan.State == EnvelopeState.Release && vol <= -92544)
                     {
                         chan.Stop();
@@ -104,7 +104,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     {
                         chan.Volume = Utils.GetChannelVolume(vol);
                         chan.Timer = Utils.GetChannelTimer(chan.BaseTimer, pitch);
-                        int p = chan.StartingPan + chan.Owner.GetPan();
+                        int p = chan.StartingPan + chan.Owner.GetPan() + pan;
                         if (p < -0x40)
                         {
                             p = -0x40;

@@ -18,8 +18,8 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public byte Priority;
         public byte Volume;
         public byte Expression;
-        public byte LFORange;
         public byte PitchBendRange;
+        public byte LFORange;
         public byte LFOSpeed;
         public byte LFODepth;
         public ushort LFODelay;
@@ -50,17 +50,20 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public int GetPitch()
         {
-            int lfo = LFOType == LFOType.Pitch ? LFOParam : 0;
+            //int lfo = LFOType == LFOType.Pitch ? LFOParam : 0;
+            int lfo = 0;
             return (PitchBend * PitchBendRange / 2) + lfo;
         }
         public int GetVolume()
         {
-            int lfo = LFOType == LFOType.Volume ? LFOParam : 0;
+            //int lfo = LFOType == LFOType.Volume ? LFOParam : 0;
+            int lfo = 0;
             return Utils.SustainTable[_player.Volume] + Utils.SustainTable[Volume] + Utils.SustainTable[Expression] + lfo;
         }
         public sbyte GetPan()
         {
-            int lfo = LFOType == LFOType.Panpot ? LFOParam : 0;
+            //int lfo = LFOType == LFOType.Panpot ? LFOParam : 0;
+            int lfo = 0;
             int p = Panpot + lfo;
             if (p < -0x40)
             {
@@ -91,7 +94,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             LFOPhase = LFODelay = LFODelayCount = 0;
             LFORange = 1;
             LFOSpeed = 0x10;
-            Priority = 0x40;
+            Priority = (byte)(_player.Priority + 0x40);
             Volume = Expression = 0x7F;
             Attack = Decay = Sustain = Release = 0xFF;
             PitchBendRange = 2;
@@ -163,6 +166,18 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             else
             {
                 WaitingForNoteToFinishBeforeContinuingXD = false;
+            }
+        }
+        public void UpdateChannels()
+        {
+            for (int i = 0; i < Channels.Count; i++)
+            {
+                Channel c = Channels[i];
+                c.LFOType = LFOType;
+                c.LFOSpeed = LFOSpeed;
+                c.LFODepth = LFODepth;
+                c.LFORange = LFORange;
+                c.LFODelay = LFODelay;
             }
         }
 

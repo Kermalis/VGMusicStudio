@@ -28,6 +28,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         private int _sustain;
         private ushort _decay;
         private ushort _release;
+        public byte LFORange;
+        public byte LFOSpeed;
+        public byte LFODepth;
+        public ushort LFODelay;
+        public ushort LFOPhase;
+        public int LFOParam;
+        public ushort LFODelayCount;
+        public LFOType LFOType;
+        public byte Priority;
 
         private int _pos;
         private short _prevLeft;
@@ -97,6 +106,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             }
             Owner = null;
             Volume = 0;
+            Priority = 0;
         }
 
         public int SweepMain()
@@ -113,6 +123,33 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             else
             {
                 return 0;
+            }
+        }
+        public void LFOTick()
+        {
+            if (LFODelayCount > 0)
+            {
+                LFODelayCount--;
+                LFOPhase = 0;
+            }
+            else
+            {
+                int param = LFORange * Utils.Sin(LFOPhase >> 8) * LFODepth;
+                if (LFOType == LFOType.Volume)
+                {
+                    param = (param * 60) >> 14;
+                }
+                else
+                {
+                    param >>= 8;
+                }
+                LFOParam = param;
+                int counter = LFOPhase + (LFOSpeed << 6); // "<< 6" is "* 0x40"
+                while (counter >= 0x8000)
+                {
+                    counter -= 0x8000;
+                }
+                LFOPhase = (ushort)counter;
             }
         }
 

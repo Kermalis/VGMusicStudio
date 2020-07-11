@@ -9,6 +9,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
     internal class Player : IPlayer
     {
+        public readonly byte Priority = 0x40;
         private readonly short[] _vars = new short[0x20]; // 16 player variables, then 16 global variables
         private readonly Track[] _tracks = new Track[0x10];
         private readonly Mixer _mixer;
@@ -1014,6 +1015,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                             channel.SetRelease(release);
                             channel.StartingPan = (sbyte)(param.Pan - 0x40);
                             channel.Owner = track;
+                            channel.Priority = track.Priority;
                             track.Channels.Add(channel);
                         }
                         else
@@ -1406,7 +1408,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, priority.Priority);
                     if (track.DoCommandWork)
                     {
-                        track.Priority = (byte)arg;
+                        track.Priority = (byte)(Priority + (byte)arg);
                     }
                     break;
                 }
@@ -1656,7 +1658,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         Track track = _tracks[i];
                         if (track.Enabled)
                         {
-                            track.LFOTick();
+                            track.UpdateChannels();
                         }
                     }
                     _mixer.ChannelTick();
