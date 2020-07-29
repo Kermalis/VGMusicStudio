@@ -1377,3 +1377,31 @@ BZMP_00:
   Name: "The Legend of Zelda: The Minish Cap (Europe)"
   SongTableOffsets: 0xB1D414
   Copy: "BZME_00"
+U32E_00:
+  Name: "Boktai 2 - Solar Boy Django (USA)"
+  SongTableOffsets: 0x25EEA8
+  SongTableSizes: 1000
+  SampleRate: 6
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+U32P_00:
+  Name: "Boktai 2 - Solar Boy Django (Europe)"
+  SongTableOffsets: 0x264758
+  Copy: "U32E_00"
+U3IE_00:
+  Name: "Boktai - The Sun is in Your Hand (USA)"
+  SongTableOffsets: 0x1EC904
+  SongTableSizes: 906
+  SampleRate: 6
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+U3IP_00:
+  Name: "Boktai - The Sun is in Your Hand (Europe)"
+  SongTableOffsets: 0x1E7604
+  Copy: "U3IE_00"
