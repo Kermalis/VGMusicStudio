@@ -1405,3 +1405,13 @@ U3IP_00:
   Name: "Boktai - The Sun is in Your Hand (Europe)"
   SongTableOffsets: 0x1E7604
   Copy: "U3IE_00"
+U33J_00:
+  Name: "Boktai 3 - Sabata's Counterattack (Japan)"
+  SongTableOffsets: 0x26456C
+  SongTableSizes: 1483
+  SampleRate: 6
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
