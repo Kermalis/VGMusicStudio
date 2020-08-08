@@ -9,8 +9,8 @@ VG Music Studio is a music player and visualizer for the most common GBA music f
 If you want to talk or would like a game added to our configs, join our Discord Server: https://discord.gg/mBQXCTs
 
 ----
-# To Do:
-## General
+## To Do:
+### General
 * MIDI saving - Preview the MIDI with the Sequencer class
 * MIDI saving - UI with saving options, such as remapping
 * MIDI saving - Make errors more clear
@@ -19,21 +19,21 @@ If you want to talk or would like a game added to our configs, join our Discord 
 * Tempo numerical (it fits)
 * Help dialog that explains the commands and config for each engine
 
-## AlphaDream Engine
+### AlphaDream Engine
 * ADSR
 * Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
 * PSG channels 3 and 4
 * Some more unknown commands
 * Optimize playback
 
-## DSE Engine
+### DSE Engine
 * ADSR
 * Pitch bend
 * LFO
 * Ability to load SMDB and SWDB (Big Endian as opposed to SMDL and SWDL for Little Endian)
 * Some more unknown commands
 
-## MP2K Engine
+### MP2K Engine
 * Add Golden Sun 2 reverb effect
 * Add reverse playback
 * Add SquareWave sweeping
@@ -43,35 +43,35 @@ If you want to talk or would like a game added to our configs, join our Discord 
 * Running status in song disassembler
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
 
-## SDAT Engine
+### SDAT Engine
 * Find proper formulas for LFO
 * Optimize playback
 
 ----
-# Special Thanks To:
-## General
+## Special Thanks To:
+### General
 * Stich991 - Italian translation
 * tuku473 - Design suggestions, colors, Spanish translation
 
-## AlphaDream Engine
+### AlphaDream Engine
 * irdkwia - Finding games that used the engine
 * Jesse (jelle) - Engine research
 * Platinum Lucario - Engine research
 
-## DSE Engine
+### DSE Engine
 * PsyCommando - Extensive research [(and his DSE music tools)](https://github.com/PsyCommando/ppmdu)
 
-## MP2K Engine
+### MP2K Engine
 * Bregalad - Extensive documentation
 * Ipatix - Engine research, help, [(and his MP2K music player)](https://github.com/ipatix/agbplay) from which some of my code is based on
 * mimi - Told me about a hidden feature of the engine
 * SomeShrug - Engine research and helped me understand more about the engine parameters
 
-## SDAT Engine
+### SDAT Engine
 * kiwi.ds SDAT Specification - Extensive documentation
 
 ----
-# VG Music Studio Uses:
+## VG Music Studio Uses:
 * [NAudio](https://github.com/naudio/NAudio)
 * [ObjectListView](http://objectlistview.sourceforge.net)
 * [YamlDotNet](https://github.com/aaubry/YamlDotNet/wiki)
