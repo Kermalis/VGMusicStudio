@@ -29,11 +29,10 @@ namespace Kermalis.VGMusicStudio.Util
             double totalElapsed = _sw.ElapsedTicks * _timerInterval;
             double desiredTimeStamp = _lastTimeStamp + _waitInterval;
             double timeToWait = desiredTimeStamp - totalElapsed;
-            if (timeToWait < 0)
+            if (timeToWait > 0)
             {
-                timeToWait = 0;
+                Thread.Sleep((int)(timeToWait * 1000));
             }
-            Thread.Sleep((int)(timeToWait * 1000));
             _lastTimeStamp = desiredTimeStamp;
         }
 

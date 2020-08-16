@@ -34,7 +34,7 @@ namespace Kermalis.VGMusicStudio.UI
         #region Controls
 
         private readonly MenuStrip _mainMenu;
-        private readonly ToolStripMenuItem _fileItem, _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openSDATItem,
+        private readonly ToolStripMenuItem _fileItem, _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openPSFItem, _openSDATItem,
             _dataItem, _trackViewerItem, _exportMIDIItem, _exportWAVItem,
             _playlistItem, _endPlaylistItem;
         private readonly Timer _timer;
@@ -71,10 +71,12 @@ namespace Kermalis.VGMusicStudio.UI
             _openAlphaDreamItem.Click += OpenAlphaDream;
             _openMP2KItem = new ToolStripMenuItem { Text = Strings.MenuOpenMP2K };
             _openMP2KItem.Click += OpenMP2K;
+            _openPSFItem = new ToolStripMenuItem { Text = "TODO" };
+            _openPSFItem.Click += OpenPSF;
             _openSDATItem = new ToolStripMenuItem { Text = Strings.MenuOpenSDAT };
             _openSDATItem.Click += OpenSDAT;
             _fileItem = new ToolStripMenuItem { Text = Strings.MenuFile };
-            _fileItem.DropDownItems.AddRange(new ToolStripItem[] { _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openSDATItem });
+            _fileItem.DropDownItems.AddRange(new ToolStripItem[] { _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openPSFItem, _openSDATItem });
 
             // Data Menu
             _trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = Strings.TrackViewerTitle };
@@ -391,6 +393,34 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     var config = (Core.GBA.MP2K.Config)Engine.Instance.Config;
                     FinishLoading(true, config.SongTableSizes[0]);
+                }
+            }
+        }
+        private void OpenPSF(object sender, EventArgs e)
+        {
+            var d = new CommonOpenFileDialog
+            {
+                Title = "TODO",
+                IsFolderPicker = true
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                DisposeEngine();
+                bool success;
+                try
+                {
+                    new Engine(Engine.EngineType.PSX_PSF, d.FileName);
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex.Message, "TODO");
+                    success = false;
+                }
+                if (success)
+                {
+                    var config = (Core.PSX.PSF.Config)Engine.Instance.Config;
+                    FinishLoading(false, config.BGMFiles.Length);
                 }
             }
         }
