@@ -394,7 +394,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             return pos;
         }
 
-        private static SampleBlock[] ReadSamples<T>(EndianBinaryReader reader, int numWAVISlots) where T : IWavInfo
+        private static SampleBlock[] ReadSamples<T>(EndianBinaryReader reader, int numWAVISlots) where T : IWavInfo, new()
         {
             long waviChunkOffset = FindChunk(reader, "wavi");
             long pcmdChunkOffset = FindChunk(reader, "pcmd");
@@ -423,7 +423,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 return samples;
             }
         }
-        private static ProgramBank ReadPrograms<T>(EndianBinaryReader reader, int numPRGISlots) where T : IProgramInfo
+        private static ProgramBank ReadPrograms<T>(EndianBinaryReader reader, int numPRGISlots) where T : IProgramInfo, new()
         {
             long chunkOffset = FindChunk(reader, "prgi");
             if (chunkOffset == -1)

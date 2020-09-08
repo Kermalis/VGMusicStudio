@@ -70,7 +70,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public class INFO : IBinarySerializable
         {
-            public class Record<T>
+            public class Record<T> where T : new()
             {
                 public int NumEntries;
                 public int[] EntryOffsets;

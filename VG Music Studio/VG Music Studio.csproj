@@ -58,8 +58,8 @@
     <StartupObject>Kermalis.VGMusicStudio.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EndianBinaryIO, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\EndianBinaryIO.1.0.1\lib\netstandard2.0\EndianBinaryIO.dll</HintPath>
+    <Reference Include="EndianBinaryIO, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EndianBinaryIO.1.0.3\lib\netstandard2.0\EndianBinaryIO.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
