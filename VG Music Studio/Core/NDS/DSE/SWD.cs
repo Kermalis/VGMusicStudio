@@ -325,7 +325,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         {
             using (var reader = new EndianBinaryReader(new MemoryStream(File.ReadAllBytes(path))))
             {
-                Type = reader.ReadString(4);
+                Type = reader.ReadString(4, false);
                 Unknown = reader.ReadBytes(4);
                 Length = reader.ReadUInt32();
                 Version = reader.ReadUInt16();
@@ -362,7 +362,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             reader.BaseStream.Position = 0;
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                string str = reader.ReadString(4);
+                string str = reader.ReadString(4, false);
                 if (str == chunk)
                 {
                     pos = reader.BaseStream.Position - 4;

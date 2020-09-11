@@ -14,7 +14,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public void Read(EndianBinaryReader er)
         {
-            FileType = er.ReadString(4);
+            FileType = er.ReadString(4, false);
             er.Endianness = EndianBinaryIO.Endianness.BigEndian;
             Endianness = er.ReadUInt16();
             er.Endianness = Endianness == 0xFFFE ? EndianBinaryIO.Endianness.LittleEndian : EndianBinaryIO.Endianness.BigEndian;

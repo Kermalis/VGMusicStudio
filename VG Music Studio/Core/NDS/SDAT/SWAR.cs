@@ -48,7 +48,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             using (var er = new EndianBinaryReader(new MemoryStream(bytes)))
             {
                 FileHeader = er.ReadObject<FileHeader>();
-                BlockType = er.ReadString(4);
+                BlockType = er.ReadString(4, false);
                 BlockSize = er.ReadInt32();
                 Padding = er.ReadBytes(32);
                 NumWaves = er.ReadInt32();
