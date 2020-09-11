@@ -1,12 +1,16 @@
 # Kermalis's VG Music Studio
 
-[![LatestVer](https://img.shields.io/github/v/release/Kermalis/VGMusicStudio.svg?include_prereleases)](https://github.com/Kermalis/VGMusicStudio/releases/latest) [![Releases](https://img.shields.io/github/downloads/Kermalis/VGMusicStudio/total.svg)](https://github.com/Kermalis/VGMusicStudio/releases/latest) [![License](https://img.shields.io/badge/License-LGPLv3-blue.svg)](LICENSE.md)
+[![Join on Discord](https://discordapp.com/api/guilds/571068449103675394/widget.png?style=shield)][Discord]
+[![LatestVer](https://img.shields.io/github/v/release/Kermalis/VGMusicStudio.svg?include_prereleases)](https://github.com/Kermalis/VGMusicStudio/releases/latest)
+[![Releases](https://img.shields.io/github/downloads/Kermalis/VGMusicStudio/total.svg)](https://github.com/Kermalis/VGMusicStudio/releases/latest)
+[![Total downloads](https://img.shields.io/github/downloads/Kermalis/VGMusicStudio/total.svg)](https://github.com/Kermalis/VGMusicStudio/releases)
+[![License](https://img.shields.io/badge/License-LGPLv3-blue.svg)](LICENSE.md)
 
 VG Music Studio is a music player and visualizer for the most common GBA music format (MP2K), AlphaDream's GBA music format, the most common NDS music format (SDAT), and a more rare NDS/WII music format (DSE) [found in PMD2 among others].
 
 [![VG Music Studio Preview](https://i.imgur.com/hWJGG83.png)](https://www.youtube.com/watch?v=s1BZ7cRbtBU "VG Music Studio Preview")
 
-If you want to talk or would like a game added to our configs, join our Discord Server: https://discord.gg/mBQXCTs
+If you want to talk or would like a game added to our configs, join our [Discord server][Discord]
 
 ----
 ## To Do:
@@ -78,3 +82,5 @@ If you want to talk or would like a game added to our configs, join our Discord 
 * [My EndianBinaryIO library](https://github.com/Kermalis/EndianBinaryIO)
 * [My SoundFont2 library](https://github.com/Kermalis/SoundFont2)
 * [My fork of Sanford.Multimedia.Midi](https://github.com/Kermalis/Sanford.Multimedia.Midi)
+
+[Discord]: https://discord.gg/mBQXCTs
