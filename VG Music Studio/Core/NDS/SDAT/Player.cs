@@ -1247,7 +1247,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, loop.NumLoops);
                     if (track.DoCommandWork && track.CallStackDepth < 3)
                     {
-                        track.CallStack[track.CallStackDepth] = track.CurEvent;
+                        track.CallStack[track.CallStackDepth] = track.CurEvent + 1;
                         track.CallStackLoops[track.CallStackDepth] = (byte)arg;
                         track.CallStackDepth++;
                     }
