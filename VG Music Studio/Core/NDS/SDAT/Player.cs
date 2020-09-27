@@ -111,7 +111,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 if (!done[i])
                                 {
                                     ev[e].Ticks.Add(ElapsedTicks);
-                                    if (track.Stopped || (track.CallStackDepth == 0 && ev[track.CurEvent].Ticks.Count > 0))
+                                    if (track.Stopped
+                                        || (track.CallStackDepth == 0 && ev[track.CurEvent].Ticks.Count > 0) // If we already counted the tick of this event and we're not looping/calling
+                                        || (track.CallStackDepth != 0 && track.CallStackLoops.All(l => l == 0) && ev[track.CurEvent].Ticks.Count > 0)) // If we have "LoopStart (0)" and already counted the tick of this event
                                     {
                                         done[i] = true;
                                         if (ElapsedTicks > MaxTicks)
@@ -1117,6 +1119,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     if (track.DoCommandWork && track.CallStackDepth < 3)
                     {
                         track.CallStack[track.CallStackDepth] = track.CurEvent + 1;
+                        track.CallStackLoops[track.CallStackDepth] = byte.MaxValue; // This is only necessary for SetTicks() to deal with LoopStart (0)
                         track.CallStackDepth++;
                         track.CurEvent = ev.FindIndex(c => c.Offset == call.Offset);
                         increment = false;
@@ -1230,13 +1233,13 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         if (count != 0)
                         {
                             count--;
+                            track.CallStackLoops[track.CallStackDepth - 1] = count;
                             if (count == 0)
                             {
                                 track.CallStackDepth--;
                                 break;
                             }
                         }
-                        track.CallStackLoops[track.CallStackDepth - 1] = count;
                         track.CurEvent = track.CallStack[track.CallStackDepth - 1];
                         increment = false;
                     }
@@ -1427,6 +1430,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                     {
                         track.CallStackDepth--;
                         track.CurEvent = track.CallStack[track.CallStackDepth];
+                        track.CallStackLoops[track.CallStackDepth] = 0; // This is only necessary for SetTicks() to deal with LoopStart (0)
                         increment = false;
                     }
                     break;
