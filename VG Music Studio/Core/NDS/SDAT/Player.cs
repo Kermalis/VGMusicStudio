@@ -73,7 +73,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             {
                 _tracks[i].Init();
             }
-            // Initialize player and global variables. Global variables should not have an effect in this program.
+            // Initialize player and global variables. Global variables should not have a global effect in this program.
             for (int i = 0; i < 0x20; i++)
             {
                 _vars[i] = i % 8 == 0 ? short.MaxValue : (short)0;
@@ -97,28 +97,37 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 while (_tempoStack >= 240)
                 {
                     _tempoStack -= 240;
-                    for (int i = 0; i < 0x10; i++)
+                    for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
                     {
-                        Track track = _tracks[i];
-                        List<SongEvent> ev = Events[i];
+                        Track track = _tracks[trackIndex];
+                        List<SongEvent> evs = Events[trackIndex];
                         if (track.Enabled && !track.Stopped)
                         {
                             track.Tick();
                             while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
                             {
-                                int e = track.CurEvent;
-                                ExecuteNext(i);
-                                if (!done[i])
+                                SongEvent e = evs.Single(ev => ev.Offset == track.DataOffset);
+                                ExecuteNext(track);
+                                if (!done[trackIndex])
                                 {
-                                    ev[e].Ticks.Add(ElapsedTicks);
-                                    if (track.Stopped
-                                        || (track.CallStackDepth == 0 && ev[track.CurEvent].Ticks.Count > 0) // If we already counted the tick of this event and we're not looping/calling
-                                        || (track.CallStackDepth != 0 && track.CallStackLoops.All(l => l == 0) && ev[track.CurEvent].Ticks.Count > 0)) // If we have "LoopStart (0)" and already counted the tick of this event
+                                    e.Ticks.Add(ElapsedTicks);
+                                    bool b;
+                                    if (track.Stopped)
                                     {
-                                        done[i] = true;
+                                        b = true;
+                                    }
+                                    else
+                                    {
+                                        SongEvent newE = evs.Single(ev => ev.Offset == track.DataOffset);
+                                        b = (track.CallStackDepth == 0 && newE.Ticks.Count > 0) // If we already counted the tick of this event and we're not looping/calling
+                                        || (track.CallStackDepth != 0 && track.CallStackLoops.All(l => l == 0) && newE.Ticks.Count > 0); // If we have "LoopStart (0)" and already counted the tick of this event
+                                    }
+                                    if (b)
+                                    {
+                                        done[trackIndex] = true;
                                         if (ElapsedTicks > MaxTicks)
                                         {
-                                            _longestTrack = i;
+                                            _longestTrack = trackIndex;
                                             MaxTicks = ElapsedTicks;
                                         }
                                     }
@@ -132,9 +141,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 _mixer.ChannelTick();
                 _mixer.EmulateProcess();
             }
-            for (int i = 0; i < 0x10; i++)
+            for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
             {
-                _tracks[i].StopAllChannels();
+                _tracks[trackIndex].StopAllChannels();
             }
         }
         public void LoadSong(long index)
@@ -198,16 +207,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                                 }
                                 case ArgType.VarLen:
                                 {
-                                    int read = 0, val = 0;
+                                    int read = 0, value = 0;
                                     byte b;
                                     do
                                     {
                                         b = _sseq.Data[dataOffset++];
-                                        val = (val << 7) | (b & 0x7F);
+                                        value = (value << 7) | (b & 0x7F);
                                         read++;
                                     }
                                     while (read < 4 && (b & 0x80) != 0);
-                                    return val;
+                                    return value;
                                 }
                                 case ArgType.Rand:
                                 {
@@ -787,15 +796,15 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         while (_tempoStack >= 240)
                         {
                             _tempoStack -= 240;
-                            for (int i = 0; i < 0x10; i++)
+                            for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
                             {
-                                Track track = _tracks[i];
+                                Track track = _tracks[trackIndex];
                                 if (track.Enabled && !track.Stopped)
                                 {
                                     track.Tick();
                                     while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
                                     {
-                                        ExecuteNext(i);
+                                        ExecuteNext(track);
                                     }
                                 }
                             }
@@ -880,7 +889,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 if (track.Enabled)
                 {
                     UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
-                    tin.Position = Events[i][track.CurEvent].Offset;
+                    tin.Position = track.DataOffset;
                     tin.Rest = track.Rest;
                     tin.Voice = track.Voice;
                     tin.LFO = track.LFODepth * track.LFORange;
@@ -1063,574 +1072,500 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 channel.SweepCounter = 0;
             }
         }
-        private void ExecuteNext(int trackIndex)
+        private void ExecuteNext(Track track)
         {
-            int ReadArg(ArgType type, int value)
+            int ReadArg(ArgType type)
             {
+                if (track.ArgOverrideType != ArgType.None)
+                {
+                    type = track.ArgOverrideType;
+                }
                 switch (type)
                 {
                     case ArgType.Byte:
                     {
-                        return (byte)value;
+                        return _sseq.Data[track.DataOffset++];
                     }
                     case ArgType.Short:
                     {
-                        return (short)value;
+                        return _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8);
                     }
                     case ArgType.VarLen:
                     {
+                        int read = 0, value = 0;
+                        byte b;
+                        do
+                        {
+                            b = _sseq.Data[track.DataOffset++];
+                            value = (value << 7) | (b & 0x7F);
+                            read++;
+                        }
+                        while (read < 4 && (b & 0x80) != 0);
                         return value;
                     }
                     case ArgType.Rand:
                     {
-                        short min = (short)value;
-                        short max = (short)((value >> 16) & 0xFFFF);
+                        short min = (short)(_sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8));
+                        short max = (short)(_sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8));
                         return _rand.Next(min, max + 1);
                     }
                     case ArgType.PlayerVar:
                     {
-                        return _vars[value];
+                        byte varIndex = _sseq.Data[track.DataOffset++];
+                        return _vars[varIndex];
                     }
                     default: throw new Exception();
                 }
             }
-            List<SongEvent> ev = Events[trackIndex];
-            Track track = _tracks[trackIndex];
-            bool increment = true, resetOverride = true, resetCmdWork = true;
-            switch (ev[track.CurEvent].Command)
+
+            bool resetOverride = true;
+            bool resetCmdWork = true;
+            byte cmd = _sseq.Data[track.DataOffset++];
+            if (cmd < 0x80) // Notes
             {
-                case AllocTracksCommand alloc:
+                byte velocity = _sseq.Data[track.DataOffset++];
+                int duration = ReadArg(ArgType.VarLen);
+                if (track.DoCommandWork)
                 {
-                    // Must be in the beginning of the first track to work
-                    if (track.DoCommandWork && track.Index == 0 && track.CurEvent == 0)
+                    int k = cmd + track.Transpose;
+                    if (k < 0)
                     {
-                        for (int i = 0; i < 0x10; i++)
+                        k = 0;
+                    }
+                    else if (k > 0x7F)
+                    {
+                        k = 0x7F;
+                    }
+                    byte key = (byte)k;
+                    PlayNote(track, key, velocity, duration);
+                    track.PortamentoKey = key;
+                    if (track.Mono)
+                    {
+                        track.Rest = duration;
+                        if (duration == 0)
                         {
-                            if ((alloc.Tracks & (1 << i)) != 0)
-                            {
-                                _tracks[i].Allocated = true;
-                            }
+                            track.WaitingForNoteToFinishBeforeContinuingXD = true;
                         }
                     }
-                    break;
                 }
-                case CallCommand call:
+            }
+            else
+            {
+                int cmdGroup = cmd & 0xF0;
+                switch (cmdGroup)
                 {
-                    if (track.DoCommandWork && track.CallStackDepth < 3)
+                    case 0x80:
                     {
-                        track.CallStack[track.CallStackDepth] = track.CurEvent + 1;
-                        track.CallStackLoops[track.CallStackDepth] = byte.MaxValue; // This is only necessary for SetTicks() to deal with LoopStart (0)
-                        track.CallStackDepth++;
-                        track.CurEvent = ev.FindIndex(c => c.Offset == call.Offset);
-                        increment = false;
-                    }
-                    break;
-                }
-                case FinishCommand _:
-                {
-                    if (track.DoCommandWork)
-                    {
-                        track.Stopped = true;
-                        increment = false;
-                    }
-                    break;
-                }
-                case ForceAttackCommand attack:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, attack.Attack);
-                    if (track.DoCommandWork)
-                    {
-                        track.Attack = (byte)arg;
-                    }
-                    break;
-                }
-                case ForceDecayCommand decay:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, decay.Decay);
-                    if (track.DoCommandWork)
-                    {
-                        track.Decay = (byte)arg;
-                    }
-                    break;
-                }
-                case ForceReleaseCommand release:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, release.Release);
-                    if (track.DoCommandWork)
-                    {
-                        track.Release = (byte)arg;
-                    }
-                    break;
-                }
-                case ForceSustainCommand sustain:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, sustain.Sustain);
-                    if (track.DoCommandWork)
-                    {
-                        track.Sustain = (byte)arg;
-                    }
-                    break;
-                }
-                case JumpCommand jump:
-                {
-                    if (track.DoCommandWork)
-                    {
-                        track.CurEvent = ev.FindIndex(c => c.Offset == jump.Offset);
-                        increment = false;
-                    }
-                    break;
-                }
-                case LFODelayCommand delay:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, delay.Delay);
-                    if (track.DoCommandWork)
-                    {
-                        track.LFODelay = (ushort)arg;
-                    }
-                    break;
-                }
-                case LFODepthCommand depth:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, depth.Depth);
-                    if (track.DoCommandWork)
-                    {
-                        track.LFODepth = (byte)arg;
-                    }
-                    break;
-                }
-                case LFORangeCommand range:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, range.Range);
-                    if (track.DoCommandWork)
-                    {
-                        track.LFORange = (byte)arg;
-                    }
-                    break;
-                }
-                case LFOSpeedCommand speed:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, speed.Speed);
-                    if (track.DoCommandWork)
-                    {
-                        track.LFOSpeed = (byte)arg;
-                    }
-                    break;
-                }
-                case LFOTypeCommand type:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, type.Type);
-                    if (track.DoCommandWork)
-                    {
-                        track.LFOType = (LFOType)arg;
-                    }
-                    break;
-                }
-                case LoopEndCommand _:
-                {
-                    if (track.DoCommandWork && track.CallStackDepth != 0)
-                    {
-                        byte count = track.CallStackLoops[track.CallStackDepth - 1];
-                        if (count != 0)
+                        int arg = ReadArg(ArgType.VarLen);
+                        if (track.DoCommandWork)
                         {
-                            count--;
-                            track.CallStackLoops[track.CallStackDepth - 1] = count;
-                            if (count == 0)
+                            switch (cmd)
                             {
-                                track.CallStackDepth--;
+                                case 0x80: // Rest
+                                {
+                                    track.Rest = arg;
+                                    break;
+                                }
+                                case 0x81: // Program Change
+                                {
+                                    if (arg <= byte.MaxValue)
+                                    {
+                                        track.Voice = (byte)arg;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case 0x90:
+                    {
+                        switch (cmd)
+                        {
+                            case 0x93: // Open Track
+                            {
+                                int index = _sseq.Data[track.DataOffset++];
+                                int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
+                                if (track.DoCommandWork && track.Index == 0)
+                                {
+                                    Track other = _tracks[index];
+                                    if (other.Allocated && !other.Enabled)
+                                    {
+                                        other.Enabled = true;
+                                        other.DataOffset = offset24bit;
+                                    }
+                                }
+                                break;
+                            }
+                            case 0x94: // Jump
+                            {
+                                int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
+                                if (track.DoCommandWork)
+                                {
+                                    track.DataOffset = offset24bit;
+                                }
+                                break;
+                            }
+                            case 0x95: // Call
+                            {
+                                int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
+                                if (track.DoCommandWork && track.CallStackDepth < 3)
+                                {
+                                    track.CallStack[track.CallStackDepth] = track.DataOffset;
+                                    track.CallStackLoops[track.CallStackDepth] = byte.MaxValue; // This is only necessary for SetTicks() to deal with LoopStart (0)
+                                    track.CallStackDepth++;
+                                    track.DataOffset = offset24bit;
+                                }
                                 break;
                             }
                         }
-                        track.CurEvent = track.CallStack[track.CallStackDepth - 1];
-                        increment = false;
+                        break;
                     }
-                    break;
-                }
-                case LoopStartCommand loop:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, loop.NumLoops);
-                    if (track.DoCommandWork && track.CallStackDepth < 3)
+                    case 0xA0:
                     {
-                        track.CallStack[track.CallStackDepth] = track.CurEvent + 1;
-                        track.CallStackLoops[track.CallStackDepth] = (byte)arg;
-                        track.CallStackDepth++;
-                    }
-                    break;
-                }
-                case ModIfCommand _:
-                {
-                    if (track.DoCommandWork)
-                    {
-                        track.DoCommandWork = track.VariableFlag;
-                        resetCmdWork = false;
-                    }
-                    break;
-                }
-                case ModRandCommand _:
-                {
-                    if (track.DoCommandWork)
-                    {
-                        track.ArgOverrideType = ArgType.Rand;
-                        resetOverride = false;
-                    }
-                    break;
-                }
-                case ModVarCommand _:
-                {
-                    if (track.DoCommandWork)
-                    {
-                        track.ArgOverrideType = ArgType.PlayerVar;
-                        resetOverride = false;
-                    }
-                    break;
-                }
-                case MonophonyCommand mono:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, mono.Mono);
-                    if (track.DoCommandWork)
-                    {
-                        track.Mono = arg == 1;
-                    }
-                    break;
-                }
-                case NoteComand note:
-                {
-                    int duration = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.VarLen : track.ArgOverrideType, note.Duration);
-                    if (track.DoCommandWork)
-                    {
-                        int k = note.Key + track.Transpose;
-                        if (k < 0)
+                        if (track.DoCommandWork)
                         {
-                            k = 0;
-                        }
-                        else if (k > 0x7F)
-                        {
-                            k = 0x7F;
-                        }
-                        byte key = (byte)k;
-                        PlayNote(track, key, note.Velocity, duration);
-                        track.PortamentoKey = key;
-                        if (track.Mono)
-                        {
-                            track.Rest = duration;
-                            if (duration == 0)
+                            switch (cmd)
                             {
-                                track.WaitingForNoteToFinishBeforeContinuingXD = true;
+                                case 0xA0: // Rand Mod
+                                {
+                                    track.ArgOverrideType = ArgType.Rand;
+                                    resetOverride = false;
+                                    break;
+                                }
+                                case 0xA1: // Var Mod
+                                {
+                                    track.ArgOverrideType = ArgType.PlayerVar;
+                                    resetOverride = false;
+                                    break;
+                                }
+                                case 0xA2: // If Mod
+                                {
+                                    track.DoCommandWork = track.VariableFlag;
+                                    resetCmdWork = false;
+                                    break;
+                                }
                             }
                         }
+                        break;
                     }
-                    break;
-                }
-                case OpenTrackCommand open:
-                {
-                    if (trackIndex == 0)
+                    case 0xB0:
                     {
-                        Track truck = _tracks[open.Track];
-                        if (track.DoCommandWork && truck.Allocated && !truck.Enabled)
+                        byte varIndex = _sseq.Data[track.DataOffset++];
+                        short mathArg = (short)ReadArg(ArgType.Short);
+                        if (track.DoCommandWork)
                         {
-                            truck.Enabled = true;
-                            truck.CurEvent = Events[open.Track].FindIndex(c => c.Offset == open.Offset);
+                            switch (cmd)
+                            {
+                                case 0xB0: // VarSet
+                                {
+                                    _vars[varIndex] = mathArg;
+                                    break;
+                                }
+                                case 0xB1: // VarAdd
+                                {
+                                    _vars[varIndex] += mathArg;
+                                    break;
+                                }
+                                case 0xB2: // VarSub
+                                {
+                                    _vars[varIndex] -= mathArg;
+                                    break;
+                                }
+                                case 0xB3: // VarMul
+                                {
+                                    _vars[varIndex] *= mathArg;
+                                    break;
+                                }
+                                case 0xB4: // VarDiv
+                                {
+                                    if (mathArg != 0)
+                                    {
+                                        _vars[varIndex] /= mathArg;
+                                    }
+                                    break;
+                                }
+                                case 0xB5: // VarShift
+                                {
+                                    _vars[varIndex] = mathArg < 0 ? (short)(_vars[varIndex] >> -mathArg) : (short)(_vars[varIndex] << mathArg);
+                                    break;
+                                }
+                                case 0xB6: // VarRand
+                                {
+                                    bool negate = false;
+                                    if (mathArg < 0)
+                                    {
+                                        negate = true;
+                                        mathArg = (short)-mathArg;
+                                    }
+                                    short val = (short)_rand.Next(mathArg + 1);
+                                    if (negate)
+                                    {
+                                        val = (short)-val;
+                                    }
+                                    _vars[varIndex] = val;
+                                    break;
+                                }
+                                case 0xB8: // VarCmpEE
+                                {
+                                    track.VariableFlag = _vars[varIndex] == mathArg;
+                                    break;
+                                }
+                                case 0xB9: // VarCmpGE
+                                {
+                                    track.VariableFlag = _vars[varIndex] >= mathArg;
+                                    break;
+                                }
+                                case 0xBA: // VarCmpGG
+                                {
+                                    track.VariableFlag = _vars[varIndex] > mathArg;
+                                    break;
+                                }
+                                case 0xBB: // VarCmpLE
+                                {
+                                    track.VariableFlag = _vars[varIndex] <= mathArg;
+                                    break;
+                                }
+                                case 0xBC: // VarCmpLL
+                                {
+                                    track.VariableFlag = _vars[varIndex] < mathArg;
+                                    break;
+                                }
+                                case 0xBD: // VarCmpNE
+                                {
+                                    track.VariableFlag = _vars[varIndex] != mathArg;
+                                    break;
+                                }
+                            }
                         }
+                        break;
                     }
-                    break;
-                }
-                case PanpotCommand panpot:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, panpot.Panpot);
-                    if (track.DoCommandWork)
+                    case 0xC0:
+                    case 0xD0:
                     {
-                        track.Panpot = (sbyte)(arg - 0x40);
-                    }
-                    break;
-                }
-                case PitchBendCommand bend:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, bend.Bend);
-                    if (track.DoCommandWork)
-                    {
-                        track.PitchBend = (sbyte)arg;
-                    }
-                    break;
-                }
-                case PitchBendRangeCommand bendRange:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, bendRange.Range);
-                    if (track.DoCommandWork)
-                    {
-                        track.PitchBendRange = (byte)arg;
-                    }
-                    break;
-                }
-                case PlayerVolumeCommand pVolume:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, pVolume.Volume);
-                    if (track.DoCommandWork)
-                    {
-                        Volume = (byte)arg;
-                    }
-                    break;
-                }
-                case PortamentoControlCommand port:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, port.Portamento);
-                    if (track.DoCommandWork)
-                    {
-                        int k = arg + track.Transpose;
-                        if (k < 0)
+                        int cmdArg = ReadArg(ArgType.Byte);
+                        if (track.DoCommandWork)
                         {
-                            k = 0;
+                            switch (cmd)
+                            {
+                                case 0xC0: // Panpot
+                                {
+                                    track.Panpot = (sbyte)(cmdArg - 0x40);
+                                    break;
+                                }
+                                case 0xC1: // Track Volume
+                                {
+                                    track.Volume = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xC2: // Player Volume
+                                {
+                                    Volume = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xC3: // Transpose
+                                {
+                                    track.Transpose = (sbyte)cmdArg;
+                                    break;
+                                }
+                                case 0xC4: // Pitch Bend
+                                {
+                                    track.PitchBend = (sbyte)cmdArg;
+                                    break;
+                                }
+                                case 0xC5: // Pitch Bend Range
+                                {
+                                    track.PitchBendRange = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xC6: // Priority
+                                {
+                                    track.Priority = (byte)(Priority + (byte)cmdArg);
+                                    break;
+                                }
+                                case 0xC7: // Mono
+                                {
+                                    track.Mono = cmdArg == 1;
+                                    break;
+                                }
+                                case 0xC8: // Tie
+                                {
+                                    track.Tie = cmdArg == 1;
+                                    track.StopAllChannels();
+                                    break;
+                                }
+                                case 0xC9: // Portamento Control
+                                {
+                                    int k = cmdArg + track.Transpose;
+                                    if (k < 0)
+                                    {
+                                        k = 0;
+                                    }
+                                    else if (k > 0x7F)
+                                    {
+                                        k = 0x7F;
+                                    }
+                                    track.PortamentoKey = (byte)k;
+                                    track.Portamento = true;
+                                    break;
+                                }
+                                case 0xCA: // LFO Depth
+                                {
+                                    track.LFODepth = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xCB: // LFO Speed
+                                {
+                                    track.LFOSpeed = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xCC: // LFO Type
+                                {
+                                    track.LFOType = (LFOType)cmdArg;
+                                    break;
+                                }
+                                case 0xCD: // LFO Range
+                                {
+                                    track.LFORange = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xCE: // Portamento Toggle
+                                {
+                                    track.Portamento = cmdArg == 1;
+                                    break;
+                                }
+                                case 0xCF: // Portamento Time
+                                {
+                                    track.PortamentoTime = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xD0: // Forced Attack
+                                {
+                                    track.Attack = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xD1: // Forced Decay
+                                {
+                                    track.Decay = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xD2: // Forced Sustain
+                                {
+                                    track.Sustain = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xD3: // Forced Release
+                                {
+                                    track.Release = (byte)cmdArg;
+                                    break;
+                                }
+                                case 0xD4: // Loop Start
+                                {
+                                    if (track.CallStackDepth < 3)
+                                    {
+                                        track.CallStack[track.CallStackDepth] = track.DataOffset;
+                                        track.CallStackLoops[track.CallStackDepth] = (byte)cmdArg;
+                                        track.CallStackDepth++;
+                                    }
+                                    break;
+                                }
+                                case 0xD5: // Track Expression
+                                {
+                                    track.Expression = (byte)cmdArg;
+                                    break;
+                                }
+                            }
                         }
-                        else if (k > 0x7F)
+                        break;
+                    }
+                    case 0xE0:
+                    {
+                        int cmdArg = ReadArg(ArgType.Short);
+                        if (track.DoCommandWork)
                         {
-                            k = 0x7F;
+                            switch (cmd)
+                            {
+                                case 0xE0: // LFO Delay
+                                {
+                                    track.LFODelay = (ushort)cmdArg;
+                                    break;
+                                }
+                                case 0xE1: // Tempo
+                                {
+                                    _tempo = (ushort)cmdArg;
+                                    break;
+                                }
+                                case 0xE3: // Sweep Pitch
+                                {
+                                    track.SweepPitch = (short)cmdArg;
+                                    break;
+                                }
+                            }
                         }
-                        track.PortamentoKey = (byte)k;
-                        track.Portamento = true;
+                        break;
                     }
-                    break;
-                }
-                case PortamentoTimeCommand portTime:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, portTime.Time);
-                    if (track.DoCommandWork)
+                    case 0xF0:
                     {
-                        track.PortamentoTime = (byte)arg;
-                    }
-                    break;
-                }
-                case PortamentoToggleCommand portToggle:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, portToggle.Portamento);
-                    if (track.DoCommandWork)
-                    {
-                        track.Portamento = arg == 1;
-                    }
-                    break;
-                }
-                case PriorityCommand priority:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, priority.Priority);
-                    if (track.DoCommandWork)
-                    {
-                        track.Priority = (byte)(Priority + (byte)arg);
-                    }
-                    break;
-                }
-                case RestCommand rest:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.VarLen : track.ArgOverrideType, rest.Rest);
-                    if (track.DoCommandWork)
-                    {
-                        track.Rest = arg;
-                    }
-                    break;
-                }
-                case ReturnCommand _:
-                {
-                    if (track.DoCommandWork && track.CallStackDepth != 0)
-                    {
-                        track.CallStackDepth--;
-                        track.CurEvent = track.CallStack[track.CallStackDepth];
-                        track.CallStackLoops[track.CallStackDepth] = 0; // This is only necessary for SetTicks() to deal with LoopStart (0)
-                        increment = false;
-                    }
-                    break;
-                }
-                case SweepPitchCommand sweep:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, sweep.Pitch);
-                    if (track.DoCommandWork)
-                    {
-                        track.SweepPitch = (short)arg;
-                    }
-                    break;
-                }
-                case TempoCommand tem:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, tem.Tempo);
-                    if (track.DoCommandWork)
-                    {
-                        _tempo = (ushort)arg;
-                    }
-                    break;
-                }
-                case TieCommand tie:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, tie.Tie);
-                    if (track.DoCommandWork)
-                    {
-                        track.Tie = arg == 1;
-                        track.StopAllChannels();
-                    }
-                    break;
-                }
-                case TrackExpressionCommand tExpression:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, tExpression.Expression);
-                    if (track.DoCommandWork)
-                    {
-                        track.Expression = (byte)arg;
-                    }
-                    break;
-                }
-                case TrackVolumeCommand tVolume:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, tVolume.Volume);
-                    if (track.DoCommandWork)
-                    {
-                        track.Volume = (byte)arg;
-                    }
-                    break;
-                }
-                case TransposeCommand transpose:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Byte : track.ArgOverrideType, transpose.Transpose);
-                    if (track.DoCommandWork)
-                    {
-                        track.Transpose = (sbyte)arg;
-                    }
-                    break;
-                }
-                case VarAddCommand add:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, add.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        _vars[add.Variable] += arg;
-                    }
-                    break;
-                }
-                case VarCmpEECommand cmpEE:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpEE.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        track.VariableFlag = _vars[cmpEE.Variable] == arg;
-                    }
-                    break;
-                }
-                case VarCmpGECommand cmpGE:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpGE.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        track.VariableFlag = _vars[cmpGE.Variable] >= arg;
-                    }
-                    break;
-                }
-                case VarCmpGGCommand cmpGG:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpGG.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        track.VariableFlag = _vars[cmpGG.Variable] > arg;
-                    }
-                    break;
-                }
-                case VarCmpLECommand cmpLE:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpLE.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        track.VariableFlag = _vars[cmpLE.Variable] <= arg;
-                    }
-                    break;
-                }
-                case VarCmpLLCommand cmpLL:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpLL.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        track.VariableFlag = _vars[cmpLL.Variable] < arg;
-                    }
-                    break;
-                }
-                case VarCmpNECommand cmpNE:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, cmpNE.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        track.VariableFlag = _vars[cmpNE.Variable] != arg;
-                    }
-                    break;
-                }
-                case VarDivCommand div:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, div.Argument);
-                    if (track.DoCommandWork && arg != 0)
-                    {
-                        _vars[div.Variable] /= arg;
-                    }
-                    break;
-                }
-                case VarMulCommand mul:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, mul.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        _vars[mul.Variable] *= arg;
-                    }
-                    break;
-                }
-                case VarRandCommand rnd:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, rnd.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        bool negate = false;
-                        if (arg < 0)
+                        if (track.DoCommandWork)
                         {
-                            negate = true;
-                            arg = (short)-arg;
+                            switch (cmd)
+                            {
+                                case 0xFC: // Loop End
+                                {
+                                    if (track.CallStackDepth != 0)
+                                    {
+                                        byte count = track.CallStackLoops[track.CallStackDepth - 1];
+                                        if (count != 0)
+                                        {
+                                            count--;
+                                            track.CallStackLoops[track.CallStackDepth - 1] = count;
+                                            if (count == 0)
+                                            {
+                                                track.CallStackDepth--;
+                                                break;
+                                            }
+                                        }
+                                        track.DataOffset = track.CallStack[track.CallStackDepth - 1];
+                                    }
+                                    break;
+                                }
+                                case 0xFD: // Return
+                                {
+                                    if (track.CallStackDepth != 0)
+                                    {
+                                        track.CallStackDepth--;
+                                        track.DataOffset = track.CallStack[track.CallStackDepth];
+                                        track.CallStackLoops[track.CallStackDepth] = 0; // This is only necessary for SetTicks() to deal with LoopStart (0)
+                                    }
+                                    break;
+                                }
+                                case 0xFE: // Alloc Tracks
+                                {
+                                    // Must be in the beginning of the first track to work
+                                    if (track.Index == 0 && track.DataOffset == 1) // == 1 because we read cmd already
+                                    {
+                                        // Track 1 enabled = bit 1 set, Track 4 enabled = bit 4 set, etc
+                                        int trackBits = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8);
+                                        for (int i = 0; i < 0x10; i++)
+                                        {
+                                            if ((trackBits & (1 << i)) != 0)
+                                            {
+                                                _tracks[i].Allocated = true;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                                case 0xFF: // Finish
+                                {
+                                    track.Stopped = true;
+                                    break;
+                                }
+                            }
                         }
-                        short val = (short)_rand.Next(arg + 1);
-                        if (negate)
-                        {
-                            val = (short)-val;
-                        }
-                        _vars[rnd.Variable] = val;
+                        break;
                     }
-                    break;
                 }
-                case VarSetCommand set:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, set.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        _vars[set.Variable] = arg;
-                    }
-                    break;
-                }
-                case VarShiftCommand shift:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, shift.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        _vars[shift.Variable] = arg < 0 ? (short)(_vars[shift.Variable] >> -arg) : (short)(_vars[shift.Variable] << arg);
-                    }
-                    break;
-                }
-                case VarSubCommand sub:
-                {
-                    short arg = (short)ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.Short : track.ArgOverrideType, sub.Argument);
-                    if (track.DoCommandWork)
-                    {
-                        _vars[sub.Variable] -= arg;
-                    }
-                    break;
-                }
-                case VoiceCommand voice:
-                {
-                    int arg = ReadArg(track.ArgOverrideType == ArgType.None ? ArgType.VarLen : track.ArgOverrideType, voice.Voice);
-                    if (track.DoCommandWork)
-                    {
-                        track.Voice = (byte)arg;
-                    }
-                    break;
-                }
-            }
-            if (increment)
-            {
-                track.CurEvent++;
             }
             if (resetOverride)
             {
@@ -1673,9 +1608,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 {
                     _tempoStack -= 240;
                     bool allDone = true;
-                    for (int i = 0; i < 0x10; i++)
+                    for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
                     {
-                        Track track = _tracks[i];
+                        Track track = _tracks[trackIndex];
                         if (!track.Enabled)
                         {
                             continue;
@@ -1683,16 +1618,25 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                         track.Tick();
                         while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
                         {
-                            ExecuteNext(i);
+                            ExecuteNext(track);
                         }
-                        if (i == _longestTrack)
+                        if (trackIndex == _longestTrack)
                         {
                             if (ElapsedTicks == MaxTicks)
                             {
                                 if (!track.Stopped)
                                 {
-                                    List<long> t = Events[i][track.CurEvent].Ticks;
-                                    ElapsedTicks = t.Count == 0 ? 0 : t[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
+                                    List<SongEvent> evs = Events[trackIndex];
+                                    for (int i = 0; i < evs.Count; i++)
+                                    {
+                                        SongEvent ev = evs[i];
+                                        if (ev.Offset == track.DataOffset)
+                                        {
+                                            //ElapsedTicks = ev.Ticks[0] - track.Rest;
+                                            ElapsedTicks = ev.Ticks.Count == 0 ? 0 : ev.Ticks[0] - track.Rest; // Prevent crashes with songs that don't load all ticks yet (See SetTicks())
+                                            break;
+                                        }
+                                    }
                                     _elapsedLoops++;
                                     if (ShouldFadeOut && !_mixer.IsFading() && _elapsedLoops > NumLoops)
                                     {

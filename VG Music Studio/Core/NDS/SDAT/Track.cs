@@ -41,7 +41,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         public int[] CallStack = new int[3];
         public byte[] CallStackLoops = new byte[3];
         public byte CallStackDepth;
-        public int CurEvent;
+        public int DataOffset;
         public bool VariableFlag; // Set by variable commands (0xB0 - 0xBD)
         public bool DoCommandWork;
         public ArgType ArgOverrideType;
@@ -85,7 +85,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
         {
             Stopped = Tie = WaitingForNoteToFinishBeforeContinuingXD = Portamento = false;
             Allocated = Enabled = Index == 0;
-            CurEvent = 0;
+            DataOffset = 0;
             ArgOverrideType = ArgType.None;
             Mono = VariableFlag = DoCommandWork = true;
             CallStackDepth = 0;

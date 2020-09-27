@@ -48,7 +48,6 @@ If you want to talk or would like a game added to our configs, join our [Discord
 
 ### SDAT Engine
 * Find proper formulas for LFO
-* Optimize playback
 
 ----
 ## Special Thanks To:
