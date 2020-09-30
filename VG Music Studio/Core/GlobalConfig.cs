@@ -24,6 +24,7 @@ namespace Kermalis.VGMusicStudio.Core
         public readonly PlaylistMode PlaylistMode;
         public readonly long PlaylistSongLoops;
         public readonly long PlaylistFadeOutMilliseconds;
+        public readonly sbyte MiddleCOctave;
         public readonly HSLColor[] Colors;
 
         private GlobalConfig()
@@ -44,6 +45,7 @@ namespace Kermalis.VGMusicStudio.Core
                     PlaylistMode = mapping.GetValidEnum<PlaylistMode>(nameof(PlaylistMode));
                     PlaylistSongLoops = mapping.GetValidValue(nameof(PlaylistSongLoops), 0, long.MaxValue);
                     PlaylistFadeOutMilliseconds = mapping.GetValidValue(nameof(PlaylistFadeOutMilliseconds), 0, long.MaxValue);
+                    MiddleCOctave = (sbyte)mapping.GetValidValue(nameof(MiddleCOctave), sbyte.MinValue, sbyte.MaxValue);
 
                     var cmap = (YamlMappingNode)mapping.Children[nameof(Colors)];
                     Colors = new HSLColor[256];
