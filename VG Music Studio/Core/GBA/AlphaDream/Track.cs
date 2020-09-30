@@ -15,8 +15,9 @@
         public sbyte Panpot;
         public bool Enabled;
         public bool Stopped;
-        public int CurEvent;
-        public ICommand PrevCommand;
+        public int StartOffset;
+        public int DataOffset;
+        public byte PrevCommand;
 
         public int GetPitch()
         {
@@ -38,10 +39,10 @@
             NoteDuration = 0;
             PitchBend = 0;
             Panpot = 0;
-            CurEvent = 0;
+            DataOffset = StartOffset;
             Stopped = false;
             Volume = 0x7F;
-            PrevCommand = null;
+            PrevCommand = 0xFF;
         }
         public void Tick()
         {

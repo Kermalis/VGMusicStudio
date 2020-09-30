@@ -27,7 +27,6 @@ If you want to talk or would like a game added to our configs, join our [Discord
 * Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
 * PSG channels 3 and 4
 * Some more unknown commands
-* Optimize playback
 
 ### DSE Engine
 * ADSR
