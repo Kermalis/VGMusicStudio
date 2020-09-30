@@ -13,7 +13,7 @@ namespace Kermalis.VGMusicStudio.Core
         Sequential
     }
 
-    internal class GlobalConfig
+    internal sealed class GlobalConfig
     {
         public static GlobalConfig Instance { get; private set; }
 

@@ -19,7 +19,7 @@ namespace Kermalis.VGMusicStudio.Core
 
             public override bool Equals(object obj)
             {
-                return !(obj is Song other) ? false : other.Index == Index;
+                return obj is Song other && other.Index == Index;
             }
             public override int GetHashCode()
             {
