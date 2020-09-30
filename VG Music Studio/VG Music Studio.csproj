@@ -104,6 +104,7 @@
     <Compile Include="Core\ADPCMDecoder.cs" />
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\GBA\AlphaDream\SoundFontSaver.cs" />
     <Compile Include="Core\GBA\MP2K\Commands.cs" />
     <Compile Include="Core\GBA\AlphaDream\Commands.cs" />
     <Compile Include="Core\GBA\AlphaDream\Config.cs" />
@@ -174,6 +175,7 @@
     <Compile Include="UI\SongInfoControl.cs" />
     <Compile Include="Util\BetterExceptions.cs" />
     <Compile Include="Util\HSLColor.cs" />
+    <Compile Include="Util\SampleUtils.cs" />
     <Compile Include="Util\TimeBarrier.cs" />
     <Compile Include="Util\Utils.cs" />
     <None Include="AlphaDream.yaml">

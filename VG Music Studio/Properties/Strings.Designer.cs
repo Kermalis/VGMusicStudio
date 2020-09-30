@@ -313,6 +313,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error Exporting SF2.
+        /// </summary>
+        internal static string ErrorSaveSF2 {
+            get {
+                return ResourceManager.GetString("ErrorSaveSF2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error Exporting WAV.
         /// </summary>
         internal static string ErrorSaveWAV {
@@ -372,6 +381,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string FilterSaveMIDI {
             get {
                 return ResourceManager.GetString("FilterSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SF2 Files.
+        /// </summary>
+        internal static string FilterSaveSF2 {
+            get {
+                return ResourceManager.GetString("FilterSaveSF2", resourceCulture);
             }
         }
         
@@ -462,6 +480,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string MenuSaveMIDI {
             get {
                 return ResourceManager.GetString("MenuSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export VoiceTable as SF2.
+        /// </summary>
+        internal static string MenuSaveSF2 {
+            get {
+                return ResourceManager.GetString("MenuSaveSF2", resourceCulture);
             }
         }
         
@@ -606,6 +633,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string SuccessSaveMIDI {
             get {
                 return ResourceManager.GetString("SuccessSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VoiceTable saved to {0}..
+        /// </summary>
+        internal static string SuccessSaveSF2 {
+            get {
+                return ResourceManager.GetString("SuccessSaveSF2", resourceCulture);
             }
         }
         

@@ -347,4 +347,17 @@
     <value>WAV saved to {0}.</value>
     <comment>{0} is the file name.</comment>
   </data>
+  <data name="ErrorSaveSF2" xml:space="preserve">
+    <value>Error Exporting SF2</value>
+  </data>
+  <data name="FilterSaveSF2" xml:space="preserve">
+    <value>SF2 Files</value>
+  </data>
+  <data name="MenuSaveSF2" xml:space="preserve">
+    <value>Export VoiceTable as SF2</value>
+  </data>
+  <data name="SuccessSaveSF2" xml:space="preserve">
+    <value>VoiceTable saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
 </root>
