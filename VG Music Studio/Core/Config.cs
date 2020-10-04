@@ -67,6 +67,22 @@ namespace Kermalis.VGMusicStudio.Core
 
         public List<Playlist> Playlists = new List<Playlist>();
 
+        public Song GetFirstSong(long index)
+        {
+            foreach (Playlist p in Playlists)
+            {
+                foreach (Song s in p.Songs)
+                {
+                    if (s.Index == index)
+                    {
+                        return s;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public abstract string GetGameName();
         public abstract string GetSongName(long index);
 
         public virtual void Dispose() { }

@@ -448,6 +448,9 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonSaveFileDialog
             {
+                DefaultFileName = Engine.Instance.Config.GetGameName(),
+                DefaultExtension = ".dls",
+                EnsureValidNames = true,
                 Title = Strings.MenuSaveDLS,
                 Filters = { new CommonFileDialogFilter(Strings.FilterSaveDLS, ".dls") }
             };
@@ -468,6 +471,9 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonSaveFileDialog
             {
+                DefaultFileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
+                DefaultExtension = ".mid",
+                EnsureValidNames = true,
                 Title = Strings.MenuSaveMIDI,
                 Filters = { new CommonFileDialogFilter(Strings.FilterSaveMIDI, ".mid;.midi") }
             };
@@ -498,6 +504,9 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonSaveFileDialog
             {
+                DefaultFileName = Engine.Instance.Config.GetGameName(),
+                DefaultExtension = ".sf2",
+                EnsureValidNames = true,
                 Title = Strings.MenuSaveSF2,
                 Filters = { new CommonFileDialogFilter(Strings.FilterSaveSF2, ".sf2") }
             };
@@ -518,6 +527,9 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonSaveFileDialog
             {
+                DefaultFileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
+                DefaultExtension = ".wav",
+                EnsureValidNames = true,
                 Title = Strings.MenuSaveWAV,
                 Filters = { new CommonFileDialogFilter(Strings.FilterSaveWAV, ".wav") }
             };
@@ -549,7 +561,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 _pauseButton.Enabled = _stopButton.Enabled = true;
                 _pauseButton.Text = Strings.PlayerPause;
-                _timer.Interval = (int)(1000.0 / GlobalConfig.Instance.RefreshRate);
+                _timer.Interval = (int)(1_000d / GlobalConfig.Instance.RefreshRate);
                 _timer.Start();
                 UpdateTaskbarState();
                 UpdateTaskbarButtons();
@@ -638,7 +650,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             _songNumerical.Maximum = numSongs - 1;
 #if DEBUG
-            //Debug.EventScan(Engine.Instance.Config.Playlists[0].Songs, numericalVisible);
+            //VGMSDebug.EventScan(Engine.Instance.Config.Playlists[0].Songs, numericalVisible);
 #endif
             _autoplay = false;
             SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);

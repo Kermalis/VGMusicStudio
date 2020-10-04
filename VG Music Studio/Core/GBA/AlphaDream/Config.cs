@@ -198,8 +198,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             }
         }
 
+        public override string GetGameName()
+        {
+            return Name;
+        }
         public override string GetSongName(long index)
         {
+            Song s = GetFirstSong(index);
+            if (s != null)
+            {
+                return s.Name;
+            }
             return index.ToString();
         }
 

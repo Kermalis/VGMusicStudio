@@ -1,7 +1,6 @@
 ﻿using Kermalis.VGMusicStudio.Properties;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 {
@@ -16,15 +15,24 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
                 throw new Exception(Strings.ErrorSDATNoSequences);
             }
             SDAT = sdat;
-            IEnumerable<Song> songs = Enumerable.Range(0, sdat.INFOBlock.SequenceInfos.NumEntries)
-                .Where(i => sdat.INFOBlock.SequenceInfos.Entries[i] != null)
-                .Select(i => new Song(i, sdat.SYMBBlock == null ? i.ToString() : sdat.SYMBBlock.SequenceSymbols.Entries[i]));
+            var songs = new List<Song>(sdat.INFOBlock.SequenceInfos.NumEntries);
+            for (int i = 0; i < sdat.INFOBlock.SequenceInfos.NumEntries; i++)
+            {
+                if (sdat.INFOBlock.SequenceInfos.Entries[i] != null)
+                {
+                    songs.Add(new Song(i, sdat.SYMBBlock is null ? i.ToString() : sdat.SYMBBlock.SequenceSymbols.Entries[i]));
+                }
+            }
             Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));
         }
 
+        public override string GetGameName()
+        {
+            return "SDAT";
+        }
         public override string GetSongName(long index)
         {
-            return SDAT.SYMBBlock == null || index < 0 || index >= SDAT.SYMBBlock.SequenceSymbols.NumEntries
+            return SDAT.SYMBBlock is null || index < 0 || index >= SDAT.SYMBBlock.SequenceSymbols.NumEntries
                 ? index.ToString()
                 : '\"' + SDAT.SYMBBlock.SequenceSymbols.Entries[index] + '\"';
         }
