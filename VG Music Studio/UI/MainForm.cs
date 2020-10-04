@@ -339,7 +339,11 @@ namespace Kermalis.VGMusicStudio.UI
                 if (success)
                 {
                     var config = (Core.NDS.DSE.Config)Engine.Instance.Config;
-                    FinishLoading(false, config.BGMFiles.Length);
+                    FinishLoading(config.BGMFiles.Length);
+                    _songNumerical.Visible = false;
+                    _exportDLSItem.Visible = false;
+                    _exportMIDIItem.Visible = false;
+                    _exportSF2Item.Visible = false;
                 }
             }
         }
@@ -367,7 +371,11 @@ namespace Kermalis.VGMusicStudio.UI
                 if (success)
                 {
                     var config = (Core.GBA.AlphaDream.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SongTableSizes[0]);
+                    FinishLoading(config.SongTableSizes[0]);
+                    _songNumerical.Visible = true;
+                    _exportDLSItem.Visible = true;
+                    _exportMIDIItem.Visible = false;
+                    _exportSF2Item.Visible = true;
                 }
             }
         }
@@ -395,7 +403,11 @@ namespace Kermalis.VGMusicStudio.UI
                 if (success)
                 {
                     var config = (Core.GBA.MP2K.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SongTableSizes[0]);
+                    FinishLoading(config.SongTableSizes[0]);
+                    _songNumerical.Visible = true;
+                    _exportDLSItem.Visible = false;
+                    _exportMIDIItem.Visible = true;
+                    _exportSF2Item.Visible = false;
                 }
             }
         }
@@ -423,7 +435,11 @@ namespace Kermalis.VGMusicStudio.UI
                 if (success)
                 {
                     var config = (Core.NDS.SDAT.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SDAT.INFOBlock.SequenceInfos.NumEntries);
+                    FinishLoading(config.SDAT.INFOBlock.SequenceInfos.NumEntries);
+                    _songNumerical.Visible = true;
+                    _exportDLSItem.Visible = false;
+                    _exportMIDIItem.Visible = false;
+                    _exportSF2Item.Visible = false;
                 }
             }
         }
@@ -612,7 +628,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
         }
 
-        private void FinishLoading(bool numericalVisible, long numSongs)
+        private void FinishLoading(long numSongs)
         {
             Engine.Instance.Player.SongEnded += SongEnded;
             foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
@@ -627,7 +643,6 @@ namespace Kermalis.VGMusicStudio.UI
             _autoplay = false;
             SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
             _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = true;
-            _songNumerical.Visible = numericalVisible;
             UpdateTaskbarButtons();
         }
         private void DisposeEngine()
