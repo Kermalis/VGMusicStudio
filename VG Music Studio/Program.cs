@@ -20,7 +20,7 @@ namespace Kermalis.VGMusicStudio
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, Strings.ErrorGlobalConfig);
+                FlexibleMessageBox.Show(ex, Strings.ErrorGlobalConfig);
                 return;
             }
             Application.EnableVisualStyles();

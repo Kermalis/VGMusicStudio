@@ -129,6 +129,10 @@ namespace Kermalis.VGMusicStudio.UI
         {
             return FlexibleMessageBoxForm.Show(null, text, caption, MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
         }
+        public static DialogResult Show(Exception ex, string caption)
+        {
+            return FlexibleMessageBoxForm.Show(null, string.Format("Error Details:{1}{1}{0}{1}{2}", ex.Message, Environment.NewLine, ex.StackTrace), caption, MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);
+        }
         public static DialogResult Show(IWin32Window owner, string text, string caption)
         {
             return FlexibleMessageBoxForm.Show(owner, text, caption, MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1);

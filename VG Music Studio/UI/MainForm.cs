@@ -210,7 +210,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, Engine.Instance.Config.GetSongName(index)));
+                FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorLoadSong, Engine.Instance.Config.GetSongName(index)));
                 success = false;
             }
 
@@ -333,7 +333,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenDSE);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenDSE);
                     success = false;
                 }
                 if (success)
@@ -365,7 +365,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenAlphaDream);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenAlphaDream);
                     success = false;
                 }
                 if (success)
@@ -397,7 +397,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenMP2K);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenMP2K);
                     success = false;
                 }
                 if (success)
@@ -429,7 +429,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenSDAT);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenSDAT);
                     success = false;
                 }
                 if (success)
@@ -460,7 +460,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveDLS);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveDLS);
                 }
             }
         }
@@ -490,7 +490,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveMIDI);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveMIDI);
                 }
             }
         }
@@ -510,7 +510,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveSF2);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveSF2);
                 }
             }
         }
@@ -535,7 +535,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveWAV);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveWAV);
                 }
                 Engine.Instance.Player.ShouldFadeOut = oldFade;
                 Engine.Instance.Player.NumLoops = oldLoops;
