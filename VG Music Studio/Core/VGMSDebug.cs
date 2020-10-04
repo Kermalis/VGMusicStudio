@@ -8,7 +8,7 @@ using System.Linq;
 namespace Kermalis.VGMusicStudio.Core
 {
 #if DEBUG
-    internal static class Debug
+    internal static class VGMSDebug
     {
         public static void MIDIVolumeMerger(string f1, string f2)
         {

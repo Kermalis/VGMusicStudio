@@ -304,6 +304,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error Exporting DLS.
+        /// </summary>
+        internal static string ErrorSaveDLS {
+            get {
+                return ResourceManager.GetString("ErrorSaveDLS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error Exporting MIDI.
         /// </summary>
         internal static string ErrorSaveMIDI {
@@ -372,6 +381,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string FilterOpenSDAT {
             get {
                 return ResourceManager.GetString("FilterOpenSDAT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DLS Files.
+        /// </summary>
+        internal static string FilterSaveDLS {
+            get {
+                return ResourceManager.GetString("FilterSaveDLS", resourceCulture);
             }
         }
         
@@ -471,6 +489,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string MenuPlaylist {
             get {
                 return ResourceManager.GetString("MenuPlaylist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export VoiceTable as DLS.
+        /// </summary>
+        internal static string MenuSaveDLS {
+            get {
+                return ResourceManager.GetString("MenuSaveDLS", resourceCulture);
             }
         }
         
@@ -624,6 +651,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string PlayPlaylistBody {
             get {
                 return ResourceManager.GetString("PlayPlaylistBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VoiceTable saved to {0}..
+        /// </summary>
+        internal static string SuccessSaveDLS {
+            get {
+                return ResourceManager.GetString("SuccessSaveDLS", resourceCulture);
             }
         }
         

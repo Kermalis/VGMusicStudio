@@ -1,10 +1,11 @@
 ﻿using Kermalis.SoundFont2;
 using Kermalis.VGMusicStudio.Util;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
-    internal sealed class SoundFontSaver
+    internal sealed class SoundFontSaver_SF2
     {
         public static void Save(Config config, string path)
         {
@@ -19,7 +20,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         {
             sf2.InfoChunk.Bank = config.Name;
             //sf2.InfoChunk.Copyright = config.Creator;
-            sf2.InfoChunk.Tools = "VG Music Studio by Kermalis";
+            sf2.InfoChunk.Tools = Util.Utils.ProgramName + " by Kermalis";
         }
 
         private static Dictionary<int, (SampleHeader, int)> AddSamples(Config config, SF2 sf2)
@@ -77,17 +78,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     {
                         if (!sampleDict.TryGetValue(entry.Sample, out (SampleHeader, int) value))
                         {
-                            System.Diagnostics.Debug.WriteLine(string.Format("Voice {0} uses a null sample id ({1})", v, entry.Sample));
+                            Debug.WriteLine(string.Format("Voice {0} uses a null sample id ({1})", v, entry.Sample));
                         }
                         else
                         {
                             sf2.AddInstrumentGenerator(SF2Generator.SampleModes, new SF2GeneratorAmount { Amount = (short)(value.Item1.DoesLoop == 0x40000000 ? 1 : 0) });
-                            sf2.AddInstrumentGenerator(SF2Generator.SampleID, new SF2GeneratorAmount { Amount = (short)value.Item2 });
+                            sf2.AddInstrumentGenerator(SF2Generator.SampleID, new SF2GeneratorAmount { UAmount = (ushort)value.Item2 });
                         }
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine(string.Format("Voice {0} uses an invalid sample id ({1})", v, entry.Sample));
+                        Debug.WriteLine(string.Format("Voice {0} uses an invalid sample id ({1})", v, entry.Sample));
                     }
                 }
             }

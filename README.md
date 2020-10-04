@@ -73,11 +73,12 @@ If you want to talk or would like a game added to our configs, join our [Discord
 
 ----
 ## VG Music Studio Uses:
+* [DLS2](https://github.com/Kermalis/DLS2)
+* [EndianBinaryIO](https://github.com/Kermalis/EndianBinaryIO)
 * [NAudio](https://github.com/naudio/NAudio)
 * [ObjectListView](http://objectlistview.sourceforge.net)
-* [YamlDotNet](https://github.com/aaubry/YamlDotNet/wiki)
-* [My EndianBinaryIO library](https://github.com/Kermalis/EndianBinaryIO)
-* [My SoundFont2 library](https://github.com/Kermalis/SoundFont2)
 * [My fork of Sanford.Multimedia.Midi](https://github.com/Kermalis/Sanford.Multimedia.Midi)
+* [SoundFont2](https://github.com/Kermalis/SoundFont2)
+* [YamlDotNet](https://github.com/aaubry/YamlDotNet/wiki)
 
 [Discord]: https://discord.gg/mBQXCTs

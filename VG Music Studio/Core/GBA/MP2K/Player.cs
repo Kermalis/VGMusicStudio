@@ -3,6 +3,7 @@ using Kermalis.VGMusicStudio.Util;
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -51,7 +52,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         private void WaitThread()
         {
-            if (_thread != null && (_thread.ThreadState == ThreadState.Running || _thread.ThreadState == ThreadState.WaitSleepJoin))
+            if (_thread != null && (_thread.ThreadState == System.Threading.ThreadState.Running || _thread.ThreadState == System.Threading.ThreadState.WaitSleepJoin))
             {
                 _thread.Join();
             }
@@ -646,7 +647,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             if (args.ReverseVolume)
             {
                 baseVolume = Events.SelectMany(e => e).Where(e => e.Command is VolumeCommand).Select(e => ((VolumeCommand)e.Command).Volume).Max();
-                System.Diagnostics.Debug.WriteLine($"Reversing volume back from {baseVolume}.");
+                Debug.WriteLine($"Reversing volume back from {baseVolume}.");
             }
 
             using (var midi = new Sequence(24) { Format = 1 })

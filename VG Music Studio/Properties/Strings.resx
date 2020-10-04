@@ -360,4 +360,17 @@
     <value>VoiceTable saved to {0}.</value>
     <comment>{0} is the file name.</comment>
   </data>
+  <data name="ErrorSaveDLS" xml:space="preserve">
+    <value>Error Exporting DLS</value>
+  </data>
+  <data name="FilterSaveDLS" xml:space="preserve">
+    <value>DLS Files</value>
+  </data>
+  <data name="MenuSaveDLS" xml:space="preserve">
+    <value>Export VoiceTable as DLS</value>
+  </data>
+  <data name="SuccessSaveDLS" xml:space="preserve">
+    <value>VoiceTable saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
 </root>

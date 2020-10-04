@@ -35,7 +35,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         private readonly MenuStrip _mainMenu;
         private readonly ToolStripMenuItem _fileItem, _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openSDATItem,
-            _dataItem, _trackViewerItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem,
+            _dataItem, _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem,
             _playlistItem, _endPlaylistItem;
         private readonly Timer _timer;
         private readonly ThemedNumeric _songNumerical;
@@ -79,6 +79,8 @@ namespace Kermalis.VGMusicStudio.UI
             // Data Menu
             _trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = Strings.TrackViewerTitle };
             _trackViewerItem.Click += OpenTrackViewer;
+            _exportDLSItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveDLS };
+            _exportDLSItem.Click += ExportDLS;
             _exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDI };
             _exportMIDIItem.Click += ExportMIDI;
             _exportSF2Item = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveSF2 };
@@ -86,7 +88,7 @@ namespace Kermalis.VGMusicStudio.UI
             _exportWAVItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveWAV };
             _exportWAVItem.Click += ExportWAV;
             _dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
-            _dataItem.DropDownItems.AddRange(new ToolStripItem[] { _trackViewerItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem });
+            _dataItem.DropDownItems.AddRange(new ToolStripItem[] { _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem });
 
             // Playlist Menu
             _endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuEndPlaylist };
@@ -239,7 +241,7 @@ namespace Kermalis.VGMusicStudio.UI
             int numTracks = (Engine.Instance.Player.Events?.Length).GetValueOrDefault();
             _positionBar.Enabled = _exportWAVItem.Enabled = success && numTracks > 0;
             _exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && numTracks > 0;
-            _exportSF2Item.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_AlphaDream;
+            _exportDLSItem.Enabled = _exportSF2Item.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_AlphaDream;
 
             _autoplay = true;
             _songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -426,6 +428,26 @@ namespace Kermalis.VGMusicStudio.UI
             }
         }
 
+        private void ExportDLS(object sender, EventArgs e)
+        {
+            var d = new CommonSaveFileDialog
+            {
+                Title = Strings.MenuSaveDLS,
+                Filters = { new CommonFileDialogFilter(Strings.FilterSaveDLS, ".dls") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                try
+                {
+                    Core.GBA.AlphaDream.SoundFontSaver_DLS.Save((Core.GBA.AlphaDream.Config)Engine.Instance.Config, d.FileName);
+                    FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveDLS, d.FileName), Text);
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveDLS);
+                }
+            }
+        }
         private void ExportMIDI(object sender, EventArgs e)
         {
             var d = new CommonSaveFileDialog
@@ -467,7 +489,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 try
                 {
-                    Core.GBA.AlphaDream.SoundFontSaver.Save((Core.GBA.AlphaDream.Config)Engine.Instance.Config, d.FileName);
+                    Core.GBA.AlphaDream.SoundFontSaver_SF2.Save((Core.GBA.AlphaDream.Config)Engine.Instance.Config, d.FileName);
                     FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveSF2, d.FileName), Text);
                 }
                 catch (Exception ex)

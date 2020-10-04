@@ -58,6 +58,9 @@
     <StartupObject>Kermalis.VGMusicStudio.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DLS2">
+      <HintPath>Dependencies\DLS2.dll</HintPath>
+    </Reference>
     <Reference Include="EndianBinaryIO, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\EndianBinaryIO.1.1.1\lib\netstandard2.0\EndianBinaryIO.dll</HintPath>
     </Reference>
@@ -104,7 +107,8 @@
     <Compile Include="Core\ADPCMDecoder.cs" />
     <Compile Include="Core\Assembler.cs" />
     <Compile Include="Core\Config.cs" />
-    <Compile Include="Core\GBA\AlphaDream\SoundFontSaver.cs" />
+    <Compile Include="Core\GBA\AlphaDream\SoundFontSaver_DLS.cs" />
+    <Compile Include="Core\GBA\AlphaDream\SoundFontSaver_SF2.cs" />
     <Compile Include="Core\GBA\MP2K\Commands.cs" />
     <Compile Include="Core\GBA\AlphaDream\Commands.cs" />
     <Compile Include="Core\GBA\AlphaDream\Config.cs" />
@@ -152,7 +156,7 @@
     <Compile Include="Core\NDS\SDAT\Track.cs" />
     <Compile Include="Core\Player.cs" />
     <Compile Include="Core\SongEvent.cs" />
-    <Compile Include="Core\Debug.cs" />
+    <Compile Include="Core\VGMSDebug.cs" />
     <Compile Include="Properties\Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

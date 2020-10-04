@@ -333,4 +333,16 @@
   <data name="SuccessSaveSF2" xml:space="preserve">
     <value>SF2 guardado en {0}.</value>
   </data>
+  <data name="ErrorSaveDLS" xml:space="preserve">
+    <value>Error al Exportar DLS</value>
+  </data>
+  <data name="FilterSaveDLS" xml:space="preserve">
+    <value>Archivos DLS</value>
+  </data>
+  <data name="MenuSaveDLS" xml:space="preserve">
+    <value>Exportar VoiceTable como DLS</value>
+  </data>
+  <data name="SuccessSaveDLS" xml:space="preserve">
+    <value>DLS guardado en {0}.</value>
+  </data>
 </root>
