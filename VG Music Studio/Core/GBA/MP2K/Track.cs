@@ -103,6 +103,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             {
                 Rest--;
             }
+            if (LFODepth > 0)
+            {
+                LFOPhase += LFOSpeed;
+            }
+            else
+            {
+                LFOPhase = 0;
+            }
             int active = 0;
             Channel[] chans = Channels.ToArray();
             for (int i = 0; i < chans.Length; i++)
@@ -119,15 +127,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     LFODelayCount--;
                     LFOPhase = 0;
                 }
-                else
-                {
-                    LFOPhase += LFOSpeed;
-                }
             }
             else
             {
-                LFOPhase = 0;
                 LFODelayCount = LFODelay;
+            }
+            if ((LFODelay == LFODelayCount && LFODelay != 0) || LFOSpeed == 0)
+            {
+                LFOPhase = 0;
             }
         }
 
