@@ -32,9 +32,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         };
 
         // Squares
-        public static readonly float[] SquareD12 = new float[8] {  0.500f,  0.500f,  0.500f,  0.500f, -0.500f, -0.500f, -0.500f, -0.500f };
-        public static readonly float[] SquareD25 = new float[8] {  0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f };
-        public static readonly float[] SquareD50 = new float[8] {  0.750f,  0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f };
+        public static readonly float[] SquareD12 = new float[8] {  0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f };
+        public static readonly float[] SquareD25 = new float[8] {  0.750f,  0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f };
+        public static readonly float[] SquareD50 = new float[8] {  0.500f,  0.500f,  0.500f,  0.500f, -0.500f, -0.500f, -0.500f, -0.500f };
         public static readonly float[] SquareD75 = new float[8] {  0.250f,  0.250f,  0.250f,  0.250f,  0.250f,  0.250f, -0.750f, -0.750f };
 
         // Noises
