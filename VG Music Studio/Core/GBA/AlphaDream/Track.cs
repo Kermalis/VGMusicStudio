@@ -27,9 +27,16 @@
         public Track(byte i, Mixer mixer)
         {
             Index = i;
-            // TODO: PSG Channels 3 and 4 are also usable
-            Type = i >= 8 ? i % 2 == 0 ? "Square 1" : "Square 2" : "PCM8";
-            Channel = i >= 8 ? (Channel)new SquareChannel(mixer) : new PCMChannel(mixer);
+            if (i >= 8)
+            {
+                Type = Utils.PSGTypes[i & 3];
+                Channel = new SquareChannel(mixer); // TODO: PSG Channels 3 and 4
+            }
+            else
+            {
+                Type = "PCM8";
+                Channel = new PCMChannel(mixer);
+            }
         }
         // 0x819B040
         public void Init()
