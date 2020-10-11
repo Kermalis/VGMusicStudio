@@ -27,6 +27,7 @@ If you want to talk or would like a game added to our configs, join our [Discord
 * Voice table - Find out the last 4 bytes in voice entry struct (probably ADSR)
 * PSG channels 3 and 4
 * Some more unknown commands
+* Tempo per track
 
 ### DSE Engine
 * ADSR
@@ -44,6 +45,7 @@ If you want to talk or would like a game added to our configs, join our [Discord
 * Support pret dissassembly projects
 * Running status in song disassembler
 * Add "Metroid Fusion" & "Metroid: Zero Mission" engine information
+* Mario Power Tennis compressed samples
 
 ### SDAT Engine
 * Find proper formulas for LFO
