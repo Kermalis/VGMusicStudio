@@ -15,7 +15,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         public readonly Config Config;
         private readonly WaveBuffer _audio;
-        private readonly float[][] _trackBuffers = new float[0x10][];
+        private readonly float[][] _trackBuffers = new float[Player.NumTracks][];
         private readonly BufferedWaveProvider _buffer;
 
         public Mixer(Config config)
@@ -28,7 +28,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
             int amt = SamplesPerBuffer * 2;
             _audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
-            for (int i = 0; i < 0x10; i++)
+            for (int i = 0; i < Player.NumTracks; i++)
             {
                 _trackBuffers[i] = new float[amt];
             }
@@ -107,7 +107,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 masterStep = (toMaster - fromMaster) * _samplesReciprocal;
                 masterLevel = fromMaster;
             }
-            for (int i = 0; i < 0x10; i++)
+            for (int i = 0; i < Player.NumTracks; i++)
             {
                 Track track = tracks[i];
                 if (track.Enabled && track.NoteDuration != 0 && !track.Channel.Stopped && !Mutes[i])

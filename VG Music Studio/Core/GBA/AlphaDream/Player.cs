@@ -9,7 +9,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal class Player : IPlayer
     {
-        private readonly Track[] _tracks = new Track[0x10];
+        public const int NumTracks = 12; // 8 PCM, 4 PSG
+        private readonly Track[] _tracks = new Track[NumTracks];
         private readonly Mixer _mixer;
         private readonly Config _config;
         private readonly TimeBarrier _time;
@@ -30,7 +31,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         public Player(Mixer mixer, Config config)
         {
-            for (byte i = 0; i < _tracks.Length; i++)
+            for (byte i = 0; i < NumTracks; i++)
             {
                 _tracks[i] = new Track(i, mixer);
             }
@@ -54,12 +55,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         private void InitEmulation()
         {
-            _tempo = 120;
+            _tempo = 120; // Player tempo is set to 75 on init, but I did not separate player and track tempo yet
             _tempoStack = 0;
             _elapsedLoops = 0;
             ElapsedTicks = 0;
             _mixer.ResetFade();
-            for (int i = 0; i < 0x10; i++)
+            for (int i = 0; i < NumTracks; i++)
             {
                 _tracks[i].Init();
             }
@@ -68,7 +69,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         {
             MaxTicks = 0;
             bool u = false;
-            for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
+            for (int trackIndex = 0; trackIndex < NumTracks; trackIndex++)
             {
                 if (Events[trackIndex] == null)
                 {
@@ -115,10 +116,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             }
             else
             {
-                Events = new List<SongEvent>[0x10];
+                Events = new List<SongEvent>[NumTracks];
                 songOffset -= Utils.CartridgeOffset;
                 ushort trackBits = _config.Reader.ReadUInt16(songOffset);
-                for (int i = 0, usedTracks = 0; i < 0x10; i++)
+                for (int i = 0, usedTracks = 0; i < NumTracks; i++)
                 {
                     Track track = _tracks[i];
                     if ((trackBits & (1 << i)) == 0)
@@ -328,7 +329,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     while (_tempoStack >= 75)
                     {
                         _tempoStack -= 75;
-                        for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
+                        for (int trackIndex = 0; trackIndex < NumTracks; trackIndex++)
                         {
                             Track track = _tracks[trackIndex];
                             if (track.Enabled && !track.Stopped)
@@ -349,7 +350,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     _tempoStack += _tempo;
                 }
             finish:
-                for (int i = 0; i < 0x10; i++)
+                for (int i = 0; i < NumTracks; i++)
                 {
                     _tracks[i].NoteDuration = 0;
                 }
@@ -411,7 +412,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = _tempo;
-            for (int i = 0; i < 0x10; i++)
+            for (int i = 0; i < NumTracks; i++)
             {
                 Track track = _tracks[i];
                 if (track.Enabled)
@@ -611,7 +612,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 {
                     _tempoStack -= 75;
                     bool allDone = true;
-                    for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
+                    for (int trackIndex = 0; trackIndex < NumTracks; trackIndex++)
                     {
                         Track track = _tracks[trackIndex];
                         if (track.Enabled)
