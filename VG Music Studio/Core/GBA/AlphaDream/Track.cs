@@ -31,18 +31,21 @@
             Type = i >= 8 ? i % 2 == 0 ? "Square 1" : "Square 2" : "PCM8";
             Channel = i >= 8 ? (Channel)new SquareChannel(mixer) : new PCMChannel(mixer);
         }
+        // 0x819B040
         public void Init()
         {
             Voice = 0;
-            Rest = 0;
+            Rest = 1; // Unsure why Rest starts at 1
             PitchBendRange = 2;
             NoteDuration = 0;
             PitchBend = 0;
-            Panpot = 0;
+            Panpot = 0; // Start centered; ROM sets this to 0x7F since it's unsigned there
             DataOffset = StartOffset;
             Stopped = false;
-            Volume = 0x7F;
+            Volume = 200;
             PrevCommand = 0xFF;
+            //Tempo = 120;
+            //TempoStack = 0;
         }
         public void Tick()
         {

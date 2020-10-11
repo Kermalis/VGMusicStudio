@@ -251,7 +251,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                                         byte tempoArg = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
-                                            AddEvent(new TempoCommand { Tempo = tempoArg });
+                                            AddEvent(new TrackTempoCommand { Tempo = tempoArg });
                                         }
                                         break;
                                     }
@@ -552,7 +552,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     track.DataOffset += ofs;
                     break;
                 }
-                case 0xF9: // Tempo
+                case 0xF9: // Track Tempo
                 {
                     _tempo = _config.ROM[track.DataOffset++];
                     break;
