@@ -36,7 +36,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 {
                     ROM = rom;
                     Reader = new EndianBinaryReader(new MemoryStream(rom));
-                    GameCode = Reader.ReadString(4, 0xAC);
+                    GameCode = Reader.ReadString(4, false, 0xAC);
                     Version = Reader.ReadByte(0xBC);
                     gcv = $"{GameCode}_{Version:X2}";
                     var yaml = new YamlStream();
@@ -220,8 +220,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
         }
 
+        public override string GetGameName()
+        {
+            return Name;
+        }
         public override string GetSongName(long index)
         {
+            Song s = GetFirstSong(index);
+            if (s != null)
+            {
+                return s.Name;
+            }
             return index.ToString();
         }
 

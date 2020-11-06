@@ -35,7 +35,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         private readonly MenuStrip _mainMenu;
         private readonly ToolStripMenuItem _fileItem, _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openSDATItem,
-            _dataItem, _trackViewerItem, _exportMIDIItem, _exportWAVItem,
+            _dataItem, _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem,
             _playlistItem, _endPlaylistItem;
         private readonly Timer _timer;
         private readonly ThemedNumeric _songNumerical;
@@ -79,12 +79,16 @@ namespace Kermalis.VGMusicStudio.UI
             // Data Menu
             _trackViewerItem = new ToolStripMenuItem { ShortcutKeys = Keys.Control | Keys.T, Text = Strings.TrackViewerTitle };
             _trackViewerItem.Click += OpenTrackViewer;
+            _exportDLSItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveDLS };
+            _exportDLSItem.Click += ExportDLS;
             _exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDI };
             _exportMIDIItem.Click += ExportMIDI;
+            _exportSF2Item = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveSF2 };
+            _exportSF2Item.Click += ExportSF2;
             _exportWAVItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveWAV };
             _exportWAVItem.Click += ExportWAV;
             _dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
-            _dataItem.DropDownItems.AddRange(new ToolStripItem[] { _trackViewerItem, _exportMIDIItem, _exportWAVItem });
+            _dataItem.DropDownItems.AddRange(new ToolStripItem[] { _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem });
 
             // Playlist Menu
             _endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuEndPlaylist };
@@ -206,7 +210,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
             catch (Exception ex)
             {
-                FlexibleMessageBox.Show(ex.Message, string.Format(Strings.ErrorLoadSong, Engine.Instance.Config.GetSongName(index)));
+                FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorLoadSong, Engine.Instance.Config.GetSongName(index)));
                 success = false;
             }
 
@@ -237,6 +241,7 @@ namespace Kermalis.VGMusicStudio.UI
             int numTracks = (Engine.Instance.Player.Events?.Length).GetValueOrDefault();
             _positionBar.Enabled = _exportWAVItem.Enabled = success && numTracks > 0;
             _exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && numTracks > 0;
+            _exportDLSItem.Enabled = _exportSF2Item.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_AlphaDream;
 
             _autoplay = true;
             _songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
@@ -328,13 +333,17 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenDSE);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenDSE);
                     success = false;
                 }
                 if (success)
                 {
                     var config = (Core.NDS.DSE.Config)Engine.Instance.Config;
-                    FinishLoading(false, config.BGMFiles.Length);
+                    FinishLoading(config.BGMFiles.Length);
+                    _songNumerical.Visible = false;
+                    _exportDLSItem.Visible = false;
+                    _exportMIDIItem.Visible = false;
+                    _exportSF2Item.Visible = false;
                 }
             }
         }
@@ -356,13 +365,17 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenAlphaDream);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenAlphaDream);
                     success = false;
                 }
                 if (success)
                 {
                     var config = (Core.GBA.AlphaDream.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SongTableSizes[0]);
+                    FinishLoading(config.SongTableSizes[0]);
+                    _songNumerical.Visible = true;
+                    _exportDLSItem.Visible = true;
+                    _exportMIDIItem.Visible = false;
+                    _exportSF2Item.Visible = true;
                 }
             }
         }
@@ -384,13 +397,17 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenMP2K);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenMP2K);
                     success = false;
                 }
                 if (success)
                 {
                     var config = (Core.GBA.MP2K.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SongTableSizes[0]);
+                    FinishLoading(config.SongTableSizes[0]);
+                    _songNumerical.Visible = true;
+                    _exportDLSItem.Visible = false;
+                    _exportMIDIItem.Visible = true;
+                    _exportSF2Item.Visible = false;
                 }
             }
         }
@@ -412,21 +429,51 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorOpenSDAT);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorOpenSDAT);
                     success = false;
                 }
                 if (success)
                 {
                     var config = (Core.NDS.SDAT.Config)Engine.Instance.Config;
-                    FinishLoading(true, config.SDAT.INFOBlock.SequenceInfos.NumEntries);
+                    FinishLoading(config.SDAT.INFOBlock.SequenceInfos.NumEntries);
+                    _songNumerical.Visible = true;
+                    _exportDLSItem.Visible = false;
+                    _exportMIDIItem.Visible = false;
+                    _exportSF2Item.Visible = false;
                 }
             }
         }
 
+        private void ExportDLS(object sender, EventArgs e)
+        {
+            var d = new CommonSaveFileDialog
+            {
+                DefaultFileName = Engine.Instance.Config.GetGameName(),
+                DefaultExtension = ".dls",
+                EnsureValidNames = true,
+                Title = Strings.MenuSaveDLS,
+                Filters = { new CommonFileDialogFilter(Strings.FilterSaveDLS, ".dls") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                try
+                {
+                    Core.GBA.AlphaDream.SoundFontSaver_DLS.Save((Core.GBA.AlphaDream.Config)Engine.Instance.Config, d.FileName);
+                    FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveDLS, d.FileName), Text);
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveDLS);
+                }
+            }
+        }
         private void ExportMIDI(object sender, EventArgs e)
         {
             var d = new CommonSaveFileDialog
             {
+                DefaultFileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
+                DefaultExtension = ".mid",
+                EnsureValidNames = true,
                 Title = Strings.MenuSaveMIDI,
                 Filters = { new CommonFileDialogFilter(Strings.FilterSaveMIDI, ".mid;.midi") }
             };
@@ -449,7 +496,30 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveMIDI);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveMIDI);
+                }
+            }
+        }
+        private void ExportSF2(object sender, EventArgs e)
+        {
+            var d = new CommonSaveFileDialog
+            {
+                DefaultFileName = Engine.Instance.Config.GetGameName(),
+                DefaultExtension = ".sf2",
+                EnsureValidNames = true,
+                Title = Strings.MenuSaveSF2,
+                Filters = { new CommonFileDialogFilter(Strings.FilterSaveSF2, ".sf2") }
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                try
+                {
+                    Core.GBA.AlphaDream.SoundFontSaver_SF2.Save((Core.GBA.AlphaDream.Config)Engine.Instance.Config, d.FileName);
+                    FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveSF2, d.FileName), Text);
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveSF2);
                 }
             }
         }
@@ -457,6 +527,9 @@ namespace Kermalis.VGMusicStudio.UI
         {
             var d = new CommonSaveFileDialog
             {
+                DefaultFileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
+                DefaultExtension = ".wav",
+                EnsureValidNames = true,
                 Title = Strings.MenuSaveWAV,
                 Filters = { new CommonFileDialogFilter(Strings.FilterSaveWAV, ".wav") }
             };
@@ -474,7 +547,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 catch (Exception ex)
                 {
-                    FlexibleMessageBox.Show(ex.Message, Strings.ErrorSaveWAV);
+                    FlexibleMessageBox.Show(ex, Strings.ErrorSaveWAV);
                 }
                 Engine.Instance.Player.ShouldFadeOut = oldFade;
                 Engine.Instance.Player.NumLoops = oldLoops;
@@ -488,7 +561,7 @@ namespace Kermalis.VGMusicStudio.UI
             {
                 _pauseButton.Enabled = _stopButton.Enabled = true;
                 _pauseButton.Text = Strings.PlayerPause;
-                _timer.Interval = (int)(1000.0 / GlobalConfig.Instance.RefreshRate);
+                _timer.Interval = (int)(1_000d / GlobalConfig.Instance.RefreshRate);
                 _timer.Start();
                 UpdateTaskbarState();
                 UpdateTaskbarButtons();
@@ -567,7 +640,7 @@ namespace Kermalis.VGMusicStudio.UI
             }
         }
 
-        private void FinishLoading(bool numericalVisible, long numSongs)
+        private void FinishLoading(long numSongs)
         {
             Engine.Instance.Player.SongEnded += SongEnded;
             foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
@@ -577,12 +650,11 @@ namespace Kermalis.VGMusicStudio.UI
             }
             _songNumerical.Maximum = numSongs - 1;
 #if DEBUG
-            //Debug.EventScan(Engine.Instance.Config.Playlists[0].Songs, numericalVisible);
+            //VGMSDebug.EventScan(Engine.Instance.Config.Playlists[0].Songs, numericalVisible);
 #endif
             _autoplay = false;
             SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
             _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = true;
-            _songNumerical.Visible = numericalVisible;
             UpdateTaskbarButtons();
         }
         private void DisposeEngine()

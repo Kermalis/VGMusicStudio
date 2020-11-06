@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Kermalis.EndianBinaryIO;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core
 {
-    internal class Assembler
+    internal sealed class Assembler
     {
         private class Pair
         {
@@ -30,15 +32,17 @@ namespace Kermalis.VGMusicStudio.Core
         private readonly List<byte> _bytes = new List<byte>();
 
         public string FileName { get; }
+        public Endianness Endianness { get; }
         public int this[string Label] => _labels[FixLabel(Label)].Offset;
         public byte[] Binary => _bytes.ToArray();
         public int BinaryLength => _bytes.Count;
 
-        public Assembler(string fileName, int baseOffset, Dictionary<string, int> initialDefines = null)
+        public Assembler(string fileName, int baseOffset, Endianness endianness, Dictionary<string, int> initialDefines = null)
         {
             FileName = fileName;
+            Endianness = endianness;
             _defines = initialDefines ?? new Dictionary<string, int>();
-            Console.WriteLine(Read(fileName));
+            Debug.WriteLine(Read(fileName));
             SetBaseOffset(baseOffset);
         }
 
@@ -48,9 +52,9 @@ namespace Kermalis.VGMusicStudio.Core
             {
                 // Our example label is SEQ_STUFF at the binary offset 0x1000, curBaseOffset is 0x500, baseOffset is 0x1800
                 // There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DFC
-                int oldPointer = BitConverter.ToInt32(Binary, p.BinaryOffset); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
+                int oldPointer = EndianBitConverter.BytesToInt32(Binary, p.BinaryOffset, Endianness); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
                 int labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
-                byte[] newPointerBytes = BitConverter.GetBytes(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
+                byte[] newPointerBytes = EndianBitConverter.Int32ToBytes(baseOffset + labelOffset, Endianness); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
                 for (int i = 0; i < 4; i++)
                 {
                     _bytes[p.BinaryOffset + i] = newPointerBytes[i]; // Copy the new pointer to binary offset 0x1DF4
@@ -101,7 +105,7 @@ namespace Kermalis.VGMusicStudio.Core
                 bool readingCMD = false; // If it's reading the command
                 string cmd = null;
                 var args = new List<string>();
-                string str = "";
+                string str = string.Empty;
                 foreach (char c in line)
                 {
                     if (c == '@') // Ignore comments from this point
@@ -119,7 +123,7 @@ namespace Kermalis.VGMusicStudio.Core
                             _labels.Add(str, new Pair());
                         }
                         _labels[str].Offset = _bytes.Count;
-                        str = "";
+                        str = string.Empty;
                     }
                     else if (char.IsWhiteSpace(c))
                     {
@@ -127,13 +131,13 @@ namespace Kermalis.VGMusicStudio.Core
                         {
                             cmd = str;
                             readingCMD = false;
-                            str = "";
+                            str = string.Empty;
                         }
                     }
                     else if (c == ',')
                     {
                         args.Add(str);
-                        str = "";
+                        str = string.Empty;
                     }
                     else
                     {
@@ -212,7 +216,7 @@ namespace Kermalis.VGMusicStudio.Core
                         {
                             foreach (string a in args)
                             {
-                                _bytes.AddRange(BitConverter.GetBytes((short)ParseInt(a)));
+                                _bytes.AddRange(EndianBitConverter.Int16ToBytes((short)ParseInt(a), Endianness));
                             }
                         }
                         catch
@@ -228,7 +232,7 @@ namespace Kermalis.VGMusicStudio.Core
                         {
                             foreach (string a in args)
                             {
-                                _bytes.AddRange(BitConverter.GetBytes(ParseInt(a)));
+                                _bytes.AddRange(EndianBitConverter.Int32ToBytes(ParseInt(a), Endianness));
                             }
                         }
                         catch
@@ -252,18 +256,15 @@ namespace Kermalis.VGMusicStudio.Core
             return $"{fileName} loaded with no issues";
         }
 
+        private static readonly CultureInfo _enUS = new CultureInfo("en-US");
         private int ParseInt(string value)
         {
             // First try regular values like "40" and "0x20"
-            var provider = new CultureInfo("en-US");
-            if (value.StartsWith("0x"))
+            if (value.StartsWith("0x") && int.TryParse(value.Substring(2), NumberStyles.HexNumber, _enUS, out int hex))
             {
-                if (int.TryParse(value.Substring(2), NumberStyles.HexNumber, provider, out int hex))
-                {
-                    return hex;
-                }
+                return hex;
             }
-            if (int.TryParse(value, NumberStyles.Integer, provider, out int dec))
+            if (int.TryParse(value, NumberStyles.Integer, _enUS, out int dec))
             {
                 return dec;
             }
@@ -280,9 +281,12 @@ namespace Kermalis.VGMusicStudio.Core
 
             // Then check if it's math
             bool foundMath = false;
-            string str = "";
+            string str = string.Empty;
             int ret = 0;
-            bool add = true, sub = false, mul = false, div = false; // Add first, so the initial value is set
+            bool add = true, // Add first, so the initial value is set
+                sub = false,
+                mul = false,
+                div = false;
             for (int i = 0; i < value.Length; i++)
             {
                 char c = value[i];
@@ -291,7 +295,7 @@ namespace Kermalis.VGMusicStudio.Core
                 {
                     continue;
                 }
-                else if (c == '+' || c == '-' || c == '*' || c == '/')
+                if (c == '+' || c == '-' || c == '*' || c == '/')
                 {
                     if (add)
                     {
@@ -309,8 +313,11 @@ namespace Kermalis.VGMusicStudio.Core
                     {
                         ret /= ParseInt(str);
                     }
-                    add = c == '+'; sub = c == '-'; mul = c == '*'; div = c == '/';
-                    str = "";
+                    add = c == '+';
+                    sub = c == '-';
+                    mul = c == '*';
+                    div = c == '/';
+                    str = string.Empty;
                     foundMath = true;
                 }
                 else
@@ -338,10 +345,7 @@ namespace Kermalis.VGMusicStudio.Core
                 }
                 return ret;
             }
-            else
-            {
-                throw new ArgumentOutOfRangeException(nameof(value));
-            }
+            throw new ArgumentOutOfRangeException(nameof(value));
         }
     }
 }

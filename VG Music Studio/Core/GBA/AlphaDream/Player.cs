@@ -9,7 +9,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 {
     internal class Player : IPlayer
     {
-        private readonly Track[] _tracks = new Track[0x10];
+        public const int NumTracks = 12; // 8 PCM, 4 PSG
+        private readonly Track[] _tracks = new Track[NumTracks];
         private readonly Mixer _mixer;
         private readonly Config _config;
         private readonly TimeBarrier _time;
@@ -30,7 +31,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         public Player(Mixer mixer, Config config)
         {
-            for (byte i = 0; i < _tracks.Length; i++)
+            for (byte i = 0; i < NumTracks; i++)
             {
                 _tracks[i] = new Track(i, mixer);
             }
@@ -54,12 +55,12 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         private void InitEmulation()
         {
-            _tempo = 120;
+            _tempo = 120; // Player tempo is set to 75 on init, but I did not separate player and track tempo yet
             _tempoStack = 0;
             _elapsedLoops = 0;
             ElapsedTicks = 0;
             _mixer.ResetFade();
-            for (int i = 0; i < 0x10; i++)
+            for (int i = 0; i < NumTracks; i++)
             {
                 _tracks[i].Init();
             }
@@ -68,44 +69,42 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         {
             MaxTicks = 0;
             bool u = false;
-            for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
+            for (int trackIndex = 0; trackIndex < NumTracks; trackIndex++)
             {
-                if (Events[trackIndex] != null)
+                if (Events[trackIndex] == null)
                 {
-                    Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
-                    List<SongEvent> evs = Events[trackIndex];
-                    Track track = _tracks[trackIndex];
-                    track.Init();
-                    ElapsedTicks = 0;
-                    while (true)
-                    {
-                        SongEvent e = evs[track.CurEvent];
-                        if (e.Ticks.Count > 0)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            e.Ticks.Add(ElapsedTicks);
-                            ExecuteNext(trackIndex, ref u);
-                            if (track.Stopped)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                ElapsedTicks += track.Rest;
-                                track.Rest = 0;
-                            }
-                        }
-                    }
-                    if (ElapsedTicks > MaxTicks)
-                    {
-                        _longestTrack = trackIndex;
-                        MaxTicks = ElapsedTicks;
-                    }
-                    track.NoteDuration = 0;
+                    continue;
                 }
+
+                Events[trackIndex] = Events[trackIndex].OrderBy(e => e.Offset).ToList();
+                List<SongEvent> evs = Events[trackIndex];
+                Track track = _tracks[trackIndex];
+                track.Init();
+                ElapsedTicks = 0;
+                while (true)
+                {
+                    SongEvent e = evs.Single(ev => ev.Offset == track.DataOffset);
+                    if (e.Ticks.Count > 0)
+                    {
+                        break;
+                    }
+
+                    e.Ticks.Add(ElapsedTicks);
+                    ExecuteNext(track, ref u);
+                    if (track.Stopped)
+                    {
+                        break;
+                    }
+
+                    ElapsedTicks += track.Rest;
+                    track.Rest = 0;
+                }
+                if (ElapsedTicks > MaxTicks)
+                {
+                    _longestTrack = trackIndex;
+                    MaxTicks = ElapsedTicks;
+                }
+                track.NoteDuration = 0;
             }
         }
         public void LoadSong(long index)
@@ -117,13 +116,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
             }
             else
             {
-                Events = new List<SongEvent>[0x10];
+                Events = new List<SongEvent>[NumTracks];
                 songOffset -= Utils.CartridgeOffset;
                 ushort trackBits = _config.Reader.ReadUInt16(songOffset);
-                for (int i = 0, usedTracks = 0; i < 0x10; i++)
+                for (int i = 0, usedTracks = 0; i < NumTracks; i++)
                 {
                     Track track = _tracks[i];
-                    if ((trackBits & (1 << i)) != 0)
+                    if ((trackBits & (1 << i)) == 0)
+                    {
+                        track.Enabled = false;
+                        track.StartOffset = 0;
+                    }
+                    else
                     {
                         track.Enabled = true;
                         Events[i] = new List<SongEvent>();
@@ -132,7 +136,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                             return Events[i].Any(e => e.Offset == offset);
                         }
 
-                        AddEvents(songOffset + _config.Reader.ReadInt16(songOffset + 2 + (2 * usedTracks++)));
+                        AddEvents(track.StartOffset = songOffset + _config.Reader.ReadInt16(songOffset + 2 + (2 * usedTracks++)));
                         void AddEvents(int startOffset)
                         {
                             _config.Reader.BaseStream.Position = startOffset;
@@ -248,7 +252,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                                         byte tempoArg = _config.Reader.ReadByte();
                                         if (!EventExists(offset))
                                         {
-                                            AddEvent(new TempoCommand { Tempo = tempoArg });
+                                            AddEvent(new TrackTempoCommand { Tempo = tempoArg });
                                         }
                                         break;
                                     }
@@ -297,10 +301,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                             }
                         }
                     }
-                    else
-                    {
-                        track.Enabled = false;
-                    }
                 }
                 SetTicks();
             }
@@ -325,34 +325,32 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                     {
                         goto finish;
                     }
-                    else
+
+                    while (_tempoStack >= 75)
                     {
-                        while (_tempoStack >= 75)
+                        _tempoStack -= 75;
+                        for (int trackIndex = 0; trackIndex < NumTracks; trackIndex++)
                         {
-                            _tempoStack -= 75;
-                            for (int i = 0; i < 0x10; i++)
+                            Track track = _tracks[trackIndex];
+                            if (track.Enabled && !track.Stopped)
                             {
-                                Track track = _tracks[i];
-                                if (track.Enabled && !track.Stopped)
+                                track.Tick();
+                                while (track.Rest == 0 && !track.Stopped)
                                 {
-                                    track.Tick();
-                                    while (track.Rest == 0 && !track.Stopped)
-                                    {
-                                        ExecuteNext(i, ref u);
-                                    }
+                                    ExecuteNext(track, ref u);
                                 }
                             }
-                            ElapsedTicks++;
-                            if (ElapsedTicks == ticks)
-                            {
-                                goto finish;
-                            }
                         }
-                        _tempoStack += _tempo;
+                        ElapsedTicks++;
+                        if (ElapsedTicks == ticks)
+                        {
+                            goto finish;
+                        }
                     }
+                    _tempoStack += _tempo;
                 }
             finish:
-                for (int i = 0; i < 0x10; i++)
+                for (int i = 0; i < NumTracks; i++)
                 {
                     _tracks[i].NoteDuration = 0;
                 }
@@ -414,13 +412,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public void GetSongState(UI.SongInfoControl.SongInfo info)
         {
             info.Tempo = _tempo;
-            for (int i = 0; i < 0x10; i++)
+            for (int i = 0; i < NumTracks; i++)
             {
                 Track track = _tracks[i];
                 if (track.Enabled)
                 {
                     UI.SongInfoControl.SongInfo.Track tin = info.Tracks[i];
-                    tin.Position = Events[i][track.CurEvent].Offset;
+                    tin.Position = track.DataOffset;
                     tin.Rest = track.Rest;
                     tin.Voice = track.Voice;
                     tin.Type = track.Type;
@@ -490,90 +488,106 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 }
             }
         }
-        private void ExecuteNext(int trackIndex, ref bool update)
+        private void ExecuteNext(Track track, ref bool update)
         {
-            bool increment = true;
-            List<SongEvent> ev = Events[trackIndex];
-            Track track = _tracks[trackIndex];
-            ICommand cmd = ev[track.CurEvent].Command;
+            byte cmd = _config.ROM[track.DataOffset++];
             switch (cmd)
             {
-                case FreeNoteHamtaroCommand freeNote:
+                case 0x00: // Free Note
                 {
-                    track.Volume = freeNote.Volume;
+                    byte key = (byte)(_config.ROM[track.DataOffset++] - 0x80);
+                    if (_config.AudioEngineVersion == AudioEngineVersion.Hamtaro)
+                    {
+                        track.Volume = _config.ROM[track.DataOffset++];
+                        update = true;
+                    }
+                    byte duration = _config.ROM[track.DataOffset++];
+                    track.Rest += duration;
+                    if (track.PrevCommand == 0 && track.Channel.Key == key)
+                    {
+                        track.NoteDuration += duration;
+                    }
+                    else
+                    {
+                        PlayNote(track, key, duration);
+                    }
+                    break;
+                }
+                case 0xF0: // Voice
+                {
+                    track.Voice = _config.ROM[track.DataOffset++];
+                    break;
+                }
+                case 0xF1: // Volume
+                {
+                    track.Volume = _config.ROM[track.DataOffset++];
                     update = true;
-                    track.Rest += freeNote.Duration;
-                    if (track.PrevCommand is FreeNoteHamtaroCommand && track.Channel.Key == freeNote.Key)
-                    {
-                        track.NoteDuration += freeNote.Duration;
-                    }
-                    else
-                    {
-                        PlayNote(track, freeNote.Key, freeNote.Duration);
-                    }
                     break;
                 }
-                case FreeNoteMLSSCommand freeNote:
+                case 0xF2: // Panpot
                 {
-                    track.Rest += freeNote.Duration;
-                    if (track.PrevCommand is FreeNoteMLSSCommand && track.Channel.Key == freeNote.Key)
-                    {
-                        track.NoteDuration += freeNote.Duration;
-                    }
-                    else
-                    {
-                        PlayNote(track, freeNote.Key, freeNote.Duration);
-                    }
-                    break;
-                }
-                case VoiceCommand voice: track.Voice = voice.Voice; break;
-                case VolumeCommand volume: track.Volume = volume.Volume; update = true; break;
-                case PanpotCommand panpot: track.Panpot = panpot.Panpot; update = true; break;
-                case PitchBendRangeCommand bendRange: track.PitchBendRange = bendRange.Range; update = true; break;
-                case PitchBendCommand bend: track.PitchBend = bend.Bend; update = true; break;
-                case RestCommand rest: track.Rest = rest.Rest; break;
-                case JumpCommand jump:
-                {
-                    track.CurEvent = ev.FindIndex(c => c.Offset == jump.Offset);
-                    increment = false;
-                    break;
-                }
-                case TempoCommand tem: _tempo = tem.Tempo; break;
-                case FinishCommand _: track.Stopped = true; increment = false; break;
-                case NoteHamtaroCommand note:
-                {
-                    track.Volume = note.Volume;
+                    track.Panpot = (sbyte)(_config.ROM[track.DataOffset++] - 0x80);
                     update = true;
-                    track.Rest += note.Duration;
-                    if (track.PrevCommand is FreeNoteHamtaroCommand && track.Channel.Key == note.Key)
-                    {
-                        track.NoteDuration += note.Duration;
-                    }
-                    else
-                    {
-                        PlayNote(track, note.Key, note.Duration);
-                    }
                     break;
                 }
-                case NoteMLSSCommand note:
+                case 0xF4: // Pitch Bend Range
                 {
-                    track.Rest += note.Duration;
-                    if (track.PrevCommand is FreeNoteMLSSCommand && track.Channel.Key == note.Key)
+                    track.PitchBendRange = _config.ROM[track.DataOffset++];
+                    update = true;
+                    break;
+                }
+                case 0xF5: // Pitch Bend
+                {
+                    track.PitchBend = (sbyte)_config.ROM[track.DataOffset++];
+                    update = true;
+                    break;
+                }
+                case 0xF6: // Rest
+                {
+                    track.Rest = _config.ROM[track.DataOffset++];
+                    break;
+                }
+                case 0xF8: // Jump
+                {
+                    short ofs = (short)(_config.ROM[track.DataOffset++] | (_config.ROM[track.DataOffset++] << 8)); // Cast to short is necessary
+                    track.DataOffset += ofs;
+                    break;
+                }
+                case 0xF9: // Track Tempo
+                {
+                    _tempo = _config.ROM[track.DataOffset++];
+                    break;
+                }
+                case 0xFF: // Finish
+                {
+                    track.Stopped = true;
+                    break;
+                }
+                default:
+                {
+                    if (cmd <= 0xDF) // Note
                     {
-                        track.NoteDuration += note.Duration;
-                    }
-                    else
-                    {
-                        PlayNote(track, note.Key, note.Duration);
+                        byte key = _config.ROM[track.DataOffset++];
+                        if (_config.AudioEngineVersion == AudioEngineVersion.Hamtaro)
+                        {
+                            track.Volume = _config.ROM[track.DataOffset++];
+                            update = true;
+                        }
+                        track.Rest += cmd;
+                        if (track.PrevCommand == 0 && track.Channel.Key == key)
+                        {
+                            track.NoteDuration += cmd;
+                        }
+                        else
+                        {
+                            PlayNote(track, key, cmd);
+                        }
                     }
                     break;
                 }
             }
+
             track.PrevCommand = cmd;
-            if (increment)
-            {
-                track.CurEvent++;
-            }
         }
 
         private void Tick()
@@ -598,9 +612,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 {
                     _tempoStack -= 75;
                     bool allDone = true;
-                    for (int i = 0; i < 0x10; i++)
+                    for (int trackIndex = 0; trackIndex < NumTracks; trackIndex++)
                     {
-                        Track track = _tracks[i];
+                        Track track = _tracks[trackIndex];
                         if (track.Enabled)
                         {
                             byte prevDuration = track.NoteDuration;
@@ -608,15 +622,24 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                             bool update = false;
                             while (track.Rest == 0 && !track.Stopped)
                             {
-                                ExecuteNext(i, ref update);
+                                ExecuteNext(track, ref update);
                             }
-                            if (i == _longestTrack)
+                            if (trackIndex == _longestTrack)
                             {
                                 if (ElapsedTicks == MaxTicks)
                                 {
                                     if (!track.Stopped)
                                     {
-                                        ElapsedTicks = Events[i][track.CurEvent].Ticks[0] - track.Rest;
+                                        List<SongEvent> evs = Events[trackIndex];
+                                        for (int i = 0; i < evs.Count; i++)
+                                        {
+                                            SongEvent ev = evs[i];
+                                            if (ev.Offset == track.DataOffset)
+                                            {
+                                                ElapsedTicks = ev.Ticks[0] - track.Rest;
+                                                break;
+                                            }
+                                        }
                                         _elapsedLoops++;
                                         if (ShouldFadeOut && !_mixer.IsFading() && _elapsedLoops > NumLoops)
                                         {

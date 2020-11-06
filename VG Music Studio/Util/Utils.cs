@@ -1,4 +1,5 @@
-﻿using Kermalis.VGMusicStudio.Properties;
+﻿using Kermalis.VGMusicStudio.Core;
+using Kermalis.VGMusicStudio.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -141,7 +142,7 @@ namespace Kermalis.VGMusicStudio.Util
         }
         public static string GetNoteName(int key)
         {
-            return _notes[key % 12] + ((key / 12) - 2);
+            return _notes[key % 12] + ((key / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
         }
 
         public static string CombineWithBaseDirectory(string path)

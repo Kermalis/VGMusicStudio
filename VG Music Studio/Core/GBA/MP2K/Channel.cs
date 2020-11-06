@@ -615,8 +615,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             switch (pattern)
             {
                 default: _pat = Utils.SquareD12; break;
-                case SquarePattern.D12: _pat = Utils.SquareD25; break;
-                case SquarePattern.D25: _pat = Utils.SquareD50; break;
+                case SquarePattern.D25: _pat = Utils.SquareD25; break;
+                case SquarePattern.D50: _pat = Utils.SquareD50; break;
                 case SquarePattern.D75: _pat = Utils.SquareD75; break;
             }
         }

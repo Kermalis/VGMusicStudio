@@ -1,10 +1,11 @@
-TaskbarProgress: True              # True or False
-RefreshRate: 30                    # RefreshRate >= 1 and RefreshRate <= 1000
-CenterIndicators: False            # True or False
-PanpotIndicators: False            # True or False
-PlaylistMode: "Random"             # "Random" or "Sequential"
-PlaylistSongLoops: 0               # Loops >= 0 and Loops <= 9223372036854775807
-PlaylistFadeOutMilliseconds: 10000 # Milliseconds >= 0 and Milliseconds <= 9223372036854775807
+TaskbarProgress: True              # True or False                                             # Whether the taskbar will show the song progress
+RefreshRate: 30                    # RefreshRate >= 1 and RefreshRate <= 1000                  # How many times a second the visual updates
+CenterIndicators: False            # True or False                                             # Whether lines should be drawn for the center of panpot in the visual
+PanpotIndicators: False            # True or False                                             # Whether lines should be drawn for the track's panpot in the visual
+PlaylistMode: "Random"             # "Random" or "Sequential"                                  # The way the playlist will behave
+PlaylistSongLoops: 0               # Loops >= 0 and Loops <= 9223372036854775807               # How many times a song should loop before fading out
+PlaylistFadeOutMilliseconds: 10000 # Milliseconds >= 0 and Milliseconds <= 9223372036854775807 # How many milliseconds it should take to fade out of a song
+MiddleCOctave: 4                   # Octave >= --128 and Octave <= 127                         # The octave that holds middle C. Used in the visual and track viewer
 Colors:
   0: {H: 185, S: 240, L: 180}
   1: {H: 183, S: 240, L: 170}

@@ -3,6 +3,7 @@ using Kermalis.VGMusicStudio.Util;
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -51,7 +52,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         private void WaitThread()
         {
-            if (_thread != null && (_thread.ThreadState == ThreadState.Running || _thread.ThreadState == ThreadState.WaitSleepJoin))
+            if (_thread != null && (_thread.ThreadState == System.Threading.ThreadState.Running || _thread.ThreadState == System.Threading.ThreadState.WaitSleepJoin))
             {
                 _thread.Join();
             }
@@ -82,7 +83,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 ElapsedTicks = 0;
                 while (true)
                 {
-                    SongEvent e = evs.Single(ev => ev.Offset == track.CurOffset);
+                    SongEvent e = evs.Single(ev => ev.Offset == track.DataOffset);
                     if (track.CallStackDepth == 0 && e.Ticks.Count > 0)
                     {
                         break;
@@ -133,7 +134,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             Events = new List<SongEvent>[header.NumTracks];
             for (byte trackIndex = 0; trackIndex < header.NumTracks; trackIndex++)
             {
-                long trackStart = header.TrackOffsets[trackIndex] - GBA.Utils.CartridgeOffset;
+                int trackStart = header.TrackOffsets[trackIndex] - GBA.Utils.CartridgeOffset;
                 _tracks[trackIndex] = new Track(trackIndex, trackStart);
                 Events[trackIndex] = new List<SongEvent>();
                 bool EventExists(long offset)
@@ -646,7 +647,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             if (args.ReverseVolume)
             {
                 baseVolume = Events.SelectMany(e => e).Where(e => e.Command is VolumeCommand).Select(e => ((VolumeCommand)e.Command).Volume).Max();
-                System.Diagnostics.Debug.WriteLine($"Reversing volume back from {baseVolume}.");
+                Debug.WriteLine($"Reversing volume back from {baseVolume}.");
             }
 
             using (var midi = new Sequence(24) { Format = 1 })
@@ -928,7 +929,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             {
                 Track track = _tracks[trackIndex];
                 UI.SongInfoControl.SongInfo.Track tin = info.Tracks[trackIndex];
-                tin.Position = track.CurOffset;
+                tin.Position = track.DataOffset;
                 tin.Rest = track.Rest;
                 tin.Voice = track.Voice;
                 tin.LFO = track.LFODepth;
@@ -1082,15 +1083,15 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         private void ExecuteNext(Track track, ref bool update)
         {
-            byte cmd = _config.ROM[track.CurOffset++];
+            byte cmd = _config.ROM[track.DataOffset++];
             if (cmd >= 0xBD) // Commands that work within running status
             {
                 track.RunCmd = cmd;
             }
             if (track.RunCmd >= 0xCF && cmd <= 0x7F) // Within running status
             {
-                byte peek0 = _config.ROM[track.CurOffset];
-                byte peek1 = _config.ROM[track.CurOffset + 1];
+                byte peek0 = _config.ROM[track.DataOffset];
+                byte peek1 = _config.ROM[track.DataOffset + 1];
                 byte velocity, addedDuration;
                 if (peek0 > 0x7F)
                 {
@@ -1099,13 +1100,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 else if (peek1 > 3)
                 {
-                    track.CurOffset++;
+                    track.DataOffset++;
                     velocity = peek0;
                     addedDuration = 0;
                 }
                 else
                 {
-                    track.CurOffset += 2;
+                    track.DataOffset += 2;
                     velocity = peek0;
                     addedDuration = peek1;
                 }
@@ -1113,9 +1114,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
             else if (cmd >= 0xCF)
             {
-                byte peek0 = _config.ROM[track.CurOffset];
-                byte peek1 = _config.ROM[track.CurOffset + 1];
-                byte peek2 = _config.ROM[track.CurOffset + 2];
+                byte peek0 = _config.ROM[track.DataOffset];
+                byte peek1 = _config.ROM[track.DataOffset + 1];
+                byte peek2 = _config.ROM[track.DataOffset + 2];
                 byte key, velocity, addedDuration;
                 if (peek0 > 0x7F)
                 {
@@ -1125,21 +1126,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 else if (peek1 > 0x7F)
                 {
-                    track.CurOffset++;
+                    track.DataOffset++;
                     key = peek0;
                     velocity = track.PrevVelocity;
                     addedDuration = 0;
                 }
                 else if (cmd == 0xCF || peek2 > 3)
                 {
-                    track.CurOffset += 2;
+                    track.DataOffset += 2;
                     key = peek0;
                     velocity = peek1;
                     addedDuration = 0;
                 }
                 else
                 {
-                    track.CurOffset += 3;
+                    track.DataOffset += 3;
                     key = peek0;
                     velocity = peek1;
                     addedDuration = peek2;
@@ -1220,7 +1221,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xCD:
                     {
-                        track.CurOffset++;
+                        track.DataOffset++;
                         break;
                     }
                     case 0xCE:
@@ -1238,7 +1239,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         track.ReleaseChannels(k);
                         break;
                     }
-                    default: throw new Exception(string.Format(Strings.ErrorMP2KInvalidRunningStatusCommand, track.Index, track.CurOffset, track.RunCmd));
+                    default: throw new Exception(string.Format(Strings.ErrorMP2KInvalidRunningStatusCommand, track.Index, track.DataOffset, track.RunCmd));
                 }
             }
             else if (cmd > 0xB0 && cmd < 0xCF)
@@ -1254,17 +1255,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xB2:
                     {
-                        track.CurOffset = (_config.ROM[track.CurOffset++] | (_config.ROM[track.CurOffset++] << 8) | (_config.ROM[track.CurOffset++] << 16) | (_config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                        track.DataOffset = (_config.ROM[track.DataOffset++] | (_config.ROM[track.DataOffset++] << 8) | (_config.ROM[track.DataOffset++] << 16) | (_config.ROM[track.DataOffset++] << 24)) - GBA.Utils.CartridgeOffset;
                         break;
                     }
                     case 0xB3:
                     {
                         if (track.CallStackDepth < 3)
                         {
-                            long callOffset = (_config.ROM[track.CurOffset++] | (_config.ROM[track.CurOffset++] << 8) | (_config.ROM[track.CurOffset++] << 16) | (_config.ROM[track.CurOffset++] << 24)) - GBA.Utils.CartridgeOffset;
-                            track.CallStack[track.CallStackDepth] = track.CurOffset;
+                            int callOffset = (_config.ROM[track.DataOffset++] | (_config.ROM[track.DataOffset++] << 8) | (_config.ROM[track.DataOffset++] << 16) | (_config.ROM[track.DataOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                            track.CallStack[track.CallStackDepth] = track.DataOffset;
                             track.CallStackDepth++;
-                            track.CurOffset = callOffset;
+                            track.DataOffset = callOffset;
                         }
                         else
                         {
@@ -1277,7 +1278,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         if (track.CallStackDepth != 0)
                         {
                             track.CallStackDepth--;
-                            track.CurOffset = track.CallStack[track.CallStackDepth];
+                            track.DataOffset = track.CallStack[track.CallStackDepth];
                         }
                         break;
                     }
@@ -1293,58 +1294,58 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }*/
                     case 0xB9:
                     {
-                        track.CurOffset += 3;
+                        track.DataOffset += 3;
                         break;
                     }
                     case 0xBA:
                     {
-                        track.Priority = _config.ROM[track.CurOffset++];
+                        track.Priority = _config.ROM[track.DataOffset++];
                         break;
                     }
                     case 0xBB:
                     {
-                        _tempo = (ushort)(_config.ROM[track.CurOffset++] * 2);
+                        _tempo = (ushort)(_config.ROM[track.DataOffset++] * 2);
                         break;
                     }
                     case 0xBC:
                     {
-                        track.Transpose = (sbyte)_config.ROM[track.CurOffset++];
+                        track.Transpose = (sbyte)_config.ROM[track.DataOffset++];
                         break;
                     }
                     // Commands that work within running status:
                     case 0xBD:
                     {
-                        track.Voice = _config.ROM[track.CurOffset++];
+                        track.Voice = _config.ROM[track.DataOffset++];
                         track.Ready = true;
                         break;
                     }
                     case 0xBE:
                     {
-                        track.Volume = _config.ROM[track.CurOffset++];
+                        track.Volume = _config.ROM[track.DataOffset++];
                         update = true;
                         break;
                     }
                     case 0xBF:
                     {
-                        track.Panpot = (sbyte)(_config.ROM[track.CurOffset++] - 0x40);
+                        track.Panpot = (sbyte)(_config.ROM[track.DataOffset++] - 0x40);
                         update = true;
                         break;
                     }
                     case 0xC0:
                     {
-                        track.PitchBend = (sbyte)(_config.ROM[track.CurOffset++] - 0x40);
+                        track.PitchBend = (sbyte)(_config.ROM[track.DataOffset++] - 0x40);
                         update = true;
                         break;
                     }
                     case 0xC1:
                     {
-                        track.PitchBendRange = _config.ROM[track.CurOffset++];
+                        track.PitchBendRange = _config.ROM[track.DataOffset++];
                         update = true;
                         break;
                     }
                     case 0xC2:
                     {
-                        track.LFOSpeed = _config.ROM[track.CurOffset++];
+                        track.LFOSpeed = _config.ROM[track.DataOffset++];
                         track.LFOPhase = 0;
                         track.LFODelayCount = 0;
                         update = true;
@@ -1352,7 +1353,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xC3:
                     {
-                        track.LFODelay = _config.ROM[track.CurOffset++];
+                        track.LFODelay = _config.ROM[track.DataOffset++];
                         track.LFOPhase = 0;
                         track.LFODelayCount = 0;
                         update = true;
@@ -1360,37 +1361,37 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xC4:
                     {
-                        track.LFODepth = _config.ROM[track.CurOffset++];
+                        track.LFODepth = _config.ROM[track.DataOffset++];
                         update = true;
                         break;
                     }
                     case 0xC5:
                     {
-                        track.LFOType = (LFOType)_config.ROM[track.CurOffset++];
+                        track.LFOType = (LFOType)_config.ROM[track.DataOffset++];
                         update = true;
                         break;
                     }
                     case 0xC8:
                     {
-                        track.Tune = (sbyte)(_config.ROM[track.CurOffset++] - 0x40);
+                        track.Tune = (sbyte)(_config.ROM[track.DataOffset++] - 0x40);
                         update = true;
                         break;
                     }
                     case 0xCD:
                     {
-                        track.CurOffset += 2;
+                        track.DataOffset += 2;
                         break;
                     }
                     case 0xCE:
                     {
-                        byte peek = _config.ROM[track.CurOffset];
+                        byte peek = _config.ROM[track.DataOffset];
                         if (peek > 0x7F)
                         {
                             track.ReleaseChannels(track.PrevKey);
                         }
                         else
                         {
-                            track.CurOffset++;
+                            track.DataOffset++;
                             track.PrevKey = peek;
                             int k = peek + track.Transpose;
                             if (k < 0)
@@ -1405,7 +1406,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                         }
                         break;
                     }
-                    default: throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, track.Index, track.CurOffset, cmd));
+                    default: throw new Exception(string.Format(Strings.ErrorAlphaDreamDSEMP2KSDATInvalidCommand, track.Index, track.DataOffset, cmd));
                 }
             }
         }
@@ -1451,7 +1452,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     for (int i = 0; i < evs.Count; i++)
                                     {
                                         SongEvent ev = evs[i];
-                                        if (ev.Offset == track.CurOffset)
+                                        if (ev.Offset == track.DataOffset)
                                         {
                                             ElapsedTicks = ev.Ticks[0] - track.Rest;
                                             break;

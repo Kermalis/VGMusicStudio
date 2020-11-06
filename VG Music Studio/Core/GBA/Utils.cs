@@ -7,5 +7,7 @@
 
         public const int CartridgeOffset = 0x08000000;
         public const int CartridgeCapacity = 0x02000000;
+
+        public static readonly string[] PSGTypes = new string[4] { "Square 1", "Square 2", "PCM4", "Noise" };
     }
 }

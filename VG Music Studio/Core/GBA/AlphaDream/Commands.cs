@@ -86,10 +86,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         public byte Rest { get; set; }
     }
-    internal class TempoCommand : ICommand
+    internal class TrackTempoCommand : ICommand
     {
         public Color Color => Color.DeepSkyBlue;
-        public string Label => "Tempo";
+        public string Label => "Track Tempo";
         public string Arguments => Tempo.ToString();
 
         public byte Tempo { get; set; }

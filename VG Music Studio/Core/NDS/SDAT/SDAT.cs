@@ -50,7 +50,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             public void Read(EndianBinaryReader er)
             {
                 long baseOffset = er.BaseStream.Position;
-                BlockType = er.ReadString(4);
+                BlockType = er.ReadString(4, false);
                 BlockSize = er.ReadInt32();
                 RecordOffsets = er.ReadInt32s(8);
                 Padding = er.ReadBytes(24);
@@ -70,7 +70,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public class INFO : IBinarySerializable
         {
-            public class Record<T>
+            public class Record<T> where T : new()
             {
                 public int NumEntries;
                 public int[] EntryOffsets;
@@ -139,7 +139,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
             public void Read(EndianBinaryReader er)
             {
                 long baseOffset = er.BaseStream.Position;
-                BlockType = er.ReadString(4);
+                BlockType = er.ReadString(4, false);
                 BlockSize = er.ReadInt32();
                 InfoOffsets = er.ReadInt32s(8);
                 er.ReadBytes(24);

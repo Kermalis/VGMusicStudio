@@ -15,8 +15,9 @@
         public sbyte Panpot;
         public bool Enabled;
         public bool Stopped;
-        public int CurEvent;
-        public ICommand PrevCommand;
+        public int StartOffset;
+        public int DataOffset;
+        public byte PrevCommand;
 
         public int GetPitch()
         {
@@ -26,22 +27,32 @@
         public Track(byte i, Mixer mixer)
         {
             Index = i;
-            // TODO: PSG Channels 3 and 4 are also usable
-            Type = i >= 8 ? i % 2 == 0 ? "Square 1" : "Square 2" : "PCM8";
-            Channel = i >= 8 ? (Channel)new SquareChannel(mixer) : new PCMChannel(mixer);
+            if (i >= 8)
+            {
+                Type = Utils.PSGTypes[i & 3];
+                Channel = new SquareChannel(mixer); // TODO: PSG Channels 3 and 4
+            }
+            else
+            {
+                Type = "PCM8";
+                Channel = new PCMChannel(mixer);
+            }
         }
+        // 0x819B040
         public void Init()
         {
             Voice = 0;
-            Rest = 0;
+            Rest = 1; // Unsure why Rest starts at 1
             PitchBendRange = 2;
             NoteDuration = 0;
             PitchBend = 0;
-            Panpot = 0;
-            CurEvent = 0;
+            Panpot = 0; // Start centered; ROM sets this to 0x7F since it's unsigned there
+            DataOffset = StartOffset;
             Stopped = false;
-            Volume = 0x7F;
-            PrevCommand = null;
+            Volume = 200;
+            PrevCommand = 0xFF;
+            //Tempo = 120;
+            //TempoStack = 0;
         }
         public void Tick()
         {

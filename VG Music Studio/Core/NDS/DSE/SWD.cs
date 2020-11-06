@@ -325,7 +325,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
         {
             using (var reader = new EndianBinaryReader(new MemoryStream(File.ReadAllBytes(path))))
             {
-                Type = reader.ReadString(4);
+                Type = reader.ReadString(4, false);
                 Unknown = reader.ReadBytes(4);
                 Length = reader.ReadUInt32();
                 Version = reader.ReadUInt16();
@@ -362,7 +362,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             reader.BaseStream.Position = 0;
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                string str = reader.ReadString(4);
+                string str = reader.ReadString(4, false);
                 if (str == chunk)
                 {
                     pos = reader.BaseStream.Position - 4;
@@ -394,7 +394,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             return pos;
         }
 
-        private static SampleBlock[] ReadSamples<T>(EndianBinaryReader reader, int numWAVISlots) where T : IWavInfo
+        private static SampleBlock[] ReadSamples<T>(EndianBinaryReader reader, int numWAVISlots) where T : IWavInfo, new()
         {
             long waviChunkOffset = FindChunk(reader, "wavi");
             long pcmdChunkOffset = FindChunk(reader, "pcmd");
@@ -423,7 +423,7 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
                 return samples;
             }
         }
-        private static ProgramBank ReadPrograms<T>(EndianBinaryReader reader, int numPRGISlots) where T : IProgramInfo
+        private static ProgramBank ReadPrograms<T>(EndianBinaryReader reader, int numPRGISlots) where T : IProgramInfo, new()
         {
             long chunkOffset = FindChunk(reader, "prgi");
             if (chunkOffset == -1)

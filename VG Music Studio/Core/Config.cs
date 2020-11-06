@@ -19,7 +19,7 @@ namespace Kermalis.VGMusicStudio.Core
 
             public override bool Equals(object obj)
             {
-                return !(obj is Song other) ? false : other.Index == Index;
+                return obj is Song other && other.Index == Index;
             }
             public override int GetHashCode()
             {
@@ -67,6 +67,22 @@ namespace Kermalis.VGMusicStudio.Core
 
         public List<Playlist> Playlists = new List<Playlist>();
 
+        public Song GetFirstSong(long index)
+        {
+            foreach (Playlist p in Playlists)
+            {
+                foreach (Song s in p.Songs)
+                {
+                    if (s.Index == index)
+                    {
+                        return s;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public abstract string GetGameName();
         public abstract string GetSongName(long index);
 
         public virtual void Dispose() { }

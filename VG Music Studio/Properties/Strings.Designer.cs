@@ -304,11 +304,29 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error Exporting DLS.
+        /// </summary>
+        internal static string ErrorSaveDLS {
+            get {
+                return ResourceManager.GetString("ErrorSaveDLS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error Exporting MIDI.
         /// </summary>
         internal static string ErrorSaveMIDI {
             get {
                 return ResourceManager.GetString("ErrorSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error Exporting SF2.
+        /// </summary>
+        internal static string ErrorSaveSF2 {
+            get {
+                return ResourceManager.GetString("ErrorSaveSF2", resourceCulture);
             }
         }
         
@@ -367,11 +385,29 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DLS Files.
+        /// </summary>
+        internal static string FilterSaveDLS {
+            get {
+                return ResourceManager.GetString("FilterSaveDLS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MIDI Files.
         /// </summary>
         internal static string FilterSaveMIDI {
             get {
                 return ResourceManager.GetString("FilterSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SF2 Files.
+        /// </summary>
+        internal static string FilterSaveSF2 {
+            get {
+                return ResourceManager.GetString("FilterSaveSF2", resourceCulture);
             }
         }
         
@@ -457,11 +493,29 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export VoiceTable as DLS.
+        /// </summary>
+        internal static string MenuSaveDLS {
+            get {
+                return ResourceManager.GetString("MenuSaveDLS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Export Song as MIDI.
         /// </summary>
         internal static string MenuSaveMIDI {
             get {
                 return ResourceManager.GetString("MenuSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export VoiceTable as SF2.
+        /// </summary>
+        internal static string MenuSaveSF2 {
+            get {
+                return ResourceManager.GetString("MenuSaveSF2", resourceCulture);
             }
         }
         
@@ -601,11 +655,29 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to VoiceTable saved to {0}..
+        /// </summary>
+        internal static string SuccessSaveDLS {
+            get {
+                return ResourceManager.GetString("SuccessSaveDLS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MIDI saved to {0}..
         /// </summary>
         internal static string SuccessSaveMIDI {
             get {
                 return ResourceManager.GetString("SuccessSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VoiceTable saved to {0}..
+        /// </summary>
+        internal static string SuccessSaveSF2 {
+            get {
+                return ResourceManager.GetString("SuccessSaveSF2", resourceCulture);
             }
         }
         

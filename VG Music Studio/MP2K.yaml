@@ -142,6 +142,72 @@ AEFJ_00:
   Volume: 13
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+AFXE_00:
+  Name: "Final Fantasy Tactics Advance (USA)"
+  SongTableOffsets: 0x14BB48
+  SongTableSizes: 640
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+  Playlists:
+    Music (OST Order):
+      42: "Main Theme"
+      24: "Snow Dancing in the Schoolyard"
+      33: "Companions That Surpassed Their Tribe"
+      20: "Magic Beast Farm"
+      17: "Crystal"
+      25: "Undeniable Anxiety"
+      36: "Amber Valley"
+      6: "Bell of Victory (Fanfare)"
+      15: "At the Bar"
+      12: "Different World Ivalice"
+      10: "Engange (Fanfare)"
+      0: "Gathering Allies"
+      11: "Walking in Ivalice"
+      4: "Wind of Hope (Fanfare)"
+      14: "Teach Me, Mont Blanc"
+      9: "Wounded Comrades (Fanfare)"
+      39: "Undefeated Heart"
+      2: "Gained Fruit (Fanfare)"
+      28: "Marche"
+      37: "Painful Battle"
+      5: "Notice of Retreat (Fanfare)"
+      7: "Sleep of Defeat (Fanfare)"
+      21: "Prison"
+      40: "Surpassing The Wall"
+      3: "Exhausted Ones (Fanfare)"
+      29: "Mewt"
+      35: "Battle Of Hope"
+      8: "Level Up (Fanfare)"
+      22: "Law Card"
+      30: "Ritz"
+      19: "Mysterious Shop"
+      34: "The Road We Both Aim For"
+      16: "Wind of Liberation (Fanfare)"
+      27: "Confusion"
+      23: "Judge (Fanfare)"
+      38: "Beyond The Wasteland"
+      26: "The World Starting To Move"
+      41: "Unavoidable Destiny"
+      45: "Incarnation"
+      31: "Vanishing World"
+      32: "A Place We Should Return To"
+      47: "Fulfilled Dream Segment"
+    Music (Bonus):
+      13: "Main Theme (Beta Version)"
+      48: "St Ivalice Turns Into Ivalice"
+      49: "Save Menu Theme"
+AFXJ_00:
+  Name: "Final Fantasy Tactics Advance (Japan)"
+  SongTableOffsets: 0x1401A8
+  Copy: "AFXE_00"
+AFXP_00:
+  Name: "Final Fantasy Tactics Advance (Europe)"
+  SongTableOffsets: 0x14F540
+  Copy: "AFXE_00"
 AGFD_00:
   Name: "Golden Sun: The Lost Age (Germany)"
   Copy: "AGFE_00"
@@ -1311,3 +1377,41 @@ BZMP_00:
   Name: "The Legend of Zelda: The Minish Cap (Europe)"
   SongTableOffsets: 0xB1D414
   Copy: "BZME_00"
+U32E_00:
+  Name: "Boktai 2 - Solar Boy Django (USA)"
+  SongTableOffsets: 0x25EEA8
+  SongTableSizes: 1000
+  SampleRate: 6
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+U32P_00:
+  Name: "Boktai 2 - Solar Boy Django (Europe)"
+  SongTableOffsets: 0x264758
+  Copy: "U32E_00"
+U3IE_00:
+  Name: "Boktai - The Sun is in Your Hand (USA)"
+  SongTableOffsets: 0x1EC904
+  SongTableSizes: 906
+  SampleRate: 6
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+U3IP_00:
+  Name: "Boktai - The Sun is in Your Hand (Europe)"
+  SongTableOffsets: 0x1E7604
+  Copy: "U3IE_00"
+U33J_00:
+  Name: "Boktai 3 - Sabata's Counterattack (Japan)"
+  SongTableOffsets: 0x26456C
+  SongTableSizes: 1483
+  SampleRate: 6
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False

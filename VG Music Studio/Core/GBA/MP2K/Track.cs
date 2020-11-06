@@ -5,7 +5,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     internal class Track
     {
         public readonly byte Index;
-        private readonly long _startOffset;
+        private readonly int _startOffset;
         public byte Voice;
         public byte PitchBendRange;
         public byte Priority;
@@ -23,8 +23,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public sbyte Transpose;
         public bool Ready;
         public bool Stopped;
-        public long CurOffset;
-        public long[] CallStack = new long[3];
+        public int DataOffset;
+        public int[] CallStack = new int[3];
         public byte CallStackDepth;
         public byte RunCmd;
         public byte PrevKey;
@@ -66,7 +66,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             return (sbyte)p;
         }
 
-        public Track(byte i, long startOffset)
+        public Track(byte i, int startOffset)
         {
             Index = i;
             _startOffset = startOffset;
@@ -85,7 +85,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             Tune = 0;
             Panpot = 0;
             Transpose = 0;
-            CurOffset = _startOffset;
+            DataOffset = _startOffset;
             RunCmd = 0;
             PrevKey = 0;
             PrevVelocity = 0x7F;
@@ -103,6 +103,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             {
                 Rest--;
             }
+            if (LFODepth > 0)
+            {
+                LFOPhase += LFOSpeed;
+            }
+            else
+            {
+                LFOPhase = 0;
+            }
             int active = 0;
             Channel[] chans = Channels.ToArray();
             for (int i = 0; i < chans.Length; i++)
@@ -119,15 +127,14 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     LFODelayCount--;
                     LFOPhase = 0;
                 }
-                else
-                {
-                    LFOPhase += LFOSpeed;
-                }
             }
             else
             {
-                LFOPhase = 0;
                 LFODelayCount = LFODelay;
+            }
+            if ((LFODelay == LFODelayCount && LFODelay != 0) || LFOSpeed == 0)
+            {
+                LFOPhase = 0;
             }
         }
 
