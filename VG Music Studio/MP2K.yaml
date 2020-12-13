@@ -18,6 +18,21 @@ A3UJ_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+A4AE_00:
+  Name: "The Simpson's Road Rage (USA)"
+  SongTableOffsets: 0x125FD8
+  SongTableSizes: 112
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 11
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+A4AX_00:
+  Name: "The Simpson's Road Rage (Europe)"
+  SongTableOffsets: 0x1281D0
+  SongTableSizes: 113
+  Copy: "A4AE_00"
 A7KE_00:
   Name: "Kirby: Nightmare in Dream Land (USA)"
   SongTableOffsets: 0x60B460
