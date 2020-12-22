@@ -1354,6 +1354,7 @@ BPRE_00:
       335: "Sevii Islands: One, Two & Three Islands"
       344: "Trainer Tower"
 BPRE_01:
+  SongTableOffsets: 0x4A332C
   Copy: "BPRE_00"
 BPRF_00:
   Name: "Pokémon Fire Red Version (France)"
