@@ -1431,3 +1431,13 @@ U33J_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+V49E_00:
+  Name: "Drill Dozer (USA)"
+  SongTableOffsets: 0x5079B8
+  SongTableSizes: 387
+  SampleRate: 3
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 10
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
