@@ -11,6 +11,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         public Note Note; // Must be a struct & field
         protected ADSR _adsr;
+        protected int _instPan;
 
         protected byte _velocity;
         protected int _pos;
@@ -83,7 +84,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         private sbyte[] _decompressedSample;
 
         public PCM8Channel(Mixer mixer) : base(mixer) { }
-        public void Init(Track owner, Note note, ADSR adsr, int sampleOffset, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed)
+        public void Init(Track owner, Note note, ADSR adsr, int sampleOffset, byte vol, sbyte pan, int instPan, int pitch, bool bFixed, bool bCompressed)
         {
             State = EnvelopeState.Initializing;
             _pos = 0; _interPos = 0;
@@ -95,6 +96,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             Owner.Channels.Add(this);
             Note = note;
             _adsr = adsr;
+            _instPan = instPan;
             _sampleHeader = _mixer.Config.Reader.ReadObject<SampleHeader>(sampleOffset);
             _sampleOffset = sampleOffset + 0x10;
             _bFixed = bFixed;
@@ -120,12 +122,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public override void SetVolume(byte vol, sbyte pan)
         {
+            int combinedPan = pan + _instPan;
+            if (combinedPan > 63)
+            {
+                combinedPan = 63;
+            }
+            else if (combinedPan < -64)
+            {
+                combinedPan = -64;
+            }
             const int fix = 0x2000;
             if (State < EnvelopeState.Releasing)
             {
                 int a = Note.Velocity * vol;
-                _leftVol = (byte)(a * (-pan + 0x40) / fix);
-                _rightVol = (byte)(a * (pan + 0x40) / fix);
+                _leftVol = (byte)(a * (-combinedPan + 0x40) / fix);
+                _rightVol = (byte)(a * (combinedPan + 0x40) / fix);
             }
         }
         public override void SetPitch(int pitch)
@@ -346,7 +357,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         protected GBPan _panpot = GBPan.Center;
 
         public PSGChannel(Mixer mixer) : base(mixer) { }
-        protected void Init(Track owner, Note note, ADSR env)
+        protected void Init(Track owner, Note note, ADSR env, int instPan)
         {
             State = EnvelopeState.Initializing;
             if (Owner != null)
@@ -360,6 +371,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             _adsr.D = (byte)(env.D & 0x7);
             _adsr.S = (byte)(env.S & 0xF);
             _adsr.R = (byte)(env.R & 0x7);
+            _instPan = instPan;
         }
 
         public override void Release()
@@ -424,9 +436,18 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         }
         public override void SetVolume(byte vol, sbyte pan)
         {
+            int combinedPan = pan + _instPan;
+            if (combinedPan > 63)
+            {
+                combinedPan = 63;
+            }
+            else if (combinedPan < -64)
+            {
+                combinedPan = -64;
+            }
             if (State < EnvelopeState.Releasing)
             {
-                _panpot = pan < -21 ? GBPan.Left : pan > 20 ? GBPan.Right : GBPan.Center;
+                _panpot = combinedPan < -21 ? GBPan.Left : combinedPan > 20 ? GBPan.Right : GBPan.Center;
                 _peakVelocity = (byte)((Note.Velocity * vol) >> 10);
                 _sustainVelocity = (byte)(((_peakVelocity * _adsr.S) + 0xF) >> 4); // TODO
                 if (State == EnvelopeState.Playing)
@@ -609,9 +630,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         private float[] _pat;
 
         public SquareChannel(Mixer mixer) : base(mixer) { }
-        public void Init(Track owner, Note note, ADSR env, SquarePattern pattern)
+        public void Init(Track owner, Note note, ADSR env, int instPan, SquarePattern pattern)
         {
-            Init(owner, note, env);
+            Init(owner, note, env, instPan);
             switch (pattern)
             {
                 default: _pat = Utils.SquareD12; break;
@@ -657,9 +678,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         private float[] _sample;
 
         public PCM4Channel(Mixer mixer) : base(mixer) { }
-        public void Init(Track owner, Note note, ADSR env, int sampleOffset)
+        public void Init(Track owner, Note note, ADSR env, int instPan, int sampleOffset)
         {
-            Init(owner, note, env);
+            Init(owner, note, env, instPan);
             _sample = Utils.PCM4ToFloat(sampleOffset);
         }
 
@@ -699,9 +720,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         private BitArray _pat;
 
         public NoiseChannel(Mixer mixer) : base(mixer) { }
-        public void Init(Track owner, Note note, ADSR env, NoisePattern pattern)
+        public void Init(Track owner, Note note, ADSR env, int instPan, NoisePattern pattern)
         {
-            Init(owner, note, env);
+            Init(owner, note, env, instPan);
             _pat = pattern == NoisePattern.Fine ? Utils.NoiseFine : Utils.NoiseRough;
         }
 

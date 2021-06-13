@@ -62,7 +62,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             CloseWaveWriter();
         }
 
-        public PCM8Channel AllocPCM8Channel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
+        public PCM8Channel AllocPCM8Channel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int instPan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
         {
             PCM8Channel nChn = null;
             IOrderedEnumerable<PCM8Channel> byOwner = _pcm8Channels.OrderByDescending(c => c.Owner == null ? 0xFF : c.Owner.Index);
@@ -106,11 +106,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
             }
             if (nChn != null) // Could still be null from the above if
             {
-                nChn.Init(owner, note, env, sampleOffset, vol, pan, pitch, bFixed, bCompressed);
+                nChn.Init(owner, note, env, sampleOffset, vol, pan, instPan, pitch, bFixed, bCompressed);
             }
             return nChn;
         }
-        public PSGChannel AllocPSGChannel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int pitch, VoiceType type, object arg)
+        public PSGChannel AllocPSGChannel(Track owner, ADSR env, Note note, byte vol, sbyte pan, int instPan, int pitch, VoiceType type, object arg)
         {
             PSGChannel nChn;
             switch (type)
@@ -122,7 +122,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     {
                         return null;
                     }
-                    _sq1.Init(owner, note, env, (SquarePattern)arg);
+                    _sq1.Init(owner, note, env, instPan, (SquarePattern)arg);
                     break;
                 }
                 case VoiceType.Square2:
@@ -132,7 +132,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     {
                         return null;
                     }
-                    _sq2.Init(owner, note, env, (SquarePattern)arg);
+                    _sq2.Init(owner, note, env, instPan, (SquarePattern)arg);
                     break;
                 }
                 case VoiceType.PCM4:
@@ -142,7 +142,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     {
                         return null;
                     }
-                    _pcm4.Init(owner, note, env, (int)arg);
+                    _pcm4.Init(owner, note, env, instPan, (int)arg);
                     break;
                 }
                 case VoiceType.Noise:
@@ -152,7 +152,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     {
                         return null;
                     }
-                    _noise.Init(owner, note, env, (NoisePattern)arg);
+                    _noise.Init(owner, note, env, instPan, (NoisePattern)arg);
                     break;
                 }
                 default: return null;

@@ -1043,6 +1043,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             Key = fromDrum ? v.RootKey : key
                         };
                         var type = (VoiceType)(v.Type & 0x7);
+                        int instPan = v.Pan;
+                        instPan = (instPan & 0x80) != 0 ? instPan - 0xC0 : 0;
                         switch (type)
                         {
                             case VoiceType.PCM8:
@@ -1050,7 +1052,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 bool bFixed = (v.Type & (int)VoiceFlags.Fixed) != 0;
                                 bool bCompressed = _config.HasPokemonCompression && ((v.Type & (int)VoiceFlags.Compressed) != 0);
                                 _mixer.AllocPCM8Channel(track, v.ADSR, note,
-                                    track.GetVolume(), track.GetPanpot(), track.GetPitch(),
+                                    track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
                                     bFixed, bCompressed, v.Int4 - GBA.Utils.CartridgeOffset);
                                 return;
                             }
@@ -1058,21 +1060,21 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             case VoiceType.Square2:
                             {
                                 _mixer.AllocPSGChannel(track, v.ADSR, note,
-                                    track.GetVolume(), track.GetPanpot(), track.GetPitch(),
+                                    track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
                                     type, (SquarePattern)v.Int4);
                                 return;
                             }
                             case VoiceType.PCM4:
                             {
                                 _mixer.AllocPSGChannel(track, v.ADSR, note,
-                                    track.GetVolume(), track.GetPanpot(), track.GetPitch(),
+                                    track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
                                     type, v.Int4 - GBA.Utils.CartridgeOffset);
                                 return;
                             }
                             case VoiceType.Noise:
                             {
                                 _mixer.AllocPSGChannel(track, v.ADSR, note,
-                                    track.GetVolume(), track.GetPanpot(), track.GetPitch(),
+                                    track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
                                     type, (NoisePattern)v.Int4);
                                 return;
                             }

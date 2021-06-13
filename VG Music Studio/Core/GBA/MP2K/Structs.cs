@@ -24,8 +24,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public byte Type { get; set; } // 0
         public byte RootKey { get; set; } // 1
         public byte Unknown { get; set; } // 2
-        /// <summary>Panpot for PCM8/Noise, Sweep for Square1</summary>
-        public byte Byte3 { get; set; } // 3
+        public byte Pan { get; set; } // 3
         /// <summary>SquarePattern for Square1/Square2, NoisePattern for Noise, Address for PCM8/PCM4/KeySplit/Drum</summary>
         public int Int4 { get; set; } // 4
         /// <summary>ADSR for PCM8/Square1/Square2/PCM4/Noise, KeysAddress for KeySplit</summary>
