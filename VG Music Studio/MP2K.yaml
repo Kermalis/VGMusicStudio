@@ -1196,6 +1196,20 @@ BPES_00:
   Name: "Pokémon Emerald Version (Spain)"
   SongTableOffsets: 0x6B6FA4
   Copy: "BPEE_00"
+BPFJ_00:
+  Name: "Puyo Pop Fever (Japan)"
+  SongTableOffsets: 0xA4B64
+  Copy: "BPFP_00"
+BPFP_00:
+  Name: "Puyo Pop Fever (USA)"
+  SongTableOffsets: 0xA0994
+  SongTableSizes: 1436
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 BPGD_00:
   Name: "Pokémon Leaf Green Version (Germany)"
   SongTableOffsets: 0x4A0A5C
