@@ -21,8 +21,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public Mixer(Config config)
         {
             Config = config;
-            const int sampleRate = 13379; // TODO: Actual value unknown
-            SamplesPerBuffer = 224; // TODO
+            const int sampleRate = 26758; // TODO: Actual value unknown
+            SamplesPerBuffer = 448; // TODO
             SampleRateReciprocal = 1f / sampleRate;
             _samplesReciprocal = 1f / SamplesPerBuffer;
 
