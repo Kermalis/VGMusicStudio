@@ -810,7 +810,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             case PitchBendRangeCommand bendr:
                             {
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 20, bendr.Range));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, (int)ControllerType.RegisteredParameterCoarse, 0));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, (int)ControllerType.RegisteredParameterFine, 0));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, (int)ControllerType.DataEntrySlider, bendr.Range));
                                 break;
                             }
                             case PriorityCommand prio:
