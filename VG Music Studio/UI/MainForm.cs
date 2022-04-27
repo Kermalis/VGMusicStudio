@@ -521,6 +521,7 @@ namespace Kermalis.VGMusicStudio.UI
             if (d.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 var p = (Core.GBA.MP2K.Player)Engine.Instance.Player;
+                Stop();
                 var args = new Core.GBA.MP2K.Player.MIDISaveArgs
                 {
                     SaveCommandsBeforeTranspose = true,
@@ -555,6 +556,15 @@ namespace Kermalis.VGMusicStudio.UI
                     }
                 }
                 FlexibleMessageBox.Show(Strings.SuccessSaveMIDIBatch, Text);
+                long oldIndex = (long)_songNumerical.Value;
+                try
+                {
+                    Engine.Instance.Player.LoadSong(oldIndex);
+                }
+                catch (Exception ex)
+                {
+                    FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorLoadSong, Engine.Instance.Config.GetSongName(oldIndex)));
+                }
             }
         }
         private void ExportSF2(object sender, EventArgs e)
