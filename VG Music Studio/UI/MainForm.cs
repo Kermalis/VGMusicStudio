@@ -555,7 +555,7 @@ namespace Kermalis.VGMusicStudio.UI
                         FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorSaveMIDIBatch, i));
                     }
                 }
-                FlexibleMessageBox.Show(Strings.SuccessSaveMIDIBatch, Text);
+                FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDIBatch, d.FileName), Text);
                 long oldIndex = (long)_songNumerical.Value;
                 try
                 {

@@ -352,6 +352,6 @@
     <value>Esporta tutto Brano in MIDI</value>
   </data>
   <data name="SuccessSaveMIDIBatch" xml:space="preserve">
-    <value>MIDI tutto salvato.</value>
+    <value>MIDIs salvato in {0}.</value>
   </data>
 </root>

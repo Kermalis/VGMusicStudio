@@ -352,6 +352,6 @@
     <value>Exportar todo Canción como MIDI</value>
   </data>
   <data name="SuccessSaveMIDIBatch" xml:space="preserve">
-    <value>MIDI todo guardado.</value>
+    <value>MIDIs guardado en {0}.</value>
   </data>
 </root>

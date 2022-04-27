@@ -691,7 +691,7 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MIDI all saved..
+        ///   Looks up a localized string similar to MIDIs saved to {0}..
         /// </summary>
         internal static string SuccessSaveMIDIBatch {
             get {
