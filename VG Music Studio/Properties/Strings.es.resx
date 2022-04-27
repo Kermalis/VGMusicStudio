@@ -345,4 +345,13 @@
   <data name="SuccessSaveDLS" xml:space="preserve">
     <value>DLS guardado en {0}.</value>
   </data>
+  <data name="ErrorSaveMIDIBatch" xml:space="preserve">
+    <value>Error al Exportar MIDI {0}</value>
+  </data>
+  <data name="MenuSaveMIDIBatch" xml:space="preserve">
+    <value>Exportar todo Canción como MIDI</value>
+  </data>
+  <data name="SuccessSaveMIDIBatch" xml:space="preserve">
+    <value>MIDI todo guardado.</value>
+  </data>
 </root>

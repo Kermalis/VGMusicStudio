@@ -35,7 +35,7 @@ namespace Kermalis.VGMusicStudio.UI
 
         private readonly MenuStrip _mainMenu;
         private readonly ToolStripMenuItem _fileItem, _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openSDATItem,
-            _dataItem, _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem,
+            _dataItem, _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportMIDIBatchItem, _exportSF2Item, _exportWAVItem,
             _playlistItem, _endPlaylistItem;
         private readonly Timer _timer;
         private readonly ThemedNumeric _songNumerical;
@@ -83,12 +83,14 @@ namespace Kermalis.VGMusicStudio.UI
             _exportDLSItem.Click += ExportDLS;
             _exportMIDIItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDI };
             _exportMIDIItem.Click += ExportMIDI;
+            _exportMIDIBatchItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveMIDIBatch };
+            _exportMIDIBatchItem.Click += ExportMIDIBatch;
             _exportSF2Item = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveSF2 };
             _exportSF2Item.Click += ExportSF2;
             _exportWAVItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuSaveWAV };
             _exportWAVItem.Click += ExportWAV;
             _dataItem = new ToolStripMenuItem { Text = Strings.MenuData };
-            _dataItem.DropDownItems.AddRange(new ToolStripItem[] { _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportSF2Item, _exportWAVItem });
+            _dataItem.DropDownItems.AddRange(new ToolStripItem[] { _trackViewerItem, _exportDLSItem, _exportMIDIItem, _exportMIDIBatchItem, _exportSF2Item, _exportWAVItem });
 
             // Playlist Menu
             _endPlaylistItem = new ToolStripMenuItem { Enabled = false, Text = Strings.MenuEndPlaylist };
@@ -241,6 +243,7 @@ namespace Kermalis.VGMusicStudio.UI
             int numTracks = (Engine.Instance.Player.Events?.Length).GetValueOrDefault();
             _positionBar.Enabled = _exportWAVItem.Enabled = success && numTracks > 0;
             _exportMIDIItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K && numTracks > 0;
+            _exportMIDIBatchItem.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_MP2K;
             _exportDLSItem.Enabled = _exportSF2Item.Enabled = success && Engine.Instance.Type == Engine.EngineType.GBA_AlphaDream;
 
             _autoplay = true;
@@ -343,6 +346,7 @@ namespace Kermalis.VGMusicStudio.UI
                     _songNumerical.Visible = false;
                     _exportDLSItem.Visible = false;
                     _exportMIDIItem.Visible = false;
+                    _exportMIDIBatchItem.Visible = false;
                     _exportSF2Item.Visible = false;
                 }
             }
@@ -375,6 +379,7 @@ namespace Kermalis.VGMusicStudio.UI
                     _songNumerical.Visible = true;
                     _exportDLSItem.Visible = true;
                     _exportMIDIItem.Visible = false;
+                    _exportMIDIBatchItem.Visible = false;
                     _exportSF2Item.Visible = true;
                 }
             }
@@ -407,6 +412,7 @@ namespace Kermalis.VGMusicStudio.UI
                     _songNumerical.Visible = true;
                     _exportDLSItem.Visible = false;
                     _exportMIDIItem.Visible = true;
+                    _exportMIDIBatchItem.Visible = true;
                     _exportSF2Item.Visible = false;
                 }
             }
@@ -439,6 +445,7 @@ namespace Kermalis.VGMusicStudio.UI
                     _songNumerical.Visible = true;
                     _exportDLSItem.Visible = false;
                     _exportMIDIItem.Visible = false;
+                    _exportMIDIBatchItem.Visible = false;
                     _exportSF2Item.Visible = false;
                 }
             }
@@ -498,6 +505,56 @@ namespace Kermalis.VGMusicStudio.UI
                 {
                     FlexibleMessageBox.Show(ex, Strings.ErrorSaveMIDI);
                 }
+            }
+        }
+        private void ExportMIDIBatch(object sender, EventArgs e)
+        {
+            var d = new CommonOpenFileDialog
+            {
+                Title = Strings.MenuSaveMIDIBatch,
+                AllowNonFileSystemItems = true,
+                IsFolderPicker = true,
+                EnsurePathExists = true,
+                Multiselect = false,
+                ShowPlacesList = true
+            };
+            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                var p = (Core.GBA.MP2K.Player)Engine.Instance.Player;
+                var args = new Core.GBA.MP2K.Player.MIDISaveArgs
+                {
+                    SaveCommandsBeforeTranspose = true,
+                    ReverseVolume = false,
+                    TimeSignatures = new List<(int AbsoluteTick, (byte Numerator, byte Denominator))>
+                    {
+                        (0, (4, 4))
+                    }
+                };
+                for (long i = 0; i <= _songNumerical.Maximum; i++)
+                {
+                    try
+                    {
+                        p.LoadSong(i);
+                    }
+                    catch (Exception ex)
+                    {
+                        FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorLoadSong, i));
+                        continue;
+                    }
+                    if (p.MaxTicks <= 0)
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        p.SaveAsMIDI(d.FileName + "/" + i.ToString() + ".mid", args);
+                    }
+                    catch (Exception ex)
+                    {
+                        FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorSaveMIDIBatch, i));
+                    }
+                }
+                FlexibleMessageBox.Show(Strings.SuccessSaveMIDIBatch, Text);
             }
         }
         private void ExportSF2(object sender, EventArgs e)
