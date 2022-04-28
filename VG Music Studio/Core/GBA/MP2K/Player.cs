@@ -86,7 +86,11 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     SongEvent e = evs.Single(ev => ev.Offset == track.DataOffset);
                     if (track.CallStackDepth == 0 && e.Ticks.Count > 0)
                     {
-                        break;
+                        // HACK: this check ensure that we can't get into an infinite jump
+                        // loop. We now ensure we can't jump backwards, so we don't need
+                        // this break anymore, but there may be some things we could improve on here
+
+                        // break;
                     }
                     else
                     {
@@ -121,6 +125,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                 }
                 _tracks = null;
             }
+
             Events = null;
             SongEntry entry = _config.Reader.ReadObject<SongEntry>(_config.SongTableOffsets[0] + (index * 8));
             SongHeader header = _config.Reader.ReadObject<SongHeader>(entry.HeaderOffset - GBA.Utils.CartridgeOffset);
@@ -256,6 +261,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 {
                                     if (!EventExists(offset))
                                     {
+                                        Debug.WriteLine(trackIndex.ToString());
+                                        Debug.WriteLine("Loaded first voice command");
                                         AddEvent(new VoiceCommand { Voice = cmd });
                                     }
                                     break;
@@ -264,6 +271,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 {
                                     if (!EventExists(offset))
                                     {
+                                        Debug.WriteLine(trackIndex.ToString());
+                                        Debug.WriteLine("Loaded first volume command");
+
                                         AddEvent(new VolumeCommand { Volume = cmd });
                                     }
                                     break;
@@ -378,7 +388,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                             AddEvents(jumpOffset);
                                         }
                                     }
-                                    cont = false;
+                                    // HACK: It was previously assumed that a jump means there is no reasons to continue
+                                    // however there is some midis in GBA games which have instructions after the jump
+                                    // so don't breakout so we can continue to read those
+                                    // cont = false;
                                     break;
                                 }
                                 case 0xB3:
@@ -458,7 +471,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     sbyte transpose = _config.Reader.ReadSByte();
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new TransposeCommand { Transpose = transpose });
+                                            Debug.WriteLine(trackIndex.ToString());
+                                            Debug.WriteLine("Loaded transpose command");
+                                            AddEvent(new TransposeCommand { Transpose = transpose });
                                     }
                                     break;
                                 }
@@ -468,7 +483,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     byte voice = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new VoiceCommand { Voice = voice });
+                                            Debug.WriteLine(trackIndex.ToString());
+                                            Debug.WriteLine("Loaded second voice command");
+                                            AddEvent(new VoiceCommand { Voice = voice });
                                     }
                                     break;
                                 }
@@ -477,7 +494,9 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     byte volume = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
-                                        AddEvent(new VolumeCommand { Volume = volume });
+                                            Debug.WriteLine(trackIndex.ToString());
+                                            Debug.WriteLine("Loaded second volume command");
+                                            AddEvent(new VolumeCommand { Volume = volume });
                                     }
                                     break;
                                 }
@@ -675,6 +694,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     long startOfPatternTicks = 0, endOfPatternTicks = 0;
                     sbyte transpose = 0;
                     var playing = new List<NoteCommand>();
+
                     for (int i = 0; i < Events[trackIndex].Count; i++)
                     {
                         SongEvent e = Events[trackIndex][i];
@@ -837,21 +857,38 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             case TransposeCommand keysh:
                             {
-                                transpose = keysh.Transpose;
+                                    Debug.WriteLine("Some transpose command");
+                                    Debug.WriteLine(ticks);
+                                    transpose = keysh.Transpose;
                                 break;
                             }
                             case TuneCommand tune:
                             {
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune));
+                                    if (trackIndex == 8)
+                                    {
+                                        Debug.WriteLine("Write tune command");
+                                        Debug.WriteLine(ticks);
+                                    }
+                                    track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune));
                                 break;
                             }
                             case VoiceCommand voice:
                             {
+                                if (trackIndex == 8)
+                                    {
+                                        Debug.WriteLine("Write voice command");
+                                        Debug.WriteLine(ticks);
+                                    }
                                 track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, trackIndex, voice.Voice));
                                 break;
                             }
                             case VolumeCommand vol:
                             {
+                                    if (trackIndex == 8)
+                                    {
+                                        Debug.WriteLine("Write volume command");
+                                        Debug.WriteLine(ticks);
+                                    }
                                 double d = baseVolume / (double)0x7F;
                                 int volume = (int)(vol.Volume / d);
                                 // If there are rounding errors, fix them (happens if baseVolume is not 127 and baseVolume is not vol.Volume)
@@ -1257,7 +1294,20 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xB2:
                     {
-                        track.DataOffset = (_config.ROM[track.DataOffset++] | (_config.ROM[track.DataOffset++] << 8) | (_config.ROM[track.DataOffset++] << 16) | (_config.ROM[track.DataOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                        int jumpOffset = (_config.ROM[track.DataOffset++] | (_config.ROM[track.DataOffset++] << 8) | (_config.ROM[track.DataOffset++] << 16) | (_config.ROM[track.DataOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                        // HACK: only do jumps if we are jumping forwards
+                        // means we can't get into an infinite jump routine
+                        if (jumpOffset > track.DataOffset) {
+                            track.LastJumped = jumpOffset;
+                            track.DataOffset = jumpOffset;
+                        }
+                        // HACK TODO: potentially use the Last Jumped value to allow us to jump backwards
+                        // but ensure that we don't end up in an infinite loop
+                        if (jumpOffset != track.LastJumped)
+                            {
+                                //track.LastJumped = jumpOffset;
+                                //track.DataOffset = jumpOffset;
+                            }
                         break;
                     }
                     case 0xB3:

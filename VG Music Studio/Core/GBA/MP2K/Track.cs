@@ -25,6 +25,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
         public bool Stopped;
         public int DataOffset;
         public int[] CallStack = new int[3];
+        public int LastJumped;
         public byte CallStackDepth;
         public byte RunCmd;
         public byte PrevKey;
