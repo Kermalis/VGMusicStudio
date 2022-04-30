@@ -525,7 +525,7 @@ namespace Kermalis.VGMusicStudio.UI
                 var args = new Core.GBA.MP2K.Player.MIDISaveArgs
                 {
                     SaveCommandsBeforeTranspose = true,
-                    ReverseVolume = false,
+                    ReverseVolume = true,
                     TimeSignatures = new List<(int AbsoluteTick, (byte Numerator, byte Denominator))>
                     {
                         (0, (4, 4))
