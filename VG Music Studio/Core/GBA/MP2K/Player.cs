@@ -869,7 +869,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                         Debug.WriteLine("Write tune command");
                                         Debug.WriteLine(ticks);
                                     }
-                                    track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune));
+                                    track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune + 0x40));
                                 break;
                             }
                             case VoiceCommand voice:
