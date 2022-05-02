@@ -842,7 +842,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             case TuneCommand tune:
                             {
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune + 0x40));
                                 break;
                             }
                             case VoiceCommand voice:
