@@ -1271,21 +1271,8 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     }
                     case 0xB2:
                     {
-                        int jumpOffset = (_config.ROM[track.DataOffset++] | (_config.ROM[track.DataOffset++] << 8) | (_config.ROM[track.DataOffset++] << 16) | (_config.ROM[track.DataOffset++] << 24)) - GBA.Utils.CartridgeOffset;
-                        // HACK: only do jumps if we are jumping forwards
-                        // means we can't get into an infinite jump routine
-                        if (jumpOffset > track.DataOffset) {
-                            track.LastJumped = jumpOffset;
-                            track.DataOffset = jumpOffset;
-                        }
-                        // HACK TODO: potentially use the Last Jumped value to allow us to jump backwards
-                        // but ensure that we don't end up in an infinite loop
-                        if (jumpOffset != track.LastJumped)
-                            {
-                                //track.LastJumped = jumpOffset;
-                                //track.DataOffset = jumpOffset;
-                            }
-                        break;
+                            track.DataOffset = (_config.ROM[track.DataOffset++] | (_config.ROM[track.DataOffset++] << 8) | (_config.ROM[track.DataOffset++] << 16) | (_config.ROM[track.DataOffset++] << 24)) - GBA.Utils.CartridgeOffset;
+                            break;
                     }
                     case 0xB3:
                     {
