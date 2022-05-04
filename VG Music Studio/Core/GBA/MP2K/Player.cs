@@ -378,10 +378,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                             AddEvents(jumpOffset);
                                         }
                                     }
-                                    // HACK: It was previously assumed that a jump means there is no reasons to continue
-                                    // however there is some midis in GBA games which have instructions after the jump
-                                    // so don't breakout so we can continue to read those
-                                    // cont = false;
+                                    cont = false;
                                     break;
                                 }
                                 case 0xB3:
