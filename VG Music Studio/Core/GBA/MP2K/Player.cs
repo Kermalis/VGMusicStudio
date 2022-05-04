@@ -261,8 +261,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 {
                                     if (!EventExists(offset))
                                     {
-                                        Debug.WriteLine(trackIndex.ToString());
-                                        Debug.WriteLine("Loaded first voice command");
                                         AddEvent(new VoiceCommand { Voice = cmd });
                                     }
                                     break;
@@ -271,9 +269,6 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                 {
                                     if (!EventExists(offset))
                                     {
-                                        Debug.WriteLine(trackIndex.ToString());
-                                        Debug.WriteLine("Loaded first volume command");
-
                                         AddEvent(new VolumeCommand { Volume = cmd });
                                     }
                                     break;
@@ -471,9 +466,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     sbyte transpose = _config.Reader.ReadSByte();
                                     if (!EventExists(offset))
                                     {
-                                            Debug.WriteLine(trackIndex.ToString());
-                                            Debug.WriteLine("Loaded transpose command");
-                                            AddEvent(new TransposeCommand { Transpose = transpose });
+                                        AddEvent(new TransposeCommand { Transpose = transpose });
                                     }
                                     break;
                                 }
@@ -483,9 +476,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     byte voice = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
-                                            Debug.WriteLine(trackIndex.ToString());
-                                            Debug.WriteLine("Loaded second voice command");
-                                            AddEvent(new VoiceCommand { Voice = voice });
+                                        AddEvent(new VoiceCommand { Voice = voice });
                                     }
                                     break;
                                 }
@@ -494,9 +485,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                                     byte volume = _config.Reader.ReadByte();
                                     if (!EventExists(offset))
                                     {
-                                            Debug.WriteLine(trackIndex.ToString());
-                                            Debug.WriteLine("Loaded second volume command");
-                                            AddEvent(new VolumeCommand { Volume = volume });
+                                        AddEvent(new VolumeCommand { Volume = volume });
                                     }
                                     break;
                                 }
@@ -857,28 +846,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             case TransposeCommand keysh:
                             {
-                                    Debug.WriteLine("Some transpose command");
-                                    Debug.WriteLine(ticks);
-                                    transpose = keysh.Transpose;
+                                transpose = keysh.Transpose;
                                 break;
                             }
                             case TuneCommand tune:
                             {
-                                    if (trackIndex == 8)
-                                    {
-                                        Debug.WriteLine("Write tune command");
-                                        Debug.WriteLine(ticks);
-                                    }
-                                    track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune + 0x40));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune + 0x40));
                                 break;
                             }
                             case VoiceCommand voice:
                             {
-                                if (trackIndex == 8)
-                                    {
-                                        Debug.WriteLine("Write voice command");
-                                        Debug.WriteLine(ticks);
-                                    }
                                 track.Insert(ticks, new ChannelMessage(ChannelCommand.ProgramChange, trackIndex, voice.Voice));
                                 break;
                             }
