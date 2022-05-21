@@ -373,4 +373,15 @@
     <value>VoiceTable saved to {0}.</value>
     <comment>{0} is the file name.</comment>
   </data>
+  <data name="ErrorSaveMIDIBatch" xml:space="preserve">
+    <value>Error Exporting MIDI {0}</value>
+    <comment>{0} is the song number.</comment>
+  </data>
+  <data name="MenuSaveMIDIBatch" xml:space="preserve">
+    <value>Export All Songs as MIDI</value>
+  </data>
+  <data name="SuccessSaveMIDIBatch" xml:space="preserve">
+    <value>MIDIs saved to {0}.</value>
+    <comment>{0} is the folder name.</comment>
+  </data>
 </root>

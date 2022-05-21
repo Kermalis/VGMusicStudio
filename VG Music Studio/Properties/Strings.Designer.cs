@@ -19,7 +19,7 @@ namespace Kermalis.VGMusicStudio.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -322,6 +322,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error Exporting MIDI {0}.
+        /// </summary>
+        internal static string ErrorSaveMIDIBatch {
+            get {
+                return ResourceManager.GetString("ErrorSaveMIDIBatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error Exporting SF2.
         /// </summary>
         internal static string ErrorSaveSF2 {
@@ -511,6 +520,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export All Songs as MIDI.
+        /// </summary>
+        internal static string MenuSaveMIDIBatch {
+            get {
+                return ResourceManager.GetString("MenuSaveMIDIBatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Export VoiceTable as SF2.
         /// </summary>
         internal static string MenuSaveSF2 {
@@ -669,6 +687,15 @@ namespace Kermalis.VGMusicStudio.Properties {
         internal static string SuccessSaveMIDI {
             get {
                 return ResourceManager.GetString("SuccessSaveMIDI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MIDIs saved to {0}..
+        /// </summary>
+        internal static string SuccessSaveMIDIBatch {
+            get {
+                return ResourceManager.GetString("SuccessSaveMIDIBatch", resourceCulture);
             }
         }
         
