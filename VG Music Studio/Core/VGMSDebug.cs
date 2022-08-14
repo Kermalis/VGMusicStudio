@@ -88,7 +88,7 @@ namespace Kermalis.VGMusicStudio.Core
             {
                 try
                 {
-                    using (var reader = new EndianBinaryReader(File.OpenRead(file)))
+                    var reader = new EndianBinaryReader(File.OpenRead(file));
                     {
                         string gameCode = reader.ReadString(3, false, 0xAC);
                         char regionCode = reader.ReadChar(0xAF);

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Authors>Kermalis</Authors>
+    <Company />
+    <PackageId>DLS2</PackageId>
+    <Product>DLS2</Product>
+    <AssemblyName>DLS2</AssemblyName>
+    <RootNamespace>Kermalis.DLS2</RootNamespace>
+    <Version>1.0.0.0</Version>
+    <OutputPath>..\Build</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EndianBinaryIO" Version="1.1.1" />
+  </ItemGroup>
+
+</Project>

@@ -373,4 +373,8 @@
     <value>VoiceTable saved to {0}.</value>
     <comment>{0} is the file name.</comment>
   </data>
+  <data name="AudioDeviceRemoved" xml:space="preserve">
+    <value>An audio output device was disconnected. {0} was disconnected.</value>
+    <comment>{0} is the audio output device.</comment>
+  </data>
 </root>
