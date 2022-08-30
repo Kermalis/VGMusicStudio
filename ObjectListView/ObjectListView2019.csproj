@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>BrightIdeasSoftware</RootNamespace>
     <AssemblyName>ObjectListView</AssemblyName>
@@ -32,12 +32,8 @@
     <Compile Update="Rendering\TreeRenderer.cs" />
     <Compile Update="SubControls\ToolStripCheckedListBox.cs" />
     <Compile Update="ObjectListView.cs" />
-    <Compile Update="Rendering\Renderers.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="Rendering\Styles.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Update="Rendering\Renderers.cs" />
+    <Compile Update="Rendering\Styles.cs" />
     <Compile Update="TreeListView.cs" />
     <Compile Update="VirtualObjectListView.cs" />
   </ItemGroup>

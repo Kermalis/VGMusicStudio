@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Kermalis.EndianBinaryIO
 {
-    public class EndianBinaryReader : IDisposable
+    public class EndianBinaryReader
     {
         public Stream BaseStream { get; }
         private Endianness _endianness;
@@ -37,9 +37,6 @@ namespace Kermalis.EndianBinaryIO
         public Encoding Encoding { get; set; }
 
         private byte[] _buffer;
-        private bool disposedValue;
-
-        //public object Type;
 
         public EndianBinaryReader(Stream baseStream, Endianness endianness = Endianness.LittleEndian, BooleanSize booleanSize = BooleanSize.U8)
         {
@@ -54,7 +51,7 @@ namespace Kermalis.EndianBinaryIO
             BaseStream = baseStream;
             Endianness = endianness;
             BooleanSize = booleanSize;
-            Encoding = Encoding.Default;
+            Encoding = Encoding.ASCII;
         }
         public EndianBinaryReader(Stream baseStream, Encoding encoding, Endianness endianness = Endianness.LittleEndian, BooleanSize booleanSize = BooleanSize.U8)
         {
@@ -891,35 +888,6 @@ namespace Kermalis.EndianBinaryIO
         {
             BaseStream.Position = offset;
             ReadIntoObject(obj);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~EndianBinaryReader()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

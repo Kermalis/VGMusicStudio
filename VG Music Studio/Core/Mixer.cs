@@ -4,7 +4,6 @@ using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
 using System;
-using static Kermalis.VGMusicStudio.UI.SongInfoControl;
 
 namespace Kermalis.VGMusicStudio.Core
 {

@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <Configurations>Release</Configurations>
     <Authors>Kermalis</Authors>
     <Company />
     <PackageId>SoundFont2</PackageId>
@@ -10,10 +8,15 @@
     <AssemblyName>SoundFont2</AssemblyName>
     <RootNamespace>Kermalis.SoundFont2</RootNamespace>
     <Version>1.0.0.0</Version>
+    <OutputPath>..\Build</OutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\Build</OutputPath>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>

@@ -842,7 +842,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                             }
                             case TuneCommand tune:
                             {
-                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune + 0x40));
+                                track.Insert(ticks, new ChannelMessage(ChannelCommand.Controller, trackIndex, 24, tune.Tune));
                                 break;
                             }
                             case VoiceCommand voice:
@@ -979,15 +979,10 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
                     for (int j = 0; j < channels.Length; j++)
                     {
                         Channel c = channels[j];
-                        if (c == null)
-                        {
-                            return; // Prevents VG Music Studio from crashing when the channel becomes a null value while playing a sequence
-                        }
                         if (c.State < EnvelopeState.Releasing)
                         {
                             tin.Keys[numKeys++] = c.Note.OriginalKey;
                         }
-                        
                         ChannelVolume vol = c.GetVolume();
                         if (vol.LeftVol > left)
                         {

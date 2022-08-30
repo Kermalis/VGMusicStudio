@@ -125,8 +125,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public SBNK(byte[] bytes)
         {
-            using (var er = new EndianBinaryReader(new MemoryStream(bytes)))
+            using (var stream = new MemoryStream(bytes))
             {
+                var er = new EndianBinaryReader(stream);
                 er.ReadIntoObject(this);
             }
         }

@@ -374,7 +374,7 @@
     <comment>{0} is the file name.</comment>
   </data>
   <data name="AudioDeviceRemoved" xml:space="preserve">
-    <value>An audio output device was disconnected. {0} was disconnected.</value>
-    <comment>{0} is the audio output device.</comment>
+    <value>An audio output device was {0}. {1} was disconnected.</value>
+    <comment>{0} is the status of the device. {1} is the device itself</comment>
   </data>
 </root>

@@ -13,6 +13,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
+        public readonly MemoryStream Stream;
         public readonly string GameCode;
         public readonly byte Version;
 
@@ -214,7 +215,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
 
         public override void Dispose()
         {
-            Reader.Dispose();
+            Stream.Dispose();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31605.320
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio", "VG Music Studio\VG Music Studio.csproj", "{97C8ACF8-66A3-4321-91D6-3E94EACA577F}"
 EndProject
@@ -37,8 +37,8 @@ Global
 		{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6220611C-85D7-45B5-9857-45C0F0FE62A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
