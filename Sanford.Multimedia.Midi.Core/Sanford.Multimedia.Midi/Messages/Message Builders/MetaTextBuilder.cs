@@ -138,6 +138,9 @@ namespace Sanford.Multimedia.Midi
         /// <param name="type">
         /// The type of MetaMessage.
         /// </param>
+        /// <param name="text">
+        /// The text string of MetaMessage.
+        /// </param>
         /// <exception cref="ArgumentException">
         /// If the MetaMessage type is not a text based type.
         /// </exception>

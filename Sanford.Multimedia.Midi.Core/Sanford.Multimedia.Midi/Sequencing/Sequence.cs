@@ -68,12 +68,24 @@ namespace Sanford.Multimedia.Midi
 
         #region Events
 
+        /// <summary>
+        /// When the loading of the sequence is complete.
+        /// </summary>
         public event EventHandler<AsyncCompletedEventArgs> LoadCompleted;
 
+        /// <summary>
+        /// When the loading of the sequence has changed.
+        /// </summary>
         public event ProgressChangedEventHandler LoadProgressChanged;
 
+        /// <summary>
+        /// When the sequence is saved.
+        /// </summary>
         public event EventHandler<AsyncCompletedEventArgs> SaveCompleted;
 
+        /// <summary>
+        /// When the save progress for the sequence has changed.
+        /// </summary>
         public event ProgressChangedEventHandler SaveProgressChanged;
 
         #endregion
@@ -250,6 +262,9 @@ namespace Sanford.Multimedia.Midi
             #endregion
         }
 
+        /// <summary>
+        /// Loads the sequence asynchronously.
+        /// </summary>
         public void LoadAsync(string fileName)
         {
             #region Require
@@ -272,6 +287,9 @@ namespace Sanford.Multimedia.Midi
             loadWorker.RunWorkerAsync(fileName);
         }
 
+        /// <summary>
+        /// Cancels loading the sequence asynchronously.
+        /// </summary>
         public void LoadAsyncCancel()
         {
             #region Require
@@ -334,6 +352,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Saves the sequence asynchronously.
+        /// </summary>
         public void SaveAsync(string fileName)
         {
             #region Require
@@ -356,6 +377,9 @@ namespace Sanford.Multimedia.Midi
             saveWorker.RunWorkerAsync(fileName);
         }
 
+        /// <summary>
+        /// Cancels saving the sequence asynchronously.
+        /// </summary>
         public void SaveAsyncCancel()
         {
             #region Require
@@ -627,6 +651,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// If the loader is busy.
+        /// </summary>
         public bool IsBusy
         {
             get
@@ -641,6 +668,9 @@ namespace Sanford.Multimedia.Midi
 
         #region ICollection<Track> Members
 
+        /// <summary>
+        /// Adds an item to the sequence.
+        /// </summary>
         public void Add(Track item)
         {
             #region Require
@@ -661,6 +691,9 @@ namespace Sanford.Multimedia.Midi
             properties.TrackCount = tracks.Count;
         }
 
+        /// <summary>
+        /// Removes all items from the sequence.
+        /// </summary>
         public void Clear()
         {
             #region Require
@@ -677,6 +710,12 @@ namespace Sanford.Multimedia.Midi
             properties.TrackCount = tracks.Count;
         }
 
+        /// <summary>
+        /// Determines whenever the sequence contains a specific value.
+        /// </summary>
+        /// <returns>
+        /// true, if the item is found in the sequence. Otherwise, it'll be false.
+        /// </returns>
         public bool Contains(Track item)
         {
             #region Require
@@ -691,6 +730,9 @@ namespace Sanford.Multimedia.Midi
             return tracks.Contains(item);
         }
 
+        /// <summary>
+        /// Copies the elements of the sequence to an array, starting at a particular array index.
+        /// </summary>
         public void CopyTo(Track[] array, int arrayIndex)
         {
             #region Require
@@ -705,6 +747,12 @@ namespace Sanford.Multimedia.Midi
             tracks.CopyTo(array, arrayIndex);
         }
 
+        /// <summary>
+        /// Gets the number of elements contained in the sequence.
+        /// </summary>
+        /// <returns>
+        /// The number of elements in the sequence.
+        /// </returns>
         public int Count
         {
             get
@@ -722,6 +770,12 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whenever the sequence is read-only.
+        /// </summary>
+        /// <returns>
+        /// true, if the sequence is read-only; otherwise, false.
+        /// </returns>
         public bool IsReadOnly
         {
             get
@@ -739,6 +793,12 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Removes the first occurrence of a specific object from the sequence.
+        /// </summary>
+        /// <returns>
+        /// true, if the item was successfully removed from the sequence; otherwise false. This method also returns false if the item is not found in the original sequence.
+        /// </returns>
         public bool Remove(Track item)
         {
             #region Require
@@ -764,6 +824,9 @@ namespace Sanford.Multimedia.Midi
 
         #region IEnumerable<Track> Members
 
+        /// <summary>
+        /// Returns an enumerator that iterates through the sequence.
+        /// </summary>
         public IEnumerator<Track> GetEnumerator()
         {
             #region Require
@@ -800,8 +863,14 @@ namespace Sanford.Multimedia.Midi
 
         #region IComponent Members
 
+        /// <summary>
+        /// Handles disposing of the sequence when the application is closed.
+        /// </summary>
         public event EventHandler Disposed;
 
+        /// <summary>
+        /// Gets or sets the site associated with the sequence.
+        /// </summary>
         public ISite Site
         {
             get
@@ -818,6 +887,9 @@ namespace Sanford.Multimedia.Midi
 
         #region IDisposable Members
 
+        /// <summary>
+        /// Disposes the load when the application is closed.
+        /// </summary>
         public void Dispose()
         {
             #region Guard

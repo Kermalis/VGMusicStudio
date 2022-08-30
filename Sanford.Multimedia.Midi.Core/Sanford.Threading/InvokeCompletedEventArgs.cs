@@ -49,6 +49,21 @@ namespace Sanford.Threading
 
         private object result;
 
+        /// <summary>
+        /// Represents the delegate, objects and exceptions for the InvokeCompleted event.
+        /// </summary>
+        /// <param name="method">
+        /// Represents the delegate method used.
+        /// </param>
+        /// <param name="args">
+        /// For any args to be used.
+        /// </param>
+        /// <param name="result">
+        /// For any results that occur.
+        /// </param>
+        /// <param name="error">
+        /// For any errors that may occur.
+        /// </param>
         public InvokeCompletedEventArgs(Delegate method, object[] args, object result, Exception error) 
             : base(error, false, null)
         {
@@ -57,11 +72,17 @@ namespace Sanford.Threading
             this.result = result;
         }
 
+        /// <summary>
+        /// Initializes the args as an object.
+        /// </summary>
         public object[] GetArgs()
         {
             return args;
         }
 
+        /// <summary>
+        /// Initializes method as a delegate.
+        /// </summary>
         public Delegate Method
         {
             get
@@ -70,6 +91,9 @@ namespace Sanford.Threading
             }
         }
 
+        /// <summary>
+        /// Initializes result as an object.
+        /// </summary>
         public object Result
         {
             get

@@ -40,6 +40,9 @@ namespace Sanford.Multimedia.Midi
 {
     public partial class InputDevice
     {
+        /// <summary>
+        /// Closes the MIDI input device.
+        /// </summary>
         public override void Close()
         {
             #region Guard
@@ -54,6 +57,9 @@ namespace Sanford.Multimedia.Midi
             Dispose(true);
         }
 
+        /// <summary>
+        /// Starts recording from the MIDI input device.
+        /// </summary>
         public void StartRecording()
         {
             #region Require
@@ -109,6 +115,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Stops recording from the MIDI input device.
+        /// </summary>
         public void StopRecording()
         {
             #region Require
@@ -144,6 +153,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Resets the MIDI input device.
+        /// </summary>
         public override void Reset()
         {
             #region Require
@@ -180,7 +192,13 @@ namespace Sanford.Multimedia.Midi
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Initializes the MIDI input device capabilities.
+        /// </summary>
+        /// <param name="deviceID">
+        /// This will show the device ID for the MIDI input device.
+        /// </param>
         public static MidiInCaps GetDeviceCapabilities(int deviceID)
         {
             int result;
@@ -197,6 +215,9 @@ namespace Sanford.Multimedia.Midi
             return caps;
         }
 
+        /// <summary>
+        /// When closed, all connections to the MIDI input device are disposed.
+        /// </summary>
         public override void Dispose()
         {
             #region Guard

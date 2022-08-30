@@ -42,12 +42,30 @@ namespace Sanford.Multimedia.Timers
     /// </summary>
     public enum TimeType
     {
+        /// <summary>
+		/// Defined in milliseconds.
+		/// </summary>
         Milliseconds = 0x0001,
-        Samples      = 0x0002, 
-        Bytes        = 0x0004,  
-        Smpte        = 0x0008,
-        Midi         = 0x0010,
-        Ticks        = 0x0020
+        /// <summary>
+		/// Defined in samples.
+		/// </summary>
+        Samples = 0x0002,
+        /// <summary>
+        /// Defined in bytes.
+        /// </summary>
+        Bytes = 0x0004,
+        /// <summary>
+        /// Defined in SMPTE.
+        /// </summary>
+        Smpte = 0x0008,
+        /// <summary>
+		/// Defined in MIDI.
+		/// </summary>
+        Midi = 0x0010,
+        /// <summary>
+		/// Defined in ticks.
+		/// </summary>
+        Ticks = 0x0020
     }
 
 	/// <summary>
@@ -56,18 +74,33 @@ namespace Sanford.Multimedia.Timers
     [StructLayout(LayoutKind.Explicit)]
 	public struct Time
 	{
+        /// <summary>
+		/// Type.
+		/// </summary>
         [FieldOffset(0)]
         public int type;
 
+        /// <summary>
+		/// Milliseconds.
+		/// </summary>
         [FieldOffset(4)]
         public int milliseconds;
 
+        /// <summary>
+		/// Samples.
+		/// </summary>
         [FieldOffset(4)]
         public int samples;
 
+        /// <summary>
+		/// Byte count.
+		/// </summary>
         [FieldOffset(4)]
         public int byteCount;
 
+        /// <summary>
+		/// Ticks.
+		/// </summary>
         [FieldOffset(4)]
         public int ticks;
 
@@ -75,34 +108,61 @@ namespace Sanford.Multimedia.Timers
         // SMPTE
         //
 
+        /// <summary>
+		/// SMPTE hours.
+		/// </summary>
         [FieldOffset(4)]
-        public byte hours; 
+        public byte hours;
 
+        /// <summary>
+        /// SMPTE minutes.
+        /// </summary>
         [FieldOffset(5)]
-        public byte minutes; 
+        public byte minutes;
 
+        /// <summary>
+        /// SMPTE seconds.
+        /// </summary>
         [FieldOffset(6)]
-        public byte seconds; 
+        public byte seconds;
 
+        /// <summary>
+        /// SMPTE frames.
+        /// </summary>
         [FieldOffset(7)]
-        public byte frames; 
+        public byte frames;
 
+        /// <summary>
+        /// SMPTE frames per second.
+        /// </summary>
         [FieldOffset(8)]
-        public byte framesPerSecond; 
+        public byte framesPerSecond;
 
+        /// <summary>
+        /// SMPTE dummy.
+        /// </summary>
         [FieldOffset(9)]
-        public byte dummy; 
+        public byte dummy;
 
+        /// <summary>
+        /// SMPTE pad 1.
+        /// </summary>
         [FieldOffset(10)]
-        public byte pad1; 
+        public byte pad1;
 
+        /// <summary>
+        /// SMPTE pad 2.
+        /// </summary>
         [FieldOffset(11)]
         public byte pad2;
-        
+
         //
         // MIDI
         //
 
+        /// <summary>
+        /// MIDI song position pointer.
+        /// </summary>
         [FieldOffset(4)]
         public int songPositionPointer;
 	}

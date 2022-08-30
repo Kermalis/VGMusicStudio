@@ -109,12 +109,18 @@ namespace Sanford.Multimedia.Midi
          
             this.data = new byte[data.Length];
             data.CopyTo(this.data, 0);
-        }        
+        }
 
         #endregion
 
         #region Methods
 
+        /// <summary>
+        /// Gets a byte array representation for the exclusive system message.
+        /// </summary>
+        /// <returns>
+        /// A clone of the byte array.
+        /// </returns>
         public byte[] GetBytes()
         {
             byte[] clone = new byte[data.Length];
@@ -124,11 +130,17 @@ namespace Sanford.Multimedia.Midi
             return clone;
         }
 
+        /// <summary>
+		/// Copies the data to a byte array buffer and index.
+		/// </summary>
         public void CopyTo(byte[] buffer, int index)
         {
             data.CopyTo(buffer, index);
         }
 
+        /// <summary>
+		/// Determines whenever the specified object is equal to the current object.
+		/// </summary>
         public override bool Equals(object obj)
         {
             #region Guard
@@ -160,6 +172,9 @@ namespace Sanford.Multimedia.Midi
             return equals;
         }
 
+        /// <summary>
+		/// Returns the hash code for the current object.
+		/// </summary>
         public override int GetHashCode()
         {
             return data.GetHashCode();
@@ -256,6 +271,9 @@ namespace Sanford.Multimedia.Midi
 
         #region IEnumerable Members
 
+        /// <summary>
+		/// Returns an enumerator for the exclusive system message.
+		/// </summary>
         public IEnumerator GetEnumerator()
         {
             return data.GetEnumerator();

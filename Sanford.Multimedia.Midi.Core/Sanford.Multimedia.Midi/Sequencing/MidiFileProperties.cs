@@ -43,10 +43,25 @@ namespace Sanford.Multimedia.Midi
     /// </summary>
     public enum SmpteFrameRate
     {
-        Smpte24     = 24,
-        Smpte25     = 25,
+        /// <summary>
+        /// 24 SMPTE Frames.
+        /// </summary>
+        Smpte24 = 24,
+
+        /// <summary>
+        /// 25 SMPTE Frames.
+        /// </summary>
+        Smpte25 = 25,
+
+        /// <summary>
+        /// 29 SMPTE Frames.
+        /// </summary>
         Smpte30Drop = 29,
-        Smpte30     = 30
+
+        /// <summary>
+        /// 30 SMPTE Frames.
+        /// </summary>
+        Smpte30 = 30
     }
 
     /// <summary>
@@ -54,7 +69,14 @@ namespace Sanford.Multimedia.Midi
     /// </summary>
     public enum SequenceType
     {
+        /// <summary>
+        /// The PPQN Sequence Type.
+        /// </summary>
         Ppqn,
+
+        /// <summary>
+        /// The SMPTE Sequence Type.
+        /// </summary>
         Smpte
     }    
 
@@ -375,8 +397,14 @@ namespace Sanford.Multimedia.Midi
         }
 	}
 
+    /// <summary>
+    /// MIDI File Exception handles errors relating to the application being unable to read or write to a MIDI or Sequence.
+    /// </summary>
     public class MidiFileException : ApplicationException
     {
+        /// <summary>
+        /// The message that will display when an error occurs with a MIDI or Sequence format
+        /// </summary>
         public MidiFileException(string message) : base(message)
         {
         }

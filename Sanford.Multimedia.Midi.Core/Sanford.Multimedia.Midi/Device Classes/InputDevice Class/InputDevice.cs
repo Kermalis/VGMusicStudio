@@ -44,6 +44,9 @@ namespace Sanford.Multimedia.Midi
     /// </summary>
     public partial class InputDevice : MidiDevice
     {
+        /// <summary>
+        /// Disposes the data when closed.
+        /// </summary>
         protected override void Dispose(bool disposing)
         {
             if(disposing)

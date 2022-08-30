@@ -140,6 +140,9 @@ namespace Sanford.Threading
 
         #region IAsyncResult Members
 
+        /// <summary>
+        /// This object provides the async state.
+        /// </summary>
         public object AsyncState
         {
             get             
@@ -148,6 +151,9 @@ namespace Sanford.Threading
             }
         }
 
+        /// <summary>
+        /// This handles the waiting time for the async.
+        /// </summary>
         public WaitHandle AsyncWaitHandle
         {
             get 
@@ -156,6 +162,9 @@ namespace Sanford.Threading
             }
         }
 
+        /// <summary>
+        /// Determines whenever the async completed synchronously or not.
+        /// </summary>
         public bool CompletedSynchronously
         {
             get 
@@ -164,6 +173,9 @@ namespace Sanford.Threading
             }
         }
 
+        /// <summary>
+        /// Determines if the async has completed.
+        /// </summary>
         public bool IsCompleted
         {
             get 

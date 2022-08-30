@@ -42,6 +42,9 @@ namespace Sanford.Multimedia.Midi
     {
         #region Iterators
 
+        /// <summary>
+		/// Main function for the track iterator.
+		/// </summary>
         public IEnumerable<MidiEvent> Iterator()
         {
             MidiEvent current = head;
@@ -57,7 +60,10 @@ namespace Sanford.Multimedia.Midi
 
             yield return current;
         }
-        
+
+        /// <summary>
+        /// Dispatches the track iterator.
+        /// </summary>
         public IEnumerable<int> DispatcherIterator(MessageDispatcher dispatcher)
         {
             IEnumerator<MidiEvent> enumerator = Iterator().GetEnumerator();
@@ -70,6 +76,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// A track iterator for the amount of ticks.
+		/// </summary>
         public IEnumerable<int> TickIterator(int startPosition, 
             ChannelChaser chaser, MessageDispatcher dispatcher)
         {

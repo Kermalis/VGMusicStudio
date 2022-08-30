@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Sanford.Multimedia.Midi
 {
+    /// <summary>
+    /// This class initializes the recording sessions.
+    /// </summary>
     public class RecordingSession
     {
         private IClock clock;
@@ -12,11 +15,17 @@ namespace Sanford.Multimedia.Midi
 
         private Track result = new Track();
 
+        /// <summary>
+		/// Main function for the recording sessions.
+		/// </summary>
         public RecordingSession(IClock clock)
         {
             this.clock = clock;
         }
 
+        /// <summary>
+		/// Builds the tracks, sorts and compares between a buffer and a timestamp, then creates a timestamped message with the amount of ticks.
+		/// </summary>
         public void Build()
         {
             result = new Track();
@@ -29,11 +38,17 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Removes all elements from the list.
+		/// </summary>
         public void Clear()
         {
             buffer.Clear();
         }
 
+        /// <summary>
+		/// Gets and returns the track result for the recording session.
+		/// </summary>
         public Track Result
         {
             get
@@ -42,6 +57,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Records a channel message if the clock is running.
+		/// </summary>
         public void Record(ChannelMessage message)
         {
             if(clock.IsRunning)
@@ -50,6 +68,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Records an external system message if the clock is running.
+		/// </summary>
         public void Record(SysExMessage message)
         {
             if(clock.IsRunning)

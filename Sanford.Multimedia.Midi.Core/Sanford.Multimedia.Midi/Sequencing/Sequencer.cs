@@ -4,6 +4,9 @@ using System.ComponentModel;
 
 namespace Sanford.Multimedia.Midi
 {
+    /// <summary>
+    /// This sequencer class allows for the sequencing of sequences.
+    /// </summary>
     public class Sequencer : IComponent
     {
         private Sequence sequence = null;
@@ -30,8 +33,14 @@ namespace Sanford.Multimedia.Midi
 
         #region Events
 
+        /// <summary>
+        /// Handles the event when the sequencer has finished playing the sequence.
+        /// </summary>
         public event EventHandler PlayingCompleted;
 
+        /// <summary>
+        /// Handles the event when a channel message is displayed when a sequence is played.
+        /// </summary>
         public event EventHandler<ChannelMessageEventArgs> ChannelMessagePlayed
         {
             add
@@ -44,6 +53,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Handles the event when a system ex message is displayed when a sequence is played.
+        /// </summary>
         public event EventHandler<SysExMessageEventArgs> SysExMessagePlayed
         {
             add
@@ -56,6 +68,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Handles the event when a metadata message is displayed when a sequence is played.
+        /// </summary>
         public event EventHandler<MetaMessageEventArgs> MetaMessagePlayed
         {
             add
@@ -68,6 +83,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Handles the chased event in the sequencer.
+        /// </summary>
         public event EventHandler<ChasedEventArgs> Chased
         {
             add
@@ -80,6 +98,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Handles the event when sequencer stops playing.
+        /// </summary>
         public event EventHandler<StoppedEventArgs> Stopped
         {
             add
@@ -94,6 +115,9 @@ namespace Sanford.Multimedia.Midi
 
         #endregion
 
+        /// <summary>
+        /// The main sequencer function.
+        /// </summary>
         public Sequencer()
         {
             dispatcher.MetaMessageDispatched += delegate(object sender, MetaMessageEventArgs e)
@@ -137,11 +161,17 @@ namespace Sanford.Multimedia.Midi
             };
         }
 
+        /// <summary>
+        /// The function in which checks if the sequencer has been disposed.
+        /// </summary>
         ~Sequencer()
         {
             Dispose(false);
         }
 
+        /// <summary>
+        /// The method for disposing the sequencer when the application is closed.
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if(disposing)
@@ -159,6 +189,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Starts the sequencer.
+        /// </summary>
         public void Start()
         {
             #region Require
@@ -180,6 +213,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Continues the sequencer.
+        /// </summary>
         public void Continue()
         {
             #region Require
@@ -219,6 +255,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Stops the sequencer.
+        /// </summary>
         public void Stop()
         {
             #region Require
@@ -247,6 +286,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Handles the event for when the sequencer is finished playing.
+        /// </summary>
         protected virtual void OnPlayingCompleted(EventArgs e)
         {
             EventHandler handler = PlayingCompleted;
@@ -257,6 +299,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Handles the event for when the sequencer is disposed.
+        /// </summary>
         protected virtual void OnDisposed(EventArgs e)
         {
             EventHandler handler = Disposed;
@@ -267,6 +312,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// The sequencer's playing position of the sequence.
+        /// </summary>
         public int Position
         {
             get
@@ -318,6 +366,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// The loaded sequence that represents a series of tracks.
+        /// </summary>
         public Sequence Sequence
         {
             get
@@ -349,8 +400,14 @@ namespace Sanford.Multimedia.Midi
 
         #region IComponent Members
 
+        /// <summary>
+        /// Handles the disposed event.
+        /// </summary>
         public event EventHandler Disposed;
 
+        /// <summary>
+        /// Gets the site and sets the site with a value.
+        /// </summary>
         public ISite Site
         {
             get
@@ -367,6 +424,9 @@ namespace Sanford.Multimedia.Midi
 
         #region IDisposable Members
 
+        /// <summary>
+        /// The dispose function for when the application is closed.
+        /// </summary>
         public void Dispose()
         {
             #region Guard

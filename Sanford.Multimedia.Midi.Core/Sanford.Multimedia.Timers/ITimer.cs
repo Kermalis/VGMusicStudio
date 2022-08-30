@@ -28,6 +28,9 @@ using System.ComponentModel;
 
 namespace Sanford.Multimedia.Timers
 {
+    /// <summary>
+    /// This provides the functionality for the timer.
+    /// </summary>
     public interface ITimer : IComponent
     {
         /// <summary>

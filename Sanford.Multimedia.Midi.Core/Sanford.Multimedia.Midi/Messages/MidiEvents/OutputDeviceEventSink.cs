@@ -10,6 +10,9 @@ namespace Sanford.Multimedia.Midi
         readonly OutputDevice FOutDevice;
         readonly MidiEvents FEventSource;
 
+        /// <summary>
+		/// Gets the device ID and returns with a value of -1.
+		/// </summary>
         public int DeviceID
         {
             get
@@ -25,6 +28,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Initializes and registers the MIDI output device events.
+		/// </summary>
         public OutputDeviceEventSink(OutputDevice outDevice, MidiEvents eventSource)
         {
             FOutDevice = outDevice;
@@ -104,6 +110,9 @@ namespace Sanford.Multimedia.Midi
             FOutDevice.Dispose();
         }
 
+        /// <summary>
+		/// Sources and initializes the events for the MIDI output device.
+		/// </summary>
         public static OutputDeviceEventSink FromDeviceID(int deviceID, MidiEvents eventSource)
         {
             var deviceCount = OutputDevice.DeviceCount;

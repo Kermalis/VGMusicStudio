@@ -40,6 +40,9 @@ namespace Sanford.Collections.Generic
 {
     public partial class UndoableList<T> : IList<T>
     {
+        /// <summary>
+        /// This is the main command that will test the UndoableList.
+        /// </summary>
         [Conditional("DEBUG")]
         public static void Test()
         {

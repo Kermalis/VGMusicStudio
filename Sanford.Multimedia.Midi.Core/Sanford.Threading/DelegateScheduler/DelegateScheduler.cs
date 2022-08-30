@@ -103,9 +103,7 @@ namespace Sanford.Threading
         /// </summary>
         public DelegateScheduler(IContainer container)
         {
-            ///
-            /// Required for Windows.Forms Class Composition Designer support
-            ///
+            // Required for Windows.Forms Class Composition Designer support
             container.Add(this);
 
             Initialize();
@@ -117,6 +115,9 @@ namespace Sanford.Threading
             timer.Elapsed += new ElapsedEventHandler(HandleElapsed);
         }
 
+        /// <summary>
+		/// Checks if the DelegateScheduler has been disposed.
+		/// </summary>
         ~DelegateScheduler()
         {
             Dispose(false);
@@ -126,6 +127,9 @@ namespace Sanford.Threading
 
         #region Methods
 
+        /// <summary>
+		/// Disposes of DelegateScheduler when closed.
+		/// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if(disposing)
@@ -438,7 +442,9 @@ namespace Sanford.Threading
             }
         }
 
-        // Raises the Disposed event.
+        /// <summary>
+		/// Raises the Disposed event.
+		/// </summary>
         protected virtual void OnDisposed(EventArgs e)
         {
             EventHandler handler = Disposed;
@@ -449,7 +455,9 @@ namespace Sanford.Threading
             }
         }
 
-        // Raises the InvokeCompleted event.
+        /// <summary>
+		/// Raises the InvokeCompleted event.
+		/// </summary>
         protected virtual void OnInvokeCompleted(InvokeCompletedEventArgs e)
         {
             EventHandler<InvokeCompletedEventArgs> handler = InvokeCompleted;
@@ -531,8 +539,14 @@ namespace Sanford.Threading
 
         #region IComponent Members
 
+        /// <summary>
+		/// When the event has been disposed.
+		/// </summary>
         public event System.EventHandler Disposed;
 
+        /// <summary>
+		/// Gets and returns the site, sets the site with a value.
+		/// </summary>
         public ISite Site
         {
             get
@@ -549,6 +563,9 @@ namespace Sanford.Threading
 
         #region IDisposable Members
 
+        /// <summary>
+		/// The main dispose function that occurs when disposed.
+		/// </summary>
         public void Dispose()
         {
             #region Guard

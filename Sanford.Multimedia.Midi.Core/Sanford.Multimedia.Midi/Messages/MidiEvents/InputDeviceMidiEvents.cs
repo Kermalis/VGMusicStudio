@@ -4,12 +4,15 @@ using System;
 namespace Sanford.Multimedia.Midi
 {
 	/// <summary>
-	/// MidiSignal provides all midi events from an input device
+	/// MidiSignal provides all midi events from an input device.
 	/// </summary>
 	public class InputDeviceMidiEvents : MidiEvents
 	{
 		readonly InputDevice FInDevice;
 
+		/// <summary>
+		/// Gets the device ID.
+		/// </summary>
 		public int DeviceID {
 			get {
 				if (FInDevice != null) {
@@ -31,11 +34,17 @@ namespace Sanford.Multimedia.Midi
 			FInDevice.StartRecording();
 		}
 
+		/// <summary>
+		/// Disposes the input device when closed.
+		/// </summary>
 		public void Dispose()
 		{
 			FInDevice.Dispose();
 		}
 
+		/// <summary>
+		/// Initializes the MIDI events from device ID.
+		/// </summary>
 		public static InputDeviceMidiEvents FromDeviceID(int deviceID)
 		{
 			var deviceCount = InputDevice.DeviceCount;

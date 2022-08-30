@@ -39,6 +39,9 @@ namespace Sanford.Multimedia.Midi
 {
     public partial class InputDevice
     {
+        /// <summary>
+        /// Gets the Input Device handle.
+        /// </summary>
         public override IntPtr Handle
         {
             get 
@@ -47,6 +50,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Gets and sets the system ex buffer size.
+        /// </summary>
         public int SysExBufferSize
         {
             get
@@ -68,6 +74,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Determines how many Input Devices there are.
+        /// </summary>
         public static int DeviceCount
         {
             get

@@ -79,6 +79,9 @@ namespace Sanford.Multimedia.Midi
             get;
         }
 
+        /// <summary>
+        /// Determines the number of ticks.
+        /// </summary>
         int Ticks
         {
             get;

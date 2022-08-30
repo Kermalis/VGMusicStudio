@@ -37,6 +37,9 @@ using System.Collections;
 
 namespace Sanford.Multimedia.Midi
 {
+    /// <summary>
+    /// The class that contains the channel chaser functionality.
+    /// </summary>
     public class ChannelChaser
     {
         private ChannelMessage[,] controllerMessages;
@@ -49,8 +52,14 @@ namespace Sanford.Multimedia.Midi
 
         private ChannelMessage[] polyPressureMessages;
 
+        /// <summary>
+		/// Handles the chased events.
+		/// </summary>
         public event EventHandler<ChasedEventArgs> Chased;
 
+        /// <summary>
+		/// The main functions for ChannelChaser.
+		/// </summary>
         public ChannelChaser()
         {
             int c = ChannelMessage.MidiChannelMaxValue + 1;
@@ -64,6 +73,9 @@ namespace Sanford.Multimedia.Midi
             polyPressureMessages = new ChannelMessage[c];
         }
 
+        /// <summary>
+		/// For processing channel messages.
+		/// </summary>
         public void Process(ChannelMessage message)
         {
             switch(message.Command)
@@ -90,6 +102,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Chases messages to an array so that it can determine between the MIDI channel value and data value, then detect the program change messages, pitch bend messages, channel pressure messages and poly pressure messages.
+		/// </summary>
         public void Chase()
         {
             ArrayList chasedMessages = new ArrayList();
@@ -138,6 +153,9 @@ namespace Sanford.Multimedia.Midi
             OnChased(new ChasedEventArgs(chasedMessages));
         }
 
+        /// <summary>
+		/// Resets all the channel chaser values.
+		/// </summary>
         public void Reset()
         {
             for(int c = 0; c <= ChannelMessage.MidiChannelMaxValue; c++)
@@ -154,6 +172,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Handles the chased event.
+		/// </summary>
         protected virtual void OnChased(ChasedEventArgs e)
         {
             EventHandler<ChasedEventArgs> handler = Chased;

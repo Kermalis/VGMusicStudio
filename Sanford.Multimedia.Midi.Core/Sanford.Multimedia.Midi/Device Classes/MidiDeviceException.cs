@@ -43,14 +43,41 @@ namespace Sanford.Multimedia.Midi
 	{
         #region Error Codes
 
+        /// <summary>
+        /// This error occurs when the header is not prepared.
+        /// </summary>
         public const int MIDIERR_UNPREPARED    = 64; /* header not prepared */
+        /// <summary>
+        /// This error occurs when the MIDI player is still playing something.
+        /// </summary>
         public const int MIDIERR_STILLPLAYING  = 65; /* still something playing */
+        /// <summary>
+        /// This error occurs when there are no configured instruments.
+        /// </summary>
         public const int MIDIERR_NOMAP         = 66; /* no configured instruments */
+        /// <summary>
+        /// This error occurs when the hardware is still busy.
+        /// </summary>
         public const int MIDIERR_NOTREADY      = 67; /* hardware is still busy */
+        /// <summary>
+        /// This error occurs when the port is no longer connected.
+        /// </summary>
         public const int MIDIERR_NODEVICE      = 68; /* port no longer connected */
+        /// <summary>
+        /// This error occurs when there is an invalid MIF.
+        /// </summary>
         public const int MIDIERR_INVALIDSETUP  = 69; /* invalid MIF */
+        /// <summary>
+        /// This error occurs when the operation is unsupported with open mode.
+        /// </summary>
         public const int MIDIERR_BADOPENMODE   = 70; /* operation unsupported w/ open mode */
+        /// <summary>
+        /// This error occurs when the through device is eating up a message.
+        /// </summary>
         public const int MIDIERR_DONT_CONTINUE = 71; /* thru device 'eating' a message */
+        /// <summary>
+        /// This error is the last error in range.
+        /// </summary>
         public const int MIDIERR_LASTERROR     = 71; /* last error in range */
 
         #endregion

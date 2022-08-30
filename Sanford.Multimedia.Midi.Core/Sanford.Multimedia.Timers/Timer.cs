@@ -71,6 +71,9 @@ namespace Sanford.Multimedia.Timers
         /// </summary>
         public int periodMax;
 
+        /// <summary>
+		/// The default timer capabilities.
+		/// </summary>
         public static TimerCaps Default
         {
             get
@@ -195,9 +198,7 @@ namespace Sanford.Multimedia.Timers
         /// </param>
         public Timer(IContainer container)
         {
-            ///
-            /// Required for Windows.Forms Class Composition Designer support
-            ///
+            // Required for Windows.Forms Class Composition Designer support
             container.Add(this);
 
             Initialize();

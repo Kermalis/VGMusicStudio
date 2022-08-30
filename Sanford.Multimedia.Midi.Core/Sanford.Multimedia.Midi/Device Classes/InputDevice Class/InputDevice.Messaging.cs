@@ -66,7 +66,7 @@ namespace Sanford.Multimedia.Midi
             set;
         }
 
-        int FLastParam2;
+        //int FLastParam2;
 
         private void HandleMessage(IntPtr hnd, int msg, IntPtr instance, IntPtr param1, IntPtr param2)
         {
@@ -289,6 +289,9 @@ namespace Sanford.Multimedia.Midi
             Monitor.Pulse(lockObject);
         }
 
+        /// <summary>
+        /// Creates a system ex buffer for MIDI headers.
+        /// </summary>
         public int AddSysExBuffer()
         {
             int result;

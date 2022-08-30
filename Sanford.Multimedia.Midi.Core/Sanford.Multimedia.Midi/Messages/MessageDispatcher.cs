@@ -46,14 +46,29 @@ namespace Sanford.Multimedia.Midi
 
         #region Events
 
+        /// <summary>
+        /// Handles dispatching the channel message.
+        /// </summary>
         public event EventHandler<ChannelMessageEventArgs> ChannelMessageDispatched;
 
+        /// <summary>
+        /// Handles dispatching the system ex message.
+        /// </summary>
         public event EventHandler<SysExMessageEventArgs> SysExMessageDispatched;
 
+        /// <summary>
+        /// Handles dispatching the system common message.
+        /// </summary>
         public event EventHandler<SysCommonMessageEventArgs> SysCommonMessageDispatched;
 
+        /// <summary>
+        /// Handles dispatching the system realtime message.
+        /// </summary>
         public event EventHandler<SysRealtimeMessageEventArgs> SysRealtimeMessageDispatched;
 
+        /// <summary>
+        /// Handles dispatching the metadata message.
+        /// </summary>
         public event EventHandler<MetaMessageEventArgs> MetaMessageDispatched;
 
         #endregion
@@ -61,13 +76,17 @@ namespace Sanford.Multimedia.Midi
         /// <summary>
         /// Dispatches IMidiMessages to their corresponding sink.
         /// </summary>
-        /// <param name="message">
-        /// The IMidiMessage to dispatch.
+        /// <param name="evt">
+        /// The MidiEvent to dispatch.
+        /// </param>
+        /// <param name="track">
+        /// The Track to dispatch.
         /// </param>
         public void Dispatch(MidiEvent evt, Track track)
         {
             #region Require
 
+            // The IMidiMessage to dispatch.
             var message = evt.MidiMessage;
 
             if(message == null)
@@ -131,6 +150,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Dispatches the channel message.
+        /// </summary>
         protected virtual void OnChannelMessageDispatched(ChannelMessageEventArgs e, Track track)
         {
             EventHandler<ChannelMessageEventArgs> handler = ChannelMessageDispatched;
@@ -141,6 +163,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Dispatches the system ex message.
+        /// </summary>
         protected virtual void OnSysExMessageDispatched(SysExMessageEventArgs e, Track track)
         {
             EventHandler<SysExMessageEventArgs> handler = SysExMessageDispatched;
@@ -151,6 +176,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Dispatches the system common message.
+        /// </summary>
         protected virtual void OnSysCommonMessageDispatched(SysCommonMessageEventArgs e, Track track)
         {
             EventHandler<SysCommonMessageEventArgs> handler = SysCommonMessageDispatched;
@@ -161,6 +189,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Dispatches the system realtime message.
+        /// </summary>
         protected virtual void OnSysRealtimeMessageDispatched(SysRealtimeMessageEventArgs e, Track track)
         {
             EventHandler<SysRealtimeMessageEventArgs> handler = SysRealtimeMessageDispatched;
@@ -171,6 +202,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Dispatches the metadata message.
+        /// </summary>
         protected virtual void OnMetaMessageDispatched(MetaMessageEventArgs e, Track track)
         {
             EventHandler<MetaMessageEventArgs> handler = MetaMessageDispatched;

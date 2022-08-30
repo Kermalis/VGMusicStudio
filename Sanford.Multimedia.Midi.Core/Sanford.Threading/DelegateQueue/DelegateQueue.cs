@@ -115,14 +115,15 @@ namespace Sanford.Threading
         /// </param>
         public DelegateQueue(IContainer container)
         {
-            ///
-            /// Required for Windows.Forms Class Composition Designer support
-            ///
+            // Required for Windows.Forms Class Composition Designer support
             container.Add(this);
 
             InitializeDelegateQueue();
         }
 
+        /// <summary>
+		/// Checks if DelegateQueue has been disposed.
+		/// </summary>
         ~DelegateQueue()
         {
             Dispose(false);
@@ -156,6 +157,9 @@ namespace Sanford.Threading
 
         #region Methods
 
+        /// <summary>
+		/// Disposes of DelegateQueue when closed.
+		/// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if(disposing)
@@ -503,8 +507,10 @@ namespace Sanford.Threading
 
             Debug.WriteLine(delegateThread.Name + " Finished");
         }
-        
-        // Raises the InvokeCompleted event.
+
+        /// <summary>
+        /// Raises the InvokeCompleted event.
+        /// </summary>
         protected virtual void OnInvokeCompleted(InvokeCompletedEventArgs e)
         {
             EventHandler<InvokeCompletedEventArgs> handler = InvokeCompleted;
@@ -518,7 +524,9 @@ namespace Sanford.Threading
             }
         }
 
-        // Raises the PostCompleted event.
+        /// <summary>
+		/// Raises the PostCompleted event.
+		/// </summary>
         protected virtual void OnPostCompleted(PostCompletedEventArgs e)
         {
             EventHandler<PostCompletedEventArgs> handler = PostCompleted;
@@ -532,7 +540,9 @@ namespace Sanford.Threading
             }
         }
 
-        // Raises the Disposed event.
+        /// <summary>
+		/// Raises the Disposed event.
+		/// </summary>
         protected virtual void OnDisposed(EventArgs e)
         {
             EventHandler handler = Disposed;

@@ -77,7 +77,7 @@ namespace Sanford.Multimedia.Midi
         /// Initialize a new instance of the TempoChangeBuilder class with the 
         /// specified MetaMessage.
         /// </summary>
-        /// <param name="message">
+        /// <param name="m">
         /// The MetaMessage to use for initializing the TempoChangeBuilder class.
         /// </param>
         /// <exception cref="ArgumentException">
@@ -87,9 +87,9 @@ namespace Sanford.Multimedia.Midi
         /// The TempoChangeBuilder uses the specified MetaMessage to initialize 
         /// its property values.
         /// </remarks>
-        public TempoChangeBuilder(MetaMessage e)
+        public TempoChangeBuilder(MetaMessage m)
         {
-            Initialize(e);            
+            Initialize(m);            
 		}
 
         #endregion
@@ -99,23 +99,23 @@ namespace Sanford.Multimedia.Midi
         /// <summary>
         /// Initializes the TempoChangeBuilder with the specified MetaMessage.
         /// </summary>
-        /// <param name="message">
+        /// <param name="m">
         /// The MetaMessage to use for initializing the TempoChangeBuilder.
         /// </param>
         /// <exception cref="ArgumentException">
         /// If the specified MetaMessage is not a tempo type.
         /// </exception>
-        public void Initialize(MetaMessage e)
+        public void Initialize(MetaMessage m)
         {
             #region Require
 
-            if(e == null)
+            if(m == null)
             {
-                throw new ArgumentNullException("e");
+                throw new ArgumentNullException("m");
             }
-            else if(e.MetaType != MetaType.Tempo)
+            else if(m.MetaType != MetaType.Tempo)
             {
-                throw new ArgumentException("Wrong meta message type.", "e");
+                throw new ArgumentException("Wrong meta message type.", "m");
             }
 
             #endregion
@@ -125,12 +125,12 @@ namespace Sanford.Multimedia.Midi
             // If this platform uses little endian byte order.
             if(BitConverter.IsLittleEndian)
             {
-                int d = e.Length - 1;
+                int d = m.Length - 1;
 
                 // Pack tempo.
-                for(int i = 0; i < e.Length; i++)
+                for(int i = 0; i < m.Length; i++)
                 {
-                    t |= e[d] << (Shift * i);
+                    t |= m[d] << (Shift * i);
                     d--;
                 }
             }
@@ -138,9 +138,9 @@ namespace Sanford.Multimedia.Midi
             else
             {        
                 // Pack tempo.
-                for(int i = 0; i < e.Length; i++)
+                for(int i = 0; i < m.Length; i++)
                 {
-                    t |= e[i] << (Shift * i);
+                    t |= m[i] << (Shift * i);
                 }                    
             }
 

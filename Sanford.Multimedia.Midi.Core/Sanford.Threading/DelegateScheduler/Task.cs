@@ -38,6 +38,9 @@ using System.Diagnostics;
 
 namespace Sanford.Threading
 {
+    /// <summary>
+    /// Indicates the tasks to be compared.
+    /// </summary>
     public class Task : IComparable
     {
         #region Task Members
@@ -112,6 +115,9 @@ namespace Sanford.Threading
             return returnValue;
         }
 
+        /// <summary>
+		/// Initializes returns the arguments.
+		/// </summary>
         public object[] GetArgs()
         {
             return args;
@@ -121,6 +127,9 @@ namespace Sanford.Threading
 
         #region Properties
 
+        /// <summary>
+		/// Gets and returns the next timeout.
+		/// </summary>
         public DateTime NextTimeout
         {
             get
@@ -129,6 +138,9 @@ namespace Sanford.Threading
             }
         }
 
+        /// <summary>
+		/// Gets and returns the count.
+		/// </summary>
         public int Count
         {
             get
@@ -137,6 +149,9 @@ namespace Sanford.Threading
             }
         }
 
+        /// <summary>
+		/// Gets and returns the method.
+		/// </summary>
         public Delegate Method
         {
             get
@@ -145,6 +160,9 @@ namespace Sanford.Threading
             }
         }
 
+        /// <summary>
+		/// Gets and returns the timeout in milliseconds.
+		/// </summary>
         public int MillisecondsTimeout
         {
             get
@@ -159,6 +177,13 @@ namespace Sanford.Threading
 
         #region IComparable Members
 
+        
+        /// <summary>
+		/// Compares the current instance with another object of the same type and returns an integer indicates whenever the current instance precedes, follows, or occurs in the same position in the sort order as the other object.
+		/// </summary>
+        /// <returns>
+        /// Compares between the subtracted next timeout and the task.
+        /// </returns>
         public int CompareTo(object obj)
         {
             Task t = obj as Task;

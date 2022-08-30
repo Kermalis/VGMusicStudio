@@ -36,6 +36,9 @@ using System;
 
 namespace Sanford.Multimedia.Midi
 {
+    /// <summary>
+    /// A class for MIDI events.
+    /// </summary>
     public class MidiEvent
     {
         private object owner = null;
@@ -86,6 +89,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Gets and returns the amount of absolute ticks.
+		/// </summary>
         public int AbsoluteTicks
         {
             get
@@ -94,6 +100,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Gets the amount of delta ticks from absolute ticks, subtracted from the previous absolute ticks, if the previous tick is not null; otherwise, obtains the amount of absolute ticks.
+		/// </summary>
         public int DeltaTicks
         {
             get
@@ -113,6 +122,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Gets and returns the MIDI message.
+		/// </summary>
         public IMidiMessage MidiMessage
         {
             get

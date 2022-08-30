@@ -77,14 +77,22 @@ namespace Sanford.Multimedia.Midi
 
         // The timer period.
         private readonly int timerPeriod;
-        
-        // Indicates whether the clock is running.
+
+        /// <summary>
+        /// Indicates whether the clock is running.
+        /// </summary>
         protected bool running = false;
 
         #endregion
 
         #region Construction
 
+        /// <summary>
+        /// The PpqnClock determines how many ticks and timer period is used for the PPQN format.
+        /// </summary>
+        /// <param name="timerPeriod">
+        /// The timerPeriod integer determines the amount of time there is.
+        /// </param>
         protected PpqnClock(int timerPeriod)
         {
             #region Require
@@ -107,11 +115,17 @@ namespace Sanford.Multimedia.Midi
 
         #region Methods
 
+        /// <summary>
+        /// Gets the tempos per beat.
+        /// </summary>
         protected int GetTempo()
         {
             return tempo;
-        }        
+        }
 
+        /// <summary>
+        /// Sets the tempos to be used per beat.
+        /// </summary>
         protected void SetTempo(int tempo)
         {
             #region Require
@@ -127,11 +141,17 @@ namespace Sanford.Multimedia.Midi
             this.tempo = tempo;
         }
 
+        /// <summary>
+        /// Resets the amount of ticks.
+        /// </summary>
         protected void Reset()
         {
             fractionalTicks = 0;
         }
 
+        /// <summary>
+        /// Generates the amount of ticks.
+        /// </summary>
         protected int GenerateTicks()
         {
             int ticks = (fractionalTicks + periodResolution) / tempo;
@@ -140,16 +160,25 @@ namespace Sanford.Multimedia.Midi
             return ticks;
         }
 
+        /// <summary>
+        /// Calculates the amount of time that the timer will have.
+        /// </summary>
         private void CalculatePeriodResolution()
         {
             periodResolution = ppqn * timerPeriod * MicrosecondsPerMillisecond;
         }
 
+        /// <summary>
+        /// Calculates the amount of ticks per clock.
+        /// </summary>
         private void CalculateTicksPerClock()
         {
             ticksPerClock = ppqn / PpqnMinValue;
         }
 
+        /// <summary>
+        /// An event that handles the ticks.
+        /// </summary>
         protected virtual void OnTick(EventArgs e)
         {
             EventHandler handler = Tick;
@@ -160,6 +189,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// An event that starts the PPQN Clock.
+        /// </summary>
         protected virtual void OnStarted(EventArgs e)
         {
             EventHandler handler = Started;
@@ -170,6 +202,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// An event that stops the PPQN Clock.
+        /// </summary>
         protected virtual void OnStopped(EventArgs e)
         {
             EventHandler handler = Stopped;
@@ -180,6 +215,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// An event that continues the PPQN Clock.
+        /// </summary>
         protected virtual void OnContinued(EventArgs e)
         {
             EventHandler handler = Continued;
@@ -194,6 +232,9 @@ namespace Sanford.Multimedia.Midi
 
         #region Properties
 
+        /// <summary>
+        /// An integer that gets and sets the PPQN Clock value.
+        /// </summary>
         public int Ppqn
         {
             get
@@ -219,11 +260,20 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// An abstract integer that gets the amount of ticks.
+        /// </summary>
         public abstract int Ticks
         {
             get;
         }
 
+        /// <summary>
+        /// An integer that determines the ticks per clock.
+        /// </summary>
+        /// <returns>
+        /// The amount of ticks per clock.
+        /// </returns>
         public int TicksPerClock
         {
             get
@@ -238,14 +288,29 @@ namespace Sanford.Multimedia.Midi
 
         #region IClock Members
 
+        /// <summary>
+        /// This event occurs when PPQN Clock generates a tick.
+        /// </summary>
         public event System.EventHandler Tick;
 
+        /// <summary>
+        /// This event occurs when PPQN Clock is started and starts generating ticks.
+        /// </summary>
         public event System.EventHandler Started;
 
+        /// <summary>
+        /// This event occurs when PPQN Clock continues generating ticks.
+        /// </summary>
         public event System.EventHandler Continued;
 
+        /// <summary>
+        /// This event occurs when PPQN Clock has stopped.
+        /// </summary>
         public event System.EventHandler Stopped;
 
+        /// <summary>
+        /// Checks if PPQN Clock is running.
+        /// </summary>
         public bool IsRunning
         {
             get

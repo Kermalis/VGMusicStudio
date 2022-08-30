@@ -41,65 +41,128 @@ using Sanford.Threading;
 
 namespace Sanford.Multimedia.Midi
 {
+    /// <summary>
+    /// This is an abstract class for MIDI output devices.
+    /// </summary>
     public abstract class OutputDeviceBase : MidiDevice
     {
+        /// <summary>
+        /// Handles resetting the MIDI output device.
+        /// </summary>
         [DllImport("winmm.dll")]
         protected static extern int midiOutReset(IntPtr DeviceHandle);
 
+        /// <summary>
+        /// Handles the MIDI output device short messages.
+        /// </summary>
         [DllImport("winmm.dll")]
         protected static extern int midiOutShortMsg(IntPtr DeviceHandle, int message);
 
+        /// <summary>
+        /// Handles preparing the headers for the MIDI output device.
+        /// </summary>
         [DllImport("winmm.dll")]
         protected static extern int midiOutPrepareHeader(IntPtr DeviceHandle,
             IntPtr headerPtr, int sizeOfMidiHeader);
 
+        /// <summary>
+        /// Handles unpreparing the headers for the MIDI output device.
+        /// </summary>
         [DllImport("winmm.dll")]
         protected static extern int midiOutUnprepareHeader(IntPtr DeviceHandle,
             IntPtr headerPtr, int sizeOfMidiHeader);
 
+        /// <summary>
+        /// Handles the MIDI output device long message.
+        /// </summary>
         [DllImport("winmm.dll")]
         protected static extern int midiOutLongMsg(IntPtr DeviceHandle,
             IntPtr headerPtr, int sizeOfMidiHeader);
 
+        /// <summary>
+        /// Obtains the MIDI output device caps.
+        /// </summary>
         [DllImport("winmm.dll")]
         protected static extern int midiOutGetDevCaps(IntPtr deviceID,
             ref MidiOutCaps caps, int sizeOfMidiOutCaps);
 
+        /// <summary>
+        /// Obtains the number of MIDI output devices.
+        /// </summary>
         [DllImport("winmm.dll")]
         protected static extern int midiOutGetNumDevs();
 
+        /// <summary>
+        /// A construct integer that tells the compiler that hexadecimal value 0x3C7 means MOM_OPEN.
+        /// </summary>
         protected const int MOM_OPEN = 0x3C7;
+
+        /// <summary>
+        /// A construct integer that tells the compiler that hexadecimal value 0x3C8 means MOM_CLOSE.
+        /// </summary>
         protected const int MOM_CLOSE = 0x3C8;
+
+        /// <summary>
+        /// A construct integer that tells the compiler that hexadecimal value 0x3C9 means MOM_DONE.
+        /// </summary>
         protected const int MOM_DONE = 0x3C9;
 
+        /// <summary>
+        /// This delegate is a generic delegate for the MIDI output devices.
+        /// </summary>
         protected delegate void GenericDelegate<T>(T args);
 
-        // Represents the method that handles messages from Windows.
+        /// <summary>
+        /// Represents the method that handles messages from Windows.
+        /// </summary>
         protected delegate void MidiOutProc(IntPtr hnd, int msg, IntPtr instance, IntPtr param1, IntPtr param2);
 
-        // For releasing buffers.
+        /// <summary>
+        /// For releasing buffers.
+        /// </summary>
         protected DelegateQueue delegateQueue = new DelegateQueue();
-        
+
+        /// <summary>
+        /// This object remains locked in place.
+        /// </summary>
         protected readonly object lockObject = new object();
 
-        // The number of buffers still in the queue.
+        /// <summary>
+        /// The number of buffers still in the queue.
+        /// </summary>
         protected int bufferCount = 0;
 
-        // Builds MidiHeader structures for sending system exclusive messages.
+        /// <summary>
+        /// Builds MidiHeader structures for sending system exclusive messages.
+        /// </summary>
         private MidiHeaderBuilder headerBuilder = new MidiHeaderBuilder();
 
-        // The device handle.
+        /// <summary>
+        /// The device handle.
+        /// </summary>
         protected IntPtr DeviceHandle = IntPtr.Zero;        
 
+        /// <summary>
+        /// Base class for output devices with an integer.
+        /// </summary>
+        /// <param name="deviceID">
+        /// Device ID is used here.
+        /// </param>
         public OutputDeviceBase(int deviceID) : base(deviceID)
         {
         }
 
+        /// <summary>
+        /// Disposes when it has been closed.
+        /// </summary>
         ~OutputDeviceBase()
         {
             Dispose(false);
         }
 
+        /// <summary>
+        /// This dispose function will dispose all delegates that are queued when closed.
+        /// </summary>
         protected override void Dispose(bool disposing)
         {
             if(disposing)
@@ -110,6 +173,9 @@ namespace Sanford.Multimedia.Midi
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Sends the MIDI output channel device message.
+        /// </summary>
         public virtual void Send(ChannelMessage message)
         {
             #region Require
@@ -124,6 +190,9 @@ namespace Sanford.Multimedia.Midi
             Send(message.Message);
         }
 
+        /// <summary>
+        /// Sends a short MIDI output channel device message.
+        /// </summary>
         public virtual void SendShort(int message)
         {
             #region Require
@@ -138,6 +207,9 @@ namespace Sanford.Multimedia.Midi
             Send(message);
         }
 
+        /// <summary>
+        /// Sends a system ex MIDI output channel device message.
+        /// </summary>
         public virtual void Send(SysExMessage message)
         {
             #region Require
@@ -188,6 +260,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Sends a system common MIDI output device message.
+        /// </summary>
         public virtual void Send(SysCommonMessage message)
         {
             #region Require
@@ -202,6 +277,9 @@ namespace Sanford.Multimedia.Midi
             Send(message.Message);
         }
 
+        /// <summary>
+        /// Sends a system realtime MIDI output device message.
+        /// </summary>
         public virtual void Send(SysRealtimeMessage message)
         {
             #region Require
@@ -216,6 +294,9 @@ namespace Sanford.Multimedia.Midi
             Send(message.Message);
         }
 
+        /// <summary>
+        /// Resets the MIDI output device.
+        /// </summary>
         public override void Reset()
         {
             #region Require
@@ -245,8 +326,11 @@ namespace Sanford.Multimedia.Midi
                     throw new OutputDeviceException(result);
                 }                
             }
-        }        
+        }
 
+        /// <summary>
+        /// Sends a MIDI output device message.
+        /// </summary>
         protected void Send(int message)
         {
             lock(lockObject)
@@ -260,6 +344,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Initializes the MIDI output device capabilities.
+        /// </summary>
         public static MidiOutCaps GetDeviceCapabilities(int deviceID)
         {
             MidiOutCaps caps = new MidiOutCaps();
@@ -278,7 +365,9 @@ namespace Sanford.Multimedia.Midi
             return caps;
         }
 
-        // Handles Windows messages.
+        /// <summary>
+        /// Handles Windows messages.
+        /// </summary>
         protected virtual void HandleMessage(IntPtr hnd, int msg, IntPtr instance, IntPtr param1, IntPtr param2)
         {
             if(msg == MOM_OPEN)
@@ -293,7 +382,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
-        // Releases buffers.
+        /// <summary>
+        /// Releases buffers.
+        /// </summary>
         private void ReleaseBuffer(object state)
         {
             lock(lockObject)
@@ -321,6 +412,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// When closed, disposes the object that is locked in place.
+        /// </summary>
         public override void Dispose()
         {
             #region Guard
@@ -338,6 +432,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Handles the MIDI output device pointer.
+        /// </summary>
         public override IntPtr Handle
         {
             get
@@ -346,6 +443,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Counts the number of MIDI output devices.
+        /// </summary>
         public static int DeviceCount
         {
             get

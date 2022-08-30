@@ -38,16 +38,25 @@ using System.Threading;
 
 namespace Sanford.Threading
 {
+    /// <summary>
+    /// This class is used when the async events have been completed.
+    /// </summary>
     public class PostCompletedEventArgs : AsyncCompletedEventArgs
     {
         private SendOrPostCallback callback;
 
+        /// <summary>
+		/// Main function for post completed events.
+		/// </summary>
         public PostCompletedEventArgs(SendOrPostCallback callback, Exception error, object state) 
             : base(error, false, state)
         {
             this.callback = callback;
         }
 
+        /// <summary>
+		/// Gets and returns the callback.
+		/// </summary>
         public SendOrPostCallback Callback
         {
             get

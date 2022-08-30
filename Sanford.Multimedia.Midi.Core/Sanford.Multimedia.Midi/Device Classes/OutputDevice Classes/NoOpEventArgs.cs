@@ -37,17 +37,23 @@ using System;
 namespace Sanford.Multimedia.Midi
 {
     /// <summary>
-    /// 
+    /// The event args class for no operations.
     /// </summary>
     public class NoOpEventArgs : EventArgs
     {
         private int data;
 
+        /// <summary>
+        /// The function for the no operation events.
+        /// </summary>
         public NoOpEventArgs(int data)
         {
             this.data = data;
         }
 
+        /// <summary>
+        /// Gets and returns the data.
+        /// </summary>
         public int Data
         {
             get

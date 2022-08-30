@@ -591,6 +591,9 @@ namespace Sanford.Collections.Generic
 
         #region IEnumerable<T> Members
 
+        /// <summary>
+        /// Gets and returns the Enumerator.
+        /// </summary>
         public virtual IEnumerator<T> GetEnumerator()
         {
             return new Enumerator(this);

@@ -8,6 +8,9 @@ namespace Sanford.Multimedia.Midi
     /// </summary>
     public class MergeMidiEvents : MidiEvents
     {
+        /// <summary>
+		/// Gets the device ID and returns with a value of -3.
+		/// </summary>
         public int DeviceID
         {
             get
@@ -18,6 +21,9 @@ namespace Sanford.Multimedia.Midi
 
         readonly List<MidiEvents> FMidiEventsList = new List<MidiEvents>();
 
+        /// <summary>
+		/// Merges the MIDI events.
+		/// </summary>
         public MergeMidiEvents(IEnumerable<MidiEvents> midiEvents)
         {
             foreach (var elem in midiEvents)
@@ -27,6 +33,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Gets and returns the MIDI event sources from the events list.
+		/// </summary>
         public IEnumerable<MidiEvents> EventSources
         {
             get
@@ -35,10 +44,16 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Disposes of the MergeMidiEvents when closed.
+		/// </summary>
         public void Dispose()
         {
         }
 
+        /// <summary>
+		/// Handles the event for when a MIDI message is received.
+		/// </summary>
         public event MidiMessageEventHandler MessageReceived
         {
             add
@@ -57,6 +72,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Handles the event for when a short message is received.
+		/// </summary>
         public event EventHandler<ShortMessageEventArgs> ShortMessageReceived
         {
             add
@@ -75,6 +93,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Handles the event for when a channel message is received.
+		/// </summary>
         public event EventHandler<ChannelMessageEventArgs> ChannelMessageReceived
         {
             add
@@ -93,6 +114,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Handles the event for when an exclusive system message is received.
+		/// </summary>
         public event EventHandler<SysExMessageEventArgs> SysExMessageReceived
         {
             add
@@ -111,6 +135,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Handles the event for when a common system message is received.
+		/// </summary>
         public event EventHandler<SysCommonMessageEventArgs> SysCommonMessageReceived
         {
             add
@@ -129,6 +156,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Handles the event for when a realtime system message is received.
+		/// </summary>
         public event EventHandler<SysRealtimeMessageEventArgs> SysRealtimeMessageReceived
         {
             add

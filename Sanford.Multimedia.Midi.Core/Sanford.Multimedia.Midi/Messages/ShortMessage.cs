@@ -36,6 +36,9 @@ using System;
 
 namespace Sanford.Multimedia.Midi
 {
+    /// <summary>
+    /// Base abstract class for delta frames for MIDI messages.
+    /// </summary>
     public abstract class MidiMessageBase
     {
         /// <summary>
@@ -65,8 +68,14 @@ namespace Sanford.Multimedia.Midi
 
         #region Constants
 
+        /// <summary>
+		/// The maximum value for data.
+		/// </summary>
         public const int DataMaxValue= 255;
 
+        /// <summary>
+		/// The maximum value for statuses.
+		/// </summary>
         public const int StatusMaxValue = 255;
 
         //
@@ -74,6 +83,9 @@ namespace Sanford.Multimedia.Midi
         //
 
         private const int StatusMask = ~255;
+        /// <summary>
+		/// Bit manipulation constant for data mask.
+		/// </summary>
         protected const int DataMask = ~StatusMask;
         private const int Data1Mask = ~65280;
         private const int Data2Mask = ~Data1Mask + DataMask;
@@ -81,6 +93,9 @@ namespace Sanford.Multimedia.Midi
 
         #endregion
 
+        /// <summary>
+		/// The message is set at 0.
+		/// </summary>
         protected int msg = 0;
 
         byte[] message;
@@ -88,21 +103,33 @@ namespace Sanford.Multimedia.Midi
 
         #region Methods
 
+        /// <summary>
+		/// Gets and returns the bytes for the MIDI short message.
+		/// </summary>
         public byte[] GetBytes()
         {
             return Bytes;
         }
 
+        /// <summary>
+		/// Main function for MIDI short messages.
+		/// </summary>
         public ShortMessage()
         {
             //sub classes will fill the msg field
         }
 
+        /// <summary>
+		/// Initializes the message for the MIDI short message function.
+		/// </summary>
         public ShortMessage(int message)
         {
             this.msg = message;
         }
 
+        /// <summary>
+		/// Initializes the short message based on status and two bytes of data.
+		/// </summary>
         public ShortMessage(byte status, byte data1, byte data2)
         {
             this.message = new byte[] { status, data1, data2 };
@@ -233,6 +260,12 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Gets the bytes for the MIDI short message.
+		/// </summary>
+        /// <returns>
+        /// The message for the short message.
+        /// </returns>
         public byte[] Bytes
         {
             get
@@ -246,6 +279,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Gets the message type and returns the message type with a short message.
+		/// </summary>
         public virtual MessageType MessageType
         {
             get

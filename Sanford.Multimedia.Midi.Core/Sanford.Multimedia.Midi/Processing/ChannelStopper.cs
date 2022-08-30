@@ -37,6 +37,9 @@ using System.Collections;
 
 namespace Sanford.Multimedia.Midi
 {
+    /// <summary>
+    /// The ChannelStopper class, which provides pedal messages and sustenuto messages.
+    /// </summary>
     public class ChannelStopper
     {
         private ChannelMessage[,] noteOnMessage;
@@ -49,8 +52,14 @@ namespace Sanford.Multimedia.Midi
 
         private ChannelMessageBuilder builder = new ChannelMessageBuilder();
 
+        /// <summary>
+		/// Handles the stopped event.
+		/// </summary>
         public event EventHandler<StoppedEventArgs> Stopped;
 
+        /// <summary>
+		/// This function contains the pedal messages and sustenuto messages.
+		/// </summary>
         public ChannelStopper()
         {
             int c = ChannelMessage.MidiChannelMaxValue + 1;
@@ -63,6 +72,9 @@ namespace Sanford.Multimedia.Midi
             sustenutoMessage = new bool[c];
         }
 
+        /// <summary>
+		/// Processes the channel message.
+		/// </summary>
         public void Process(ChannelMessage message)
         {
             switch(message.Command)
@@ -122,6 +134,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Switches all sound off when stopped.
+		/// </summary>
         public void AllSoundOff()
         {
             ArrayList stoppedMessages = new ArrayList();
@@ -183,6 +198,9 @@ namespace Sanford.Multimedia.Midi
             OnStopped(new StoppedEventArgs(stoppedMessages));
         }
 
+        /// <summary>
+		/// Resets all the messages.
+		/// </summary>
         public void Reset()
         {
             for(int c = 0; c <= ChannelMessage.MidiChannelMaxValue; c++)
@@ -198,6 +216,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+		/// Handles the event when the channels are stopped.
+		/// </summary>
         protected virtual void OnStopped(StoppedEventArgs e)
         {
             EventHandler<StoppedEventArgs> handler = Stopped;

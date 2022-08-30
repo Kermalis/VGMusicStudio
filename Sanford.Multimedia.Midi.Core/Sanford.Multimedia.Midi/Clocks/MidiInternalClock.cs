@@ -74,6 +74,12 @@ namespace Sanford.Multimedia.Midi
         { 
         }
 
+        /// <summary>
+        /// Initializes a new instance of MidiInternalClock class with a specified base and a newly named integer.
+        /// </summary>
+        /// <param name="timerPeriod">
+        /// The timer period in which the MidiInternalClock will use to determine the amount of time.
+        /// </param>
         public MidiInternalClock(int timerPeriod) : base(timerPeriod)
         {
             timer = TimerFactory.Create();
@@ -91,9 +97,7 @@ namespace Sanford.Multimedia.Midi
         public MidiInternalClock(IContainer container) : 
             this()
         {
-            ///
-            /// Required for Windows.Forms Class Composition Designer support
-            ///
+            // Required for Windows.Forms Class Composition Designer support
             container.Add(this);
         }
 
@@ -203,6 +207,9 @@ namespace Sanford.Multimedia.Midi
             OnStopped(EventArgs.Empty);
         }
 
+        /// <summary>
+        /// Sets the amount of ticks determined by the integer.
+        /// </summary>
         public void SetTicks(int ticks)
         {
             #region Require
@@ -224,6 +231,9 @@ namespace Sanford.Multimedia.Midi
             Reset();
         }
 
+        /// <summary>
+        /// Processes with the meta message determined, along with the tempo.
+        /// </summary>
         public void Process(MetaMessage message)
         {
             #region Require
@@ -252,6 +262,9 @@ namespace Sanford.Multimedia.Midi
 
         #region Event Raiser Methods
 
+        /// <summary>
+        /// Disposes of the MidiInternalClock when closed.
+        /// </summary>
         protected virtual void OnDisposed(EventArgs e)
         {
             EventHandler handler = Disposed;
@@ -318,6 +331,9 @@ namespace Sanford.Multimedia.Midi
             }
         }
 
+        /// <summary>
+        /// Gets the ticks in microseconds per beat.
+        /// </summary>
         public override int Ticks
         {
             get 
@@ -332,8 +348,14 @@ namespace Sanford.Multimedia.Midi
 
         #region IComponent Members
 
+        /// <summary>
+        /// Initializes the Disposed event.
+        /// </summary>
         public event EventHandler Disposed;
 
+        /// <summary>
+        /// Initializes the Site functionality using ISite.
+        /// </summary>
         public ISite Site
         {
             get
@@ -350,6 +372,9 @@ namespace Sanford.Multimedia.Midi
 
         #region IDisposable Members
 
+        /// <summary>
+        /// Performs the main Dispose functionality for when the application is closed.
+        /// </summary>
         public void Dispose()
         {
             #region Guard

@@ -483,6 +483,9 @@ namespace Sanford.Collections
             }
         }
 
+        /// <summary>
+        /// Tests the methods in the Priority Queue.
+        /// </summary>
         [Conditional("DEBUG")]
         public static void Test()
         {
@@ -807,6 +810,9 @@ namespace Sanford.Collections
 
         #region ICollection Members
 
+        /// <summary>
+        /// Gets a value indicating whenever PriorityQueue is synchronized.
+        /// </summary>
         public virtual bool IsSynchronized
         {
             get
@@ -815,6 +821,9 @@ namespace Sanford.Collections
             }
         }
 
+        /// <summary>
+        /// Gets the number of elements contained in PriorityQueue.
+        /// </summary>
         public virtual int Count
         {
             get
@@ -823,6 +832,9 @@ namespace Sanford.Collections
             }
         }
 
+        /// <summary>
+        /// Copies the elements of the PriorityQueue to an array, starting at a particular array index.
+        /// </summary>
         public virtual void CopyTo(Array array, int index)
         {
             #region Require
@@ -865,6 +877,9 @@ namespace Sanford.Collections
             }
         }
 
+        /// <summary>
+        /// Gets an object that can be used to synchronize access to the PriorityQueue.
+        /// </summary>
         public virtual object SyncRoot
         {
             get
@@ -877,6 +892,9 @@ namespace Sanford.Collections
 
         #region IEnumerable Members
 
+        /// <summary>
+        /// Gets the enumerator for the Priority Queue, then returns the enumerator through a collection.
+        /// </summary>
         public virtual IEnumerator GetEnumerator()
         {
             return new PriorityQueueEnumerator(this);

@@ -41,16 +41,34 @@ namespace Sanford.Multimedia.Midi
     /// </summary>
     public enum MessageType
     {
+        /// <summary>
+        /// Channel messages.
+        /// </summary>
         Channel,
 
+        /// <summary>
+        /// Exclusive system messages.
+        /// </summary>
         SystemExclusive,
 
+        /// <summary>
+        /// Common system messages.
+        /// </summary>
         SystemCommon,
 
+        /// <summary>
+        /// Realtime system messages.
+        /// </summary>
         SystemRealtime,
 
+        /// <summary>
+        /// Metadata messages.
+        /// </summary>
         Meta,
 
+        /// <summary>
+        /// Short messages.
+        /// </summary>
         Short
     }
 

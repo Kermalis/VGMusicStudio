@@ -40,7 +40,7 @@ using Sanford.Multimedia;
 namespace Sanford.Multimedia.Midi
 {
 	/// <summary>
-	/// The base class for all MIDI devices.
+	/// The base abstract class for all MIDI devices.
 	/// </summary>
 	public abstract class MidiDevice : Device
 	{
@@ -52,11 +52,13 @@ namespace Sanford.Multimedia.Midi
         private static extern int midiConnect(IntPtr handleA, IntPtr handleB, IntPtr reserved);         
 
         [DllImport("winmm.dll")]
-        private static extern int midiDisconnect(IntPtr handleA, IntPtr handleB, IntPtr reserved);             
+        private static extern int midiDisconnect(IntPtr handleA, IntPtr handleB, IntPtr reserved);
 
         #endregion
 
-        // Size of the MidiHeader structure.
+        /// <summary>
+        /// Size of the MidiHeader structure.
+        /// </summary>
         protected static readonly int SizeOfMidiHeader;
 
         static MidiDevice()
@@ -64,6 +66,9 @@ namespace Sanford.Multimedia.Midi
             SizeOfMidiHeader = Marshal.SizeOf(typeof(MidiHeader));
         }
 
+        /// <summary>
+        /// The main function for all MIDI devices.
+        /// </summary>
         public MidiDevice(int deviceID) : base(deviceID)
         {            
         }

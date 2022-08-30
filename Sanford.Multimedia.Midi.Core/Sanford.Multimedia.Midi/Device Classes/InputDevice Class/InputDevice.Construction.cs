@@ -65,6 +65,9 @@ namespace Sanford.Multimedia.Midi
             PostDriverCallbackToDelegateQueue = postDriverCallbackToDelegateQueue;
         }
 
+        /// <summary>
+        /// The Input Device handler.
+        /// </summary>
         ~InputDevice()
         {
             if (!IsDisposed)

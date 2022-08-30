@@ -5,6 +5,9 @@ namespace Sanford.Multimedia.Midi
 {
     public sealed partial class Track
     {
+        /// <summary>
+		/// Tests the tracks.
+		/// </summary>
         [Conditional("DEBUG")]
         public static void Test()
         {
