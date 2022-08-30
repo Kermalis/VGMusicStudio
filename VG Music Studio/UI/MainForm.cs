@@ -1,15 +1,19 @@
 ﻿using Kermalis.VGMusicStudio.Core;
 using Kermalis.VGMusicStudio.Properties;
 using Kermalis.VGMusicStudio.Util;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using Microsoft.WindowsAPICodePack.Taskbar;
+//using Microsoft.WindowsAPICodePack.Dialogs;
+//using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Windows.Forms;
+using System.Windows.Interop;
 
 namespace Kermalis.VGMusicStudio.UI
 {
@@ -45,7 +49,7 @@ namespace Kermalis.VGMusicStudio.UI
         private readonly ColorSlider _volumeBar, _positionBar;
         private readonly SongInfoControl _songInfo;
         private readonly ImageComboBox _songsComboBox;
-        private readonly ThumbnailToolBarButton _prevTButton, _toggleTButton, _nextTButton;
+        //private readonly ThumbnailToolBarButton _prevTButton, _toggleTButton, _nextTButton;
 
         #endregion
 
@@ -149,17 +153,17 @@ namespace Kermalis.VGMusicStudio.UI
             Text = Utils.ProgramName;
 
             // Taskbar Buttons
-            if (TaskbarManager.IsPlatformSupported)
+            /*if (TaskbarManager.IsPlatformSupported)
             {
-                _prevTButton = new ThumbnailToolBarButton(Resources.IconPrevious, Strings.PlayerPreviousSong);
+                _prevTButton = new ToolStripButton(Resources.IconPrevious, Strings.PlayerPreviousSong);
                 _prevTButton.Click += PlayPreviousSong;
-                _toggleTButton = new ThumbnailToolBarButton(Resources.IconPlay, Strings.PlayerPlay);
+                _toggleTButton = new ToolStripButton(Resources.IconPlay, Strings.PlayerPlay);
                 _toggleTButton.Click += TogglePlayback;
-                _nextTButton = new ThumbnailToolBarButton(Resources.IconNext, Strings.PlayerNextSong);
+                _nextTButton = new ToolStripButton(Resources.IconNext, Strings.PlayerNextSong);
                 _nextTButton.Click += PlayNextSong;
                 _prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = false;
                 TaskbarManager.Instance.ThumbnailToolBars.AddButtons(Handle, _prevTButton, _toggleTButton, _nextTButton);
-            }
+            }*/
 
             OnResize(null, null);
         }
@@ -220,10 +224,18 @@ namespace Kermalis.VGMusicStudio.UI
                 Config config = Engine.Instance.Config;
                 List<Config.Song> songs = config.Playlists[0].Songs; // Complete "Music" playlist is present in all configs at index 0
                 Config.Song song = songs.SingleOrDefault(s => s.Index == index);
+
+                // When the song isn't a null value and is played
                 if (song != null)
                 {
-                    Text = $"{Utils.ProgramName} - {song.Name}";
+                    Text = $"{Utils.ProgramName} - {song.Name}"; // Reads the song name from the .yaml file
                     _songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
+                }
+
+                // When the song is a null value and is played
+                if (song == null)
+                {
+                    return; // Resets the music player and prevents the song from playing
                 }
                 _positionBar.Maximum = Engine.Instance.Player.MaxTicks;
                 _positionBar.LargeChange = _positionBar.Maximum / 10;
@@ -317,22 +329,22 @@ namespace Kermalis.VGMusicStudio.UI
 
         private void OpenDSE(object sender, EventArgs e)
         {
-            var d = new CommonOpenFileDialog
+            var d = new FolderBrowserDialog
             {
-                Title = Strings.MenuOpenDSE,
-                IsFolderPicker = true
+                Description = Strings.MenuOpenDSE,
+                UseDescriptionForTitle = true
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            //var f = File.OpenRead(d.SelectedPath);
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 DisposeEngine();
                 bool success;
-                try
+
+                new Engine(Engine.EngineType.NDS_DSE, d.SelectedPath);
+                success = true;
+                if (success != true)
                 {
-                    new Engine(Engine.EngineType.NDS_DSE, d.FileName);
-                    success = true;
-                }
-                catch (Exception ex)
-                {
+                    Exception ex = new Exception();
                     FlexibleMessageBox.Show(ex, Strings.ErrorOpenDSE);
                     success = false;
                 }
@@ -349,12 +361,14 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void OpenAlphaDream(object sender, EventArgs e)
         {
-            var d = new CommonOpenFileDialog
+            var d = new OpenFileDialog
             {
                 Title = Strings.MenuOpenAlphaDream,
-                Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
+                Filter = "Game Boy Advance ROM (*.gba, *.srl)|*.gba;*.srl|All files (*.*)|*.*",
+                FilterIndex = 2,
+                RestoreDirectory = true
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 DisposeEngine();
                 bool success;
@@ -381,12 +395,14 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void OpenMP2K(object sender, EventArgs e)
         {
-            var d = new CommonOpenFileDialog
+            var d = new OpenFileDialog
             {
                 Title = Strings.MenuOpenMP2K,
-                Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
+                Filter = "Game Boy Advance ROM (*.gba, *.srl)|*.gba;*.srl|All files (*.*)|*.*",
+                FilterIndex = 1,
+                RestoreDirectory = true
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 DisposeEngine();
                 bool success;
@@ -413,12 +429,14 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void OpenSDAT(object sender, EventArgs e)
         {
-            var d = new CommonOpenFileDialog
+            var d = new OpenFileDialog
             {
                 Title = Strings.MenuOpenSDAT,
-                Filters = { new CommonFileDialogFilter(Strings.FilterOpenSDAT, ".sdat") }
+                Filter = "Nitro Soundmaker Sound Data Archive (*.sdat)|*.sdat|All files (*.*)|*.*",
+                FilterIndex = 1,
+                RestoreDirectory = true
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 DisposeEngine();
                 bool success;
@@ -446,15 +464,15 @@ namespace Kermalis.VGMusicStudio.UI
 
         private void ExportDLS(object sender, EventArgs e)
         {
-            var d = new CommonSaveFileDialog
+            var d = new SaveFileDialog
             {
-                DefaultFileName = Engine.Instance.Config.GetGameName(),
-                DefaultExtension = ".dls",
-                EnsureValidNames = true,
-                Title = Strings.MenuSaveDLS,
-                Filters = { new CommonFileDialogFilter(Strings.FilterSaveDLS, ".dls") }
+                FileName = Engine.Instance.Config.GetGameName(),
+                Filter = Strings.FilterSaveDLS,
+                FilterIndex = 1,
+                ValidateNames = true,
+                Title = Strings.MenuSaveDLS
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
@@ -469,15 +487,15 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void ExportMIDI(object sender, EventArgs e)
         {
-            var d = new CommonSaveFileDialog
+            var d = new SaveFileDialog
             {
-                DefaultFileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
-                DefaultExtension = ".mid",
-                EnsureValidNames = true,
+                FileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
+                DefaultExt = ".mid",
+                ValidateNames = true,
                 Title = Strings.MenuSaveMIDI,
-                Filters = { new CommonFileDialogFilter(Strings.FilterSaveMIDI, ".mid;.midi") }
+                Filter = Strings.FilterSaveMIDI
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 var p = (Core.GBA.MP2K.Player)Engine.Instance.Player;
                 var args = new Core.GBA.MP2K.Player.MIDISaveArgs
@@ -502,15 +520,15 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void ExportSF2(object sender, EventArgs e)
         {
-            var d = new CommonSaveFileDialog
+            var d = new SaveFileDialog
             {
-                DefaultFileName = Engine.Instance.Config.GetGameName(),
-                DefaultExtension = ".sf2",
-                EnsureValidNames = true,
+                FileName = Engine.Instance.Config.GetGameName(),
+                DefaultExt = ".sf2",
+                ValidateNames = true,
                 Title = Strings.MenuSaveSF2,
-                Filters = { new CommonFileDialogFilter(Strings.FilterSaveSF2, ".sf2") }
+                Filter = Strings.FilterSaveSF2
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
@@ -525,15 +543,15 @@ namespace Kermalis.VGMusicStudio.UI
         }
         private void ExportWAV(object sender, EventArgs e)
         {
-            var d = new CommonSaveFileDialog
+            var d = new SaveFileDialog
             {
-                DefaultFileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
-                DefaultExtension = ".wav",
-                EnsureValidNames = true,
+                FileName = Engine.Instance.Config.GetSongName((long)_songNumerical.Value),
+                DefaultExt = ".wav",
+                ValidateNames = true,
                 Title = Strings.MenuSaveWAV,
-                Filters = { new CommonFileDialogFilter(Strings.FilterSaveWAV, ".wav") }
+                Filter = Strings.FilterSaveWAV
             };
-            if (d.ShowDialog() == CommonFileDialogResult.Ok)
+            if (d.ShowDialog() == DialogResult.OK)
             {
                 Stop();
                 bool oldFade = Engine.Instance.Player.ShouldFadeOut;
@@ -563,8 +581,8 @@ namespace Kermalis.VGMusicStudio.UI
                 _pauseButton.Text = Strings.PlayerPause;
                 _timer.Interval = (int)(1_000d / GlobalConfig.Instance.RefreshRate);
                 _timer.Start();
-                UpdateTaskbarState();
-                UpdateTaskbarButtons();
+                //UpdateTaskbarState();
+                //UpdateTaskbarButtons();
             }
         }
         private void Play()
@@ -585,8 +603,8 @@ namespace Kermalis.VGMusicStudio.UI
                 _pauseButton.Text = Strings.PlayerPause;
                 _timer.Start();
             }
-            UpdateTaskbarState();
-            UpdateTaskbarButtons();
+            //UpdateTaskbarState();
+            //UpdateTaskbarButtons();
         }
         private void Stop()
         {
@@ -597,8 +615,8 @@ namespace Kermalis.VGMusicStudio.UI
             _songInfo.DeleteData();
             _piano.UpdateKeys(_songInfo.Info, PianoTracks);
             UpdatePositionIndicators(0L);
-            UpdateTaskbarState();
-            UpdateTaskbarButtons();
+            //UpdateTaskbarState();
+            //UpdateTaskbarButtons();
         }
         private void TogglePlayback(object sender, EventArgs e)
         {
@@ -655,7 +673,7 @@ namespace Kermalis.VGMusicStudio.UI
             _autoplay = false;
             SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
             _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = true;
-            UpdateTaskbarButtons();
+            //UpdateTaskbarButtons();
         }
         private void DisposeEngine()
         {
@@ -665,13 +683,13 @@ namespace Kermalis.VGMusicStudio.UI
                 Engine.Instance.Dispose();
             }
             _trackViewer?.UpdateTracks();
-            _prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = _positionBar.Enabled = false;
+            //_prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = _positionBar.Enabled = false;
             Text = Utils.ProgramName;
             _songInfo.SetNumTracks(0);
             _songInfo.ResetMutes();
             ResetPlaylistStuff(false);
             UpdatePositionIndicators(0L);
-            UpdateTaskbarState();
+            //UpdateTaskbarState();
             _songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
             _songNumerical.ValueChanged -= SongNumerical_ValueChanged;
             _songNumerical.Visible = false;
@@ -713,17 +731,22 @@ namespace Kermalis.VGMusicStudio.UI
         {
             _stopUI = true;
         }
+
         private void UpdatePositionIndicators(long ticks)
         {
             if (_positionBarFree)
             {
                 _positionBar.Value = ticks;
             }
+            /*
             if (GlobalConfig.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
             {
                 TaskbarManager.Instance.SetProgressValue((int)ticks, (int)_positionBar.Maximum);
             }
+            */
         }
+
+        /*
         private void UpdateTaskbarState()
         {
             if (GlobalConfig.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
@@ -760,7 +783,7 @@ namespace Kermalis.VGMusicStudio.UI
                 }
                 _toggleTButton.Enabled = true;
             }
-        }
+        }*/
 
         private void OpenTrackViewer(object sender, EventArgs e)
         {

@@ -13,6 +13,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
     {
         public readonly byte[] ROM;
         public readonly EndianBinaryReader Reader;
+        public readonly MemoryStream Stream;
         public readonly string GameCode;
         public readonly byte Version;
 
@@ -236,7 +237,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.MP2K
 
         public override void Dispose()
         {
-            Reader.Dispose();
+            Stream.Dispose();
         }
     }
 }

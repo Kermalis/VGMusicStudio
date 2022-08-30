@@ -1,4 +1,5 @@
 ﻿using Kermalis.VGMusicStudio.UI;
+using Kermalis.VGMusicStudio.Properties;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
@@ -11,6 +12,7 @@ namespace Kermalis.VGMusicStudio.Core
         public readonly bool[] Mutes = new bool[SongInfoControl.SongInfo.MaxTracks];
         private IWavePlayer _out;
         private AudioSessionControl _appVolume;
+        private DeviceState _device = DeviceState.Unplugged;
 
         protected void Init(IWaveProvider waveProvider)
         {
@@ -69,7 +71,31 @@ namespace Kermalis.VGMusicStudio.Core
         }
         public void OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason)
         {
-            throw new NotImplementedException();
+            if (disconnectReason == AudioSessionDisconnectReason.DisconnectReasonDeviceRemoval)
+            {
+                Exception ex = new Exception();
+                FlexibleMessageBox.Show(ex, string.Format(Strings.AudioDeviceRemoved, _device));
+            }
+            if (disconnectReason == AudioSessionDisconnectReason.DisconnectReasonExclusiveModeOverride)
+            {
+
+            }
+            if (disconnectReason == AudioSessionDisconnectReason.DisconnectReasonFormatChanged)
+            {
+
+            }
+            if (disconnectReason == AudioSessionDisconnectReason.DisconnectReasonServerShutdown)
+            {
+
+            }
+            if (disconnectReason == AudioSessionDisconnectReason.DisconnectReasonSessionDisconnected)
+            {
+
+            }
+            if (disconnectReason == AudioSessionDisconnectReason.DisconnectReasonSessionLogoff)
+            {
+
+            }
         }
         public void SetVolume(float volume)
         {

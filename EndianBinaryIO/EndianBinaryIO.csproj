@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Kermalis.EndianBinaryIO</RootNamespace>
+    <Authors>Kermalis</Authors>
+    <Copyright>Kermalis</Copyright>
+    <PackageId>EndianBinaryIO</PackageId>
+    <Product>EndianBinaryIO</Product>
+    <AssemblyName>EndianBinaryIO</AssemblyName>
+    <Version>1.1.2.0</Version>
+    <RepositoryUrl>https://github.com/Kermalis/EndianBinaryIO</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NoWarn />
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    
+    <Description>A .NET Core library compatible with any newer .NET SDK versions. This library can read and write primitives, enums, arrays, and strings to streams and byte arrays using specified endianness, string encoding, and boolean sizes.
+Objects can also be read from/written to streams via reflection and attributes.
+Project URL ― https://github.com/Kermalis/EndianBinaryIO</Description>
+    <PackageProjectUrl>https://github.com/Kermalis/EndianBinaryIO</PackageProjectUrl>
+    <NeutralLanguage>en-001</NeutralLanguage>
+    <PackageTags>Serialization;Reflection;Endianness;LittleEndian;BigEndian;EndianBinaryIO</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+</Project>

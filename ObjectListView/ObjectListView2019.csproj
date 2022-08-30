@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>BrightIdeasSoftware</RootNamespace>
+    <AssemblyName>ObjectListView</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>olv-keyfile.snk</AssemblyOriginatorKeyFile>
+    <SccProjectName>%24/ObjectListView/trunk/ObjectListView</SccProjectName>
+    <SccLocalPath>.</SccLocalPath>
+    <SccAuxPath>https://grammarian.visualstudio.com</SccAuxPath>
+    <SccProvider>{4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}</SccProvider>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>1</WarningLevel>
+    <DocumentationFile>bin\Debug\ObjectListView.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DocumentationFile>bin\Release\ObjectListView.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="DataTreeListView.cs" />
+    <Compile Update="Implementation\Enums.cs" />
+    <Compile Update="OLVColumn.cs" />
+    <Compile Update="DataListView.cs" />
+    <Compile Update="Implementation\Events.cs" />
+    <Compile Update="FastDataListView.cs" />
+    <Compile Update="FastObjectListView.cs" />
+    <Compile Update="Rendering\TreeRenderer.cs" />
+    <Compile Update="SubControls\ToolStripCheckedListBox.cs" />
+    <Compile Update="ObjectListView.cs" />
+    <Compile Update="Rendering\Renderers.cs" />
+    <Compile Update="Rendering\Styles.cs" />
+    <Compile Update="TreeListView.cs" />
+    <Compile Update="VirtualObjectListView.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ObjectListView2019.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Implementation\DragSource.cs" />
+    <Compile Remove="Implementation\DropSink.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+</Project>
