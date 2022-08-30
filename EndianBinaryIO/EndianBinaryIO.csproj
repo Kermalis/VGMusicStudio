@@ -15,7 +15,7 @@
     <NoWarn />
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     
-    <Description>A .NET 5 library that can read and write primitives, enums, arrays, and strings to streams and byte arrays using specified endianness, string encoding, and boolean sizes.
+    <Description>A .NET Core library compatible with any newer .NET SDK versions. This library can read and write primitives, enums, arrays, and strings to streams and byte arrays using specified endianness, string encoding, and boolean sizes.
 Objects can also be read from/written to streams via reflection and attributes.
 Project URL ― https://github.com/Kermalis/EndianBinaryIO</Description>
     <PackageProjectUrl>https://github.com/Kermalis/EndianBinaryIO</PackageProjectUrl>
