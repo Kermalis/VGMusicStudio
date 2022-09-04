@@ -19,8 +19,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EndianBinaryIO" Version="2.0.1" /> <!--Only used for VGMSDebug right now-->
-		<PackageReference Include="ObjectListView.Official" Version="2.9.1" />
+		<PackageReference Include="EndianBinaryIO" Version="2.0.1" />
+		<ProjectReference Include="..\ObjectListView\ObjectListView2019.csproj" /> <!--Only used for VGMSDebug right now-->
 		<ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
 	</ItemGroup>
 

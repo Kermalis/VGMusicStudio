@@ -7,8 +7,6 @@ using Kermalis.VGMusicStudio.Core.Properties;
 using Kermalis.VGMusicStudio.Core.Util;
 using Kermalis.VGMusicStudio.WinForms.Properties;
 using Kermalis.VGMusicStudio.WinForms.Util;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -53,7 +51,6 @@ internal sealed class MainForm : ThemedForm
 	private readonly ColorSlider _volumeBar, _positionBar;
 	private readonly SongInfoControl _songInfo;
 	private readonly ImageComboBox _songsComboBox;
-	private readonly ThumbnailToolBarButton _prevTButton, _toggleTButton, _nextTButton;
 
 	#endregion
 
@@ -153,19 +150,6 @@ internal sealed class MainForm : ThemedForm
 		MinimumSize = new Size(TARGET_WIDTH + (Width - TARGET_WIDTH), TARGET_HEIGHT + (Height - TARGET_HEIGHT)); // Borders
 		Resize += OnResize;
 		Text = ConfigUtils.PROGRAM_NAME;
-
-		// Taskbar Buttons
-		if (TaskbarManager.IsPlatformSupported)
-		{
-			_prevTButton = new ThumbnailToolBarButton(Resources.IconPrevious, Strings.PlayerPreviousSong);
-			_prevTButton.Click += PlayPreviousSong;
-			_toggleTButton = new ThumbnailToolBarButton(Resources.IconPlay, Strings.PlayerPlay);
-			_toggleTButton.Click += TogglePlayback;
-			_nextTButton = new ThumbnailToolBarButton(Resources.IconNext, Strings.PlayerNextSong);
-			_nextTButton.Click += PlayNextSong;
-			_prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = false;
-			TaskbarManager.Instance.ThumbnailToolBars.AddButtons(Handle, _prevTButton, _toggleTButton, _nextTButton);
-		}
 
 		OnResize(null, null);
 	}
@@ -322,12 +306,12 @@ internal sealed class MainForm : ThemedForm
 
 	private void OpenDSE(object? sender, EventArgs? e)
 	{
-		var d = new CommonOpenFileDialog
+		var d = new FolderBrowserDialog
 		{
-			Title = Strings.MenuOpenDSE,
-			IsFolderPicker = true,
+			Description = Strings.MenuOpenDSE,
+			UseDescriptionForTitle = true,
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -335,7 +319,7 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		try
 		{
-			_ = new DSEEngine(d.FileName);
+			_ = new DSEEngine(d.SelectedPath);
 		}
 		catch (Exception ex)
 		{
@@ -352,12 +336,14 @@ internal sealed class MainForm : ThemedForm
 	}
 	private void OpenAlphaDream(object? sender, EventArgs? e)
 	{
-		var d = new CommonOpenFileDialog
+		var d = new OpenFileDialog
 		{
 			Title = Strings.MenuOpenAlphaDream,
-			Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
+			Filter = Strings.FilterOpenGBA,
+            FilterIndex = 1,
+            DefaultExt = ".gba"
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -382,12 +368,14 @@ internal sealed class MainForm : ThemedForm
 	}
 	private void OpenMP2K(object? sender, EventArgs? e)
 	{
-		var d = new CommonOpenFileDialog
+		var d = new OpenFileDialog
 		{
 			Title = Strings.MenuOpenMP2K,
-			Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
+			Filter = Strings.FilterOpenGBA,
+            FilterIndex = 1,
+            DefaultExt = ".gba"
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -412,12 +400,14 @@ internal sealed class MainForm : ThemedForm
 	}
 	private void OpenSDAT(object? sender, EventArgs? e)
 	{
-		var d = new CommonOpenFileDialog
+		var d = new OpenFileDialog
 		{
 			Title = Strings.MenuOpenSDAT,
-			Filters = { new CommonFileDialogFilter(Strings.FilterOpenSDAT, ".sdat") },
+			Filter = Strings.FilterOpenSDAT,
+			FilterIndex = 1,
+			DefaultExt = ".sdat",
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -445,15 +435,15 @@ internal sealed class MainForm : ThemedForm
 	{
 		AlphaDreamConfig cfg = AlphaDreamEngine.AlphaDreamInstance!.Config;
 
-		var d = new CommonSaveFileDialog
+		var d = new SaveFileDialog
 		{
-			DefaultFileName = cfg.GetGameName(),
-			DefaultExtension = ".dls",
-			EnsureValidNames = true,
+			FileName = cfg.GetGameName(),
+			DefaultExt = ".dls",
+			ValidateNames = true,
 			Title = Strings.MenuSaveDLS,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveDLS, ".dls") },
+			Filter = Strings.FilterSaveDLS,
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -470,15 +460,15 @@ internal sealed class MainForm : ThemedForm
 	}
 	private void ExportMIDI(object? sender, EventArgs? e)
 	{
-		var d = new CommonSaveFileDialog
+		var d = new SaveFileDialog
 		{
-			DefaultFileName = Engine.Instance!.Config.GetSongName((long)_songNumerical.Value),
-			DefaultExtension = ".mid",
-			EnsureValidNames = true,
+			FileName = Engine.Instance!.Config.GetSongName((long)_songNumerical.Value),
+			DefaultExt = ".mid",
+			ValidateNames = true,
 			Title = Strings.MenuSaveMIDI,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveMIDI, ".mid;.midi") },
+			Filter = Strings.FilterSaveMIDI,
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -508,15 +498,15 @@ internal sealed class MainForm : ThemedForm
 	{
 		AlphaDreamConfig cfg = AlphaDreamEngine.AlphaDreamInstance!.Config;
 
-		var d = new CommonSaveFileDialog
+		var d = new SaveFileDialog
 		{
-			DefaultFileName = cfg.GetGameName(),
-			DefaultExtension = ".sf2",
-			EnsureValidNames = true,
+			FileName = cfg.GetGameName(),
+			DefaultExt = ".sf2",
+			ValidateNames = true,
 			Title = Strings.MenuSaveSF2,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveSF2, ".sf2") }
+			Filter = Strings.FilterSaveSF2,
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -533,15 +523,15 @@ internal sealed class MainForm : ThemedForm
 	}
 	private void ExportWAV(object? sender, EventArgs? e)
 	{
-		var d = new CommonSaveFileDialog
+		var d = new SaveFileDialog
 		{
-			DefaultFileName = Engine.Instance!.Config.GetSongName((long)_songNumerical.Value),
-			DefaultExtension = ".wav",
-			EnsureValidNames = true,
+			FileName = Engine.Instance!.Config.GetSongName((long)_songNumerical.Value),
+			DefaultExt = ".wav",
+			ValidateNames = true,
 			Title = Strings.MenuSaveWAV,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveWAV, ".wav") },
+			Filter = Strings.FilterSaveWAV,
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -580,8 +570,6 @@ internal sealed class MainForm : ThemedForm
 		_pauseButton.Text = Strings.PlayerPause;
 		_timer.Interval = (int)(1_000.0 / GlobalConfig.Instance.RefreshRate);
 		_timer.Start();
-		UpdateTaskbarState();
-		UpdateTaskbarButtons();
 	}
 	private void Play()
 	{
@@ -601,8 +589,6 @@ internal sealed class MainForm : ThemedForm
 			_pauseButton.Text = Strings.PlayerPause;
 			_timer.Start();
 		}
-		UpdateTaskbarState();
-		UpdateTaskbarButtons();
 	}
 	private void Stop()
 	{
@@ -613,8 +599,6 @@ internal sealed class MainForm : ThemedForm
 		_songInfo.Reset();
 		_piano.UpdateKeys(_songInfo.Info.Tracks, PianoTracks);
 		UpdatePositionIndicators(0L);
-		UpdateTaskbarState();
-		UpdateTaskbarButtons();
 	}
 	private void TogglePlayback(object? sender, EventArgs? e)
 	{
@@ -669,7 +653,6 @@ internal sealed class MainForm : ThemedForm
 		_autoplay = false;
 		SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
 		_songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = true;
-		UpdateTaskbarButtons();
 	}
 	private void DisposeEngine()
 	{
@@ -680,13 +663,11 @@ internal sealed class MainForm : ThemedForm
 		}
 
 		_trackViewer?.UpdateTracks();
-		_prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = _positionBar.Enabled = false;
 		Text = ConfigUtils.PROGRAM_NAME;
 		_songInfo.SetNumTracks(0);
 		_songInfo.ResetMutes();
 		ResetPlaylistStuff(false);
 		UpdatePositionIndicators(0L);
-		UpdateTaskbarState();
 		_songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
 		_songNumerical.ValueChanged -= SongNumerical_ValueChanged;
 		_songNumerical.Visible = false;
@@ -733,51 +714,6 @@ internal sealed class MainForm : ThemedForm
 		{
 			_positionBar.Value = ticks;
 		}
-		if (GlobalConfig.Instance.TaskbarProgress && TaskbarManager.IsPlatformSupported)
-		{
-			TaskbarManager.Instance.SetProgressValue((int)ticks, (int)_positionBar.Maximum);
-		}
-	}
-	private static void UpdateTaskbarState()
-	{
-		if (!GlobalConfig.Instance.TaskbarProgress || !TaskbarManager.IsPlatformSupported)
-		{
-			return;
-		}
-
-		TaskbarProgressBarState state;
-		switch (Engine.Instance?.Player.State)
-		{
-			case PlayerState.Playing: state = TaskbarProgressBarState.Normal; break;
-			case PlayerState.Paused: state = TaskbarProgressBarState.Paused; break;
-			default: state = TaskbarProgressBarState.NoProgress; break;
-		}
-		TaskbarManager.Instance.SetProgressState(state);
-	}
-	private void UpdateTaskbarButtons()
-	{
-		if (!TaskbarManager.IsPlatformSupported)
-		{
-			return;
-		}
-
-		if (_playlistPlaying)
-		{
-			_prevTButton.Enabled = _playedSongs.Count > 0;
-			_nextTButton.Enabled = true;
-		}
-		else
-		{
-			_prevTButton.Enabled = _curSong > 0;
-			_nextTButton.Enabled = _curSong < _songNumerical.Maximum;
-		}
-		switch (Engine.Instance.Player.State)
-		{
-			case PlayerState.Stopped: _toggleTButton.Icon = Resources.IconPlay; _toggleTButton.Tooltip = Strings.PlayerPlay; break;
-			case PlayerState.Playing: _toggleTButton.Icon = Resources.IconPause; _toggleTButton.Tooltip = Strings.PlayerPause; break;
-			case PlayerState.Paused: _toggleTButton.Icon = Resources.IconPlay; _toggleTButton.Tooltip = Strings.PlayerUnpause; break;
-		}
-		_toggleTButton.Enabled = true;
 	}
 
 	private void OpenTrackViewer(object? sender, EventArgs? e)
