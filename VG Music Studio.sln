@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2002
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VG Music Studio", "VG Music Studio\VG Music Studio.csproj", "{97C8ACF8-66A3-4321-91D6-3E94EACA577F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - WinForms", "VG Music Studio - WinForms\VG Music Studio - WinForms.csproj", "{646D3254-F214-4F33-991F-5D5DEB7219AA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - Core", "VG Music Studio - Core\VG Music Studio - Core.csproj", "{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - MIDI", "VG Music Studio - MIDI\VG Music Studio - MIDI.csproj", "{6756ED81-71F6-457D-AD23-9C03B6C934E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +15,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{97C8ACF8-66A3-4321-91D6-3E94EACA577F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97C8ACF8-66A3-4321-91D6-3E94EACA577F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97C8ACF8-66A3-4321-91D6-3E94EACA577F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97C8ACF8-66A3-4321-91D6-3E94EACA577F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{646D3254-F214-4F33-991F-5D5DEB7219AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{646D3254-F214-4F33-991F-5D5DEB7219AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{646D3254-F214-4F33-991F-5D5DEB7219AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{646D3254-F214-4F33-991F-5D5DEB7219AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<OutputType>WinExe</OutputType>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>Kermalis.VGMusicStudio.WinForms</RootNamespace>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<UseWPF>true</UseWPF>
+		<OutputPath>..\Build</OutputPath>
+
+		<Authors>Kermalis</Authors>
+		<Copyright>Kermalis</Copyright>
+		<Product>VGMusicStudio</Product>
+		<Title>VGMusicStudio</Title>
+		<AssemblyName>VGMusicStudio</AssemblyName>
+		<Version>0.3.0</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="EndianBinaryIO" Version="2.0.1" /> <!--Only used for VGMSDebug right now-->
+		<PackageReference Include="ObjectListView.Official" Version="2.9.1" />
+		<ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
+	</ItemGroup>
+
+</Project>
