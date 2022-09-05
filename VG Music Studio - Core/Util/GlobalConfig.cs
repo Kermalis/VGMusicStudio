@@ -65,7 +65,7 @@ public sealed class GlobalConfig
 						string valueName = string.Format(Strings.ConfigKeySubkey, string.Format("{0} {1}", nameof(Colors), i));
 						if (key == "H")
 						{
-							h = ConfigUtils.ParseValue(valueName, v.Value.ToString(), 0, 240);
+							h = ConfigUtils.ParseValue(valueName, v.Value.ToString(), 0, 239);
 						}
 						else if (key == "S")
 						{
@@ -80,7 +80,7 @@ public sealed class GlobalConfig
 							throw new Exception(string.Format(Strings.ErrorParseConfig, CONFIG_FILE, Environment.NewLine + string.Format(Strings.ErrorConfigColorInvalidKey, i)));
 						}
 					}
-					var co = HSLColor.ToColor((int)h, (byte)s, (byte)l);
+					var co = HSLColor.ToColor(h / 240.0, s / 240.0, l / 240.0); // h is / 240 even though the max is 239 because H should never be 1.0
 					Colors[i] = co;
 					Colors[i + 128] = co;
 				}

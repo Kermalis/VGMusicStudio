@@ -64,23 +64,23 @@ internal sealed class PianoControl : Control
 			SetStyle(ControlStyles.Selectable, false);
 
 			OnBrush = new(Color.Transparent);
-			byte l;
+			double l;
 			if (KeyTypeTable[k % 12] == KeyType.White)
 			{
 				if (k / 12 % 2 == 0)
 				{
-					l = 240;
+					l = 1.0;
 				}
 				else
 				{
-					l = 120;
+					l = 0.5;
 				}
 			}
 			else
 			{
 				l = 0;
 			}
-			_offBrush = new SolidBrush(HSLColor.ToColor(160, 0, l));
+			_offBrush = new SolidBrush(HSLColor.ToColor(240 / 360.0, 0, l));
 		}
 
 		protected override void Dispose(bool disposing)
