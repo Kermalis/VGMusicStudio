@@ -11,6 +11,7 @@ public static class ConfigUtils
 {
 	public const string PROGRAM_NAME = "VG Music Studio";
 	private static readonly string[] _notes = Strings.Notes.Split(';');
+	private static readonly CultureInfo _enUS = new("en-US");
 
 	public static bool TryParseValue(string value, long minValue, long maxValue, out long outValue)
 	{
@@ -33,8 +34,7 @@ public static class ConfigUtils
 			return string.Format(Strings.ErrorValueParseRanged, valueName, minValue, maxValue);
 		}
 
-		var provider = new CultureInfo("en-US");
-		if (value.StartsWith("0x") && long.TryParse(value.AsSpan(2), NumberStyles.HexNumber, provider, out long hexp))
+		if (value.StartsWith("0x") && long.TryParse(value.AsSpan(2), NumberStyles.HexNumber, _enUS, out long hexp))
 		{
 			if (hexp < minValue || hexp > maxValue)
 			{
@@ -42,7 +42,7 @@ public static class ConfigUtils
 			}
 			return hexp;
 		}
-		else if (long.TryParse(value, NumberStyles.Integer, provider, out long dec))
+		else if (long.TryParse(value, NumberStyles.Integer, _enUS, out long dec))
 		{
 			if (dec < minValue || dec > maxValue)
 			{
@@ -50,7 +50,7 @@ public static class ConfigUtils
 			}
 			return dec;
 		}
-		else if (long.TryParse(value, NumberStyles.HexNumber, provider, out long hex))
+		else if (long.TryParse(value, NumberStyles.HexNumber, _enUS, out long hex))
 		{
 			if (hex < minValue || hex > maxValue)
 			{

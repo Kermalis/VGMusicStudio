@@ -243,9 +243,6 @@
   <data name="ErrorBoolParse" xml:space="preserve">
     <value>"{0}" debe ser Verdadero o Falso.</value>
   </data>
-  <data name="ErrorConfigColorInvalidKey" xml:space="preserve">
-    <value>El color {0} tiene una clave inválida.</value>
-  </data>
   <data name="ErrorConfigColorMissing" xml:space="preserve">
     <value>El color {0} no está definido.</value>
   </data>

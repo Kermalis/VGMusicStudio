@@ -5,6 +5,7 @@ namespace Kermalis.VGMusicStudio.Core.Util;
 
 // https://www.rapidtables.com/convert/color/rgb-to-hsl.html
 // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
+// Not really used right now, but will be very useful if we are going to use OpenGL
 public readonly struct HSLColor
 {
 	/// <summary>[0, 1)</summary>
@@ -63,7 +64,7 @@ public readonly struct HSLColor
 	{
 		return ToColor(Hue, Saturation, Lightness);
 	}
-	public static Color ToColor(double h, double s, double l)
+	public static void ToRGB(double h, double s, double l, out double r, out double g, out double b)
 	{
 		h *= 360;
 
@@ -71,9 +72,6 @@ public readonly struct HSLColor
 		double x = c * (1 - Math.Abs((h / 60 % 2) - 1));
 		double m = l - (c * 0.5);
 
-		double r;
-		double g;
-		double b;
 		if (h < 60)
 		{
 			r = c;
@@ -111,7 +109,14 @@ public readonly struct HSLColor
 			b = x;
 		}
 
-		return Color.FromArgb((int)((r + m) * 255), (int)((g + m) * 255), (int)((b + m) * 255));
+		r += m;
+		g += m;
+		b += m;
+	}
+	public static Color ToColor(double h, double s, double l)
+	{
+		ToRGB(h, s, l, out double r, out double g, out double b);
+		return Color.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
 	}
 
 	public override bool Equals(object? obj)

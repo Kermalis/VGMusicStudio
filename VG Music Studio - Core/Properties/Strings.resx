@@ -249,10 +249,6 @@
     <value>"{0}" must be True or False.</value>
     <comment>{0} is the value name.</comment>
   </data>
-  <data name="ErrorConfigColorInvalidKey" xml:space="preserve">
-    <value>Color {0} has an invalid key.</value>
-    <comment>{0} is the color number.</comment>
-  </data>
   <data name="ErrorConfigColorMissing" xml:space="preserve">
     <value>Color {0} is not defined.</value>
     <comment>{0} is the color number.</comment>
