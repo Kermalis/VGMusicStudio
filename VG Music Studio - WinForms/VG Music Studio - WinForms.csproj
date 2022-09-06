@@ -12,10 +12,12 @@
 
 		<Authors>Kermalis</Authors>
 		<Copyright>Kermalis</Copyright>
-		<Product>VGMusicStudio</Product>
-		<Title>VGMusicStudio</Title>
-		<AssemblyName>VGMusicStudio</AssemblyName>
+		<Product>VG Music Studio</Product>
+		<Title>VG Music Studio</Title>
+		<AssemblyName>VG Music Studio</AssemblyName>
 		<Version>0.3.0</Version>
+		<ApplicationIcon>Properties\Icon.ico</ApplicationIcon>
+		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
 	</PropertyGroup>
 
 	<ItemGroup>
