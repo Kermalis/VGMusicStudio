@@ -240,7 +240,7 @@ public sealed class MIDITrackChunk : MIDIChunk
 
 		// Update size now
 		long endOffset = w.Stream.Position;
-		uint size = (uint)(endOffset - sizeOffset + 4);
+		uint size = (uint)(endOffset - sizeOffset - 4);
 		w.Stream.Position = sizeOffset;
 		w.WriteUInt32(size);
 
