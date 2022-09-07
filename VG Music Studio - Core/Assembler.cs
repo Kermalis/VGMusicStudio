@@ -51,7 +51,8 @@ internal sealed class Assembler : IDisposable
 		_stream = new MemoryStream();
 		_writer = new EndianBinaryWriter(_stream, endianness: endianness);
 
-		Debug.WriteLine(Read(fileName));
+		string status = Read(fileName);
+		Debug.WriteLine(status);
 		SetBaseOffset(baseOffset);
 	}
 
