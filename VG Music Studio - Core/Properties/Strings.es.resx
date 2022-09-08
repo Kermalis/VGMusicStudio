@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EndPlaylistBody" xml:space="preserve">
-    <value>Quisiera detener la Lista de Reproducción actual?</value>
+    <value>¿Quisiera detener la Lista de Repoducción actual?</value>
   </data>
   <data name="ErrorLoadSong" xml:space="preserve">
-    <value>Error al Cargar Canción {0}</value>
+    <value>Error al Cargar la Canción {0}</value>
   </data>
   <data name="ErrorOpenDSE" xml:space="preserve">
     <value>Error al Abrir Carpeta DSE</value>
@@ -169,13 +169,10 @@
     <value>Abrir Archivo SDAT</value>
   </data>
   <data name="MenuPlaylist" xml:space="preserve">
-    <value>Playlist</value>
+    <value>Lista de Reproducción</value>
   </data>
   <data name="MenuSaveMIDI" xml:space="preserve">
     <value>Exportar Canción como MIDI</value>
-  </data>
-  <data name="Notes" xml:space="preserve">
-    <value>Do;Do#;Re;Re#;Mi;Fa;Fa#;Sol;Sol#;La;La#;Si</value>
   </data>
   <data name="PlayerNextSong" xml:space="preserve">
     <value>Siguiente Canción</value>
@@ -214,7 +211,7 @@
     <value>Música</value>
   </data>
   <data name="PlayPlaylistBody" xml:space="preserve">
-    <value>Quisiera reproducir la siguiente Lista de Reproducción? {0}</value>
+    <value>¿Quisiera reproducir la siguiente Lista de Reproducción?</value>
   </data>
   <data name="SuccessSaveMIDI" xml:space="preserve">
     <value>MIDI guardado en {0}.</value>
@@ -271,7 +268,7 @@
     <value>No hay ningún archivo "bgm(NNNN).smd".</value>
   </data>
   <data name="ErrorGlobalConfig" xml:space="preserve">
-    <value>Error al Cargar Configuración Global</value>
+    <value>Error al Cargar la Configuración Global</value>
   </data>
   <data name="ErrorAlphaDreamMP2KCopyInvalidGameCode" xml:space="preserve">
     <value>No se puede copiar, el código del juego "{0}" es inválido.</value>
@@ -341,5 +338,8 @@
   </data>
   <data name="SuccessSaveDLS" xml:space="preserve">
     <value>DLS guardado en {0}.</value>
+  </data>
+  <data name="Song(s)" xml:space="preserve">
+    <value>canciones|0_0|canción|1_1|canciones|2_*|</value>
   </data>
 </root>

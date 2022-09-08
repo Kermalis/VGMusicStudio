@@ -55,6 +55,8 @@ If you want to talk or would like a game added to our configs, join our [Discord
 ### General
 * Stich991 - Italian translation
 * tuku473 - Design suggestions, colors, Spanish translation
+* Lachesis - French translation
+* Delusional Moonlight - Russian translation
 
 ### AlphaDream Engine
 * irdkwia - Finding games that used the engine

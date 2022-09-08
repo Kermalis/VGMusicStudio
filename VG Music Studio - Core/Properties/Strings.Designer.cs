@@ -520,15 +520,6 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C;C#;D;D#;E;F;F#;G;G#;A;A#;B.
-        /// </summary>
-        public static string Notes {
-            get {
-                return ResourceManager.GetString("Notes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Next Song.
         /// </summary>
         public static string PlayerNextSong {
@@ -642,6 +633,15 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         public static string PlayPlaylistBody {
             get {
                 return ResourceManager.GetString("PlayPlaylistBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to songs|0_0|song|1_1|songs|2_*|.
+        /// </summary>
+        public static string Song_s_ {
+            get {
+                return ResourceManager.GetString("Song(s)", resourceCulture);
             }
         }
         

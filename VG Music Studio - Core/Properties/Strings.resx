@@ -145,9 +145,6 @@
   <data name="MenuSaveMIDI" xml:space="preserve">
     <value>Export Song as MIDI</value>
   </data>
-  <data name="Notes" xml:space="preserve">
-    <value>C;C#;D;D#;E;F;F#;G;G#;A;A#;B</value>
-  </data>
   <data name="PlayerRest" xml:space="preserve">
     <value>Rest</value>
   </data>
@@ -368,5 +365,8 @@
   <data name="SuccessSaveDLS" xml:space="preserve">
     <value>VoiceTable saved to {0}.</value>
     <comment>{0} is the file name.</comment>
+  </data>
+  <data name="Song(s)" xml:space="preserve">
+    <value>songs|0_0|song|1_1|songs|2_*|</value>
   </data>
 </root>

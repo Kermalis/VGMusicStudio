@@ -118,228 +118,228 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ErrorLoadSong" xml:space="preserve">
-    <value>Errore durante il caricamento del Brano {0}</value>
+    <value>Ошибка во время загрузки мелодии {0}</value>
   </data>
   <data name="ErrorOpenAlphaDream" xml:space="preserve">
-    <value>Errore durante il caricamento della ROM GBA (AlphaDream)</value>
+    <value>Ошибка во время загрузки GBA-ROMа (AlphaDream)</value>
   </data>
   <data name="ErrorSaveMIDI" xml:space="preserve">
-    <value>Errore Durante L'Esportazione in MIDI</value>
+    <value>Ошибка во время экспорта MIDI</value>
   </data>
   <data name="FilterOpenGBA" xml:space="preserve">
-    <value>File GBA</value>
+    <value>GBA-файлы</value>
   </data>
   <data name="FilterSaveMIDI" xml:space="preserve">
-    <value>File MIDI</value>
+    <value>MIDI-файлы</value>
   </data>
   <data name="MenuData" xml:space="preserve">
-    <value>Dati</value>
+    <value>Данные</value>
   </data>
   <data name="MenuFile" xml:space="preserve">
-    <value>File</value>
+    <value>Файл</value>
   </data>
   <data name="MenuOpenMP2K" xml:space="preserve">
-    <value>Apri ROM GBA (MP2K)</value>
+    <value>Открыть GBA-ROM (MP2K)</value>
   </data>
   <data name="MenuSaveMIDI" xml:space="preserve">
-    <value>Esporta Brano in MIDI</value>
+    <value>Экспортировать мелодию в формате MIDI</value>
   </data>
   <data name="PlayerRest" xml:space="preserve">
-    <value>Pausa</value>
+    <value>Длительность</value>
   </data>
   <data name="PlayerNotes" xml:space="preserve">
-    <value>Note</value>
+    <value>Ноты</value>
   </data>
   <data name="PlayerPause" xml:space="preserve">
-    <value>Pausa</value>
+    <value>Пауза</value>
   </data>
   <data name="PlayerPlay" xml:space="preserve">
-    <value>Play</value>
+    <value>Проиграть</value>
   </data>
   <data name="PlayerPosition" xml:space="preserve">
-    <value>Posizione</value>
+    <value>Адрес</value>
   </data>
   <data name="PlayerStop" xml:space="preserve">
-    <value>Stop</value>
+    <value>Остановить</value>
   </data>
   <data name="PlayerTempo" xml:space="preserve">
-    <value>Tempo</value>
+    <value>Темп</value>
   </data>
   <data name="PlayerType" xml:space="preserve">
-    <value>Tipo</value>
+    <value>Тип</value>
   </data>
   <data name="PlayerUnpause" xml:space="preserve">
-    <value>Riprendi</value>
+    <value>Продолжить</value>
   </data>
   <data name="SuccessSaveMIDI" xml:space="preserve">
-    <value>MIDI salvato in {0}.</value>
+    <value>Мелодия успешно сохранена в MIDI-файл "{0}".</value>
   </data>
   <data name="PlayPlaylistBody" xml:space="preserve">
-    <value>Desideri riprodurre la seguente playlist?{0}</value>
+    <value>Хотите прослушать данный плейлист?{0}</value>
   </data>
   <data name="PlayerNextSong" xml:space="preserve">
-    <value>Brano Sucessivo</value>
+    <value>Следующая мелодия</value>
   </data>
   <data name="PlayerPreviousSong" xml:space="preserve">
-    <value>Brano Precedente</value>
+    <value>Предыдущая мелодия</value>
   </data>
   <data name="EndPlaylistBody" xml:space="preserve">
-    <value>Desideri interrompere la riproduzione della playlist attuale?</value>
+    <value>Хотите прервать воспроизведение плейлиста?</value>
   </data>
   <data name="ErrorOpenDSE" xml:space="preserve">
-    <value>Errore durante il caricamento della Cartella DSE</value>
+    <value>При открытии DSE-папки произошла ошибка</value>
   </data>
   <data name="ErrorOpenMP2K" xml:space="preserve">
-    <value>Errore durante il caricamento della ROM GBA (MP2K)</value>
+    <value>При открытии GBA-ROMа (MP2K) произошла ошибка</value>
   </data>
   <data name="ErrorOpenSDAT" xml:space="preserve">
-    <value>Errore durante il caricamento del File SDAT</value>
+    <value>При открытии SDAT-файла произошла ошибка</value>
   </data>
   <data name="FilterOpenSDAT" xml:space="preserve">
-    <value>File SDAT</value>
+    <value>SDAT-файлы</value>
   </data>
   <data name="MenuEndPlaylist" xml:space="preserve">
-    <value>Termina la Playlist Attuale</value>
+    <value>Отключить плейлист</value>
   </data>
   <data name="MenuOpenDSE" xml:space="preserve">
-    <value>Apri Cartella DSE</value>
+    <value>Открыть DSE-папку</value>
   </data>
   <data name="MenuOpenAlphaDream" xml:space="preserve">
-    <value>Apri ROM GBA (AlphaDream)</value>
+    <value>Открыть GBA-ROM (AlphaDream)</value>
   </data>
   <data name="MenuOpenSDAT" xml:space="preserve">
-    <value>Apri File SDAT</value>
+    <value>Открыть SDAT-файл</value>
   </data>
   <data name="MenuPlaylist" xml:space="preserve">
-    <value>Playlist</value>
+    <value>Плейлист</value>
   </data>
   <data name="PlaylistMusic" xml:space="preserve">
-    <value>Musica</value>
+    <value>Музыка</value>
   </data>
   <data name="TrackViewerArguments" xml:space="preserve">
-    <value>Argomenti</value>
+    <value>Аргументы</value>
   </data>
   <data name="TrackViewerEvent" xml:space="preserve">
-    <value>Evento</value>
+    <value>Событие</value>
   </data>
   <data name="TrackViewerOffset" xml:space="preserve">
-    <value>Posizione</value>
+    <value>Адрес</value>
   </data>
   <data name="TrackViewerTicks" xml:space="preserve">
-    <value>Tick</value>
+    <value>Такты</value>
   </data>
   <data name="TrackViewerTitle" xml:space="preserve">
-    <value>Visualizzatore Traccia</value>
+    <value>Просмотр трека</value>
   </data>
   <data name="TrackViewerTrackX" xml:space="preserve">
-    <value>Traccia {0}</value>
+    <value>Трек {0}</value>
   </data>
   <data name="ConfigKeySubkey" xml:space="preserve">
-    <value>La Chiave {0}</value>
+    <value>Родительский ключ {0}</value>
   </data>
   <data name="ErrorBoolParse" xml:space="preserve">
-    <value>"{0}" deve essere Vero o Falso.</value>
+    <value>"{0}" должно принимать значения True или False.</value>
   </data>
   <data name="ErrorConfigColorMissing" xml:space="preserve">
-    <value>Il colore {0} non è definito.</value>
+    <value>Цвет {0} не указан.</value>
   </data>
   <data name="ErrorConfigColorRepeated" xml:space="preserve">
-    <value>Il colore {0} è definito più di una volta tra decimale ed esadecimale.</value>
+    <value>Цвет {0} указан несколько раз среди десятичных и шестнадцатеричных значений.</value>
   </data>
   <data name="ErrorConfigKeyInvalid" xml:space="preserve">
-    <value>"{0}" non è valido.</value>
+    <value>Родительский ключ "{0}" недопустим.</value>
   </data>
   <data name="ErrorConfigKeyMissing" xml:space="preserve">
-    <value>"{0}" è mancante.</value>
+    <value>Родительский ключ "{0}" отсутствует.</value>
   </data>
   <data name="ErrorConfigKeyNoEntries" xml:space="preserve">
-    <value>"{0}" deve possedere almeno una voce.</value>
+    <value>Родительский ключ "{0}" должен содержать хотя бы одно значение.</value>
   </data>
   <data name="ErrorDSEInvalidHeaderVersion" xml:space="preserve">
-    <value>Versione dell'header sconosciuta: 0x{0:X}</value>
+    <value>Неизвестная версия заголовка: 0x{0:X}</value>
   </data>
   <data name="ErrorDSEInvalidKey" xml:space="preserve">
-    <value>Tasto del pianoforte non valido nella traccia {0} a 0x{1:X}: {2}</value>
+    <value>Недопустимый родительский ключ в треке {0} по адресу 0x{1:X}: {2}</value>
   </data>
   <data name="ErrorAlphaDreamDSEMP2KSDATInvalidCommand" xml:space="preserve">
-    <value>Comando non valido nella traccia {0} a 0x{1:X}: 0x{2:X}</value>
+    <value>Недопустимая команда в треке {0} по адресу 0x{1:X}: 0x{2:X}</value>
   </data>
   <data name="ErrorDSENoSequences" xml:space="preserve">
-    <value>Non sono presenti file "bgm(NNNN).smd".</value>
+    <value>Файлы типа "bgm(NNNN).smd" отсутствуют.</value>
   </data>
   <data name="ErrorGlobalConfig" xml:space="preserve">
-    <value>Errore nel Caricamento della Configurazione Globale</value>
+    <value>Ошибка загрузки глобальной конфигурвции</value>
   </data>
   <data name="ErrorAlphaDreamMP2KCopyInvalidGameCode" xml:space="preserve">
-    <value>Non è possibile copiare il Codice Gioco invalido "{0}"</value>
+    <value>Невозможно скопировать недопустимый игровой код "{0}"</value>
   </data>
   <data name="ErrorAlphaDreamMP2KMissingGameCode" xml:space="preserve">
-    <value>Il Codice Gioco "{0}" non è presente.</value>
+    <value>Игровой код "{0}" отсутствует.</value>
   </data>
   <data name="ErrorAlphaDreamMP2KParseGameCode" xml:space="preserve">
-    <value>Errore nell'analisi del Codice Gioco "{0}" in "{1}"{2}</value>
+    <value>Ошибка во время анализа игрового кода "{0}" в файле "{1}"{2}</value>
   </data>
   <data name="ErrorAlphaDreamMP2KSongRepeated" xml:space="preserve">
-    <value> La Playlist "{0}" presenta il brano {1} più volte definito tra decimale e esadecimale.</value>
+    <value>В плейлисте "{0}" содержится мелодия {1}, которая указана несколько раз среди десятичных и шестнадцатеричных значений.</value>
   </data>
   <data name="ErrorAlphaDreamMP2KSongTableCounts" xml:space="preserve">
-    <value>Il numero di "{0}" deve essere uguale a quello di "{1}".</value>
+    <value>Значения родительских ключей "{0}" и "{1}" должны совпадать.</value>
   </data>
   <data name="ErrorMP2KInvalidRunningStatusCommand" xml:space="preserve">
-    <value>Comando di stato in esecuzione non valido nella traccia {0} a 0x{1:X}: 0x{2:X}</value>
+    <value>Недопустимая команда состояния в треке {0} по адресу 0x{1:X}: 0x{2:X}</value>
   </data>
   <data name="ErrorMP2KSDATNestedCalls" xml:space="preserve">
-    <value>Troppi eventi di chiamata nidificati nella traccia {0}</value>
+    <value>Слишком много случаев вызовов вложенных функций в треке {0}</value>
   </data>
   <data name="ErrorParseConfig" xml:space="preserve">
-    <value>Errore nell'analisi di "{0}"{1}</value>
+    <value>Ошибка анализа файла "{0}"{1}</value>
   </data>
   <data name="ErrorSDATNoSequences" xml:space="preserve">
-    <value>Questo archivio SDAT non ha sequenze.</value>
+    <value>В указанном SDAT-архиве отсутствуют секвенции.</value>
   </data>
   <data name="ErrorValueParse" xml:space="preserve">
-    <value>"{0}" non è un valore intero.</value>
+    <value>Значение "{0}" должно содержать целое число.</value>
   </data>
   <data name="ErrorValueParseRanged" xml:space="preserve">
-    <value>"{0}" deve essere compreso tra {1} e {2}.</value>
+    <value>Значение "{0}" должно находиться в диапазоне от "{1}" до "{2}".</value>
   </data>
   <data name="ErrorSaveWAV" xml:space="preserve">
-    <value>Errore Durante L'Esportazione in WAV</value>
+    <value>При экспорте WAV-файла произошла ошибка</value>
   </data>
   <data name="FilterSaveWAV" xml:space="preserve">
-    <value>File WAV</value>
+    <value>WAV-файлы</value>
   </data>
   <data name="MenuSaveWAV" xml:space="preserve">
-    <value>Esporta Brano in WAV</value>
+    <value>Экспортировать мелодию в формате WAV</value>
   </data>
   <data name="SuccessSaveWAV" xml:space="preserve">
-    <value>WAV salvato in {0}.</value>
+    <value>Мелодия успешно сохранена в WAV-файл "{0}".</value>
   </data>
   <data name="ErrorSaveSF2" xml:space="preserve">
-    <value>Errore Durante L'Esportazione in SF2</value>
+    <value>При экспорте SF2-файла произошла ошибка</value>
   </data>
   <data name="FilterSaveSF2" xml:space="preserve">
-    <value>File SF2</value>
+    <value>SF2-файлы</value>
   </data>
   <data name="MenuSaveSF2" xml:space="preserve">
-    <value>Esporta VoiceTable In SF2</value>
+    <value>Экспортировать таблицу семплов в формате SF2</value>
   </data>
   <data name="SuccessSaveSF2" xml:space="preserve">
-    <value>VoiceTable salvata in {0}.</value>
+    <value>Таблица семплов успешно сохранена в файл "{0}".</value>
   </data>
   <data name="ErrorSaveDLS" xml:space="preserve">
-    <value>Errore Durante L'Esportazione in DLS</value>
+    <value>При экспорте DLS-файла произошла ошибка</value>
   </data>
   <data name="FilterSaveDLS" xml:space="preserve">
-    <value>File DLS</value>
+    <value>DLS-файлы</value>
   </data>
   <data name="MenuSaveDLS" xml:space="preserve">
-    <value>Esporta VoiceTable In DLS</value>
+    <value>Экспортировать таблицу семплов в формате DLS</value>
   </data>
   <data name="SuccessSaveDLS" xml:space="preserve">
-    <value>VoiceTable salvata in {0}.</value>
+    <value>Таблица семплов успешно сохранена в файл "{0}".</value>
   </data>
   <data name="Song(s)" xml:space="preserve">
-    <value>canzoni|0_0|canzone|1_1|canzoni|2_*|</value>
+    <value>мелодий|0_0|мелодия|1_1|мелодии|2_4|мелодий|5_*|</value>
   </data>
 </root>
