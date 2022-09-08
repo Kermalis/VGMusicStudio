@@ -6,6 +6,8 @@ namespace Kermalis.VGMusicStudio.WinForms;
 
 internal sealed class ValueTextBox : ThemedTextBox
 {
+	public event EventHandler? ValueChanged;
+
 	private bool _hex = false;
 	public bool Hexadecimal
 	{
@@ -91,14 +93,8 @@ internal sealed class ValueTextBox : ThemedTextBox
 		Value = old;
 	}
 
-	private EventHandler _onValueChanged = null;
-	public event EventHandler ValueChanged
-	{
-		add => _onValueChanged += value;
-		remove => _onValueChanged -= value;
-	}
 	private void OnValueChanged(EventArgs e)
 	{
-		_onValueChanged?.Invoke(this, e);
+		ValueChanged?.Invoke(this, e);
 	}
 }
