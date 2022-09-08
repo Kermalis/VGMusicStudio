@@ -10,8 +10,9 @@ namespace Kermalis.VGMusicStudio.Core.Util;
 public static class ConfigUtils
 {
 	public const string PROGRAM_NAME = "VG Music Studio";
-	private static readonly string[] _notes = Strings.Notes.Split(';');
+	private static readonly string[] _notes = new string[12] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 	private static readonly CultureInfo _enUS = new("en-US");
+	private static readonly Dictionary<int, string> _keyCache = new(128);
 
 	public static bool TryParseValue(string value, long minValue, long maxValue, out long outValue)
 	{
@@ -118,9 +119,13 @@ public static class ConfigUtils
 	{
 		return _notes[note];
 	}
-	// TODO: Cache results?
 	public static string GetKeyName(int note)
 	{
-		return _notes[note % 12] + ((note / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
+		if (!_keyCache.TryGetValue(note, out string? str))
+		{
+			str = _notes[note % 12] + ((note / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
+			_keyCache.Add(note, str);
+		}
+		return str;
 	}
 }
