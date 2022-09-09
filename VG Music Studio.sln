@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - MIDI", "V
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectListView2019", "ObjectListView\ObjectListView2019.csproj", "{A171BF23-4281-46CD-AE0B-ED6CD118744E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - GTK3", "VG Music Studio - GTK3\VG Music Studio - GTK3.csproj", "{A9471061-10D2-41AE-86C9-1D927D7B33B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A171BF23-4281-46CD-AE0B-ED6CD118744E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A171BF23-4281-46CD-AE0B-ED6CD118744E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A171BF23-4281-46CD-AE0B-ED6CD118744E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

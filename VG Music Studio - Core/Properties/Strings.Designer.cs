@@ -743,5 +743,82 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
                 return ResourceManager.GetString("TrackViewerTrackX", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to GBA Files.
+        /// </summary>
+        public static string GTKFilterOpenGBA
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterOpenGBA", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SDAT Files.
+        /// </summary>
+        public static string GTKFilterOpenSDAT
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterOpenSDAT", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to DLS Files.
+        /// </summary>
+        public static string GTKFilterSaveDLS
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveDLS", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MIDI Files.
+        /// </summary>
+        public static string GTKFilterSaveMIDI
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveMIDI", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SF2 Files.
+        /// </summary>
+        public static string GTKFilterSaveSF2
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveSF2", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to WAV Files.
+        /// </summary>
+        public static string GTKFilterSaveWAV
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveWAV", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to WAV Files.
+        /// </summary>
+        public static string GTKAllFiles
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKAllFiles", resourceCulture);
+            }
+        }
     }
 }

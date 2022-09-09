@@ -1,7 +1,7 @@
 using Gtk;
 using System;
 
-namespace Kermalis.VGMusicStudio.UI
+namespace Kermalis.VGMusicStudio.GTK3
 {
     internal class Program
     {
@@ -10,7 +10,7 @@ namespace Kermalis.VGMusicStudio.UI
         {
             Application.Init();
 
-            var app = new Application("org.Kermalis.VGMusicStudio.UI", GLib.ApplicationFlags.None);
+            var app = new Application("org.Kermalis.VGMusicStudio.GTK3", GLib.ApplicationFlags.None);
             app.Register(GLib.Cancellable.Current);
 
             var win = new MainWindow();
