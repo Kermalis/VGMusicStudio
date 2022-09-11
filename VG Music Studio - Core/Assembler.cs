@@ -4,17 +4,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using static Kermalis.EndianBinaryIO.EndianBinaryPrimitives;
 
 namespace Kermalis.VGMusicStudio.Core;
 
 internal sealed class Assembler : IDisposable
 {
-	private class Pair
+	private sealed class Pair // Must be a class
 	{
 		public bool Global;
 		public int Offset;
 	}
-	private class Pointer
+	private struct Pointer
 	{
 		public string Label;
 		public int BinaryOffset;
@@ -65,13 +66,11 @@ internal sealed class Assembler : IDisposable
 			// There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DFC
 			_stream.Position = p.BinaryOffset;
 			_stream.Read(span);
-			int oldPointer = EndianBinaryPrimitives.ReadInt32(span, Endianness); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
+			int oldPointer = ReadInt32(span, Endianness); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
 			int labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
 
 			_stream.Position = p.BinaryOffset;
-			_writer.WriteInt32(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
-														  // Copy the new pointer to binary offset 0x1DF4
-														  // TODO: UPDATE THESE OLD COMMENTS LOL
+			_writer.WriteInt32(baseOffset + labelOffset); // Copy the new pointer to binary offset 0x1DF4
 		}
 		BaseOffset = baseOffset;
 	}
@@ -116,7 +115,7 @@ internal sealed class Assembler : IDisposable
 			}
 
 			bool readingCMD = false; // If it's reading the command
-			string cmd = null;
+			string? cmd = null;
 			var args = new List<string>();
 			string str = string.Empty;
 			foreach (char c in line)
@@ -125,7 +124,7 @@ internal sealed class Assembler : IDisposable
 				{
 					break;
 				}
-				else if (c == '.' && cmd == null)
+				if (c == '.' && cmd is null)
 				{
 					readingCMD = true;
 				}
@@ -157,7 +156,7 @@ internal sealed class Assembler : IDisposable
 					str += c;
 				}
 			}
-			if (cmd == null)
+			if (cmd is null)
 			{
 				continue; // Commented line
 			}
@@ -192,11 +191,12 @@ internal sealed class Assembler : IDisposable
 				}
 				case "global":
 				{
-					if (!_labels.ContainsKey(args[0]))
+					if (!_labels.TryGetValue(args[0], out Pair? pair))
 					{
-						_labels.Add(args[0], new Pair());
+						pair = new Pair();
+						_labels.Add(args[0], pair);
 					}
-					_labels[args[0]].Global = true;
+					pair.Global = true;
 					break;
 				}
 				case "align":
@@ -285,7 +285,7 @@ internal sealed class Assembler : IDisposable
 		{
 			return def;
 		}
-		if (_labels.TryGetValue(value, out Pair pair))
+		if (_labels.TryGetValue(value, out Pair? pair))
 		{
 			_lPointers.Add(new Pointer { Label = value, BinaryOffset = BinaryLength });
 			return pair.Offset;
@@ -359,7 +359,7 @@ internal sealed class Assembler : IDisposable
 			return ret;
 		}
 
-		throw new ArgumentOutOfRangeException(nameof(value));
+		throw new ArgumentOutOfRangeException(nameof(value), value, null);
 	}
 
 	public void Dispose()
