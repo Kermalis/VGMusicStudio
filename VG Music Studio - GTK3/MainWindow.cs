@@ -53,7 +53,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             _dataItem, _trackViewerItem, _exportDLSItem, _exportSF2Item, _exportMIDIItem, _exportWAVItem;
 
         // Main Box
-        private Box _mainBox;
+        private Box _mainBox, _configButtonBox, _configPlayerButtonBox, _configSpinButtonBox, _configScaleBox;
 
         // Volume Button to indicate volume status
         private readonly VolumeButton _volumeButton;
@@ -66,7 +66,7 @@ namespace Kermalis.VGMusicStudio.GTK3
 
         #endregion
 
-        public MainWindow() : base("Main Window") 
+        public MainWindow() : base(ConfigUtils.PROGRAM_NAME) 
         {
             // Main Window
             // Sets the default size of the Window
@@ -74,11 +74,11 @@ namespace Kermalis.VGMusicStudio.GTK3
 
 
             // Sets the _playedTracks and _remainingTracks with a List<long>() function to be ready for use
-            //_playedTracks = new List<long>();
-            //_remainingTracks = new List<long>();
+            _playedTracks = new List<long>();
+            _remainingTracks = new List<long>();
 
             // Configures SetVolumeScale method with the MixerVolumeChanged Event action
-            //Mixer.MixerVolumeChanged += SetVolumeScale;
+            Mixer.MixerVolumeChanged += SetVolumeScale;
 
             // Main Menu
             _mainMenu = new MenuBar();
@@ -113,7 +113,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             _dataItem = new MenuItem() { Label = Strings.MenuData, UseUnderline = true };
             _dataItem.Submenu = _dataMenu;
 
-            _exportDLSItem = new MenuItem() { Sensitive = false, Label = Strings.MenuSaveDLS, UseUnderline = true };
+            _exportDLSItem = new MenuItem() { Sensitive = false, Label = Strings.MenuSaveDLS, UseUnderline = true }; // Sensitive is identical to 'Enabled', so if you're disabling the control, Sensitive must be set to false
             _exportDLSItem.Activated += ExportDLS;
             _dataMenu.Append(_exportDLSItem);
 
@@ -132,18 +132,50 @@ namespace Kermalis.VGMusicStudio.GTK3
             _mainMenu.Append(_dataItem);
 
             // Buttons
+            _buttonPlay = new Button() { Sensitive = false, Label = Strings.PlayerPlay };
+            _buttonPlay.Clicked += (o, e) => Play();
+            _buttonPause = new Button() { Sensitive = false, Label = Strings.PlayerPause };
+            _buttonPause.Clicked += (o, e) => Pause();
+            _buttonStop = new Button() { Sensitive = false, Label = Strings.PlayerStop };
+            _buttonStop.Clicked += (o, e) => Stop();
 
             // Spin Button
+            _soundNumberAdjustment = new Adjustment(0, 0, -1, 1, 1, 1);
+            _soundNumberSpinButton = new SpinButton(_soundNumberAdjustment, 1, 0) { Sensitive = false, Value = 0, NoShowAll = false, Visible = false };
+            _soundNumberSpinButton.ValueChanged += SoundNumberSpinButton_ValueChanged;
 
             // Timer
+            _timer = new Timer();
+            _timer.Elapsed += UpdateUI;
 
             // Volume Scale
+            _volumeAdjustment = new Adjustment(0, 0, 100, 1, 1, 1);
+            _volumeScale = new Scale(Orientation.Horizontal, _volumeAdjustment) { Sensitive = false, ShowFillLevel = true, DrawValue = false, WidthRequest = 250 };
+            _volumeScale.ValueChanged += VolumeScale_ValueChanged;
 
             // Position Scale
+            _positionAdjustment = new Adjustment(0, 0, -1, 1, 1, 1);
+            _positionScale = new Scale(Orientation.Horizontal, _positionAdjustment) { Sensitive = false, ShowFillLevel = true, DrawValue = false, WidthRequest = 250 };
+            _positionScale.ButtonReleaseEvent += PositionScale_MouseButtonRelease; // ButtonRelease must go first, otherwise the scale it will follow the mouse cursor upon loading
+            _positionScale.ButtonPressEvent += PositionScale_MouseButtonPress;
 
             // Main display
-            _mainBox = new Box(Orientation.Vertical, 2);
+            _mainBox = new Box(Orientation.Vertical, 4);
+            _configButtonBox = new Box(Orientation.Horizontal, 2) { Halign = Align.Center };
+            _configPlayerButtonBox = new Box(Orientation.Horizontal, 3) { Halign = Align.Center };
+            _configSpinButtonBox = new Box(Orientation.Horizontal, 1) { Halign = Align.Center, WidthRequest = 100 };
+            _configScaleBox = new Box(Orientation.Horizontal, 2) { Halign = Align.Center };
             _mainBox.PackStart(_mainMenu, false, false, 0);
+            _mainBox.PackStart(_configButtonBox, false, false, 0);
+            _mainBox.PackStart(_configScaleBox, false, false, 0);
+            _configButtonBox.PackStart(_configPlayerButtonBox, false, false, 40);
+            _configButtonBox.PackStart(_configSpinButtonBox, false, false, 100);
+            _configPlayerButtonBox.PackStart(_buttonPlay, false, false, 0);
+            _configPlayerButtonBox.PackStart(_buttonPause, false, false, 0);
+            _configPlayerButtonBox.PackStart(_buttonStop, false, false, 0);
+            _configSpinButtonBox.PackStart(_soundNumberSpinButton, false, false, 0);
+            _configScaleBox.PackStart(_volumeScale, false, false, 20);
+            _configScaleBox.PackStart(_positionScale, false, false, 20);
 
             Add(_mainBox);
 
@@ -168,15 +200,16 @@ namespace Kermalis.VGMusicStudio.GTK3
         }
 
         private bool _positionScaleFree = true;
-        private void PositionScale_MouseButtonPress(object? sender, ButtonPressEventArgs args)
+        private void PositionScale_MouseButtonRelease(object? sender, ButtonReleaseEventArgs args)
         {
             if (args.Event.Button == 1) // Number 1 is Left Mouse Button
             {
-                Engine.Instance.Player.SetCurrentPosition((long)_positionScale.Value);
-                _positionScaleFree = true;
+                Engine.Instance.Player.SetCurrentPosition((long)_positionScale.Value); // Sets the value based on the position when mouse button is released
+                _positionScaleFree = true; // Sets _positionScaleFree to true when mouse button is released
+                LetUIKnowPlayerIsPlaying(); // This method will run the void that tells the UI that the player is playing a track
             }
         }
-        private void PositionScale_MouseButtonRelease(object? sender, ButtonPressEventArgs args)
+        private void PositionScale_MouseButtonPress(object? sender, ButtonPressEventArgs args)
         {
             if (args.Event.Button == 1) // Number 1 is Left Mouse Button
             {
@@ -277,6 +310,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             DSEConfig config = DSEEngine.DSEInstance!.Config;
             FinishLoading(config.BGMFiles.Length);
             _soundNumberSpinButton.Visible = false;
+            _soundNumberSpinButton.NoShowAll = true;
             _exportDLSItem.Visible = false;
             _exportMIDIItem.Visible = false;
             _exportSF2Item.Visible = false;
@@ -296,13 +330,11 @@ namespace Kermalis.VGMusicStudio.GTK3
             };
             filterGBA.AddPattern("*.gba");
             filterGBA.AddPattern("*.srl");
-
             FileFilter allFiles = new FileFilter()
             {
                 Name = Strings.GTKAllFiles
             };
             allFiles.AddPattern("*.*");
-
             d.AddFilter(filterGBA);
             d.AddFilter(allFiles);
 
@@ -326,6 +358,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             AlphaDreamConfig config = AlphaDreamEngine.AlphaDreamInstance!.Config;
             FinishLoading(config.SongTableSizes[0]);
             _soundNumberSpinButton.Visible = true;
+            _soundNumberSpinButton.NoShowAll = false;
             _exportDLSItem.Visible = true;
             _exportMIDIItem.Visible = false;
             _exportSF2Item.Visible = true;
@@ -345,13 +378,11 @@ namespace Kermalis.VGMusicStudio.GTK3
             };
             filterGBA.AddPattern("*.gba");
             filterGBA.AddPattern("*.srl");
-
             FileFilter allFiles = new FileFilter()
             {
                 Name = Strings.GTKAllFiles
             };
             allFiles.AddPattern("*.*");
-
             d.AddFilter(filterGBA);
             d.AddFilter(allFiles);
 
@@ -375,6 +406,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             MP2KConfig config = MP2KEngine.MP2KInstance!.Config;
             FinishLoading(config.SongTableSizes[0]);
             _soundNumberSpinButton.Visible = true;
+            _soundNumberSpinButton.NoShowAll = false;
             _exportDLSItem.Visible = false;
             _exportMIDIItem.Visible = true;
             _exportSF2Item.Visible = false;
@@ -393,13 +425,11 @@ namespace Kermalis.VGMusicStudio.GTK3
                 Name = Strings.GTKFilterOpenSDAT
             };
             filterSDAT.AddPattern("*.sdat");
-
             FileFilter allFiles = new FileFilter()
             {
                 Name = Strings.GTKAllFiles
             };
             allFiles.AddPattern("*.*");
-
             d.AddFilter(filterSDAT);
             d.AddFilter(allFiles);
 
@@ -423,6 +453,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             SDATConfig config = SDATEngine.SDATInstance!.Config;
             FinishLoading(config.SDAT.INFOBlock.SequenceInfos.NumEntries);
             _soundNumberSpinButton.Visible = true;
+            _soundNumberSpinButton.NoShowAll = false;
             _exportDLSItem.Visible = false;
             _exportMIDIItem.Visible = false;
             _exportSF2Item.Visible = false;
