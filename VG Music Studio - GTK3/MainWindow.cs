@@ -20,15 +20,12 @@ namespace Kermalis.VGMusicStudio.GTK3
         private bool _playlistPlaying;
         private Config.Playlist _curPlaylist;
         private long _curSong = -1;
-        private readonly List<long> _playedTracks;
-        private readonly List<long> _remainingTracks;
+        private readonly List<long> _playedSequences;
+        private readonly List<long> _remainingSequences;
 
         private bool _stopUI = false;
 
         #region Widgets
-
-        // For viewing sequenced tracks
-        private Box _trackViewer;
 
         // Buttons
         private readonly Button _buttonPlay, _buttonPause, _buttonStop;
@@ -37,7 +34,7 @@ namespace Kermalis.VGMusicStudio.GTK3
         private readonly Box _splitContainerBox;
 
         // Spin Button for the numbered tracks
-        private readonly SpinButton _soundNumberSpinButton;
+        private readonly SpinButton _sequenceNumberSpinButton;
 
         // Timer
         private readonly Timer _timer;
@@ -46,11 +43,11 @@ namespace Kermalis.VGMusicStudio.GTK3
         private readonly MenuBar _mainMenu;
 
         // Menus
-        private readonly Menu _fileMenu, _dataMenu;
+        private readonly Menu _fileMenu, _dataMenu, _soundtableMenu;
 
         // Menu Items
         private readonly MenuItem _fileItem, _openDSEItem, _openAlphaDreamItem, _openMP2KItem, _openSDATItem,
-            _dataItem, _trackViewerItem, _exportDLSItem, _exportSF2Item, _exportMIDIItem, _exportWAVItem;
+            _dataItem, _trackViewerItem, _exportDLSItem, _exportSF2Item, _exportMIDIItem, _exportWAVItem, _soundtableItem, _endSoundtableItem; 
 
         // Main Box
         private Box _mainBox, _configButtonBox, _configPlayerButtonBox, _configSpinButtonBox, _configScaleBox;
@@ -62,7 +59,14 @@ namespace Kermalis.VGMusicStudio.GTK3
         private readonly Scale _volumeScale, _positionScale;
 
         // Adjustments are for indicating the numbers and the position of the scale
-        private Adjustment _volumeAdjustment, _positionAdjustment, _soundNumberAdjustment;
+        private Adjustment _volumeAdjustment, _positionAdjustment, _sequenceNumberAdjustment;
+
+        // Tree View
+        private readonly TreeView _sequencesListView;
+        private readonly TreeViewColumn _sequencesColumn;
+
+        // List Store
+        private ListStore _sequencesListStore;
 
         #endregion
 
@@ -73,9 +77,9 @@ namespace Kermalis.VGMusicStudio.GTK3
             SetDefaultSize(500, 300);
 
 
-            // Sets the _playedTracks and _remainingTracks with a List<long>() function to be ready for use
-            _playedTracks = new List<long>();
-            _remainingTracks = new List<long>();
+            // Sets the _playedSequences and _remainingSequences with a List<long>() function to be ready for use
+            _playedSequences = new List<long>();
+            _remainingSequences = new List<long>();
 
             // Configures SetVolumeScale method with the MixerVolumeChanged Event action
             Mixer.MixerVolumeChanged += SetVolumeScale;
@@ -131,6 +135,18 @@ namespace Kermalis.VGMusicStudio.GTK3
 
             _mainMenu.Append(_dataItem);
 
+            // Soundtable Menu
+            _soundtableMenu = new Menu();
+
+            _soundtableItem = new MenuItem() { Label = Strings.MenuPlaylist, UseUnderline = true };
+            _soundtableItem.Submenu = _soundtableMenu;
+
+            _endSoundtableItem = new MenuItem() { Label = Strings.MenuEndPlaylist, UseUnderline = true };
+            _endSoundtableItem.Activated += EndCurrentPlaylist;
+            _soundtableMenu.Append(_endSoundtableItem);
+
+            _mainMenu.Append(_soundtableItem);
+
             // Buttons
             _buttonPlay = new Button() { Sensitive = false, Label = Strings.PlayerPlay };
             _buttonPlay.Clicked += (o, e) => Play();
@@ -140,9 +156,9 @@ namespace Kermalis.VGMusicStudio.GTK3
             _buttonStop.Clicked += (o, e) => Stop();
 
             // Spin Button
-            _soundNumberAdjustment = new Adjustment(0, 0, -1, 1, 1, 1);
-            _soundNumberSpinButton = new SpinButton(_soundNumberAdjustment, 1, 0) { Sensitive = false, Value = 0, NoShowAll = false, Visible = false };
-            _soundNumberSpinButton.ValueChanged += SoundNumberSpinButton_ValueChanged;
+            _sequenceNumberAdjustment = new Adjustment(0, 0, -1, 1, 1, 1);
+            _sequenceNumberSpinButton = new SpinButton(_sequenceNumberAdjustment, 1, 0) { Sensitive = false, Value = 0, NoShowAll = true, Visible = false };
+            _sequenceNumberSpinButton.ValueChanged += SequenceNumberSpinButton_ValueChanged;
 
             // Timer
             _timer = new Timer();
@@ -159,21 +175,35 @@ namespace Kermalis.VGMusicStudio.GTK3
             _positionScale.ButtonReleaseEvent += PositionScale_MouseButtonRelease; // ButtonRelease must go first, otherwise the scale it will follow the mouse cursor upon loading
             _positionScale.ButtonPressEvent += PositionScale_MouseButtonPress;
 
+            // Sequences List View
+            _sequencesListView = new TreeView();
+            _sequencesListStore = new ListStore(typeof(string), typeof(string));
+            _sequencesColumn = new TreeViewColumn("Name", new CellRendererText(), "text", 1);
+            _sequencesListView.AppendColumn("#", new CellRendererText(), "text", 0);
+            _sequencesListView.AppendColumn(_sequencesColumn);
+            _sequencesListView.Model = _sequencesListStore;
+
             // Main display
             _mainBox = new Box(Orientation.Vertical, 4);
             _configButtonBox = new Box(Orientation.Horizontal, 2) { Halign = Align.Center };
             _configPlayerButtonBox = new Box(Orientation.Horizontal, 3) { Halign = Align.Center };
             _configSpinButtonBox = new Box(Orientation.Horizontal, 1) { Halign = Align.Center, WidthRequest = 100 };
             _configScaleBox = new Box(Orientation.Horizontal, 2) { Halign = Align.Center };
+
             _mainBox.PackStart(_mainMenu, false, false, 0);
             _mainBox.PackStart(_configButtonBox, false, false, 0);
             _mainBox.PackStart(_configScaleBox, false, false, 0);
+            _mainBox.PackStart(_sequencesListView, false, false, 0);
+
             _configButtonBox.PackStart(_configPlayerButtonBox, false, false, 40);
             _configButtonBox.PackStart(_configSpinButtonBox, false, false, 100);
+
             _configPlayerButtonBox.PackStart(_buttonPlay, false, false, 0);
             _configPlayerButtonBox.PackStart(_buttonPause, false, false, 0);
             _configPlayerButtonBox.PackStart(_buttonStop, false, false, 0);
-            _configSpinButtonBox.PackStart(_soundNumberSpinButton, false, false, 0);
+
+            _configSpinButtonBox.PackStart(_sequenceNumberSpinButton, false, false, 0);
+
             _configScaleBox.PackStart(_volumeScale, false, false, 20);
             _configScaleBox.PackStart(_positionScale, false, false, 20);
 
@@ -218,14 +248,14 @@ namespace Kermalis.VGMusicStudio.GTK3
         }
 
         private bool _autoplay = false;
-        private void SoundNumberSpinButton_ValueChanged(object? sender, EventArgs? e)
+        private void SequenceNumberSpinButton_ValueChanged(object? sender, EventArgs? e)
         {
-            //_songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
+            _sequencesListView.SelectionGet -= SequencesListView_SelectionGet;
 
-            long index = (long)_soundNumberAdjustment.Value;
+            long index = (long)_sequenceNumberAdjustment.Value;
             Stop();
-            Parent.Name = ConfigUtils.PROGRAM_NAME;
-            //_songsComboBox.SelectedIndex = 0;
+            this.Title = ConfigUtils.PROGRAM_NAME;
+            _sequencesListView.Margin = 0;
             //_songInfo.Reset();
             bool success;
             try
@@ -235,7 +265,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorLoadSong, Engine.Instance!.Config.GetSongName(index)));
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.YesNo, string.Format(Strings.ErrorLoadSong, Engine.Instance!.Config.GetSongName(index)), ex);
                 success = false;
             }
 
@@ -247,8 +277,8 @@ namespace Kermalis.VGMusicStudio.GTK3
                 Config.Song? song = songs.SingleOrDefault(s => s.Index == index);
                 if (song is not null)
                 {
-                    Parent.Name = $"{ConfigUtils.PROGRAM_NAME} - {song.Name}"; // TODO: Make this a func
-                    //_songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
+                    this.Title = $"{ConfigUtils.PROGRAM_NAME} - {song.Name}"; // TODO: Make this a func
+                    _sequencesColumn.SortColumnId = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
                 }
                 _positionAdjustment.Upper = Engine.Instance!.Player.LoadedSong!.MaxTicks;
                 _positionAdjustment.Value = _positionAdjustment.Upper / 10;
@@ -268,18 +298,77 @@ namespace Kermalis.VGMusicStudio.GTK3
             _exportDLSItem.Sensitive = _exportSF2Item.Sensitive = success && AlphaDreamEngine.AlphaDreamInstance is not null;
 
             _autoplay = true;
+            _sequencesListView.SelectionGet += SequencesListView_SelectionGet;
         }
-
-        private void SetAndLoadTrack(long index)
+        private void SequencesListView_SelectionGet(object? sender, EventArgs? e)
+        {
+            var item = _sequencesListView.Selection;
+            if (item.SelectFunction.Target is Config.Song song)
+            {
+                SetAndLoadSequence(song.Index);
+            }
+            else if (item.SelectFunction.Target is Config.Playlist playlist)
+            {
+                var md = new MessageDialog(this, DialogFlags.Modal, MessageType.Question, ButtonsType.YesNo, string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist, Strings.MenuPlaylist));
+                if (playlist.Songs.Count > 0
+                    && md.Run() == (int)ResponseType.Yes)
+                {
+                    ResetPlaylistStuff(false);
+                    _curPlaylist = playlist;
+                    Engine.Instance.Player.ShouldFadeOut = _playlistPlaying = true;
+                    Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
+                    _endSoundtableItem.Sensitive = true;
+                    SetAndLoadNextPlaylistSong();
+                }
+            }
+        }
+        private void SetAndLoadSequence(long index)
         {
             _curSong = index;
-            if (_soundNumberSpinButton.Value == index)
+            if (_sequenceNumberSpinButton.Value == index)
             {
-                SoundNumberSpinButton_ValueChanged(null, null);
+                SequenceNumberSpinButton_ValueChanged(null, null);
             }
             else
             {
-                _soundNumberSpinButton.Value = index;
+                _sequenceNumberSpinButton.Value = index;
+            }
+        }
+
+        private void SetAndLoadNextPlaylistSong()
+        {
+            if (_remainingSequences.Count == 0)
+            {
+                _remainingSequences.AddRange(_curPlaylist.Songs.Select(s => s.Index));
+                if (GlobalConfig.Instance.PlaylistMode == PlaylistMode.Random)
+                {
+                    _remainingSequences.Any();
+                }
+            }
+            long nextSequence = _remainingSequences[0];
+            _remainingSequences.RemoveAt(0);
+            SetAndLoadSequence(nextSequence);
+        }
+        private void ResetPlaylistStuff(bool enableds)
+        {
+            if (Engine.Instance != null)
+            {
+                Engine.Instance.Player.ShouldFadeOut = false;
+            }
+            _playlistPlaying = false;
+            _curPlaylist = null;
+            _curSong = -1;
+            _remainingSequences.Clear();
+            _playedSequences.Clear();
+            _endSoundtableItem.Sensitive = false;
+            _sequenceNumberSpinButton.Sensitive = _sequencesListView.Sensitive = enableds;
+        }
+        private void EndCurrentPlaylist(object? sender, EventArgs? e)
+        {
+            var md = new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.YesNo, string.Format(Strings.EndPlaylistBody, Strings.MenuPlaylist));
+            if (md.Run() == (int)ResponseType.Yes)
+            {
+                ResetPlaylistStuff(true);
             }
         }
 
@@ -303,14 +392,14 @@ namespace Kermalis.VGMusicStudio.GTK3
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorOpenDSE);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorOpenDSE, ex);
                 return;
             }
 
             DSEConfig config = DSEEngine.DSEInstance!.Config;
             FinishLoading(config.BGMFiles.Length);
-            _soundNumberSpinButton.Visible = false;
-            _soundNumberSpinButton.NoShowAll = true;
+            _sequenceNumberSpinButton.Visible = false;
+            _sequenceNumberSpinButton.NoShowAll = true;
             _exportDLSItem.Visible = false;
             _exportMIDIItem.Visible = false;
             _exportSF2Item.Visible = false;
@@ -351,14 +440,14 @@ namespace Kermalis.VGMusicStudio.GTK3
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorOpenAlphaDream);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorOpenAlphaDream, ex);
                 return;
             }
 
             AlphaDreamConfig config = AlphaDreamEngine.AlphaDreamInstance!.Config;
             FinishLoading(config.SongTableSizes[0]);
-            _soundNumberSpinButton.Visible = true;
-            _soundNumberSpinButton.NoShowAll = false;
+            _sequenceNumberSpinButton.Visible = true;
+            _sequenceNumberSpinButton.NoShowAll = false;
             _exportDLSItem.Visible = true;
             _exportMIDIItem.Visible = false;
             _exportSF2Item.Visible = true;
@@ -399,14 +488,14 @@ namespace Kermalis.VGMusicStudio.GTK3
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorOpenMP2K);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorOpenMP2K, ex);
                 return;
             }
 
             MP2KConfig config = MP2KEngine.MP2KInstance!.Config;
             FinishLoading(config.SongTableSizes[0]);
-            _soundNumberSpinButton.Visible = true;
-            _soundNumberSpinButton.NoShowAll = false;
+            _sequenceNumberSpinButton.Visible = true;
+            _sequenceNumberSpinButton.NoShowAll = false;
             _exportDLSItem.Visible = false;
             _exportMIDIItem.Visible = true;
             _exportSF2Item.Visible = false;
@@ -446,14 +535,14 @@ namespace Kermalis.VGMusicStudio.GTK3
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorOpenSDAT);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorOpenSDAT, ex);
                 return;
             }
 
             SDATConfig config = SDATEngine.SDATInstance!.Config;
             FinishLoading(config.SDAT.INFOBlock.SequenceInfos.NumEntries);
-            _soundNumberSpinButton.Visible = true;
-            _soundNumberSpinButton.NoShowAll = false;
+            _sequenceNumberSpinButton.Visible = true;
+            _sequenceNumberSpinButton.NoShowAll = false;
             _exportDLSItem.Visible = false;
             _exportMIDIItem.Visible = false;
             _exportSF2Item.Visible = false;
@@ -487,11 +576,11 @@ namespace Kermalis.VGMusicStudio.GTK3
             try
             {
                 AlphaDreamSoundFontSaver_DLS.Save(cfg, d.Filename);
-                //FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveDLS, d.FileName), Text);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Ok, string.Format(Strings.SuccessSaveDLS, d.Filename));
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorSaveDLS);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorSaveDLS, ex);
             }
 
             d.Destroy();
@@ -502,7 +591,7 @@ namespace Kermalis.VGMusicStudio.GTK3
                 Strings.MenuSaveMIDI,
                 this,
                 FileChooserAction.Save, "Save", "Cancel");
-            d.SetFilename(Engine.Instance!.Config.GetSongName((long)_soundNumberSpinButton.Value));
+            d.SetFilename(Engine.Instance!.Config.GetSongName((long)_sequenceNumberSpinButton.Value));
 
             FileFilter ff = new FileFilter()
             {
@@ -524,19 +613,19 @@ namespace Kermalis.VGMusicStudio.GTK3
                 SaveCommandsBeforeTranspose = true,
                 ReverseVolume = false,
                 TimeSignatures = new List<(int AbsoluteTick, (byte Numerator, byte Denominator))>
-            {
-                (0, (4, 4)),
-            },
+                {
+                    (0, (4, 4)),
+                },
             };
 
             try
             {
                 p.SaveAsMIDI(d.Filename, args);
-                //FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDI, d.FileName), Text);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Ok, string.Format(Strings.SuccessSaveMIDI, d.Filename));
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorSaveMIDI);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorSaveMIDI, ex);
             }
         }
         private void ExportSF2(object? sender, EventArgs? e)
@@ -566,11 +655,11 @@ namespace Kermalis.VGMusicStudio.GTK3
             try
             {
                 AlphaDreamSoundFontSaver_SF2.Save(cfg, d.Filename);
-                //FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveSF2, d.FileName), Text);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Ok, string.Format(Strings.SuccessSaveSF2, d.Filename));
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorSaveSF2);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorSaveSF2, ex);
             }
         }
         private void ExportWAV(object? sender, EventArgs? e)
@@ -580,7 +669,7 @@ namespace Kermalis.VGMusicStudio.GTK3
                 this,
                 FileChooserAction.Save, "Save", "Cancel");
 
-            d.SetFilename(Engine.Instance!.Config.GetSongName((long)_soundNumberSpinButton.Value));
+            d.SetFilename(Engine.Instance!.Config.GetSongName((long)_sequenceNumberSpinButton.Value));
 
             FileFilter ff = new FileFilter()
             {
@@ -606,11 +695,11 @@ namespace Kermalis.VGMusicStudio.GTK3
             try
             {
                 player.Record(d.Filename);
-                //FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveWAV, d.FileName), Text);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Ok, string.Format(Strings.SuccessSaveWAV, d.Filename));
             }
             catch (Exception ex)
             {
-                //FlexibleMessageBox.Show(ex, Strings.ErrorSaveWAV);
+                new MessageDialog(this, DialogFlags.Modal, MessageType.Error, ButtonsType.Ok, Strings.ErrorSaveWAV, ex);
             }
 
             player.ShouldFadeOut = oldFade;
@@ -667,21 +756,61 @@ namespace Kermalis.VGMusicStudio.GTK3
             _timer.Stop();
             UpdatePositionIndicators(0L);
         }
+        private void TogglePlayback(object? sender, EventArgs? e)
+        {
+            switch (Engine.Instance!.Player.State)
+            {
+                case PlayerState.Stopped: Play(); break;
+                case PlayerState.Paused:
+                case PlayerState.Playing: Pause(); break;
+            }
+        }
+        private void PlayPreviousSequence(object? sender, EventArgs? e)
+        {
+            long prevSequence;
+            if (_playlistPlaying)
+            {
+                int index = _playedSequences.Count - 1;
+                prevSequence = _playedSequences[index];
+                _playedSequences.RemoveAt(index);
+                _playedSequences.Insert(0, _curSong);
+            }
+            else
+            {
+                prevSequence = (long)_sequenceNumberSpinButton.Value - 1;
+            }
+            SetAndLoadSequence(prevSequence);
+        }
+        private void PlayNextSong(object? sender, EventArgs? e)
+        {
+            if (_playlistPlaying)
+            {
+                _playedSequences.Add(_curSong);
+                SetAndLoadNextPlaylistSong();
+            }
+            else
+            {
+                SetAndLoadSequence((long)_sequenceNumberSpinButton.Value + 1);
+            }
+        }
 
         private void FinishLoading(long numSongs)
         {
             Engine.Instance!.Player.SongEnded += SongEnded;
             foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
             {
-
+                int i = 0;
+                _sequencesListStore.AppendValues(i++, playlist);
+                playlist.Songs.Select(s => new TreeView(_sequencesListStore)).ToArray();
             }
-            _soundNumberAdjustment.Upper = numSongs - 1;
+            _sequenceNumberAdjustment.Upper = numSongs - 1;
 #if DEBUG
             // [Debug methods specific to this UI will go in here]
 #endif
             _autoplay = false;
-            //SetAndLoadSong(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
-            _soundNumberSpinButton.Sensitive = _buttonPlay.Sensitive = _volumeScale.Sensitive = true;
+            SetAndLoadSequence(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
+            _sequenceNumberSpinButton.Sensitive = _buttonPlay.Sensitive = _volumeScale.Sensitive = true;
+            ShowAll();
         }
         private void DisposeEngine()
         {
@@ -695,16 +824,16 @@ namespace Kermalis.VGMusicStudio.GTK3
             Name = ConfigUtils.PROGRAM_NAME;
             //_songInfo.SetNumTracks(0);
             //_songInfo.ResetMutes();
-            //ResetPlaylistStuff(false);
+            ResetPlaylistStuff(false);
             UpdatePositionIndicators(0L);
-            //_songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
-            _soundNumberAdjustment.ValueChanged -= SoundNumberSpinButton_ValueChanged;
-            _soundNumberSpinButton.Visible = false;
-            _soundNumberSpinButton.Value = _soundNumberAdjustment.Upper = 0;
-            //_songsComboBox.SelectedItem = null;
-            //_songsComboBox.Items.Clear();
-            //_songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
-            _soundNumberSpinButton.ValueChanged += SoundNumberSpinButton_ValueChanged;
+            _sequencesListView.SelectionGet -= SequencesListView_SelectionGet;
+            _sequenceNumberAdjustment.ValueChanged -= SequenceNumberSpinButton_ValueChanged;
+            _sequenceNumberSpinButton.Visible = false;
+            _sequenceNumberSpinButton.Value = _sequenceNumberAdjustment.Upper = 0;
+            _sequencesListView.Selection.SelectFunction = null;
+            _sequencesListView.Data.Clear();
+            _sequencesListView.SelectionGet += SequencesListView_SelectionGet;
+            _sequenceNumberSpinButton.ValueChanged += SequenceNumberSpinButton_ValueChanged;
         }
 
         private void UpdateUI(object? sender, EventArgs? e)
@@ -714,7 +843,7 @@ namespace Kermalis.VGMusicStudio.GTK3
                 _stopUI = false;
                 if (_playlistPlaying)
                 {
-                    _playedTracks.Add(_curSong);
+                    _playedSequences.Add(_curSong);
                 }
                 else
                 {
