@@ -111,6 +111,24 @@ public sealed class SDAT
 			public byte PlayerNum { get; set; }
 			public byte Unknown3 { get; set; }
 			public byte Unknown4 { get; set; }
+
+			internal SSEQ GetSSEQ(SDAT sdat)
+			{
+				return new SSEQ(sdat.FATBlock.Entries[FileId].Data);
+			}
+			internal SBNK GetSBNK(SDAT sdat)
+			{
+				BankInfo bankInfo = sdat.INFOBlock.BankInfos.Entries[Bank]!;
+				var sbnk = new SBNK(sdat.FATBlock.Entries[bankInfo.FileId].Data);
+				for (int i = 0; i < 4; i++)
+				{
+					if (bankInfo.SWARs[i] != 0xFFFF)
+					{
+						sbnk.SWARs[i] = new SWAR(sdat.FATBlock.Entries[sdat.INFOBlock.WaveArchiveInfos.Entries[bankInfo.SWARs[i]]!.FileId].Data);
+					}
+				}
+				return sbnk;
+			}
 		}
 		public sealed class BankInfo
 		{
@@ -206,7 +224,7 @@ public sealed class SDAT
 		}
 	}
 
-	public FileHeader FileHeader; // "SDAT"
+	public SDATFileHeader FileHeader; // "SDAT"
 	public int SYMBOffset;
 	public int SYMBLength;
 	public int INFOOffset;
@@ -222,30 +240,27 @@ public sealed class SDAT
 	public FAT FATBlock;
 	//FILEBlock
 
-	public SDAT(byte[] bytes)
+	public SDAT(Stream stream)
 	{
-		using (var stream = new MemoryStream(bytes))
-		{
-			var er = new EndianBinaryReader(stream, ascii: true);
-			FileHeader = new FileHeader(er);
-			SYMBOffset = er.ReadInt32();
-			SYMBLength = er.ReadInt32();
-			INFOOffset = er.ReadInt32();
-			INFOLength = er.ReadInt32();
-			FATOffset = er.ReadInt32();
-			FATLength = er.ReadInt32();
-			FILEOffset = er.ReadInt32();
-			FILELength = er.ReadInt32();
-			Padding = new byte[16];
-			er.ReadBytes(Padding);
+		var er = new EndianBinaryReader(stream, ascii: true);
+		FileHeader = new SDATFileHeader(er);
+		SYMBOffset = er.ReadInt32();
+		SYMBLength = er.ReadInt32();
+		INFOOffset = er.ReadInt32();
+		INFOLength = er.ReadInt32();
+		FATOffset = er.ReadInt32();
+		FATLength = er.ReadInt32();
+		FILEOffset = er.ReadInt32();
+		FILELength = er.ReadInt32();
+		Padding = new byte[16];
+		er.ReadBytes(Padding);
 
-			if (SYMBOffset != 0 && SYMBLength != 0)
-			{
-				SYMBBlock = new SYMB(er, SYMBOffset);
-			}
-			INFOBlock = new INFO(er, INFOOffset);
-			stream.Position = FATOffset;
-			FATBlock = new FAT(er);
+		if (SYMBOffset != 0 && SYMBLength != 0)
+		{
+			SYMBBlock = new SYMB(er, SYMBOffset);
 		}
+		INFOBlock = new INFO(er, INFOOffset);
+		stream.Position = FATOffset;
+		FATBlock = new FAT(er);
 	}
 }

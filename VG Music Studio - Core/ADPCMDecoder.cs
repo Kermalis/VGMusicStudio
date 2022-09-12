@@ -1,5 +1,6 @@
 ﻿namespace Kermalis.VGMusicStudio.Core;
 
+// TODO: Struct or something to prevent allocations
 internal sealed class ADPCMDecoder
 {
 	private static readonly short[] _indexTable = new short[8]

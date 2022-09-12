@@ -1,4 +1,5 @@
-﻿using Kermalis.VGMusicStudio.Core.Util;
+﻿using Kermalis.VGMusicStudio.Core.NDS.SDAT;
+using Kermalis.VGMusicStudio.Core.Util;
 using NAudio.Wave;
 using System;
 
@@ -15,8 +16,10 @@ public sealed class DSEMixer : Mixer
 	private float _fadePos;
 	private float _fadeStepPerMicroframe;
 
-	private readonly Channel[] _channels;
+	private readonly DSEChannel[] _channels;
 	private readonly BufferedWaveProvider _buffer;
+
+	protected override WaveFormat WaveFormat => _buffer.WaveFormat;
 
 	public DSEMixer()
 	{
@@ -27,10 +30,10 @@ public sealed class DSEMixer : Mixer
 		_samplesPerBuffer = 341; // TODO
 		_samplesReciprocal = 1f / _samplesPerBuffer;
 
-		_channels = new Channel[NUM_CHANNELS];
+		_channels = new DSEChannel[NUM_CHANNELS];
 		for (byte i = 0; i < NUM_CHANNELS; i++)
 		{
-			_channels[i] = new Channel(i);
+			_channels[i] = new DSEChannel(i);
 		}
 
 		_buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
@@ -41,17 +44,17 @@ public sealed class DSEMixer : Mixer
 		Init(_buffer);
 	}
 
-	internal Channel? AllocateChannel()
+	internal DSEChannel? AllocateChannel()
 	{
-		static int GetScore(Channel c)
+		static int GetScore(DSEChannel c)
 		{
 			// Free channels should be used before releasing channels
-			return c.Owner is null ? -2 : Utils.IsStateRemovable(c.State) ? -1 : 0;
+			return c.Owner is null ? -2 : DSEUtils.IsStateRemovable(c.State) ? -1 : 0;
 		}
-		Channel? nChan = null;
+		DSEChannel? nChan = null;
 		for (int i = 0; i < NUM_CHANNELS; i++)
 		{
-			Channel c = _channels[i];
+			DSEChannel c = _channels[i];
 			if (nChan is null)
 			{
 				nChan = c;
@@ -73,29 +76,29 @@ public sealed class DSEMixer : Mixer
 	{
 		for (int i = 0; i < NUM_CHANNELS; i++)
 		{
-			Channel chan = _channels[i];
+			DSEChannel chan = _channels[i];
 			if (chan.Owner is null)
 			{
 				continue;
 			}
 
 			chan.Volume = (byte)chan.StepEnvelope();
-			if (chan.NoteLength == 0 && !Utils.IsStateRemovable(chan.State))
+			if (chan.NoteLength == 0 && !DSEUtils.IsStateRemovable(chan.State))
 			{
 				chan.SetEnvelopePhase7_2074ED8();
 			}
-			int vol = SDAT.SDATUtils.SustainTable[chan.NoteVelocity] + SDAT.SDATUtils.SustainTable[chan.Volume] + SDAT.SDATUtils.SustainTable[chan.Owner.Volume] + SDAT.SDATUtils.SustainTable[chan.Owner.Expression];
+			int vol = SDATUtils.SustainTable[chan.NoteVelocity] + SDATUtils.SustainTable[chan.Volume] + SDATUtils.SustainTable[chan.Owner.Volume] + SDATUtils.SustainTable[chan.Owner.Expression];
 			//int pitch = ((chan.Key - chan.BaseKey) << 6) + chan.SweepMain() + chan.Owner.GetPitch(); // "<< 6" is "* 0x40"
 			int pitch = (chan.Key - chan.RootKey) << 6; // "<< 6" is "* 0x40"
-			if (Utils.IsStateRemovable(chan.State) && vol <= -92544)
+			if (DSEUtils.IsStateRemovable(chan.State) && vol <= -92544)
 			{
 				chan.Stop();
 			}
 			else
 			{
-				chan.Volume = SDAT.SDATUtils.GetChannelVolume(vol);
+				chan.Volume = SDATUtils.GetChannelVolume(vol);
 				chan.Panpot = chan.Owner.Panpot;
-				chan.Timer = SDAT.SDATUtils.GetChannelTimer(chan.BaseTimer, pitch);
+				chan.Timer = SDATUtils.GetChannelTimer(chan.BaseTimer, pitch);
 			}
 		}
 	}
@@ -128,16 +131,6 @@ public sealed class DSEMixer : Mixer
 		_fadeMicroFramesLeft = 0;
 	}
 
-	private WaveFileWriter? _waveWriter;
-	public void CreateWaveWriter(string fileName)
-	{
-		_waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
-	}
-	public void CloseWaveWriter()
-	{
-		_waveWriter!.Dispose();
-		_waveWriter = null;
-	}
 	private readonly byte[] _b = new byte[4];
 	internal void Process(bool output, bool recording)
 	{
@@ -169,7 +162,7 @@ public sealed class DSEMixer : Mixer
 				right = 0;
 			for (int j = 0; j < NUM_CHANNELS; j++)
 			{
-				Channel chan = _channels[j];
+				DSEChannel chan = _channels[j];
 				if (chan.Owner is null)
 				{
 					continue;

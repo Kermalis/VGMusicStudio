@@ -1,7 +1,7 @@
 ﻿using Kermalis.EndianBinaryIO;
 using Kermalis.VGMusicStudio.Core.Properties;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
@@ -19,14 +19,17 @@ public sealed class DSEConfig : Config
 			throw new DSENoSequencesException(bgmPath);
 		}
 
-		var songs = new Song[BGMFiles.Length];
+		// TODO: Big endian files
+		var songs = new List<Song>(BGMFiles.Length);
 		for (int i = 0; i < BGMFiles.Length; i++)
 		{
 			using (FileStream stream = File.OpenRead(BGMFiles[i]))
 			{
 				var r = new EndianBinaryReader(stream, ascii: true);
 				SMD.Header header = r.ReadObject<SMD.Header>();
-				songs[i] = new Song(i, $"{Path.GetFileNameWithoutExtension(BGMFiles[i])} - {new string(header.Label.TakeWhile(c => c != '\0').ToArray())}");
+				char[] chars = header.Label.ToCharArray();
+				EndianBinaryPrimitives.TrimNullTerminators(ref chars);
+				songs.Add(new Song(i, $"{Path.GetFileNameWithoutExtension(BGMFiles[i])} - {new string(chars)}"));
 			}
 		}
 		Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));
@@ -36,7 +39,7 @@ public sealed class DSEConfig : Config
 	{
 		return "DSE";
 	}
-	public override string GetSongName(long index)
+	public override string GetSongName(int index)
 	{
 		return index < 0 || index >= BGMFiles.Length
 			? index.ToString()

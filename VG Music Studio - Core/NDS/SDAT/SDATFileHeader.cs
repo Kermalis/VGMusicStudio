@@ -2,7 +2,7 @@ using Kermalis.EndianBinaryIO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
 
-public sealed class FileHeader
+public sealed class SDATFileHeader
 {
 	public string FileType;
 	public ushort FileEndianness;
@@ -11,7 +11,7 @@ public sealed class FileHeader
 	public ushort HeaderSize; // 16
 	public ushort NumBlocks;
 
-	public FileHeader(EndianBinaryReader er)
+	public SDATFileHeader(EndianBinaryReader er)
 	{
 		FileType = er.ReadString_Count(4);
 		er.Endianness = Endianness.BigEndian;

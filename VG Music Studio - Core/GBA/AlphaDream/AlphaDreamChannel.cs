@@ -1,5 +1,5 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using Kermalis.VGMusicStudio.Core.GBA.MP2K;
+using System;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream;
 
@@ -42,13 +42,13 @@ internal abstract class AlphaDreamChannel
 
 	public abstract void Process(float[] buffer);
 }
-internal class PCMChannel : AlphaDreamChannel
+internal sealed class AlphaDreamPCMChannel : AlphaDreamChannel
 {
 	private SampleHeader _sampleHeader;
 	private int _sampleOffset;
 	private bool _bFixed;
 
-	public PCMChannel(AlphaDreamMixer mixer) : base(mixer)
+	public AlphaDreamPCMChannel(AlphaDreamMixer mixer) : base(mixer)
 	{
 		//
 	}
@@ -60,8 +60,7 @@ internal class PCMChannel : AlphaDreamChannel
 		Key = key;
 		_adsr = adsr;
 
-		_sampleHeader = MemoryMarshal.Read<SampleHeader>(_mixer.Config.ROM.AsSpan(sampleOffset));
-		_sampleOffset = sampleOffset + 0x10;
+		_sampleHeader = new SampleHeader(_mixer.Config.ROM, sampleOffset, out _sampleOffset);
 		_bFixed = bFixed;
 		Stopped = false;
 	}
@@ -149,17 +148,18 @@ internal class PCMChannel : AlphaDreamChannel
 		} while (--samplesPerBuffer > 0);
 	}
 }
-internal class SquareChannel : AlphaDreamChannel
+internal sealed class AlphaDreamSquareChannel : AlphaDreamChannel
 {
 	private float[] _pat;
 
-	public SquareChannel(AlphaDreamMixer mixer) : base(mixer)
+	public AlphaDreamSquareChannel(AlphaDreamMixer mixer)
+		: base(mixer)
 	{
 		//
 	}
 	public void Init(byte key, ADSR env, byte vol, sbyte pan, int pitch)
 	{
-		_pat = MP2K.Utils.SquareD50; // TODO: Which square pattern?
+		_pat = MP2KUtils.SquareD50; // TODO: Which square pattern?
 		Key = key;
 		_adsr = env;
 		SetVolume(vol, pan);

@@ -1,19 +1,15 @@
 ﻿using System;
 
-namespace Kermalis.VGMusicStudio.Core.Util
+namespace Kermalis.VGMusicStudio.Core.Util;
+
+internal static class SampleUtils
 {
-	internal static class SampleUtils
+	public static void PCMU8ToPCM16(ReadOnlySpan<byte> src, Span<short> dest)
 	{
-		// TODO: Span output?
-		public static short[] PCMU8ToPCM16(ReadOnlySpan<byte> data)
+		for (int i = 0; i < src.Length; i++)
 		{
-			short[] ret = new short[data.Length];
-			for (int i = 0; i < data.Length; i++)
-			{
-				byte b = data[i];
-				ret[i] = (short)((b - 0x80) << 8);
-			}
-			return ret;
+			byte b = src[i];
+			dest[i] = (short)((b - 0x80) << 8);
 		}
 	}
 }

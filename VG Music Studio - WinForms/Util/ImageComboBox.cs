@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace Kermalis.VGMusicStudio.WinForms.Util;
 
-internal class ImageComboBox : ComboBox
+internal sealed class ImageComboBox : ComboBox
 {
 	private const int _imgSize = 15;
 	private bool _open = false;
@@ -41,7 +41,7 @@ internal class ImageComboBox : ComboBox
 		base.OnDropDownClosed(e);
 	}
 }
-internal class ImageComboBoxItem
+internal sealed class ImageComboBoxItem
 {
 	public object Item { get; }
 	public Image Image { get; }

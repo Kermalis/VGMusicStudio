@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
-internal class CallCommand : ICommand
+internal sealed class CallCommand : ICommand
 {
 	public Color Color => Color.MediumSpringGreen;
 	public string Label => "Call";
@@ -11,7 +11,7 @@ internal class CallCommand : ICommand
 
 	public int Offset { get; set; }
 }
-internal class EndOfTieCommand : ICommand
+internal sealed class EndOfTieCommand : ICommand
 {
 	public Color Color => Color.SkyBlue;
 	public string Label => "End Of Tie";
@@ -19,7 +19,7 @@ internal class EndOfTieCommand : ICommand
 
 	public int Note { get; set; }
 }
-internal class FinishCommand : ICommand
+internal sealed class FinishCommand : ICommand
 {
 	public Color Color => Color.MediumSpringGreen;
 	public string Label => "Finish";
@@ -27,7 +27,7 @@ internal class FinishCommand : ICommand
 
 	public bool Prev { get; set; }
 }
-internal class JumpCommand : ICommand
+internal sealed class JumpCommand : ICommand
 {
 	public Color Color => Color.MediumSpringGreen;
 	public string Label => "Jump";
@@ -35,7 +35,7 @@ internal class JumpCommand : ICommand
 
 	public int Offset { get; set; }
 }
-internal class LFODelayCommand : ICommand
+internal sealed class LFODelayCommand : ICommand
 {
 	public Color Color => Color.LightSteelBlue;
 	public string Label => "LFO Delay";
@@ -43,7 +43,7 @@ internal class LFODelayCommand : ICommand
 
 	public byte Delay { get; set; }
 }
-internal class LFODepthCommand : ICommand
+internal sealed class LFODepthCommand : ICommand
 {
 	public Color Color => Color.LightSteelBlue;
 	public string Label => "LFO Depth";
@@ -51,7 +51,7 @@ internal class LFODepthCommand : ICommand
 
 	public byte Depth { get; set; }
 }
-internal class LFOSpeedCommand : ICommand
+internal sealed class LFOSpeedCommand : ICommand
 {
 	public Color Color => Color.LightSteelBlue;
 	public string Label => "LFO Speed";
@@ -59,7 +59,7 @@ internal class LFOSpeedCommand : ICommand
 
 	public byte Speed { get; set; }
 }
-internal class LFOTypeCommand : ICommand
+internal sealed class LFOTypeCommand : ICommand
 {
 	public Color Color => Color.LightSteelBlue;
 	public string Label => "LFO Type";
@@ -67,7 +67,7 @@ internal class LFOTypeCommand : ICommand
 
 	public LFOType Type { get; set; }
 }
-internal class LibraryCommand : ICommand
+internal sealed class LibraryCommand : ICommand
 {
 	public Color Color => Color.SteelBlue;
 	public string Label => "Library Call";
@@ -76,7 +76,7 @@ internal class LibraryCommand : ICommand
 	public byte Command { get; set; }
 	public byte Argument { get; set; }
 }
-internal class MemoryAccessCommand : ICommand
+internal sealed class MemoryAccessCommand : ICommand
 {
 	public Color Color => Color.SteelBlue;
 	public string Label => "Memory Access";
@@ -86,7 +86,7 @@ internal class MemoryAccessCommand : ICommand
 	public byte Address { get; set; }
 	public byte Data { get; set; }
 }
-internal class NoteCommand : ICommand
+internal sealed class NoteCommand : ICommand
 {
 	public Color Color => Color.SkyBlue;
 	public string Label => "Note";
@@ -96,7 +96,7 @@ internal class NoteCommand : ICommand
 	public byte Velocity { get; set; }
 	public int Duration { get; set; }
 }
-internal class PanpotCommand : ICommand
+internal sealed class PanpotCommand : ICommand
 {
 	public Color Color => Color.GreenYellow;
 	public string Label => "Panpot";
@@ -104,7 +104,7 @@ internal class PanpotCommand : ICommand
 
 	public sbyte Panpot { get; set; }
 }
-internal class PitchBendCommand : ICommand
+internal sealed class PitchBendCommand : ICommand
 {
 	public Color Color => Color.MediumPurple;
 	public string Label => "Pitch Bend";
@@ -112,7 +112,7 @@ internal class PitchBendCommand : ICommand
 
 	public sbyte Bend { get; set; }
 }
-internal class PitchBendRangeCommand : ICommand
+internal sealed class PitchBendRangeCommand : ICommand
 {
 	public Color Color => Color.MediumPurple;
 	public string Label => "Pitch Bend Range";
@@ -120,7 +120,7 @@ internal class PitchBendRangeCommand : ICommand
 
 	public byte Range { get; set; }
 }
-internal class PriorityCommand : ICommand
+internal sealed class PriorityCommand : ICommand
 {
 	public Color Color => Color.SteelBlue;
 	public string Label => "Priority";
@@ -128,7 +128,7 @@ internal class PriorityCommand : ICommand
 
 	public byte Priority { get; set; }
 }
-internal class RepeatCommand : ICommand
+internal sealed class RepeatCommand : ICommand
 {
 	public Color Color => Color.MediumSpringGreen;
 	public string Label => "Repeat";
@@ -137,7 +137,7 @@ internal class RepeatCommand : ICommand
 	public byte Times { get; set; }
 	public int Offset { get; set; }
 }
-internal class RestCommand : ICommand
+internal sealed class RestCommand : ICommand
 {
 	public Color Color => Color.PaleVioletRed;
 	public string Label => "Rest";
@@ -145,13 +145,13 @@ internal class RestCommand : ICommand
 
 	public byte Rest { get; set; }
 }
-internal class ReturnCommand : ICommand
+internal sealed class ReturnCommand : ICommand
 {
 	public Color Color => Color.MediumSpringGreen;
 	public string Label => "Return";
 	public string Arguments => string.Empty;
 }
-internal class TempoCommand : ICommand
+internal sealed class TempoCommand : ICommand
 {
 	public Color Color => Color.DeepSkyBlue;
 	public string Label => "Tempo";
@@ -159,7 +159,7 @@ internal class TempoCommand : ICommand
 
 	public ushort Tempo { get; set; }
 }
-internal class TransposeCommand : ICommand
+internal sealed class TransposeCommand : ICommand
 {
 	public Color Color => Color.SkyBlue;
 	public string Label => "Transpose";
@@ -167,7 +167,7 @@ internal class TransposeCommand : ICommand
 
 	public sbyte Transpose { get; set; }
 }
-internal class TuneCommand : ICommand
+internal sealed class TuneCommand : ICommand
 {
 	public Color Color => Color.MediumPurple;
 	public string Label => "Fine Tune";
@@ -175,7 +175,7 @@ internal class TuneCommand : ICommand
 
 	public sbyte Tune { get; set; }
 }
-internal class VoiceCommand : ICommand
+internal sealed class VoiceCommand : ICommand
 {
 	public Color Color => Color.DarkSalmon;
 	public string Label => "Voice";
@@ -183,7 +183,7 @@ internal class VoiceCommand : ICommand
 
 	public byte Voice { get; set; }
 }
-internal class VolumeCommand : ICommand
+internal sealed class VolumeCommand : ICommand
 {
 	public Color Color => Color.SteelBlue;
 	public string Label => "Volume";

@@ -3,13 +3,13 @@ using System.Drawing;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream;
 
-internal class FinishCommand : ICommand
+internal sealed class FinishCommand : ICommand
 {
 	public Color Color => Color.MediumSpringGreen;
 	public string Label => "Finish";
 	public string Arguments => string.Empty;
 }
-internal class FreeNoteHamtaroCommand : ICommand // TODO: When optimization comes, get rid of free note vs note and just have the label differ
+internal sealed class FreeNoteHamtaroCommand : ICommand // TODO: When optimization comes, get rid of free note vs note and just have the label differ
 {
 	public Color Color => Color.SkyBlue;
 	public string Label => "Free Note";
@@ -19,7 +19,7 @@ internal class FreeNoteHamtaroCommand : ICommand // TODO: When optimization come
 	public byte Volume { get; set; }
 	public byte Duration { get; set; }
 }
-internal class FreeNoteMLSSCommand : ICommand
+internal sealed class FreeNoteMLSSCommand : ICommand
 {
 	public Color Color => Color.SkyBlue;
 	public string Label => "Free Note";
@@ -28,7 +28,7 @@ internal class FreeNoteMLSSCommand : ICommand
 	public byte Note { get; set; }
 	public byte Duration { get; set; }
 }
-internal class JumpCommand : ICommand
+internal sealed class JumpCommand : ICommand
 {
 	public Color Color => Color.MediumSpringGreen;
 	public string Label => "Jump";
@@ -36,7 +36,7 @@ internal class JumpCommand : ICommand
 
 	public int Offset { get; set; }
 }
-internal class NoteHamtaroCommand : ICommand
+internal sealed class NoteHamtaroCommand : ICommand
 {
 	public Color Color => Color.SkyBlue;
 	public string Label => "Note";
@@ -46,7 +46,7 @@ internal class NoteHamtaroCommand : ICommand
 	public byte Volume { get; set; }
 	public byte Duration { get; set; }
 }
-internal class NoteMLSSCommand : ICommand
+internal sealed class NoteMLSSCommand : ICommand
 {
 	public Color Color => Color.SkyBlue;
 	public string Label => "Note";
@@ -55,7 +55,7 @@ internal class NoteMLSSCommand : ICommand
 	public byte Note { get; set; }
 	public byte Duration { get; set; }
 }
-internal class PanpotCommand : ICommand
+internal sealed class PanpotCommand : ICommand
 {
 	public Color Color => Color.GreenYellow;
 	public string Label => "Panpot";
@@ -63,7 +63,7 @@ internal class PanpotCommand : ICommand
 
 	public sbyte Panpot { get; set; }
 }
-internal class PitchBendCommand : ICommand
+internal sealed class PitchBendCommand : ICommand
 {
 	public Color Color => Color.MediumPurple;
 	public string Label => "Pitch Bend";
@@ -71,7 +71,7 @@ internal class PitchBendCommand : ICommand
 
 	public sbyte Bend { get; set; }
 }
-internal class PitchBendRangeCommand : ICommand
+internal sealed class PitchBendRangeCommand : ICommand
 {
 	public Color Color => Color.MediumPurple;
 	public string Label => "Pitch Bend Range";
@@ -79,7 +79,7 @@ internal class PitchBendRangeCommand : ICommand
 
 	public byte Range { get; set; }
 }
-internal class RestCommand : ICommand
+internal sealed class RestCommand : ICommand
 {
 	public Color Color => Color.PaleVioletRed;
 	public string Label => "Rest";
@@ -87,7 +87,7 @@ internal class RestCommand : ICommand
 
 	public byte Rest { get; set; }
 }
-internal class TrackTempoCommand : ICommand
+internal sealed class TrackTempoCommand : ICommand
 {
 	public Color Color => Color.DeepSkyBlue;
 	public string Label => "Track Tempo";
@@ -95,7 +95,7 @@ internal class TrackTempoCommand : ICommand
 
 	public byte Tempo { get; set; }
 }
-internal class VoiceCommand : ICommand
+internal sealed class VoiceCommand : ICommand
 {
 	public Color Color => Color.DarkSalmon;
 	public string Label => "Voice";
@@ -103,7 +103,7 @@ internal class VoiceCommand : ICommand
 
 	public byte Voice { get; set; }
 }
-internal class VolumeCommand : ICommand
+internal sealed class VolumeCommand : ICommand
 {
 	public Color Color => Color.SteelBlue;
 	public string Label => "Volume";

@@ -7,13 +7,16 @@ namespace Kermalis.VGMusicStudio.Core;
 
 public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 {
-	public static event Action<float>? MixerVolumeChanged;
+	public static event Action<float>? VolumeChanged;
 
 	public readonly bool[] Mutes;
 	private IWavePlayer _out;
 	private AudioSessionControl _appVolume;
 
 	private bool _shouldSendVolUpdateEvent = true;
+
+	protected WaveFileWriter? _waveWriter;
+	protected abstract WaveFormat WaveFormat { get; }
 
 	protected Mixer()
 	{
@@ -42,11 +45,21 @@ public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 		_out.Play();
 	}
 
+	public void CreateWaveWriter(string fileName)
+	{
+		_waveWriter = new WaveFileWriter(fileName, WaveFormat);
+	}
+	public void CloseWaveWriter()
+	{
+		_waveWriter!.Dispose();
+		_waveWriter = null;
+	}
+
 	public void OnVolumeChanged(float volume, bool isMuted)
 	{
 		if (_shouldSendVolUpdateEvent)
 		{
-			MixerVolumeChanged?.Invoke(volume);
+			VolumeChanged?.Invoke(volume);
 		}
 		_shouldSendVolUpdateEvent = true;
 	}

@@ -12,9 +12,9 @@ public sealed class MP2KEngine : Engine
 
 	public MP2KEngine(byte[] rom)
 	{
-		if (rom.Length > GBAUtils.CartridgeCapacity)
+		if (rom.Length > GBAUtils.CARTRIDGE_CAPACITY)
 		{
-			throw new InvalidDataException($"The ROM is too large. Maximum size is 0x{GBAUtils.CartridgeCapacity:X7} bytes.");
+			throw new InvalidDataException($"The ROM is too large. Maximum size is 0x{GBAUtils.CARTRIDGE_CAPACITY:X7} bytes.");
 		}
 
 		Config = new MP2KConfig(rom);

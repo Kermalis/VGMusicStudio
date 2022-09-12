@@ -1,5 +1,7 @@
 ﻿using Kermalis.EndianBinaryIO;
+using Kermalis.VGMusicStudio.Core.Util;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
@@ -8,11 +10,11 @@ internal sealed class SWD
 {
 	public interface IHeader
 	{
-
+		//
 	}
-	private class Header_V402 : IHeader
+	private sealed class Header_V402 : IHeader // Size 0x40
 	{
-		[BinaryArrayFixedLength(10)]
+		[BinaryArrayFixedLength(8)]
 		public byte[] Unknown1 { get; set; }
 		public ushort Year { get; set; }
 		public byte Month { get; set; }
@@ -31,9 +33,9 @@ internal sealed class SWD
 		[BinaryArrayFixedLength(7)]
 		public byte[] Padding { get; set; }
 	}
-	private class Header_V415 : IHeader
+	private sealed class Header_V415 : IHeader // Size 0x40
 	{
-		[BinaryArrayFixedLength(10)]
+		[BinaryArrayFixedLength(8)]
 		public byte[] Unknown1 { get; set; }
 		public ushort Year { get; set; }
 		public byte Month { get; set; }
@@ -71,7 +73,7 @@ internal sealed class SWD
 		byte Decay2 { get; set; }
 		byte Release { get; set; }
 	}
-	public class SplitEntry_V402 : ISplitEntry
+	public sealed class SplitEntry_V402 : ISplitEntry // Size 0x30
 	{
 		public ushort Id { get; set; }
 		[BinaryArrayFixedLength(2)]
@@ -105,9 +107,10 @@ internal sealed class SWD
 		public byte Release { get; set; }
 		public byte Unknown5 { get; set; }
 
+		[BinaryIgnore]
 		int ISplitEntry.SampleId => SampleId;
 	}
-	public class SplitEntry_V415 : ISplitEntry
+	public sealed class SplitEntry_V415 : ISplitEntry // 0x30
 	{
 		public ushort Id { get; set; }
 		[BinaryArrayFixedLength(2)]
@@ -141,6 +144,7 @@ internal sealed class SWD
 		public byte Release { get; set; }
 		public byte Unknown5 { get; set; }
 
+		[BinaryIgnore]
 		int ISplitEntry.SampleId => SampleId;
 	}
 
@@ -148,7 +152,7 @@ internal sealed class SWD
 	{
 		ISplitEntry[] SplitEntries { get; }
 	}
-	public class ProgramInfo_V402 : IProgramInfo
+	public sealed class ProgramInfo_V402 : IProgramInfo
 	{
 		public byte Id { get; set; }
 		public byte NumSplits { get; set; }
@@ -171,7 +175,7 @@ internal sealed class SWD
 		[BinaryIgnore]
 		ISplitEntry[] IProgramInfo.SplitEntries => SplitEntries;
 	}
-	public class ProgramInfo_V415 : IProgramInfo
+	public sealed class ProgramInfo_V415 : IProgramInfo
 	{
 		public ushort Id { get; set; }
 		public ushort NumSplits { get; set; }
@@ -195,7 +199,7 @@ internal sealed class SWD
 
 	public interface IWavInfo
 	{
-		byte RootKey { get; }
+		byte RootNote { get; }
 		sbyte Transpose { get; }
 		SampleFormat SampleFormat { get; }
 		bool Loop { get; }
@@ -212,13 +216,13 @@ internal sealed class SWD
 		byte Decay2 { get; }
 		byte Release { get; }
 	}
-	public class WavInfo_V402 : IWavInfo
+	public sealed class WavInfo_V402 : IWavInfo // Size 0x40
 	{
 		public byte Unknown1 { get; set; }
 		public byte Id { get; set; }
 		[BinaryArrayFixedLength(2)]
 		public byte[] Unknown2 { get; set; }
-		public byte RootKey { get; set; }
+		public byte RootNote { get; set; }
 		public sbyte Transpose { get; set; }
 		public byte Volume { get; set; }
 		public sbyte Panpot { get; set; }
@@ -245,14 +249,14 @@ internal sealed class SWD
 		public byte Release { get; set; }
 		public byte Unknown6 { get; set; }
 	}
-	public class WavInfo_V415 : IWavInfo
+	public sealed class WavInfo_V415 : IWavInfo // 0x40
 	{
 		[BinaryArrayFixedLength(2)]
 		public byte[] Unknown1 { get; set; }
 		public ushort Id { get; set; }
 		[BinaryArrayFixedLength(2)]
 		public byte[] Unknown2 { get; set; }
-		public byte RootKey { get; set; }
+		public byte RootNote { get; set; }
 		public sbyte Transpose { get; set; }
 		public byte Volume { get; set; }
 		public sbyte Panpot { get; set; }
@@ -293,30 +297,38 @@ internal sealed class SWD
 	}
 	public class ProgramBank
 	{
-		public IProgramInfo[] ProgramInfos;
+		public IProgramInfo?[] ProgramInfos;
 		public KeyGroup[] KeyGroups;
 	}
-	public class KeyGroup
+	public class KeyGroup // Size 0x8
 	{
 		public ushort Id { get; set; }
 		public byte Poly { get; set; }
 		public byte Priority { get; set; }
-		public byte Low { get; set; }
-		public byte High { get; set; }
-		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown { get; set; }
+		public byte LowNote { get; set; }
+		public byte HighNote { get; set; }
+		public ushort Unknown { get; set; }
 	}
-	public class LFOInfo
+	public sealed class LFOInfo
 	{
-		[BinaryArrayFixedLength(16)]
-		public byte[] Unknown { get; set; }
+		public byte Unknown1 { get; set; }
+		public byte HasData { get; set; }
+		public byte Type { get; set; } // LFOType enum
+		public byte CallbackType { get; set; }
+		public uint Unknown4 { get; set; }
+		public ushort Unknown8 { get; set; }
+		public ushort UnknownA { get; set; }
+		public ushort UnknownC { get; set; }
+		public byte UnknownE { get; set; }
+		public byte UnknownF { get; set; }
 	}
 
 	public string Type; // "swdb" or "swdl"
-	public byte[] Unknown;
+	public byte[] Unknown1;
 	public uint Length;
 	public ushort Version;
 	public IHeader Header;
+	public byte[] Unknown2;
 
 	public ProgramBank Programs;
 	public SampleBlock[] Samples;
@@ -327,10 +339,12 @@ internal sealed class SWD
 		{
 			var r = new EndianBinaryReader(stream, ascii: true);
 			Type = r.ReadString_Count(4);
-			Unknown = new byte[4];
-			r.ReadBytes(Unknown);
+			Unknown1 = new byte[4];
+			r.ReadBytes(Unknown1);
 			Length = r.ReadUInt32();
 			Version = r.ReadUInt16();
+			Unknown2 = new byte[2];
+			r.ReadBytes(Unknown2);
 			switch (Version)
 			{
 				case 0x402:
@@ -380,14 +394,11 @@ internal sealed class SWD
 				}
 				default:
 				{
+					Debug.WriteLine($"Ignoring {str} chunk");
 					r.Stream.Position += 0x8;
 					uint length = r.ReadUInt32();
 					r.Stream.Position += length;
-					// Align 4
-					while (r.Stream.Position % 4 != 0)
-					{
-						r.Stream.Position++;
-					}
+					r.Stream.Align(4);
 					break;
 				}
 			}
@@ -438,7 +449,7 @@ internal sealed class SWD
 		}
 
 		chunkOffset += 0x10;
-		var programInfos = new IProgramInfo[numPRGISlots];
+		var programInfos = new IProgramInfo?[numPRGISlots];
 		for (int i = 0; i < programInfos.Length; i++)
 		{
 			r.Stream.Position = chunkOffset + (2 * i);
@@ -462,16 +473,14 @@ internal sealed class SWD
 		{
 			return Array.Empty<KeyGroup>();
 		}
-		else
+
+		r.Stream.Position = chunkOffset + 0xC;
+		uint chunkLength = r.ReadUInt32();
+		var keyGroups = new KeyGroup[chunkLength / 8]; // 8 is the size of a KeyGroup
+		for (int i = 0; i < keyGroups.Length; i++)
 		{
-			r.Stream.Position = chunkOffset + 0xC;
-			uint chunkLength = r.ReadUInt32();
-			var keyGroups = new KeyGroup[chunkLength / 8]; // 8 is the size of a KeyGroup
-			for (int i = 0; i < keyGroups.Length; i++)
-			{
-				keyGroups[i] = r.ReadObject<KeyGroup>();
-			}
-			return keyGroups;
+			keyGroups[i] = r.ReadObject<KeyGroup>();
 		}
+		return keyGroups;
 	}
 }

@@ -10,7 +10,14 @@ public sealed class MIDISaveArgs
 {
 	public bool SaveCommandsBeforeTranspose; // TODO: I forgor why I would want this
 	public bool ReverseVolume;
-	public List<(int AbsoluteTick, (byte Numerator, byte Denominator))> TimeSignatures;
+	public (int AbsoluteTick, (byte Numerator, byte Denominator))[] TimeSignatures;
+
+	public MIDISaveArgs(bool saveCmdsBeforeTranspose, bool reverseVol, (int, (byte, byte))[] timeSignatures)
+	{
+		SaveCommandsBeforeTranspose = saveCmdsBeforeTranspose;
+		ReverseVolume = reverseVol;
+		TimeSignatures = timeSignatures;
+	}
 }
 
 internal sealed partial class MP2KLoadedSong

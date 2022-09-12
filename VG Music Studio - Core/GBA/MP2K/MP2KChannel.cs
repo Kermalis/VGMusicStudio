@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections;
-using System.Runtime.InteropServices;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
-internal abstract class Channel
+internal abstract class MP2KChannel
 {
 	public EnvelopeState State = EnvelopeState.Dead;
-	public Track? Owner;
+	public MP2KTrack? Owner;
 	protected readonly MP2KMixer _mixer;
 
-	public NoteInfo Note; // Must be a struct & field
+	public NoteInfo Note;
 	protected ADSR _adsr;
 	protected int _instPan;
 
@@ -19,7 +18,7 @@ internal abstract class Channel
 	protected float _interPos;
 	protected float _frequency;
 
-	protected Channel(MP2KMixer mixer)
+	protected MP2KChannel(MP2KMixer mixer)
 	{
 		_mixer = mixer;
 	}
@@ -40,39 +39,33 @@ internal abstract class Channel
 	// Returns whether the note is active or not
 	public virtual bool TickNote()
 	{
-		if (State < EnvelopeState.Releasing)
-		{
-			if (Note.Duration > 0)
-			{
-				Note.Duration--;
-				if (Note.Duration == 0)
-				{
-					State = EnvelopeState.Releasing;
-					return false;
-				}
-				return true;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
+		if (State >= EnvelopeState.Releasing)
 		{
 			return false;
 		}
+
+		if (Note.Duration > 0)
+		{
+			Note.Duration--;
+			if (Note.Duration == 0)
+			{
+				State = EnvelopeState.Releasing;
+				return false;
+			}
+		}
+		return true;
 	}
 	public void Stop()
 	{
 		State = EnvelopeState.Dead;
-		if (Owner != null)
+		if (Owner is not null)
 		{
 			Owner.Channels.Remove(this);
 		}
 		Owner = null;
 	}
 }
-internal class PCM8Channel : Channel
+internal sealed class MP2KPCM8Channel : MP2KChannel
 {
 	private SampleHeader _sampleHeader;
 	private int _sampleOffset;
@@ -84,11 +77,16 @@ internal class PCM8Channel : Channel
 	private byte _rightVol;
 	private sbyte[]? _decompressedSample;
 
-	public PCM8Channel(MP2KMixer mixer) : base(mixer) { }
-	public void Init(Track owner, NoteInfo note, ADSR adsr, int sampleOffset, byte vol, sbyte pan, int instPan, int pitch, bool bFixed, bool bCompressed)
+	public MP2KPCM8Channel(MP2KMixer mixer)
+		: base(mixer)
+	{
+		//
+	}
+	public void Init(MP2KTrack owner, NoteInfo note, ADSR adsr, int sampleOffset, byte vol, sbyte pan, int instPan, int pitch, bool bFixed, bool bCompressed)
 	{
 		State = EnvelopeState.Initializing;
-		_pos = 0; _interPos = 0;
+		_pos = 0;
+		_interPos = 0;
 		if (Owner is not null)
 		{
 			Owner.Channels.Remove(this);
@@ -99,15 +97,14 @@ internal class PCM8Channel : Channel
 		_adsr = adsr;
 		_instPan = instPan;
 		byte[] rom = _mixer.Config.ROM;
-		_sampleHeader = MemoryMarshal.Read<SampleHeader>(rom.AsSpan(sampleOffset));
-		_sampleOffset = sampleOffset + 0x10;
+		_sampleHeader = SampleHeader.Get(rom, sampleOffset, out _sampleOffset);
 		_bFixed = bFixed;
 		_bCompressed = bCompressed;
-		_decompressedSample = bCompressed ? Utils.Decompress(_sampleOffset, _sampleHeader.Length) : null;
-		_bGoldenSun = _mixer.Config.HasGoldenSunSynths && _sampleHeader.DoesLoop == 0x40000000 && _sampleHeader.LoopOffset == 0 && _sampleHeader.Length == 0;
+		_decompressedSample = bCompressed ? MP2KUtils.Decompress(rom.AsSpan(_sampleOffset), _sampleHeader.Length) : null;
+		_bGoldenSun = _mixer.Config.HasGoldenSunSynths && _sampleHeader.Length == 0 && _sampleHeader.DoesLoop == SampleHeader.LOOP_TRUE && _sampleHeader.LoopOffset == 0;
 		if (_bGoldenSun)
 		{
-			_gsPSG = MemoryMarshal.Read<GoldenSunPSG>(rom.AsSpan(_sampleOffset));
+			_gsPSG = GoldenSunPSG.Get(rom.AsSpan(_sampleOffset));
 		}
 		SetVolume(vol, pan);
 		SetPitch(pitch);
@@ -115,11 +112,11 @@ internal class PCM8Channel : Channel
 
 	public override ChannelVolume GetVolume()
 	{
-		const float max = 0x10000;
+		const float MAX = 0x10_000;
 		return new ChannelVolume
 		{
-			LeftVol = _leftVol * _velocity / max * _mixer.PCM8MasterVolume,
-			RightVol = _rightVol * _velocity / max * _mixer.PCM8MasterVolume
+			LeftVol = _leftVol * _velocity / MAX * _mixer.PCM8MasterVolume,
+			RightVol = _rightVol * _velocity / MAX * _mixer.PCM8MasterVolume
 		};
 	}
 	public override void SetVolume(byte vol, sbyte pan)
@@ -222,134 +219,149 @@ internal class PCM8Channel : Channel
 		float interStep = _bFixed && !_bGoldenSun ? _mixer.SampleRate * _mixer.SampleRateReciprocal : _frequency * _mixer.SampleRateReciprocal;
 		if (_bGoldenSun) // Most Golden Sun processing is thanks to ipatix
 		{
-			interStep /= 0x40;
-			switch (_gsPSG.Type)
-			{
-				case GoldenSunPSGType.Square:
-				{
-					_pos += _gsPSG.CycleSpeed << 24;
-					int iThreshold = (_gsPSG.MinimumCycle << 24) + _pos;
-					iThreshold = (iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
-					iThreshold = (iThreshold * _gsPSG.CycleAmplitude) + (_gsPSG.InitialCycle << 24);
-					float threshold = iThreshold / (float)0x100000000;
-
-					int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
-					do
-					{
-						float samp = _interPos < threshold ? 0.5f : -0.5f;
-						samp += 0.5f - threshold;
-						buffer[bufPos++] += samp * vol.LeftVol;
-						buffer[bufPos++] += samp * vol.RightVol;
-
-						_interPos += interStep;
-						if (_interPos >= 1)
-						{
-							_interPos--;
-						}
-					} while (--samplesPerBuffer > 0);
-					break;
-				}
-				case GoldenSunPSGType.Saw:
-				{
-					const int fix = 0x70;
-
-					int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
-					do
-					{
-						_interPos += interStep;
-						if (_interPos >= 1)
-						{
-							_interPos--;
-						}
-						int var1 = (int)(_interPos * 0x100) - fix;
-						int var2 = (int)(_interPos * 0x10000) << 17;
-						int var3 = var1 - (var2 >> 27);
-						_pos = var3 + (_pos >> 1);
-
-						float samp = _pos / (float)0x100;
-
-						buffer[bufPos++] += samp * vol.LeftVol;
-						buffer[bufPos++] += samp * vol.RightVol;
-					} while (--samplesPerBuffer > 0);
-					break;
-				}
-				case GoldenSunPSGType.Triangle:
-				{
-					int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
-					do
-					{
-						_interPos += interStep;
-						if (_interPos >= 1)
-						{
-							_interPos--;
-						}
-						float samp = _interPos < 0.5f ? (_interPos * 4) - 1 : 3 - (_interPos * 4);
-
-						buffer[bufPos++] += samp * vol.LeftVol;
-						buffer[bufPos++] += samp * vol.RightVol;
-					} while (--samplesPerBuffer > 0);
-					break;
-				}
-			}
+			Process_GS(buffer, vol, interStep);
 		}
 		else if (_bCompressed)
 		{
-			int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
-			do
-			{
-				float samp = _decompressedSample![_pos] / (float)0x80;
-
-				buffer[bufPos++] += samp * vol.LeftVol;
-				buffer[bufPos++] += samp * vol.RightVol;
-
-				_interPos += interStep;
-				int posDelta = (int)_interPos;
-				_interPos -= posDelta;
-				_pos += posDelta;
-				if (_pos >= _decompressedSample.Length)
-				{
-					Stop();
-					break;
-				}
-			} while (--samplesPerBuffer > 0);
+			Process_Compressed(buffer, vol, interStep);
 		}
 		else
 		{
-			int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
-			do
-			{
-				float samp = (sbyte)_mixer.Config.ROM[_pos + _sampleOffset] / (float)0x80;
-
-				buffer[bufPos++] += samp * vol.LeftVol;
-				buffer[bufPos++] += samp * vol.RightVol;
-
-				_interPos += interStep;
-				int posDelta = (int)_interPos;
-				_interPos -= posDelta;
-				_pos += posDelta;
-				if (_pos >= _sampleHeader.Length)
-				{
-					if (_sampleHeader.DoesLoop == 0x40000000)
-					{
-						_pos = _sampleHeader.LoopOffset;
-					}
-					else
-					{
-						Stop();
-						break;
-					}
-				}
-			} while (--samplesPerBuffer > 0);
+			Process_Standard(buffer, vol, interStep, _mixer.Config.ROM);
 		}
 	}
+	private void Process_GS(float[] buffer, ChannelVolume vol, float interStep)
+	{
+		interStep /= 0x40;
+		switch (_gsPSG.Type)
+		{
+			case GoldenSunPSGType.Square:
+			{
+				_pos += _gsPSG.CycleSpeed << 24;
+				int iThreshold = (_gsPSG.MinimumCycle << 24) + _pos;
+				iThreshold = (iThreshold < 0 ? ~iThreshold : iThreshold) >> 8;
+				iThreshold = (iThreshold * _gsPSG.CycleAmplitude) + (_gsPSG.InitialCycle << 24);
+				float threshold = iThreshold / (float)0x100_000_000;
+
+				int bufPos = 0;
+				int samplesPerBuffer = _mixer.SamplesPerBuffer;
+				do
+				{
+					float samp = _interPos < threshold ? 0.5f : -0.5f;
+					samp += 0.5f - threshold;
+					buffer[bufPos++] += samp * vol.LeftVol;
+					buffer[bufPos++] += samp * vol.RightVol;
+
+					_interPos += interStep;
+					if (_interPos >= 1)
+					{
+						_interPos--;
+					}
+				} while (--samplesPerBuffer > 0);
+				break;
+			}
+			case GoldenSunPSGType.Saw:
+			{
+				const int FIX = 0x70;
+
+				int bufPos = 0;
+				int samplesPerBuffer = _mixer.SamplesPerBuffer;
+				do
+				{
+					_interPos += interStep;
+					if (_interPos >= 1)
+					{
+						_interPos--;
+					}
+					int var1 = (int)(_interPos * 0x100) - FIX;
+					int var2 = (int)(_interPos * 0x10000) << 17;
+					int var3 = var1 - (var2 >> 27);
+					_pos = var3 + (_pos >> 1);
+
+					float samp = _pos / (float)0x100;
+
+					buffer[bufPos++] += samp * vol.LeftVol;
+					buffer[bufPos++] += samp * vol.RightVol;
+				} while (--samplesPerBuffer > 0);
+				break;
+			}
+			case GoldenSunPSGType.Triangle:
+			{
+				int bufPos = 0;
+				int samplesPerBuffer = _mixer.SamplesPerBuffer;
+				do
+				{
+					_interPos += interStep;
+					if (_interPos >= 1)
+					{
+						_interPos--;
+					}
+					float samp = _interPos < 0.5f ? (_interPos * 4) - 1 : 3 - (_interPos * 4);
+
+					buffer[bufPos++] += samp * vol.LeftVol;
+					buffer[bufPos++] += samp * vol.RightVol;
+				} while (--samplesPerBuffer > 0);
+				break;
+			}
+		}
+	}
+	private void Process_Compressed(float[] buffer, ChannelVolume vol, float interStep)
+	{
+		int bufPos = 0;
+		int samplesPerBuffer = _mixer.SamplesPerBuffer;
+		do
+		{
+			float samp = _decompressedSample![_pos] / (float)0x80;
+
+			buffer[bufPos++] += samp * vol.LeftVol;
+			buffer[bufPos++] += samp * vol.RightVol;
+
+			_interPos += interStep;
+			int posDelta = (int)_interPos;
+			_interPos -= posDelta;
+			_pos += posDelta;
+			if (_pos >= _decompressedSample.Length)
+			{
+				Stop();
+				break;
+			}
+		} while (--samplesPerBuffer > 0);
+	}
+	private void Process_Standard(float[] buffer, ChannelVolume vol, float interStep, byte[] rom)
+	{
+		int bufPos = 0;
+		int samplesPerBuffer = _mixer.SamplesPerBuffer;
+		do
+		{
+			float samp = (sbyte)rom[_pos + _sampleOffset] / (float)0x80;
+
+			buffer[bufPos++] += samp * vol.LeftVol;
+			buffer[bufPos++] += samp * vol.RightVol;
+
+			_interPos += interStep;
+			int posDelta = (int)_interPos;
+			_interPos -= posDelta;
+			_pos += posDelta;
+			if (_pos >= _sampleHeader.Length)
+			{
+				if (_sampleHeader.DoesLoop != SampleHeader.LOOP_TRUE)
+				{
+					Stop();
+					return;
+				}
+
+				_pos = _sampleHeader.LoopOffset;
+			}
+		} while (--samplesPerBuffer > 0);
+	}
 }
-internal abstract class PSGChannel : Channel
+internal abstract class MP2KPSGChannel : MP2KChannel
 {
 	protected enum GBPan : byte
 	{
 		Left,
 		Center,
-		Right
+		Right,
 	}
 
 	private byte _processStep;
@@ -358,11 +370,15 @@ internal abstract class PSGChannel : Channel
 	private byte _sustainVelocity;
 	protected GBPan _panpot = GBPan.Center;
 
-	public PSGChannel(MP2KMixer mixer) : base(mixer) { }
-	protected void Init(Track owner, NoteInfo note, ADSR env, int instPan)
+	public MP2KPSGChannel(MP2KMixer mixer)
+		: base(mixer)
+	{
+		//
+	}
+	protected void Init(MP2KTrack owner, NoteInfo note, ADSR env, int instPan)
 	{
 		State = EnvelopeState.Initializing;
-		if (Owner != null)
+		if (Owner is not null)
 		{
 			Owner.Channels.Remove(this);
 		}
@@ -627,24 +643,25 @@ internal abstract class PSGChannel : Channel
 		}
 	}
 }
-internal class SquareChannel : PSGChannel
+internal sealed class MP2KSquareChannel : MP2KPSGChannel
 {
-	private float[] _pat;
+	private float[]? _pat;
 
-	public SquareChannel(MP2KMixer mixer) : base(mixer)
+	public MP2KSquareChannel(MP2KMixer mixer)
+		: base(mixer)
 	{
 		//
 	}
-	public void Init(Track owner, NoteInfo note, ADSR env, int instPan, SquarePattern pattern)
+	public void Init(MP2KTrack owner, NoteInfo note, ADSR env, int instPan, SquarePattern pattern)
 	{
 		Init(owner, note, env, instPan);
-		switch (pattern)
+		_pat = pattern switch
 		{
-			default: _pat = Utils.SquareD12; break;
-			case SquarePattern.D25: _pat = Utils.SquareD25; break;
-			case SquarePattern.D50: _pat = Utils.SquareD50; break;
-			case SquarePattern.D75: _pat = Utils.SquareD75; break;
-		}
+			SquarePattern.D12 => MP2KUtils.SquareD12,
+			SquarePattern.D25 => MP2KUtils.SquareD25,
+			SquarePattern.D50 => MP2KUtils.SquareD50,
+			_ => MP2KUtils.SquareD75,
+		};
 	}
 
 	public override void SetPitch(int pitch)
@@ -663,10 +680,11 @@ internal class SquareChannel : PSGChannel
 		ChannelVolume vol = GetVolume();
 		float interStep = _frequency * _mixer.SampleRateReciprocal;
 
-		int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
+		int bufPos = 0;
+		int samplesPerBuffer = _mixer.SamplesPerBuffer;
 		do
 		{
-			float samp = _pat[_pos];
+			float samp = _pat![_pos];
 
 			buffer[bufPos++] += samp * vol.LeftVol;
 			buffer[bufPos++] += samp * vol.RightVol;
@@ -678,18 +696,19 @@ internal class SquareChannel : PSGChannel
 		} while (--samplesPerBuffer > 0);
 	}
 }
-internal class PCM4Channel : PSGChannel
+internal sealed class MP2KPCM4Channel : MP2KPSGChannel
 {
-	private float[] _sample;
+	private readonly float[] _sample;
 
-	public PCM4Channel(MP2KMixer mixer) : base(mixer)
+	public MP2KPCM4Channel(MP2KMixer mixer)
+		: base(mixer)
 	{
-		//
+		_sample = new float[0x20];
 	}
-	public void Init(Track owner, NoteInfo note, ADSR env, int instPan, int sampleOffset)
+	public void Init(MP2KTrack owner, NoteInfo note, ADSR env, int instPan, int sampleOffset)
 	{
 		Init(owner, note, env, instPan);
-		_sample = Utils.PCM4ToFloat(sampleOffset);
+		MP2KUtils.PCM4ToFloat(_mixer.Config.ROM.AsSpan(sampleOffset), _sample);
 	}
 
 	public override void SetPitch(int pitch)
@@ -708,7 +727,8 @@ internal class PCM4Channel : PSGChannel
 		ChannelVolume vol = GetVolume();
 		float interStep = _frequency * _mixer.SampleRateReciprocal;
 
-		int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
+		int bufPos = 0;
+		int samplesPerBuffer = _mixer.SamplesPerBuffer;
 		do
 		{
 			float samp = _sample[_pos];
@@ -723,18 +743,19 @@ internal class PCM4Channel : PSGChannel
 		} while (--samplesPerBuffer > 0);
 	}
 }
-internal class NoiseChannel : PSGChannel
+internal sealed class MP2KNoiseChannel : MP2KPSGChannel
 {
 	private BitArray _pat;
 
-	public NoiseChannel(MP2KMixer mixer) : base(mixer)
+	public MP2KNoiseChannel(MP2KMixer mixer)
+		: base(mixer)
 	{
 		//
 	}
-	public void Init(Track owner, NoteInfo note, ADSR env, int instPan, NoisePattern pattern)
+	public void Init(MP2KTrack owner, NoteInfo note, ADSR env, int instPan, NoisePattern pattern)
 	{
 		Init(owner, note, env, instPan);
-		_pat = pattern == NoisePattern.Fine ? Utils.NoiseFine : Utils.NoiseRough;
+		_pat = pattern == NoisePattern.Fine ? MP2KUtils.NoiseFine : MP2KUtils.NoiseRough;
 	}
 
 	public override void SetPitch(int pitch)
@@ -752,7 +773,7 @@ internal class NoiseChannel : PSGChannel
 				key = 59;
 			}
 		}
-		byte v = Utils.NoiseFrequencyTable[key];
+		byte v = MP2KUtils.NoiseFrequencyTable[key];
 		// The following emulates 0x0400007C - SOUND4CNT_H
 		int r = v & 7; // Bits 0-2
 		int s = v >> 4; // Bits 4-7
@@ -770,7 +791,8 @@ internal class NoiseChannel : PSGChannel
 		ChannelVolume vol = GetVolume();
 		float interStep = _frequency * _mixer.SampleRateReciprocal;
 
-		int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
+		int bufPos = 0;
+		int samplesPerBuffer = _mixer.SamplesPerBuffer;
 		do
 		{
 			float samp = _pat[_pos & (_pat.Length - 1)] ? 0.5f : -0.5f;

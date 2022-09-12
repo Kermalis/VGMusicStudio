@@ -110,6 +110,28 @@ public static class ConfigUtils
 		return ParseEnum<TEnum>(key, yamlNode.Children.GetValue(key).ToString());
 	}
 
+	public static void TryCreateMasterPlaylist(List<Config.Playlist> playlists)
+	{
+		if (playlists.Exists(p => p.Name == "Music"))
+		{
+			return;
+		}
+
+		var songs = new List<Config.Song>();
+		foreach (Config.Playlist p in playlists)
+		{
+			foreach (Config.Song s in p.Songs)
+			{
+				if (!songs.Exists(s1 => s1.Index == s.Index))
+				{
+					songs.Add(s);
+				}
+			}
+		}
+		songs.Sort((s1, s2) => s1.Index.CompareTo(s2.Index));
+		playlists.Insert(0, new Config.Playlist(Strings.PlaylistMusic, songs));
+	}
+
 	public static string CombineWithBaseDirectory(string path)
 	{
 		return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);

@@ -12,6 +12,11 @@ internal static class Program
 	private static void Main()
 	{
 #if DEBUG
+		//VGMSDebug.SimulateLanguage("en");
+		//VGMSDebug.SimulateLanguage("es");
+		//VGMSDebug.SimulateLanguage("fr");
+		//VGMSDebug.SimulateLanguage("it");
+		//VGMSDebug.SimulateLanguage("ru");
 		//VGMSDebug.GBAGameCodeScan(@"C:\Users\Kermalis\Documents\Emulation\GBA\Games");
 #endif
 		try

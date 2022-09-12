@@ -7,7 +7,6 @@ using Kermalis.VGMusicStudio.Core.Properties;
 using Kermalis.VGMusicStudio.Core.Util;
 using Kermalis.VGMusicStudio.WinForms.Properties;
 using Kermalis.VGMusicStudio.WinForms.Util;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.Collections.Generic;
@@ -29,15 +28,14 @@ internal sealed class MainForm : ThemedForm
 
 	public readonly bool[] PianoTracks;
 
-	private bool _playlistPlaying;
-	private Config.Playlist _curPlaylist;
-	private long _curSong = -1;
-	private readonly List<long> _playedSongs;
-	private readonly List<long> _remainingSongs;
+	private PlayingPlaylist? _playlist;
+	private int _curSong = -1;
 
 	private TrackViewer? _trackViewer;
 
-	private bool _stopUI = false;
+	private bool _songEnded = false;
+	private bool _positionBarFree = true;
+	private bool _autoplay = false;
 
 	#region Controls
 
@@ -53,22 +51,19 @@ internal sealed class MainForm : ThemedForm
 	private readonly ColorSlider _volumeBar, _positionBar;
 	private readonly SongInfoControl _songInfo;
 	private readonly ImageComboBox _songsComboBox;
-	private readonly ThumbnailToolBarButton _prevTButton, _toggleTButton, _nextTButton;
+	private readonly TaskbarPlayerButtons? _taskbar;
 
 	#endregion
 
 	private MainForm()
 	{
-		_playedSongs = new List<long>();
-		_remainingSongs = new List<long>();
-
 		PianoTracks = new bool[SongState.MAX_TRACKS];
 		for (int i = 0; i < SongState.MAX_TRACKS; i++)
 		{
 			PianoTracks[i] = true;
 		}
 
-		Mixer.MixerVolumeChanged += SetVolumeBarValue;
+		Mixer.VolumeChanged += Mixer_VolumeChanged;
 
 		// File Menu
 		_openDSEItem = new ToolStripMenuItem { Text = Strings.MenuOpenDSE };
@@ -108,11 +103,11 @@ internal sealed class MainForm : ThemedForm
 
 		// Buttons
 		_playButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumSpringGreen, Text = Strings.PlayerPlay };
-		_playButton.Click += (o, e) => Play();
+		_playButton.Click += PlayButton_Click;
 		_pauseButton = new ThemedButton { Enabled = false, ForeColor = Color.DeepSkyBlue, Text = Strings.PlayerPause };
-		_pauseButton.Click += (o, e) => Pause();
+		_pauseButton.Click += PauseButton_Click;
 		_stopButton = new ThemedButton { Enabled = false, ForeColor = Color.MediumVioletRed, Text = Strings.PlayerStop };
-		_stopButton.Click += (o, e) => Stop();
+		_stopButton.Click += StopButton_Click;
 
 		// Numerical
 		_songNumerical = new ThemedNumeric { Enabled = false, Minimum = 0, Visible = false };
@@ -120,7 +115,7 @@ internal sealed class MainForm : ThemedForm
 
 		// Timer
 		_timer = new Timer();
-		_timer.Tick += UpdateUI;
+		_timer.Tick += Timer_Tick;
 
 		// Piano
 		_piano = new PianoControl();
@@ -157,162 +152,109 @@ internal sealed class MainForm : ThemedForm
 		// Taskbar Buttons
 		if (TaskbarManager.IsPlatformSupported)
 		{
-			_prevTButton = new ThumbnailToolBarButton(Resources.IconPrevious, Strings.PlayerPreviousSong);
-			_prevTButton.Click += PlayPreviousSong;
-			_toggleTButton = new ThumbnailToolBarButton(Resources.IconPlay, Strings.PlayerPlay);
-			_toggleTButton.Click += TogglePlayback;
-			_nextTButton = new ThumbnailToolBarButton(Resources.IconNext, Strings.PlayerNextSong);
-			_nextTButton.Click += PlayNextSong;
-			_prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = false;
-			TaskbarManager.Instance.ThumbnailToolBars.AddButtons(Handle, _prevTButton, _toggleTButton, _nextTButton);
+			_taskbar = new TaskbarPlayerButtons(Handle);
 		}
 
-		OnResize(null, null);
+		OnResize(null, EventArgs.Empty);
 	}
 
-	private void VolumeBar_ValueChanged(object? sender, EventArgs? e)
-	{
-		Engine.Instance.Mixer.SetVolume(_volumeBar.Value / (float)_volumeBar.Maximum);
-	}
-	public void SetVolumeBarValue(float volume)
-	{
-		_volumeBar.ValueChanged -= VolumeBar_ValueChanged;
-		_volumeBar.Value = (int)(volume * _volumeBar.Maximum);
-		_volumeBar.ValueChanged += VolumeBar_ValueChanged;
-	}
-	private bool _positionBarFree = true;
-	private void PositionBar_MouseUp(object? sender, MouseEventArgs? e)
-	{
-		if (e.Button == MouseButtons.Left)
-		{
-			Engine.Instance.Player.SetCurrentPosition(_positionBar.Value);
-			_positionBarFree = true;
-			LetUIKnowPlayerIsPlaying();
-		}
-	}
-	private void PositionBar_MouseDown(object? sender, MouseEventArgs? e)
-	{
-		if (e.Button == MouseButtons.Left)
-		{
-			_positionBarFree = false;
-		}
-	}
-
-	private bool _autoplay = false;
-	private void SongNumerical_ValueChanged(object? sender, EventArgs? e)
+	private void SongNumerical_ValueChanged(object? sender, EventArgs e)
 	{
 		_songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
 
-		long index = (long)_songNumerical.Value;
+		int index = (int)_songNumerical.Value;
 		Stop();
 		Text = ConfigUtils.PROGRAM_NAME;
 		_songsComboBox.SelectedIndex = 0;
 		_songInfo.Reset();
-		bool success;
+
+		Player player = Engine.Instance!.Player;
+		Config cfg = Engine.Instance.Config;
 		try
 		{
-			Engine.Instance!.Player.LoadSong(index);
-			success = Engine.Instance.Player.LoadedSong is not null; // TODO: Make sure loadedsong is null when there are no tracks (for each engine, only mp2k guarantees it rn)
+			player.LoadSong(index);
 		}
 		catch (Exception ex)
 		{
-			FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorLoadSong, Engine.Instance!.Config.GetSongName(index)));
-			success = false;
+			FlexibleMessageBox.Show(ex, string.Format(Strings.ErrorLoadSong, cfg.GetSongName(index)));
 		}
 
 		_trackViewer?.UpdateTracks();
-		if (success)
+		ILoadedSong? loadedSong = player.LoadedSong; // LoadedSong is still null when there are no tracks
+		if (loadedSong is not null)
 		{
-			Config config = Engine.Instance.Config;
-			List<Config.Song> songs = config.Playlists[0].Songs; // Complete "Music" playlist is present in all configs at index 0
-			Config.Song? song = songs.SingleOrDefault(s => s.Index == index);
-			if (song is not null)
+			List<Config.Song> songs = cfg.Playlists[0].Songs; // Complete "Music" playlist is present in all configs at index 0
+			int songIndex = songs.FindIndex(s => s.Index == index);
+			if (songIndex != -1)
 			{
-				Text = $"{ConfigUtils.PROGRAM_NAME} ― {song.Name}"; // TODO: Make this a func
-				_songsComboBox.SelectedIndex = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
+				Text = $"{ConfigUtils.PROGRAM_NAME} ― {songs[songIndex].Name}"; // TODO: Make this a func
+				_songsComboBox.SelectedIndex = songIndex + 1; // + 1 because the "Music" playlist is first in the combobox
 			}
-			_positionBar.Maximum = Engine.Instance!.Player.LoadedSong!.MaxTicks;
+			_positionBar.Maximum = loadedSong.MaxTicks;
 			_positionBar.LargeChange = _positionBar.Maximum / 10;
 			_positionBar.SmallChange = _positionBar.LargeChange / 4;
-			_songInfo.SetNumTracks(Engine.Instance.Player.LoadedSong.Events.Length);
+			_songInfo.SetNumTracks(loadedSong.Events.Length);
 			if (_autoplay)
 			{
 				Play();
 			}
+			_positionBar.Enabled = true;
+			_exportWAVItem.Enabled = true;
+			_exportMIDIItem.Enabled = MP2KEngine.MP2KInstance is not null;
+			_exportDLSItem.Enabled = _exportSF2Item.Enabled = AlphaDreamEngine.AlphaDreamInstance is not null;
 		}
 		else
 		{
 			_songInfo.SetNumTracks(0);
+			_positionBar.Enabled = false;
+			_exportWAVItem.Enabled = false;
+			_exportMIDIItem.Enabled = false;
+			_exportDLSItem.Enabled = false;
+			_exportSF2Item.Enabled = false;
 		}
-		_positionBar.Enabled = _exportWAVItem.Enabled = success;
-		_exportMIDIItem.Enabled = success && MP2KEngine.MP2KInstance is not null;
-		_exportDLSItem.Enabled = _exportSF2Item.Enabled = success && AlphaDreamEngine.AlphaDreamInstance is not null;
 
 		_autoplay = true;
 		_songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
 	}
-	private void SongsComboBox_SelectedIndexChanged(object? sender, EventArgs? e)
+	private void SongsComboBox_SelectedIndexChanged(object? sender, EventArgs e)
 	{
 		var item = (ImageComboBoxItem)_songsComboBox.SelectedItem;
-		if (item.Item is Config.Song song)
+		switch (item.Item)
 		{
-			SetAndLoadSong(song.Index);
-		}
-		else if (item.Item is Config.Playlist playlist)
-		{
-			if (playlist.Songs.Count > 0
-				&& FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.MenuPlaylist, MessageBoxButtons.YesNo) == DialogResult.Yes)
+			case Config.Song song:
 			{
-				ResetPlaylistStuff(false);
-				_curPlaylist = playlist;
-				Engine.Instance.Player.ShouldFadeOut = _playlistPlaying = true;
-				Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
-				_endPlaylistItem.Enabled = true;
-				SetAndLoadNextPlaylistSong();
+				SetAndLoadSong(song.Index);
+				break;
+			}
+			case Config.Playlist playlist:
+			{
+				if (playlist.Songs.Count > 0
+					&& FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.MenuPlaylist, MessageBoxButtons.YesNo) == DialogResult.Yes)
+				{
+					ResetPlaylistStuff(false);
+					Engine.Instance!.Player.ShouldFadeOut = true;
+					Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
+					_endPlaylistItem.Enabled = true;
+					_playlist = new PlayingPlaylist(playlist);
+					_playlist.SetAndLoadNextSong();
+				}
+				break;
 			}
 		}
 	}
-	private void SetAndLoadSong(long index)
+	private void ResetPlaylistStuff(bool numericalAndComboboxEnabled)
 	{
-		_curSong = index;
-		if (_songNumerical.Value == index)
-		{
-			SongNumerical_ValueChanged(null, null);
-		}
-		else
-		{
-			_songNumerical.Value = index;
-		}
-	}
-	private void SetAndLoadNextPlaylistSong()
-	{
-		if (_remainingSongs.Count == 0)
-		{
-			_remainingSongs.AddRange(_curPlaylist.Songs.Select(s => s.Index));
-			if (GlobalConfig.Instance.PlaylistMode == PlaylistMode.Random)
-			{
-				_remainingSongs.Shuffle();
-			}
-		}
-		long nextSong = _remainingSongs[0];
-		_remainingSongs.RemoveAt(0);
-		SetAndLoadSong(nextSong);
-	}
-	private void ResetPlaylistStuff(bool enableds)
-	{
-		if (Engine.Instance != null)
+		if (Engine.Instance is not null)
 		{
 			Engine.Instance.Player.ShouldFadeOut = false;
 		}
-		_playlistPlaying = false;
-		_curPlaylist = null;
 		_curSong = -1;
-		_remainingSongs.Clear();
-		_playedSongs.Clear();
+		_playlist = null;
 		_endPlaylistItem.Enabled = false;
-		_songNumerical.Enabled = _songsComboBox.Enabled = enableds;
+		_songNumerical.Enabled = numericalAndComboboxEnabled;
+		_songsComboBox.Enabled = numericalAndComboboxEnabled;
 	}
-	private void EndCurrentPlaylist(object? sender, EventArgs? e)
+	private void EndCurrentPlaylist(object? sender, EventArgs e)
 	{
 		if (FlexibleMessageBox.Show(Strings.EndPlaylistBody, Strings.MenuPlaylist, MessageBoxButtons.YesNo) == DialogResult.Yes)
 		{
@@ -320,14 +262,14 @@ internal sealed class MainForm : ThemedForm
 		}
 	}
 
-	private void OpenDSE(object? sender, EventArgs? e)
+	private void OpenDSE(object? sender, EventArgs e)
 	{
-		var d = new CommonOpenFileDialog
+		var d = new FolderBrowserDialog
 		{
-			Title = Strings.MenuOpenDSE,
-			IsFolderPicker = true,
+			Description = Strings.MenuOpenDSE,
+			UseDescriptionForTitle = true,
 		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		if (d.ShowDialog() != DialogResult.OK)
 		{
 			return;
 		}
@@ -335,7 +277,7 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		try
 		{
-			_ = new DSEEngine(d.FileName);
+			_ = new DSEEngine(d.SelectedPath);
 		}
 		catch (Exception ex)
 		{
@@ -350,14 +292,10 @@ internal sealed class MainForm : ThemedForm
 		_exportMIDIItem.Visible = false;
 		_exportSF2Item.Visible = false;
 	}
-	private void OpenAlphaDream(object? sender, EventArgs? e)
+	private void OpenAlphaDream(object? sender, EventArgs e)
 	{
-		var d = new CommonOpenFileDialog
-		{
-			Title = Strings.MenuOpenAlphaDream,
-			Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
-		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		string? inFile = WinFormsUtils.CreateLoadDialog(".gba", Strings.MenuOpenAlphaDream, Strings.FilterOpenGBA + " (*.gba)|*.gba");
+		if (inFile is null)
 		{
 			return;
 		}
@@ -365,7 +303,7 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		try
 		{
-			_ = new AlphaDreamEngine(File.ReadAllBytes(d.FileName));
+			_ = new AlphaDreamEngine(File.ReadAllBytes(inFile));
 		}
 		catch (Exception ex)
 		{
@@ -380,14 +318,10 @@ internal sealed class MainForm : ThemedForm
 		_exportMIDIItem.Visible = false;
 		_exportSF2Item.Visible = true;
 	}
-	private void OpenMP2K(object? sender, EventArgs? e)
+	private void OpenMP2K(object? sender, EventArgs e)
 	{
-		var d = new CommonOpenFileDialog
-		{
-			Title = Strings.MenuOpenMP2K,
-			Filters = { new CommonFileDialogFilter(Strings.FilterOpenGBA, ".gba") }
-		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		string? inFile = WinFormsUtils.CreateLoadDialog(".gba", Strings.MenuOpenMP2K, Strings.FilterOpenGBA + " (*.gba)|*.gba");
+		if (inFile is null)
 		{
 			return;
 		}
@@ -395,7 +329,7 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		try
 		{
-			_ = new MP2KEngine(File.ReadAllBytes(d.FileName));
+			_ = new MP2KEngine(File.ReadAllBytes(inFile));
 		}
 		catch (Exception ex)
 		{
@@ -410,14 +344,10 @@ internal sealed class MainForm : ThemedForm
 		_exportMIDIItem.Visible = true;
 		_exportSF2Item.Visible = false;
 	}
-	private void OpenSDAT(object? sender, EventArgs? e)
+	private void OpenSDAT(object? sender, EventArgs e)
 	{
-		var d = new CommonOpenFileDialog
-		{
-			Title = Strings.MenuOpenSDAT,
-			Filters = { new CommonFileDialogFilter(Strings.FilterOpenSDAT, ".sdat") },
-		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		string? inFile = WinFormsUtils.CreateLoadDialog(".sdat", Strings.MenuOpenSDAT, Strings.FilterOpenSDAT + " (*.sdat)|*.sdat");
+		if (inFile is null)
 		{
 			return;
 		}
@@ -425,7 +355,10 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		try
 		{
-			_ = new SDATEngine(new SDAT(File.ReadAllBytes(d.FileName)));
+			using (FileStream stream = File.OpenRead(inFile))
+			{
+				_ = new SDATEngine(new SDAT(stream));
+			}
 		}
 		catch (Exception ex)
 		{
@@ -441,114 +374,81 @@ internal sealed class MainForm : ThemedForm
 		_exportSF2Item.Visible = false;
 	}
 
-	private void ExportDLS(object? sender, EventArgs? e)
+	private void ExportDLS(object? sender, EventArgs e)
 	{
 		AlphaDreamConfig cfg = AlphaDreamEngine.AlphaDreamInstance!.Config;
-
-		var d = new CommonSaveFileDialog
-		{
-			DefaultFileName = cfg.GetGameName(),
-			DefaultExtension = ".dls",
-			EnsureValidNames = true,
-			Title = Strings.MenuSaveDLS,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveDLS, ".dls") },
-		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		string? outFile = WinFormsUtils.CreateSaveDialog(cfg.GetGameName(), ".dls", Strings.MenuSaveDLS, Strings.FilterSaveDLS + " (*.dls)|*.dls");
+		if (outFile is null)
 		{
 			return;
 		}
 
 		try
 		{
-			AlphaDreamSoundFontSaver_DLS.Save(cfg, d.FileName);
-			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveDLS, d.FileName), Text);
+			AlphaDreamSoundFontSaver_DLS.Save(cfg, outFile);
+			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveDLS, outFile), Text);
 		}
 		catch (Exception ex)
 		{
 			FlexibleMessageBox.Show(ex, Strings.ErrorSaveDLS);
 		}
 	}
-	private void ExportMIDI(object? sender, EventArgs? e)
+	private void ExportMIDI(object? sender, EventArgs e)
 	{
-		var d = new CommonSaveFileDialog
-		{
-			DefaultFileName = Engine.Instance!.Config.GetSongName((long)_songNumerical.Value),
-			DefaultExtension = ".mid",
-			EnsureValidNames = true,
-			Title = Strings.MenuSaveMIDI,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveMIDI, ".mid;.midi") },
-		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		string songName = Engine.Instance!.Config.GetSongName((int)_songNumerical.Value);
+		string? outFile = WinFormsUtils.CreateSaveDialog(songName, ".mid", Strings.MenuSaveMIDI, Strings.FilterSaveMIDI + " (*.mid;*.midi)|*.mid;*.midi");
+		if (outFile is null)
 		{
 			return;
 		}
 
 		MP2KPlayer p = MP2KEngine.MP2KInstance!.Player;
-		var args = new MIDISaveArgs
+		var args = new MIDISaveArgs(true, false, new (int AbsoluteTick, (byte Numerator, byte Denominator))[]
 		{
-			SaveCommandsBeforeTranspose = true,
-			ReverseVolume = false,
-			TimeSignatures = new List<(int AbsoluteTick, (byte Numerator, byte Denominator))>
-			{
-				(0, (4, 4)),
-			},
-		};
+			(0, (4, 4)),
+		});
 
 		try
 		{
-			p.SaveAsMIDI(d.FileName, args);
-			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDI, d.FileName), Text);
+			p.SaveAsMIDI(outFile, args);
+			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveMIDI, outFile), Text);
 		}
 		catch (Exception ex)
 		{
 			FlexibleMessageBox.Show(ex, Strings.ErrorSaveMIDI);
 		}
 	}
-	private void ExportSF2(object? sender, EventArgs? e)
+	private void ExportSF2(object? sender, EventArgs e)
 	{
 		AlphaDreamConfig cfg = AlphaDreamEngine.AlphaDreamInstance!.Config;
-
-		var d = new CommonSaveFileDialog
-		{
-			DefaultFileName = cfg.GetGameName(),
-			DefaultExtension = ".sf2",
-			EnsureValidNames = true,
-			Title = Strings.MenuSaveSF2,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveSF2, ".sf2") }
-		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		string? outFile = WinFormsUtils.CreateSaveDialog(cfg.GetGameName(), ".sf2", Strings.MenuSaveSF2, Strings.FilterSaveSF2 + " (*.sf2)|*.sf2");
+		if (outFile is null)
 		{
 			return;
 		}
 
 		try
 		{
-			AlphaDreamSoundFontSaver_SF2.Save(cfg, d.FileName);
-			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveSF2, d.FileName), Text);
+			AlphaDreamSoundFontSaver_SF2.Save(outFile, cfg);
+			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveSF2, outFile), Text);
 		}
 		catch (Exception ex)
 		{
 			FlexibleMessageBox.Show(ex, Strings.ErrorSaveSF2);
 		}
 	}
-	private void ExportWAV(object? sender, EventArgs? e)
+	private void ExportWAV(object? sender, EventArgs e)
 	{
-		var d = new CommonSaveFileDialog
-		{
-			DefaultFileName = Engine.Instance!.Config.GetSongName((long)_songNumerical.Value),
-			DefaultExtension = ".wav",
-			EnsureValidNames = true,
-			Title = Strings.MenuSaveWAV,
-			Filters = { new CommonFileDialogFilter(Strings.FilterSaveWAV, ".wav") },
-		};
-		if (d.ShowDialog() != CommonFileDialogResult.Ok)
+		string songName = Engine.Instance!.Config.GetSongName((int)_songNumerical.Value);
+		string? outFile = WinFormsUtils.CreateSaveDialog(songName, ".wav", Strings.MenuSaveWAV, Strings.FilterSaveWAV + " (*.wav)|*.wav");
+		if (outFile is null)
 		{
 			return;
 		}
 
 		Stop();
 
-		IPlayer player = Engine.Instance.Player;
+		Player player = Engine.Instance.Player;
 		bool oldFade = player.ShouldFadeOut;
 		long oldLoops = player.NumLoops;
 		player.ShouldFadeOut = true;
@@ -556,8 +456,8 @@ internal sealed class MainForm : ThemedForm
 
 		try
 		{
-			player.Record(d.FileName);
-			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveWAV, d.FileName), Text);
+			player.Record(outFile);
+			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveWAV, outFile), Text);
 		}
 		catch (Exception ex)
 		{
@@ -566,23 +466,9 @@ internal sealed class MainForm : ThemedForm
 
 		player.ShouldFadeOut = oldFade;
 		player.NumLoops = oldLoops;
-		_stopUI = false;
+		_songEnded = false; // Don't make UI do anything about the song ended event
 	}
 
-	public void LetUIKnowPlayerIsPlaying()
-	{
-		if (_timer.Enabled)
-		{
-			return;
-		}
-
-		_pauseButton.Enabled = _stopButton.Enabled = true;
-		_pauseButton.Text = Strings.PlayerPause;
-		_timer.Interval = (int)(1_000.0 / GlobalConfig.Instance.RefreshRate);
-		_timer.Start();
-		UpdateTaskbarState();
-		UpdateTaskbarButtons();
-	}
 	private void Play()
 	{
 		Engine.Instance!.Player.Play();
@@ -590,7 +476,7 @@ internal sealed class MainForm : ThemedForm
 	}
 	private void Pause()
 	{
-		Engine.Instance!.Player.Pause();
+		Engine.Instance!.Player.TogglePlaying();
 		if (Engine.Instance.Player.State == PlayerState.Paused)
 		{
 			_pauseButton.Text = Strings.PlayerUnpause;
@@ -601,62 +487,26 @@ internal sealed class MainForm : ThemedForm
 			_pauseButton.Text = Strings.PlayerPause;
 			_timer.Start();
 		}
-		UpdateTaskbarState();
+		TaskbarPlayerButtons.UpdateState();
 		UpdateTaskbarButtons();
 	}
 	private void Stop()
 	{
 		Engine.Instance!.Player.Stop();
-		_pauseButton.Enabled = _stopButton.Enabled = false;
+		_pauseButton.Enabled = false;
+		_stopButton.Enabled = false;
 		_pauseButton.Text = Strings.PlayerPause;
 		_timer.Stop();
 		_songInfo.Reset();
 		_piano.UpdateKeys(_songInfo.Info.Tracks, PianoTracks);
 		UpdatePositionIndicators(0L);
-		UpdateTaskbarState();
+		TaskbarPlayerButtons.UpdateState();
 		UpdateTaskbarButtons();
-	}
-	private void TogglePlayback(object? sender, EventArgs? e)
-	{
-		switch (Engine.Instance!.Player.State)
-		{
-			case PlayerState.Stopped: Play(); break;
-			case PlayerState.Paused:
-			case PlayerState.Playing: Pause(); break;
-		}
-	}
-	private void PlayPreviousSong(object? sender, EventArgs? e)
-	{
-		long prevSong;
-		if (_playlistPlaying)
-		{
-			int index = _playedSongs.Count - 1;
-			prevSong = _playedSongs[index];
-			_playedSongs.RemoveAt(index);
-			_remainingSongs.Insert(0, _curSong);
-		}
-		else
-		{
-			prevSong = (long)_songNumerical.Value - 1;
-		}
-		SetAndLoadSong(prevSong);
-	}
-	private void PlayNextSong(object? sender, EventArgs? e)
-	{
-		if (_playlistPlaying)
-		{
-			_playedSongs.Add(_curSong);
-			SetAndLoadNextPlaylistSong();
-		}
-		else
-		{
-			SetAndLoadSong((long)_songNumerical.Value + 1);
-		}
 	}
 
 	private void FinishLoading(long numSongs)
 	{
-		Engine.Instance!.Player.SongEnded += SongEnded;
+		Engine.Instance!.Player.SongEnded += Player_SongEnded;
 		foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
 		{
 			_songsComboBox.Items.Add(new ImageComboBoxItem(playlist, Resources.IconPlaylist, 0));
@@ -679,53 +529,29 @@ internal sealed class MainForm : ThemedForm
 			Engine.Instance.Dispose();
 		}
 
-		_trackViewer?.UpdateTracks();
-		_prevTButton.Enabled = _toggleTButton.Enabled = _nextTButton.Enabled = _songsComboBox.Enabled = _songNumerical.Enabled = _playButton.Enabled = _volumeBar.Enabled = _positionBar.Enabled = false;
 		Text = ConfigUtils.PROGRAM_NAME;
+		_trackViewer?.UpdateTracks();
+		_taskbar?.DisableAll();
+		_songsComboBox.Enabled = false;
+		_songNumerical.Enabled = false;
+		_playButton.Enabled = false;
+		_volumeBar.Enabled = false;
+		_positionBar.Enabled = false;
 		_songInfo.SetNumTracks(0);
 		_songInfo.ResetMutes();
 		ResetPlaylistStuff(false);
 		UpdatePositionIndicators(0L);
-		UpdateTaskbarState();
+		TaskbarPlayerButtons.UpdateState();
+
 		_songsComboBox.SelectedIndexChanged -= SongsComboBox_SelectedIndexChanged;
 		_songNumerical.ValueChanged -= SongNumerical_ValueChanged;
+
 		_songNumerical.Visible = false;
-		_songNumerical.Value = _songNumerical.Maximum = 0;
 		_songsComboBox.SelectedItem = null;
 		_songsComboBox.Items.Clear();
+
 		_songsComboBox.SelectedIndexChanged += SongsComboBox_SelectedIndexChanged;
 		_songNumerical.ValueChanged += SongNumerical_ValueChanged;
-	}
-	private void UpdateUI(object? sender, EventArgs? e)
-	{
-		if (_stopUI)
-		{
-			_stopUI = false;
-			if (_playlistPlaying)
-			{
-				_playedSongs.Add(_curSong);
-				SetAndLoadNextPlaylistSong();
-			}
-			else
-			{
-				Stop();
-			}
-		}
-		else
-		{
-			if (WindowState != FormWindowState.Minimized)
-			{
-				SongState info = _songInfo.Info;
-				Engine.Instance!.Player.UpdateSongState(info);
-				_piano.UpdateKeys(info.Tracks, PianoTracks);
-				_songInfo.Invalidate();
-			}
-			UpdatePositionIndicators(Engine.Instance!.Player.LoadedSong!.ElapsedTicks);
-		}
-	}
-	private void SongEnded()
-	{
-		_stopUI = true;
 	}
 	private void UpdatePositionIndicators(long ticks)
 	{
@@ -738,49 +564,12 @@ internal sealed class MainForm : ThemedForm
 			TaskbarManager.Instance.SetProgressValue((int)ticks, (int)_positionBar.Maximum);
 		}
 	}
-	private static void UpdateTaskbarState()
-	{
-		if (!GlobalConfig.Instance.TaskbarProgress || !TaskbarManager.IsPlatformSupported)
-		{
-			return;
-		}
-
-		TaskbarProgressBarState state;
-		switch (Engine.Instance?.Player.State)
-		{
-			case PlayerState.Playing: state = TaskbarProgressBarState.Normal; break;
-			case PlayerState.Paused: state = TaskbarProgressBarState.Paused; break;
-			default: state = TaskbarProgressBarState.NoProgress; break;
-		}
-		TaskbarManager.Instance.SetProgressState(state);
-	}
 	private void UpdateTaskbarButtons()
 	{
-		if (!TaskbarManager.IsPlatformSupported)
-		{
-			return;
-		}
-
-		if (_playlistPlaying)
-		{
-			_prevTButton.Enabled = _playedSongs.Count > 0;
-			_nextTButton.Enabled = true;
-		}
-		else
-		{
-			_prevTButton.Enabled = _curSong > 0;
-			_nextTButton.Enabled = _curSong < _songNumerical.Maximum;
-		}
-		switch (Engine.Instance.Player.State)
-		{
-			case PlayerState.Stopped: _toggleTButton.Icon = Resources.IconPlay; _toggleTButton.Tooltip = Strings.PlayerPlay; break;
-			case PlayerState.Playing: _toggleTButton.Icon = Resources.IconPause; _toggleTButton.Tooltip = Strings.PlayerPause; break;
-			case PlayerState.Paused: _toggleTButton.Icon = Resources.IconPlay; _toggleTButton.Tooltip = Strings.PlayerUnpause; break;
-		}
-		_toggleTButton.Enabled = true;
+		_taskbar?.UpdateButtons(_playlist, _curSong, (int)_songNumerical.Maximum);
 	}
 
-	private void OpenTrackViewer(object? sender, EventArgs? e)
+	private void OpenTrackViewer(object? sender, EventArgs e)
 	{
 		if (_trackViewer is not null)
 		{
@@ -789,8 +578,67 @@ internal sealed class MainForm : ThemedForm
 		}
 
 		_trackViewer = new TrackViewer { Owner = this };
-		_trackViewer.FormClosed += (o, s) => _trackViewer = null;
+		_trackViewer.FormClosed += TrackViewer_FormClosed;
 		_trackViewer.Show();
+	}
+
+	public void TogglePlayback()
+	{
+		switch (Engine.Instance!.Player.State)
+		{
+			case PlayerState.Stopped: Play(); break;
+			case PlayerState.Paused:
+			case PlayerState.Playing: Pause(); break;
+		}
+	}
+	public void PlayPreviousSong()
+	{
+		if (_playlist is not null)
+		{
+			_playlist.UndoThenSetAndLoadPrevSong(_curSong);
+		}
+		else
+		{
+			SetAndLoadSong((int)_songNumerical.Value - 1);
+		}
+	}
+	public void PlayNextSong()
+	{
+		if (_playlist is not null)
+		{
+			_playlist.AdvanceThenSetAndLoadNextSong(_curSong);
+		}
+		else
+		{
+			SetAndLoadSong((int)_songNumerical.Value + 1);
+		}
+	}
+	public void LetUIKnowPlayerIsPlaying()
+	{
+		if (_timer.Enabled)
+		{
+			return;
+		}
+
+		_pauseButton.Enabled = true;
+		_stopButton.Enabled = true;
+		_pauseButton.Text = Strings.PlayerPause;
+		_timer.Interval = (int)(1_000.0 / GlobalConfig.Instance.RefreshRate);
+		_timer.Start();
+		TaskbarPlayerButtons.UpdateState();
+		UpdateTaskbarButtons();
+	}
+	public void SetAndLoadSong(int index)
+	{
+		_curSong = index;
+		if (_songNumerical.Value == index)
+		{
+			SongNumerical_ValueChanged(null, EventArgs.Empty);
+		}
+		else
+		{
+			_songNumerical.Value = index;
+		}
 	}
 
 	protected override void OnFormClosing(FormClosingEventArgs e)
@@ -798,7 +646,7 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		base.OnFormClosing(e);
 	}
-	private void OnResize(object? sender, EventArgs? e)
+	private void OnResize(object? sender, EventArgs e)
 	{
 		if (WindowState == FormWindowState.Minimized)
 		{
@@ -845,7 +693,7 @@ internal sealed class MainForm : ThemedForm
 	{
 		if (keyData == Keys.Space && _playButton.Enabled && !_songsComboBox.Focused)
 		{
-			TogglePlayback(null, null);
+			TogglePlayback();
 			return true;
 		}
 		return base.ProcessCmdKey(ref msg, keyData);
@@ -858,5 +706,79 @@ internal sealed class MainForm : ThemedForm
 			_timer.Dispose();
 		}
 		base.Dispose(disposing);
+	}
+
+	private void Timer_Tick(object? sender, EventArgs e)
+	{
+		if (_songEnded)
+		{
+			_songEnded = false;
+			if (_playlist is not null)
+			{
+				_playlist.AdvanceThenSetAndLoadNextSong(_curSong);
+			}
+			else
+			{
+				Stop();
+			}
+		}
+		else
+		{
+			Player player = Engine.Instance!.Player;
+			if (WindowState != FormWindowState.Minimized)
+			{
+				SongState info = _songInfo.Info;
+				player.UpdateSongState(info);
+				_piano.UpdateKeys(info.Tracks, PianoTracks);
+				_songInfo.Invalidate();
+			}
+			UpdatePositionIndicators(player.ElapsedTicks);
+		}
+	}
+	private void Mixer_VolumeChanged(float volume)
+	{
+		_volumeBar.ValueChanged -= VolumeBar_ValueChanged;
+		_volumeBar.Value = (int)(volume * _volumeBar.Maximum);
+		_volumeBar.ValueChanged += VolumeBar_ValueChanged;
+	}
+	private void Player_SongEnded()
+	{
+		_songEnded = true;
+	}
+	private void VolumeBar_ValueChanged(object? sender, EventArgs e)
+	{
+		Engine.Instance!.Mixer.SetVolume(_volumeBar.Value / (float)_volumeBar.Maximum);
+	}
+	private void PositionBar_MouseUp(object? sender, MouseEventArgs e)
+	{
+		if (e.Button == MouseButtons.Left)
+		{
+			Engine.Instance!.Player.SetSongPosition(_positionBar.Value);
+			_positionBarFree = true;
+			LetUIKnowPlayerIsPlaying();
+		}
+	}
+	private void PositionBar_MouseDown(object? sender, MouseEventArgs e)
+	{
+		if (e.Button == MouseButtons.Left)
+		{
+			_positionBarFree = false;
+		}
+	}
+	private void PlayButton_Click(object? sender, EventArgs e)
+	{
+		Play();
+	}
+	private void PauseButton_Click(object? sender, EventArgs e)
+	{
+		Pause();
+	}
+	private void StopButton_Click(object? sender, EventArgs e)
+	{
+		Stop();
+	}
+	private void TrackViewer_FormClosed(object? sender, FormClosedEventArgs e)
+	{
+		_trackViewer = null;
 	}
 }

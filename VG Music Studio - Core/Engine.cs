@@ -8,7 +8,7 @@ public abstract class Engine : IDisposable
 
 	public abstract Config Config { get; }
 	public abstract Mixer Mixer { get; }
-	public abstract IPlayer Player { get; }
+	public abstract Player Player { get; }
 
 	public virtual void Dispose()
 	{
