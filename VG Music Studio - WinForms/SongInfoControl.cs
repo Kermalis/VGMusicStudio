@@ -297,8 +297,8 @@ internal sealed class SongInfoControl : Control
 			}
 			else
 			{
-				const int DELTA = 100;
-				alpha = (int)WinFormsUtils.Lerp(velocity, 0f, DELTA);
+				const int DELTA = 125;
+				alpha = (int)WinFormsUtils.Lerp(velocity * 0.5f, 0f, DELTA);
 				alpha += 255 - DELTA;
 			}
 			_solidBrush.Color = Color.FromArgb(alpha, color);
