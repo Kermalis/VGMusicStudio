@@ -55,7 +55,7 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 				r.Stream.Position = chunkStart + 0xC;
 				uint chunkLength = r.ReadUInt32();
 				r.Stream.Position += chunkLength;
-				r.Stream.Align(4);
+				r.Stream.Align(16);
 			}
 		}
 	}

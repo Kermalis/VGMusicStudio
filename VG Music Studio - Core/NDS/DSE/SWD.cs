@@ -398,7 +398,7 @@ internal sealed class SWD
 					r.Stream.Position += 0x8;
 					uint length = r.ReadUInt32();
 					r.Stream.Position += length;
-					r.Stream.Align(4);
+					r.Stream.Align(16);
 					break;
 				}
 			}
