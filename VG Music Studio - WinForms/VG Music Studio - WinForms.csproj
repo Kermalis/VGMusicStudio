@@ -28,4 +28,19 @@
 		<ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="../VG Music Studio - Core/AlphaDream.yaml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Include="../VG Music Studio - Core/MP2K.yaml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Include="../VG Music Studio - Core/Config.yaml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Include="../VG Music Studio - Core/MPlayDef.s">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 </Project>
