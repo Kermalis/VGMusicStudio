@@ -11,10 +11,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EndianBinaryIO" Version="2.0.1" />
 		<PackageReference Include="NAudio.Core" Version="2.1.0" />
 		<PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
 		<PackageReference Include="YamlDotNet" Version="12.0.0" />
+		<ProjectReference Include="..\..\EndianBinaryIO\Source\EndianBinaryIO.csproj" />
 		<ProjectReference Include="..\VG Music Studio - MIDI\VG Music Studio - MIDI.csproj" />
 		<Reference Include="DLS2">
 			<HintPath>Dependencies\DLS2.dll</HintPath>

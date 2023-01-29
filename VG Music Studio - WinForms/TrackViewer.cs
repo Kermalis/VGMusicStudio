@@ -1,4 +1,4 @@
-﻿using BrightIdeasSoftware;
+﻿using Kermalis.VGMusicStudio.WinForms.ObjectListView;
 using Kermalis.VGMusicStudio.Core;
 using Kermalis.VGMusicStudio.Core.Properties;
 using Kermalis.VGMusicStudio.Core.Util;
@@ -14,7 +14,7 @@ namespace Kermalis.VGMusicStudio.WinForms;
 [DesignerCategory("")]
 internal sealed class TrackViewer : ThemedForm
 {
-	private readonly ObjectListView _listView;
+	private readonly ObjectListView.ObjectListView _listView;
 	private readonly ComboBox _tracksBox;
 
 	public TrackViewer()
@@ -22,8 +22,8 @@ internal sealed class TrackViewer : ThemedForm
 		const int W = (600 / 2) - 12 - 6;
 		const int H = 400 - 12 - 11;
 
-		_listView = new ObjectListView
-		{
+		_listView = new ObjectListView.ObjectListView
+        {
 			FullRowSelect = true,
 			HeaderStyle = ColumnHeaderStyle.Nonclickable,
 			HideSelection = false,

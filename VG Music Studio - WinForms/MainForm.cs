@@ -7,7 +7,7 @@ using Kermalis.VGMusicStudio.Core.Properties;
 using Kermalis.VGMusicStudio.Core.Util;
 using Kermalis.VGMusicStudio.WinForms.Properties;
 using Kermalis.VGMusicStudio.WinForms.Util;
-using Microsoft.WindowsAPICodePack.Taskbar;
+using Kermalis.VGMusicStudio.WinForms.API.Taskbar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -264,9 +264,14 @@ internal sealed class MainForm : ThemedForm
 
 	private void OpenDSE(object? sender, EventArgs e)
 	{
-		var d = new FolderBrowserDialog
+		var f = WinFormsUtils.CreateLoadDialog(".swd", Strings.MenuOpenSWD, Strings.FilterOpenSWD + " (*.swd)|*.swd");
+        if (f is null)
+        {
+            return;
+        }
+        var d = new FolderBrowserDialog
 		{
-			Description = Strings.MenuOpenDSE,
+			Description = Strings.MenuOpenSMD,
 			UseDescriptionForTitle = true,
 		};
 		if (d.ShowDialog() != DialogResult.OK)
@@ -277,7 +282,7 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		try
 		{
-			_ = new DSEEngine(d.SelectedPath);
+			_ = new DSEEngine(f.ToString(), d.SelectedPath);
 		}
 		catch (Exception ex)
 		{
@@ -286,7 +291,7 @@ internal sealed class MainForm : ThemedForm
 		}
 
 		DSEConfig config = DSEEngine.DSEInstance!.Config;
-		FinishLoading(config.BGMFiles.Length);
+		FinishLoading(config.SMDFiles.Length);
 		_songNumerical.Visible = false;
 		_exportDLSItem.Visible = false;
 		_exportMIDIItem.Visible = false;

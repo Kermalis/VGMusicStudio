@@ -204,8 +204,8 @@
   <data name="MenuEndPlaylist" xml:space="preserve">
     <value>End Current Playlist</value>
   </data>
-  <data name="MenuOpenDSE" xml:space="preserve">
-    <value>Open DSE Folder</value>
+  <data name="MenuOpenSMD" xml:space="preserve">
+    <value>Open SMD Folder</value>
   </data>
   <data name="MenuOpenAlphaDream" xml:space="preserve">
     <value>Open GBA ROM (AlphaDream)</value>
@@ -368,5 +368,14 @@
   </data>
   <data name="Song(s)" xml:space="preserve">
     <value>songs|0_0|song|1_1|songs|2_*|</value>
+  </data>
+  <data name="FilterOpenSWD" xml:space="preserve">
+    <value>Wave Data</value>
+  </data>
+  <data name="MenuOpenDSE" xml:space="preserve">
+    <value>Open DSE Files</value>
+  </data>
+  <data name="MenuOpenSWD" xml:space="preserve">
+    <value>Open SWD File</value>
   </data>
 </root>

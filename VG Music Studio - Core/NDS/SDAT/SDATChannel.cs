@@ -1,4 +1,5 @@
 using System;
+using Kermalis.VGMusicStudio.Core.Codec;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
 

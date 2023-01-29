@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
@@ -8,7 +9,7 @@ public sealed class DSEPlayer : Player
 
 	private readonly DSEConfig _config;
 	internal readonly DSEMixer DMixer;
-	internal readonly SWD MasterSWD;
+	internal readonly SWD MainSWD;
 	private DSELoadedSong? _loadedSong;
 
 	internal byte Tempo;
@@ -18,13 +19,14 @@ public sealed class DSEPlayer : Player
 	public override ILoadedSong? LoadedSong => _loadedSong;
 	protected override Mixer Mixer => DMixer;
 
-	public DSEPlayer(DSEConfig config, DSEMixer mixer)
+	public DSEPlayer(string mainSWDFile, DSEConfig config, DSEMixer mixer)
 		: base(192)
 	{
 		DMixer = mixer;
 		_config = config;
+		//string swdPath = Directory.GetFiles(mainSWDFile)[0];
 
-		MasterSWD = new SWD(Path.Combine(config.BGMPath, "bgm.swd"));
+        MainSWD = new SWD(mainSWDFile);
 	}
 
 	public override void LoadSong(int index)
@@ -35,7 +37,7 @@ public sealed class DSEPlayer : Player
 		}
 
 		// If there's an exception, this will remain null
-		_loadedSong = new DSELoadedSong(this, _config.BGMFiles[index]);
+		_loadedSong = new DSELoadedSong(this, _config.SMDFiles[index]);
 		_loadedSong.SetTicks();
 	}
 	public override void UpdateSongState(SongState info)

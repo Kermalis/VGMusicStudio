@@ -2,7 +2,7 @@
 using Kermalis.VGMusicStudio.Core.Properties;
 using Kermalis.VGMusicStudio.Core.Util;
 using Kermalis.VGMusicStudio.WinForms.Properties;
-using Microsoft.WindowsAPICodePack.Taskbar;
+using Kermalis.VGMusicStudio.WinForms.API.Taskbar;
 using System;
 
 namespace Kermalis.VGMusicStudio.WinForms;

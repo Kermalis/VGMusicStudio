@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EndianBinaryIO" Version="2.0.1" />
+	  <ProjectReference Include="..\..\EndianBinaryIO\Source\EndianBinaryIO.csproj" />
 	</ItemGroup>
 
 </Project>

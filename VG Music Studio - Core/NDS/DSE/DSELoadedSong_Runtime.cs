@@ -43,12 +43,12 @@ internal sealed partial class DSELoadedSong
 			DSEChannel? channel = _player.DMixer.AllocateChannel();
 			if (channel is null)
 			{
-				throw new Exception("Not enough channels");
+				throw new Exception("No channels were allocated.");
 			}
 
 			channel.Stop();
 			track.Octave = (byte)(track.Octave + oct);
-			if (channel.StartPCM(LocalSWD, _player.MasterSWD, track.Voice, n + (12 * track.Octave), duration))
+			if (channel.StartPCM(LocalSWD, _player.MainSWD, track.Voice, n + (12 * track.Octave), duration))
 			{
 				channel.NoteVelocity = cmd;
 				channel.Owner = track;

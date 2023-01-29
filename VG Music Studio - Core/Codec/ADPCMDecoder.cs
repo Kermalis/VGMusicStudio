@@ -1,4 +1,4 @@
-﻿namespace Kermalis.VGMusicStudio.Core;
+﻿namespace Kermalis.VGMusicStudio.Core.Codec;
 
 // TODO: Struct or something to prevent allocations
 internal sealed class ADPCMDecoder
