@@ -1653,6 +1653,24 @@ BZMP_00:
   Name: "The Legend of Zelda: The Minish Cap (Europe)"
   SongTableOffsets: 0xB1D414
   Copy: "BZME_00"
+KYGE_00:
+  Name: "Yoshi Topsy-Turvy (USA)"
+  SongTableOffsets: 0x4A5E94
+  SongTableSizes: 347
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 10
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+KYGJ_00:
+  Name: "Yoshi Topsy-Turvy (Japan)"
+  SongTableOffsets: 0x4A79D8
+  Copy: "KYGE_00"
+KYGP_00:
+  Name: "Yoshi Topsy-Turvy (Europe)"
+  SongTableOffsets: 0x619658
+  Copy: "KYGE_00"
 U32E_00:
   Name: "Boktai 2 - Solar Boy Django (USA)"
   SongTableOffsets: 0x25EEA8
