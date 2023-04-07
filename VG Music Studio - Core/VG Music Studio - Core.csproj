@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<OutputType>Library</OutputType>
 		<LangVersion>latest</LangVersion>
 		<RootNamespace>Kermalis.VGMusicStudio.Core</RootNamespace>
@@ -11,13 +11,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EndianBinaryIO" Version="2.0.1" />
+		<PackageReference Include="EndianBinaryIO" Version="2.1.0" />
 		<PackageReference Include="NAudio.Core" Version="2.1.0" />
 		<PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
 		<PackageReference Include="YamlDotNet" Version="12.0.0" />
-		<ProjectReference Include="..\VG Music Studio - MIDI\VG Music Studio - MIDI.csproj" />
 		<Reference Include="DLS2">
 			<HintPath>Dependencies\DLS2.dll</HintPath>
+		</Reference>
+		<Reference Include="KMIDI">
+			<HintPath>Dependencies\KMIDI.dll</HintPath>
 		</Reference>
 		<Reference Include="SoundFont2">
 			<HintPath>Dependencies\SoundFont2.dll</HintPath>

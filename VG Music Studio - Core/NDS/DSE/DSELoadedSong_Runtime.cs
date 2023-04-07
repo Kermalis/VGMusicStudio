@@ -55,7 +55,7 @@ internal sealed partial class DSELoadedSong
 				track.Channels.Add(channel);
 			}
 		}
-		else if (cmd >= 0x80 && cmd <= 0x8F)
+		else if (cmd is >= 0x80 and <= 0x8F)
 		{
 			track.LastRest = DSEUtils.FixedRests[cmd - 0x80];
 			track.Rest = track.LastRest;

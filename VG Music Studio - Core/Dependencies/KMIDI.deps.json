@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "KMIDI/1.0.0": {
+        "dependencies": {
+          "EndianBinaryIO": "2.1.0"
+        },
+        "runtime": {
+          "KMIDI.dll": {}
+        }
+      },
+      "EndianBinaryIO/2.1.0": {
+        "runtime": {
+          "lib/net7.0/EndianBinaryIO.dll": {
+            "assemblyVersion": "2.1.0.0",
+            "fileVersion": "2.1.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "KMIDI/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "EndianBinaryIO/2.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OzcYSj5h37lj8PJAcROuYIW+FEO/it3Famh3cduziKQzE2ZKDgirNUJNnDCYkHgBxc2CRc//GV2ChRSqlXhbjQ==",
+      "path": "endianbinaryio/2.1.0",
+      "hashPath": "endianbinaryio.2.1.0.nupkg.sha512"
+    }
+  }
+}

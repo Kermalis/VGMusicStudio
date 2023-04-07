@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KMIDI</name>
+    </assembly>
+    <members>
+        <member name="P:Kermalis.MIDI.MIDITrackChunk.NumEvents">
+            <summary>Includes the end of track event</summary>
+        </member>
+        <member name="M:Kermalis.MIDI.MIDITrackChunk.InsertMessage(System.Int32,Kermalis.MIDI.MIDIMessage)">
+            <summary>If there are other events at <paramref name="ticks"/>, <paramref name="msg"/> will be inserted after them.</summary>
+        </member>
+        <member name="P:Kermalis.MIDI.MIDIUnsupportedChunk.ChunkName">
+            <summary>Length 4</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MIDIFormat.Format0">
+            <summary>Contains a single multi-channel track</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MIDIFormat.Format1">
+            <summary>Contains one or more simultaneous tracks</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MIDIFormat.Format2">
+            <summary>Contains one or more independent single-track patterns</summary>
+        </member>
+        <member name="T:Kermalis.MIDI.ControllerType">
+            <summary>Used with <see cref="T:Kermalis.MIDI.ControllerMessage"/></summary>
+        </member>
+        <member name="T:Kermalis.MIDI.MetaMessageType">
+            <summary>Used with <see cref="T:Kermalis.MIDI.MetaMessage"/></summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MetaMessageType.Reserved_A">
+            <summary>Reserved for ASCII treatment</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MetaMessageType.Reserved_B">
+            <summary>Reserved for ASCII treatment</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MetaMessageType.Reserved_C">
+            <summary>Reserved for ASCII treatment</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MetaMessageType.Reserved_D">
+            <summary>Reserved for ASCII treatment</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MetaMessageType.Reserved_E">
+            <summary>Reserved for ASCII treatment</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MetaMessageType.Reserved_F">
+            <summary>Reserved for ASCII treatment</summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MetaMessageType.EndOfTrack">
+            <summary>Not optional</summary>
+        </member>
+        <member name="T:Kermalis.MIDI.KeySignatureSF">
+            <summary>Used with <see cref="F:Kermalis.MIDI.MetaMessageType.KeySignature"/></summary>
+        </member>
+        <member name="T:Kermalis.MIDI.KeySignatureMI">
+            <summary>Used with <see cref="F:Kermalis.MIDI.MetaMessageType.KeySignature"/></summary>
+        </member>
+        <member name="T:Kermalis.MIDI.MIDIProgram">
+            <summary>Used with <see cref="T:Kermalis.MIDI.ProgramChangeMessage"/></summary>
+        </member>
+        <member name="P:Kermalis.MIDI.MIDIEvent.DeltaTicks">
+            <summary>How many ticks are between this event and the previous one. If this is the first event in the track, then it is equal to <see cref="P:Kermalis.MIDI.MIDIEvent.Ticks"/></summary>
+        </member>
+        <member name="F:Kermalis.MIDI.MIDINote.C_4">
+            <summary>Middle C</summary>
+        </member>
+    </members>
+</doc>

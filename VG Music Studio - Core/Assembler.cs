@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using static Kermalis.EndianBinaryIO.EndianBinaryPrimitives;
 
 namespace Kermalis.VGMusicStudio.Core;
 
@@ -66,7 +65,7 @@ internal sealed class Assembler : IDisposable
 			// There is a pointer (p) to SEQ_STUFF at the binary offset 0x1DFC
 			_stream.Position = p.BinaryOffset;
 			_stream.Read(span);
-			int oldPointer = ReadInt32(span, Endianness); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
+			int oldPointer = EndianBinaryPrimitives.ReadInt32(span, Endianness); // If there was a pointer to "SEQ_STUFF+4", the pointer would be 0x1504, at binary offset 0x1DFC
 			int labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
 
 			_stream.Position = p.BinaryOffset;

@@ -407,7 +407,8 @@ internal sealed class SWD
 		return pos;
 	}
 
-	private static SampleBlock[] ReadSamples<T>(EndianBinaryReader r, int numWAVISlots) where T : IWavInfo, new()
+	private static SampleBlock[] ReadSamples<T>(EndianBinaryReader r, int numWAVISlots)
+		where T : IWavInfo, new()
 	{
 		long waviChunkOffset = FindChunk(r, "wavi");
 		long pcmdChunkOffset = FindChunk(r, "pcmd");

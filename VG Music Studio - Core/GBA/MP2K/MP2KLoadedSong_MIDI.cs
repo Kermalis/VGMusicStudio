@@ -1,7 +1,8 @@
-﻿using Kermalis.VGMusicStudio.MIDI;
+﻿using Kermalis.MIDI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
@@ -42,16 +43,18 @@ internal sealed partial class MP2KLoadedSong
 		}
 
 		var midi = new MIDIFile(MIDIFormat.Format1, TimeDivisionValue.CreatePPQN(24), Events.Length + 1);
-		MIDITrackChunk metaTrack = midi.CreateTrack();
+		var metaTrack = new MIDITrackChunk();
+		midi.AddChunk(metaTrack);
 
 		foreach ((int AbsoluteTick, (byte Numerator, byte Denominator)) e in args.TimeSignatures)
 		{
-			metaTrack.Insert(e.AbsoluteTick, MetaMessage.CreateTimeSignatureMessage(e.Item2.Numerator, e.Item2.Denominator));
+			metaTrack.InsertMessage(e.AbsoluteTick, MetaMessage.CreateTimeSignatureMessage(e.Item2.Numerator, e.Item2.Denominator));
 		}
 
 		for (byte trackIndex = 0; trackIndex < Events.Length; trackIndex++)
 		{
-			MIDITrackChunk track = midi.CreateTrack();
+			var track = new MIDITrackChunk();
+			midi.AddChunk(track);
 
 			bool foundTranspose = false;
 			int endOfPattern = 0;
@@ -110,8 +113,8 @@ internal sealed partial class MP2KLoadedSong
 							{
 								key = 0x7F;
 							}
-							track.Insert(ticks, new NoteOnMessage(trackIndex, (MIDINote)key, 0));
-							//track.Insert(ticks, new NoteOffMessage(trackIndex, (MIDINote)key, 0));
+							track.InsertMessage(ticks, new NoteOnMessage(trackIndex, (MIDINote)key, 0));
+							//track.InsertMessage(ticks, new NoteOffMessage(trackIndex, (MIDINote)key, 0));
 							playing.Remove(nc);
 						}
 						break;
@@ -126,42 +129,42 @@ internal sealed partial class MP2KLoadedSong
 						if (trackIndex == 0)
 						{
 							int jumpCmd = trackEvents.FindIndex(ev => ev.Offset == c.Offset);
-							metaTrack.Insert((int)trackEvents[jumpCmd].Ticks[0], new MetaMessage(MetaMessageType.Marker, new byte[] { (byte)'[' }));
-							metaTrack.Insert(ticks, new MetaMessage(MetaMessageType.Marker, new byte[] { (byte)']' }));
+							metaTrack.InsertMessage((int)trackEvents[jumpCmd].Ticks[0], MetaMessage.CreateTextMessage(MetaMessageType.Marker, "["));
+							metaTrack.InsertMessage(ticks, MetaMessage.CreateTextMessage(MetaMessageType.Marker, "]"));
 						}
 						break;
 					}
 					case LFODelayCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)26, c.Delay));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)26, c.Delay));
 						break;
 					}
 					case LFODepthCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, ControllerType.ModulationWheel, c.Depth));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.ModulationWheel, c.Depth));
 						break;
 					}
 					case LFOSpeedCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)21, c.Speed));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)21, c.Speed));
 						break;
 					}
 					case LFOTypeCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)22, (byte)c.Type));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)22, (byte)c.Type));
 						break;
 					}
 					case LibraryCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)30, c.Command));
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)29, c.Argument));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)30, c.Command));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)29, c.Argument));
 						break;
 					}
 					case MemoryAccessCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, ControllerType.EffectControl2, c.Operator));
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)14, c.Address));
-						track.Insert(ticks, new ControllerMessage(trackIndex, ControllerType.EffectControl1, c.Data));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.EffectControl2, c.Operator));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)14, c.Address));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.EffectControl1, c.Data));
 						break;
 					}
 					case NoteCommand c:
@@ -175,11 +178,11 @@ internal sealed partial class MP2KLoadedSong
 						{
 							note = 0x7F;
 						}
-						track.Insert(ticks, new NoteOnMessage(trackIndex, (MIDINote)note, c.Velocity));
+						track.InsertMessage(ticks, new NoteOnMessage(trackIndex, (MIDINote)note, c.Velocity));
 						if (c.Duration != -1)
 						{
-							track.Insert(ticks + c.Duration, new NoteOnMessage(trackIndex, (MIDINote)note, 0));
-							//track.Insert(ticks + c.Duration, new NoteOffMessage(trackIndex, (MIDINote)note, 0));
+							track.InsertMessage(ticks + c.Duration, new NoteOnMessage(trackIndex, (MIDINote)note, 0));
+							//track.InsertMessage(ticks + c.Duration, new NoteOffMessage(trackIndex, (MIDINote)note, 0));
 						}
 						else
 						{
@@ -189,22 +192,22 @@ internal sealed partial class MP2KLoadedSong
 					}
 					case PanpotCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, ControllerType.Pan, (byte)(c.Panpot + 0x40)));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.Pan, (byte)(c.Panpot + 0x40)));
 						break;
 					}
 					case PitchBendCommand c:
 					{
-						track.Insert(ticks, new PitchBendMessage(trackIndex, 0, (byte)(c.Bend + 0x40)));
+						track.InsertMessage(ticks, new PitchBendMessage(trackIndex, 0, (byte)(c.Bend + 0x40)));
 						break;
 					}
 					case PitchBendRangeCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)20, c.Range));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)20, c.Range));
 						break;
 					}
 					case PriorityCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, ControllerType.ChannelVolumeLSB, c.Priority));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.ChannelVolumeLSB, c.Priority));
 						break;
 					}
 					case ReturnCommand _:
@@ -220,7 +223,7 @@ internal sealed partial class MP2KLoadedSong
 					}
 					case TempoCommand c:
 					{
-						metaTrack.Insert(ticks, MetaMessage.CreateTempoMessage(c.Tempo));
+						metaTrack.InsertMessage(ticks, MetaMessage.CreateTempoMessage(c.Tempo));
 						break;
 					}
 					case TransposeCommand c:
@@ -230,12 +233,12 @@ internal sealed partial class MP2KLoadedSong
 					}
 					case TuneCommand c:
 					{
-						track.Insert(ticks, new ControllerMessage(trackIndex, (ControllerType)24, (byte)(c.Tune + 0x40)));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)24, (byte)(c.Tune + 0x40)));
 						break;
 					}
 					case VoiceCommand c:
 					{
-						track.Insert(ticks, new ProgramChangeMessage(trackIndex, (MIDIProgram)c.Voice));
+						track.InsertMessage(ticks, new ProgramChangeMessage(trackIndex, (MIDIProgram)c.Voice));
 						break;
 					}
 					case VolumeCommand c:
@@ -247,17 +250,20 @@ internal sealed partial class MP2KLoadedSong
 						{
 							volume++;
 						}
-						track.Insert(ticks, new ControllerMessage(trackIndex, ControllerType.ChannelVolume, (byte)volume));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.ChannelVolume, (byte)volume));
 						break;
 					}
 				}
 			}
 		endOfTrack:
-			track.Insert(endTicks ?? track.NumTicks, new MetaMessage(MetaMessageType.EndOfTrack, Array.Empty<byte>()));
+			track.InsertMessage(endTicks ?? track.NumTicks, new MetaMessage(MetaMessageType.EndOfTrack, Array.Empty<byte>()));
 		}
 
-		metaTrack.Insert(metaTrack.NumTicks, new MetaMessage(MetaMessageType.EndOfTrack, Array.Empty<byte>()));
+		metaTrack.InsertMessage(metaTrack.NumTicks, new MetaMessage(MetaMessageType.EndOfTrack, Array.Empty<byte>()));
 
-		midi.Save(fileName);
+		using (FileStream fs = File.Create(fileName))
+		{
+			midi.Save(fs);
+		}
 	}
 }
