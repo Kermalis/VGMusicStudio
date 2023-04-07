@@ -975,6 +975,24 @@ B24J_00:
 B24P_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
   Copy: "B24E_00"
+B8KE_00:
+  Name: "Kirby & The Amazing Mirror (USA)"
+  SongTableOffsets: 0xB59ED0
+  SongTableSizes: 620
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+B8KJ_01:
+  Name: "Kirby & The Amazing Mirror (Japan)"
+  SongTableOffsets: 0xB253E0
+  Copy: "B8KE_00"
+B8KP_00:
+  Name: "Kirby & The Amazing Mirror (Europe/Australia)"
+  SongTableOffsets: 0xB64334
+  Copy: "B8KE_00"
 BE8E_00:
   Name: "Fire Emblem: The Sacred Stones (USA)"
   SongTableOffsets: 0x224470
