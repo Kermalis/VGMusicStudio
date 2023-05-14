@@ -40,11 +40,8 @@ internal sealed partial class DSELoadedSong
 				}
 				track.LastNoteDuration = duration;
 			}
-			DSEChannel? channel = _player.DMixer.AllocateChannel();
-			if (channel is null)
-			{
-				throw new Exception("Not enough channels");
-			}
+			DSEChannel channel = _player.DMixer.AllocateChannel()
+				?? throw new Exception("Not enough channels");
 
 			channel.Stop();
 			track.Octave = (byte)(track.Octave + oct);

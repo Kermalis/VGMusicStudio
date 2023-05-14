@@ -341,10 +341,21 @@ internal sealed class FlexibleMessageBox
 			InitializeComponent();
 
 			//Try to evaluate the language. If this fails, the fallback language English will be used
-			Enum.TryParse(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, out languageID);
+			_ = Enum.TryParse(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, out languageID);
 
 			KeyPreview = true;
 			KeyUp += FlexibleMessageBoxForm_KeyUp;
+
+			components = null!;
+			button1 = null!;
+			button2 = null!;
+			button3 = null!;
+			FlexibleMessageBoxFormBindingSource = null!;
+			richTextBoxMessage = null!;
+			panel1 = null!;
+			pictureBoxForIcon = null!;
+			CaptionText = null!;
+			MessageText = null!;
 		}
 
 		#endregion
@@ -401,8 +412,8 @@ internal sealed class FlexibleMessageBox
 			{
 				var screen = Screen.FromPoint(Cursor.Position);
 				flexibleMessageBoxForm.StartPosition = FormStartPosition.Manual;
-				flexibleMessageBoxForm.Left = screen.Bounds.Left + screen.Bounds.Width / 2 - flexibleMessageBoxForm.Width / 2;
-				flexibleMessageBoxForm.Top = screen.Bounds.Top + screen.Bounds.Height / 2 - flexibleMessageBoxForm.Height / 2;
+				flexibleMessageBoxForm.Left = screen.Bounds.Left + (screen.Bounds.Width / 2) - (flexibleMessageBoxForm.Width / 2);
+				flexibleMessageBoxForm.Top = screen.Bounds.Top + (screen.Bounds.Height / 2) - (flexibleMessageBoxForm.Height / 2);
 			}
 		}
 
@@ -566,7 +577,7 @@ internal sealed class FlexibleMessageBox
 
 		void FlexibleMessageBoxForm_Shown(object? sender, EventArgs e)
 		{
-			int buttonIndexToFocus = 1;
+			int buttonIndexToFocus;
 			Button buttonToFocus;
 
 			//Set the default button...
@@ -610,7 +621,7 @@ internal sealed class FlexibleMessageBox
 			try
 			{
 				Cursor.Current = Cursors.WaitCursor;
-				Process.Start(e.LinkText);
+				Process.Start(e.LinkText!);
 			}
 			catch (Exception)
 			{

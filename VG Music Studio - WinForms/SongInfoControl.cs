@@ -69,7 +69,7 @@ internal sealed class SongInfoControl : Control
 
 	private void TogglePiano(object? sender, EventArgs e)
 	{
-		var check = (CheckBox)sender;
+		var check = (CheckBox)sender!;
 		CheckBox master = _pianos[SongState.MAX_TRACKS];
 		if (check == master)
 		{
@@ -100,7 +100,7 @@ internal sealed class SongInfoControl : Control
 	}
 	private void ToggleMute(object? sender, EventArgs e)
 	{
-		var check = (CheckBox)sender;
+		var check = (CheckBox)sender!;
 		CheckBox master = _mutes[SongState.MAX_TRACKS];
 		if (check == master)
 		{
@@ -117,7 +117,7 @@ internal sealed class SongInfoControl : Control
 			{
 				if (_mutes[i] == check)
 				{
-					Engine.Instance.Mixer.Mutes[i] = !check.Checked;
+					Engine.Instance!.Mixer.Mutes[i] = !check.Checked;
 				}
 				if (_mutes[i].Checked)
 				{
@@ -284,9 +284,9 @@ internal sealed class SongInfoControl : Control
 
 		// Try to draw velocity bar
 		var rect = new Rectangle((int)(_barStartX + (_barWidth / 2) - (track.LeftVolume * _barWidth / 2)) + _bwd,
-						vBarY1,
-						(int)((track.LeftVolume + track.RightVolume) * _barWidth / 2),
-						_barHeight);
+			vBarY1,
+			(int)((track.LeftVolume + track.RightVolume) * _barWidth / 2),
+			_barHeight);
 		if (rect.Width > 0)
 		{
 			float velocity = track.LeftVolume + track.RightVolume;

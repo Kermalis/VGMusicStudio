@@ -22,9 +22,18 @@
 
 	<ItemGroup>
 		<PackageReference Include="EndianBinaryIO" Version="2.1.0" /> <!--Only used for VGMSDebug right now-->
-		<PackageReference Include="Microsoft.WindowsAPICodePack-Core" Version="1.1.0.2" />
-		<PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0" />
-		<PackageReference Include="ObjectListView.Official" Version="2.9.1" />
+		
+		<!--These 3 are .NET framework 4.6.1 but still work-->
+		<PackageReference Include="Microsoft.WindowsAPICodePack-Core" Version="1.1.0.2">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		<PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		<PackageReference Include="ObjectListView.Official" Version="2.9.1">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		
 		<ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
 	</ItemGroup>
 

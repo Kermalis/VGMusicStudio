@@ -21,6 +21,8 @@ public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 	protected Mixer()
 	{
 		Mutes = new bool[SongState.MAX_TRACKS];
+		_out = null!;
+		_appVolume = null!;
 	}
 
 	protected void Init(IWaveProvider waveProvider)
@@ -99,6 +101,7 @@ public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 
 	public virtual void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		_out.Stop();
 		_out.Dispose();
 		_appVolume.Dispose();

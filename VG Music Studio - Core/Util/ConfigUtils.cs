@@ -10,7 +10,7 @@ namespace Kermalis.VGMusicStudio.Core.Util;
 public static class ConfigUtils
 {
 	public const string PROGRAM_NAME = "VG Music Studio";
-	private static readonly string[] _notes = new string[12] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+	private static ReadOnlySpan<string> Notes => new string[12] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 	private static readonly CultureInfo _enUS = new("en-US");
 	private static readonly Dictionary<int, string> _keyCache = new(128);
 
@@ -81,6 +81,7 @@ public static class ConfigUtils
 	}
 	/// <exception cref="BetterKeyNotFoundException" />
 	public static TValue GetValue<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+		where TKey : notnull
 	{
 		try
 		{
@@ -139,13 +140,14 @@ public static class ConfigUtils
 
 	public static string GetNoteName(int note)
 	{
-		return _notes[note];
+		return Notes[note];
 	}
 	public static string GetKeyName(int note)
 	{
 		if (!_keyCache.TryGetValue(note, out string? str))
 		{
-			str = _notes[note % 12] + ((note / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
+			// {C} + {5} = "C5"
+			str = Notes[note % 12] + ((note / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
 			_keyCache.Add(note, str);
 		}
 		return str;

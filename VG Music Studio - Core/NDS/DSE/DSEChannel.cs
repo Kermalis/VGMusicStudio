@@ -43,12 +43,14 @@ internal sealed class DSEChannel
 
 	public DSEChannel(byte i)
 	{
+		_sample = null!;
+		_adpcmDecoder = null!;
 		Index = i;
 	}
 
 	public bool StartPCM(SWD localswd, SWD masterswd, byte voice, int key, uint noteLength)
 	{
-		SWD.IProgramInfo? programInfo = localswd.Programs.ProgramInfos[voice];
+		SWD.IProgramInfo? programInfo = localswd.Programs?.ProgramInfos[voice];
 		if (programInfo is null)
 		{
 			return false;
@@ -62,7 +64,7 @@ internal sealed class DSEChannel
 				continue;
 			}
 
-			_sample = masterswd.Samples[split.SampleId];
+			_sample = masterswd.Samples![split.SampleId];
 			Key = (byte)key;
 			RootKey = split.SampleRootKey;
 			BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo.SampleRate);
@@ -102,10 +104,7 @@ internal sealed class DSEChannel
 
 	public void Stop()
 	{
-		if (Owner is not null)
-		{
-			Owner.Channels.Remove(this);
-		}
+		Owner?.Channels.Remove(this);
 		Owner = null;
 		Volume = 0;
 	}

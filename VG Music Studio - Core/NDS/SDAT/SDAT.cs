@@ -136,7 +136,7 @@ public sealed class SDAT
 			public byte Unknown1 { get; set; }
 			public byte Unknown2 { get; set; }
 			[BinaryArrayFixedLength(4)]
-			public ushort[] SWARs { get; set; }
+			public ushort[] SWARs { get; set; } = null!;
 		}
 		public sealed class WaveArchiveInfo
 		{

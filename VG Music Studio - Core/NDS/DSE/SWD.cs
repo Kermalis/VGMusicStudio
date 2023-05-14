@@ -15,7 +15,7 @@ internal sealed class SWD
 	private sealed class Header_V402 : IHeader // Size 0x40
 	{
 		[BinaryArrayFixedLength(8)]
-		public byte[] Unknown1 { get; set; }
+		public byte[] Unknown1 { get; set; } = null!;
 		public ushort Year { get; set; }
 		public byte Month { get; set; }
 		public byte Day { get; set; }
@@ -24,19 +24,19 @@ internal sealed class SWD
 		public byte Second { get; set; }
 		public byte Centisecond { get; set; }
 		[BinaryStringFixedLength(16)]
-		public string Label { get; set; }
+		public string Label { get; set; } = null!;
 		[BinaryArrayFixedLength(22)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		public byte NumWAVISlots { get; set; }
 		public byte NumPRGISlots { get; set; }
 		public byte NumKeyGroups { get; set; }
 		[BinaryArrayFixedLength(7)]
-		public byte[] Padding { get; set; }
+		public byte[] Padding { get; set; } = null!;
 	}
 	private sealed class Header_V415 : IHeader // Size 0x40
 	{
 		[BinaryArrayFixedLength(8)]
-		public byte[] Unknown1 { get; set; }
+		public byte[] Unknown1 { get; set; } = null!;
 		public ushort Year { get; set; }
 		public byte Month { get; set; }
 		public byte Day { get; set; }
@@ -45,16 +45,16 @@ internal sealed class SWD
 		public byte Second { get; set; }
 		public byte Centisecond { get; set; }
 		[BinaryStringFixedLength(16)]
-		public string Label { get; set; }
+		public string Label { get; set; } = null!;
 		[BinaryArrayFixedLength(16)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		public uint PCMDLength { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown3 { get; set; }
+		public byte[] Unknown3 { get; set; } = null!;
 		public ushort NumWAVISlots { get; set; }
 		public ushort NumPRGISlots { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown4 { get; set; }
+		public byte[] Unknown4 { get; set; } = null!;
 		public uint WAVILength { get; set; }
 	}
 
@@ -77,7 +77,7 @@ internal sealed class SWD
 	{
 		public ushort Id { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown1 { get; set; }
+		public byte[] Unknown1 { get; set; } = null!;
 		public byte LowKey { get; set; }
 		public byte HighKey { get; set; }
 		public byte LowKey2 { get; set; }
@@ -87,17 +87,17 @@ internal sealed class SWD
 		public byte LowVelocity2 { get; set; }
 		public byte HighVelocity2 { get; set; }
 		[BinaryArrayFixedLength(5)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		public byte SampleId { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown3 { get; set; }
+		public byte[] Unknown3 { get; set; } = null!;
 		public byte SampleRootKey { get; set; }
 		public sbyte SampleTranspose { get; set; }
 		public byte SampleVolume { get; set; }
 		public sbyte SamplePanpot { get; set; }
 		public byte KeyGroupId { get; set; }
 		[BinaryArrayFixedLength(15)]
-		public byte[] Unknown4 { get; set; }
+		public byte[] Unknown4 { get; set; } = null!;
 		public byte AttackVolume { get; set; }
 		public byte Attack { get; set; }
 		public byte Decay { get; set; }
@@ -114,7 +114,7 @@ internal sealed class SWD
 	{
 		public ushort Id { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown1 { get; set; }
+		public byte[] Unknown1 { get; set; } = null!;
 		public byte LowKey { get; set; }
 		public byte HighKey { get; set; }
 		public byte LowKey2 { get; set; }
@@ -124,17 +124,17 @@ internal sealed class SWD
 		public byte LowVelocity2 { get; set; }
 		public byte HighVelocity2 { get; set; }
 		[BinaryArrayFixedLength(6)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		public ushort SampleId { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown3 { get; set; }
+		public byte[] Unknown3 { get; set; } = null!;
 		public byte SampleRootKey { get; set; }
 		public sbyte SampleTranspose { get; set; }
 		public byte SampleVolume { get; set; }
 		public sbyte SamplePanpot { get; set; }
 		public byte KeyGroupId { get; set; }
 		[BinaryArrayFixedLength(13)]
-		public byte[] Unknown4 { get; set; }
+		public byte[] Unknown4 { get; set; } = null!;
 		public byte AttackVolume { get; set; }
 		public byte Attack { get; set; }
 		public byte Decay { get; set; }
@@ -157,20 +157,20 @@ internal sealed class SWD
 		public byte Id { get; set; }
 		public byte NumSplits { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown1 { get; set; }
+		public byte[] Unknown1 { get; set; } = null!;
 		public byte Volume { get; set; }
 		public byte Panpot { get; set; }
 		[BinaryArrayFixedLength(5)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		public byte NumLFOs { get; set; }
 		[BinaryArrayFixedLength(4)]
-		public byte[] Unknown3 { get; set; }
+		public byte[] Unknown3 { get; set; } = null!;
 		[BinaryArrayFixedLength(16)]
-		public KeyGroup[] KeyGroups { get; set; }
+		public KeyGroup[] KeyGroups { get; set; } = null!;
 		[BinaryArrayVariableLength(nameof(NumLFOs))]
-		public LFOInfo LFOInfos { get; set; }
+		public LFOInfo LFOInfos { get; set; } = null!;
 		[BinaryArrayVariableLength(nameof(NumSplits))]
-		public SplitEntry_V402[] SplitEntries { get; set; }
+		public SplitEntry_V402[] SplitEntries { get; set; } = null!;
 
 		[BinaryIgnore]
 		ISplitEntry[] IProgramInfo.SplitEntries => SplitEntries;
@@ -182,16 +182,16 @@ internal sealed class SWD
 		public byte Volume { get; set; }
 		public byte Panpot { get; set; }
 		[BinaryArrayFixedLength(5)]
-		public byte[] Unknown1 { get; set; }
+		public byte[] Unknown1 { get; set; } = null!;
 		public byte NumLFOs { get; set; }
 		[BinaryArrayFixedLength(4)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		[BinaryArrayVariableLength(nameof(NumLFOs))]
-		public LFOInfo[] LFOInfos { get; set; }
+		public LFOInfo[] LFOInfos { get; set; } = null!;
 		[BinaryArrayFixedLength(16)]
-		public byte[] Unknown3 { get; set; }
+		public byte[] Unknown3 { get; set; } = null!;
 		[BinaryArrayVariableLength(nameof(NumSplits))]
-		public SplitEntry_V415[] SplitEntries { get; set; }
+		public SplitEntry_V415[] SplitEntries { get; set; } = null!;
 
 		[BinaryIgnore]
 		ISplitEntry[] IProgramInfo.SplitEntries => SplitEntries;
@@ -221,25 +221,25 @@ internal sealed class SWD
 		public byte Unknown1 { get; set; }
 		public byte Id { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		public byte RootNote { get; set; }
 		public sbyte Transpose { get; set; }
 		public byte Volume { get; set; }
 		public sbyte Panpot { get; set; }
 		public SampleFormat SampleFormat { get; set; }
 		[BinaryArrayFixedLength(7)]
-		public byte[] Unknown3 { get; set; }
+		public byte[] Unknown3 { get; set; } = null!;
 		public bool Loop { get; set; }
 		public uint SampleRate { get; set; }
 		public uint SampleOffset { get; set; }
 		public uint LoopStart { get; set; }
 		public uint LoopEnd { get; set; }
 		[BinaryArrayFixedLength(16)]
-		public byte[] Unknown4 { get; set; }
+		public byte[] Unknown4 { get; set; } = null!;
 		public byte EnvOn { get; set; }
 		public byte EnvMult { get; set; }
 		[BinaryArrayFixedLength(6)]
-		public byte[] Unknown5 { get; set; }
+		public byte[] Unknown5 { get; set; } = null!;
 		public byte AttackVolume { get; set; }
 		public byte Attack { get; set; }
 		public byte Decay { get; set; }
@@ -252,16 +252,16 @@ internal sealed class SWD
 	public sealed class WavInfo_V415 : IWavInfo // 0x40
 	{
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown1 { get; set; }
+		public byte[] Unknown1 { get; set; } = null!;
 		public ushort Id { get; set; }
 		[BinaryArrayFixedLength(2)]
-		public byte[] Unknown2 { get; set; }
+		public byte[] Unknown2 { get; set; } = null!;
 		public byte RootNote { get; set; }
 		public sbyte Transpose { get; set; }
 		public byte Volume { get; set; }
 		public sbyte Panpot { get; set; }
 		[BinaryArrayFixedLength(6)]
-		public byte[] Unknown3 { get; set; }
+		public byte[] Unknown3 { get; set; } = null!;
 		public ushort Version { get; set; }
 		public SampleFormat SampleFormat { get; set; }
 		public byte Unknown4 { get; set; }
@@ -271,7 +271,7 @@ internal sealed class SWD
 		public byte Unknown6 { get; set; }
 		public byte BitDepth { get; set; }
 		[BinaryArrayFixedLength(6)]
-		public byte[] Unknown7 { get; set; }
+		public byte[] Unknown7 { get; set; } = null!;
 		public uint SampleRate { get; set; }
 		public uint SampleOffset { get; set; }
 		public uint LoopStart { get; set; }
@@ -279,7 +279,7 @@ internal sealed class SWD
 		public byte EnvOn { get; set; }
 		public byte EnvMult { get; set; }
 		[BinaryArrayFixedLength(6)]
-		public byte[] Unknown8 { get; set; }
+		public byte[] Unknown8 { get; set; } = null!;
 		public byte AttackVolume { get; set; }
 		public byte Attack { get; set; }
 		public byte Decay { get; set; }
@@ -292,13 +292,13 @@ internal sealed class SWD
 
 	public class SampleBlock
 	{
-		public IWavInfo WavInfo;
-		public byte[] Data;
+		public IWavInfo WavInfo = null!;
+		public byte[] Data = null!;
 	}
 	public class ProgramBank
 	{
-		public IProgramInfo?[] ProgramInfos;
-		public KeyGroup[] KeyGroups;
+		public IProgramInfo?[] ProgramInfos = null!;
+		public KeyGroup[] KeyGroups = null!;
 	}
 	public class KeyGroup // Size 0x8
 	{
@@ -331,13 +331,14 @@ internal sealed class SWD
 	public byte[] Unknown2;
 
 	public ProgramBank? Programs;
-	public SampleBlock[] Samples;
+	public SampleBlock[]? Samples;
 
 	public SWD(string path)
 	{
 		using (FileStream stream = File.OpenRead(path))
 		{
 			var r = new EndianBinaryReader(stream, ascii: true);
+
 			Type = r.ReadString_Count(4);
 			Unknown1 = new byte[4];
 			r.ReadBytes(Unknown1);
@@ -345,6 +346,7 @@ internal sealed class SWD
 			Version = r.ReadUInt16();
 			Unknown2 = new byte[2];
 			r.ReadBytes(Unknown2);
+
 			switch (Version)
 			{
 				case 0x402:

@@ -27,6 +27,9 @@ public sealed class SongState
 			{
 				Keys[i] = byte.MaxValue;
 			}
+
+			Type = null!;
+			PreviousKeys = null!;
 		}
 
 		public void Reset()
@@ -36,7 +39,7 @@ public sealed class SongState
 			LFO = PitchBend = PreviousKeysTime = 0;
 			Panpot = 0;
 			LeftVolume = RightVolume = 0f;
-			Type = PreviousKeys = null;
+			Type = PreviousKeys = null!;
 			for (int i = 0; i < MAX_KEYS; i++)
 			{
 				Keys[i] = byte.MaxValue;
@@ -48,7 +51,7 @@ public sealed class SongState
 	public const int MAX_TRACKS = 18; // PMD2 has a few songs with 18 tracks
 
 	public ushort Tempo;
-	public Track[] Tracks;
+	public readonly Track[] Tracks;
 
 	public SongState()
 	{

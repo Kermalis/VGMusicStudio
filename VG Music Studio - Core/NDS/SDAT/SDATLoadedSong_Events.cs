@@ -7,15 +7,16 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
 
 internal sealed partial class SDATLoadedSong
 {
-	private void AddEvent<T>(byte trackIndex, long cmdOffset, T command, ArgType argOverrideType) where T : SDATCommand, ICommand
+	private void AddEvent<T>(byte trackIndex, long cmdOffset, T command, ArgType argOverrideType)
+		where T : SDATCommand, ICommand
 	{
 		command.RandMod = argOverrideType == ArgType.Rand;
 		command.VarMod = argOverrideType == ArgType.PlayerVar;
-		Events[trackIndex].Add(new SongEvent(cmdOffset, command));
+		Events[trackIndex]!.Add(new SongEvent(cmdOffset, command));
 	}
 	private bool EventExists(byte trackIndex, long cmdOffset)
 	{
-		return Events[trackIndex].Exists(e => e.Offset == cmdOffset);
+		return Events[trackIndex]!.Exists(e => e.Offset == cmdOffset);
 	}
 
 	private int ReadArg(ref int dataOffset, ArgType type)
@@ -63,7 +64,7 @@ internal sealed partial class SDATLoadedSong
 
 	private void AddTrackEvents(byte trackIndex, int trackStartOffset)
 	{
-		ref List<SongEvent> trackEvents = ref Events[trackIndex];
+		ref List<SongEvent>? trackEvents = ref Events[trackIndex];
 		trackEvents ??= new List<SongEvent>();
 
 		int callStackDepth = 0;
@@ -637,10 +638,7 @@ internal sealed partial class SDATLoadedSong
 		for (int i = 0; i < 0x10; i++)
 		{
 			ref List<SongEvent>? evs = ref Events[i];
-			if (evs is not null)
-			{
-				evs.Sort((e1, e2) => e1.Offset.CompareTo(e2.Offset));
-			}
+			evs?.Sort((e1, e2) => e1.Offset.CompareTo(e2.Offset));
 		}
 		_player.InitEmulation();
 

@@ -92,7 +92,7 @@ internal sealed class SkipBytesCommand : ICommand
 	public string Arguments => string.Join(", ", SkippedBytes.Select(b => $"0x{b:X}"));
 
 	public byte Command { get; set; }
-	public byte[] SkippedBytes { get; set; }
+	public byte[] SkippedBytes { get; set; } = null!;
 }
 internal sealed class TempoCommand : ICommand
 {
@@ -110,7 +110,7 @@ internal sealed class UnknownCommand : ICommand
 	public string Arguments => string.Join(", ", Args.Select(b => $"0x{b:X}"));
 
 	public byte Command { get; set; }
-	public byte[] Args { get; set; }
+	public byte[] Args { get; set; } = null!;
 }
 internal sealed class VoiceCommand : ICommand
 {
