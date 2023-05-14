@@ -49,7 +49,7 @@ internal sealed class SDATChannel
 	// PCM8, PCM16
 	private int _dataOffset;
 	// ADPCM
-	private ADPCMDecoder? _adpcmDecoder;
+	private ADPCMDecoder _adpcmDecoder;
 	private short _adpcmLoopLastSample;
 	private short _adpcmLoopStepIndex;
 	// PSG
@@ -70,7 +70,7 @@ internal sealed class SDATChannel
 		_swav = swav;
 		if (swav.Format == SWAVFormat.ADPCM)
 		{
-			_adpcmDecoder = new ADPCMDecoder(swav.Samples);
+			_adpcmDecoder.Init(swav.Samples);
 		}
 		BaseTimer = swav.Timer;
 		Start(noteDuration);
@@ -102,10 +102,7 @@ internal sealed class SDATChannel
 
 	public void Stop()
 	{
-		if (Owner is not null)
-		{
-			Owner.Channels.Remove(this);
-		}
+		Owner?.Channels.Remove(this);
 		Owner = null;
 		Volume = 0;
 		Priority = 0;
@@ -249,7 +246,7 @@ internal sealed class SDATChannel
 				}
 				case SWAVFormat.ADPCM:
 				{
-					if (_adpcmDecoder!.DataOffset >= _swav.Samples.Length && !_adpcmDecoder.OnSecondNibble)
+					if (_adpcmDecoder.DataOffset >= _swav.Samples.Length && !_adpcmDecoder.OnSecondNibble)
 					{
 						Stop();
 					}
@@ -329,13 +326,13 @@ internal sealed class SDATChannel
 						case SWAVFormat.ADPCM:
 						{
 							// If just looped
-							if (_swav.DoesLoop && _adpcmDecoder!.DataOffset == _swav.LoopOffset * 4 && !_adpcmDecoder.OnSecondNibble)
+							if (_swav.DoesLoop && _adpcmDecoder.DataOffset == _swav.LoopOffset * 4 && !_adpcmDecoder.OnSecondNibble)
 							{
 								_adpcmLoopLastSample = _adpcmDecoder.LastSample;
 								_adpcmLoopStepIndex = _adpcmDecoder.StepIndex;
 							}
 							// If hit end
-							if (_adpcmDecoder!.DataOffset >= _swav.Samples.Length && !_adpcmDecoder.OnSecondNibble)
+							if (_adpcmDecoder.DataOffset >= _swav.Samples.Length && !_adpcmDecoder.OnSecondNibble)
 							{
 								if (_swav.DoesLoop)
 								{

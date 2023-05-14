@@ -1,8 +1,10 @@
-﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
+﻿using System;
+
+namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
 internal static class DSEUtils
 {
-	public static short[] Duration16 = new short[128]
+	public static ReadOnlySpan<short> Duration16 => new short[128]
 	{
 		0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007,
 		0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
@@ -21,7 +23,7 @@ internal static class DSEUtils
 		0x16D0, 0x17A2, 0x187E, 0x195A, 0x1A40, 0x1B30, 0x1C20, 0x1D1A,
 		0x1E1E, 0x1F22, 0x2030, 0x2148, 0x2260, 0x2382, 0x2710, 0x7FFF,
 	};
-	public static int[] Duration32 = new int[128]
+	public static ReadOnlySpan<int> Duration32 => new int[128]
 	{
 		0x00000000, 0x00000004, 0x00000007, 0x0000000A, 0x0000000F, 0x00000015, 0x0000001C, 0x00000024,
 		0x0000002E, 0x0000003A, 0x00000048, 0x00000057, 0x00000068, 0x0000007B, 0x00000091, 0x000000A8,
@@ -40,13 +42,13 @@ internal static class DSEUtils
 		0x000341B0, 0x000355F8, 0x00036A90, 0x00037F79, 0x000394B4, 0x0003AA41, 0x0003C021, 0x0003D654,
 		0x0003ECDA, 0x000403B5, 0x00041AE5, 0x0004326A, 0x00044A45, 0x00046277, 0x00047B00, 0x7FFFFFFF,
 	};
-	public static readonly byte[] FixedRests = new byte[0x10]
+	public static ReadOnlySpan<byte> FixedRests => new byte[0x10]
 	{
 		96, 72, 64, 48, 36, 32, 24, 18, 16, 12, 9, 8, 6, 4, 3, 2,
 	};
 
 	public static bool IsStateRemovable(EnvelopeState state)
 	{
-		return state == EnvelopeState.Two || state >= EnvelopeState.Seven;
+		return state is EnvelopeState.Two or >= EnvelopeState.Seven;
 	}
 }

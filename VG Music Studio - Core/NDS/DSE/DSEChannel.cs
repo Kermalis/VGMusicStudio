@@ -44,7 +44,6 @@ internal sealed class DSEChannel
 	public DSEChannel(byte i)
 	{
 		_sample = null!;
-		_adpcmDecoder = null!;
 		Index = i;
 	}
 
@@ -70,7 +69,7 @@ internal sealed class DSEChannel
 			BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo.SampleRate);
 			if (_sample.WavInfo.SampleFormat == SampleFormat.ADPCM)
 			{
-				_adpcmDecoder = new ADPCMDecoder(_sample.Data);
+				_adpcmDecoder.Init(_sample.Data);
 			}
 			//attackVolume = sample.WavInfo.AttackVolume == 0 ? split.AttackVolume : sample.WavInfo.AttackVolume;
 			//attack = sample.WavInfo.Attack == 0 ? split.Attack : sample.WavInfo.Attack;

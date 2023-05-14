@@ -1,4 +1,6 @@
-﻿namespace Kermalis.VGMusicStudio.Core.GBA;
+﻿using System;
+
+namespace Kermalis.VGMusicStudio.Core.GBA;
 
 internal static class GBAUtils
 {
@@ -8,5 +10,5 @@ internal static class GBAUtils
 	public const int CARTRIDGE_OFFSET = 0x08_000_000;
 	public const int CARTRIDGE_CAPACITY = 0x02_000_000;
 
-	public static readonly string[] PSGTypes = new string[4] { "Square 1", "Square 2", "PCM4", "Noise" };
+	public static ReadOnlySpan<string> PSGTypes => new string[4] { "Square 1", "Square 2", "PCM4", "Noise" };
 }

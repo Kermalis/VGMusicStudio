@@ -1,13 +1,14 @@
-﻿namespace Kermalis.VGMusicStudio.Core;
+﻿using System;
 
-// TODO: Struct or something to prevent allocations
-internal sealed class ADPCMDecoder
+namespace Kermalis.VGMusicStudio.Core;
+
+internal struct ADPCMDecoder
 {
-	private static readonly short[] _indexTable = new short[8]
+	private static ReadOnlySpan<short> IndexTable => new short[8]
 	{
 		-1, -1, -1, -1, 2, 4, 6, 8,
 	};
-	private static readonly short[] _stepTable = new short[89]
+	private static ReadOnlySpan<short> StepTable => new short[89]
 	{
 		00007, 00008, 00009, 00010, 00011, 00012, 00013, 00014,
 		00016, 00017, 00019, 00021, 00023, 00025, 00028, 00031,
@@ -23,24 +24,26 @@ internal sealed class ADPCMDecoder
 		32767,
 	};
 
-	private readonly byte[] _data;
+	private byte[] _data;
 	public short LastSample;
 	public short StepIndex;
 	public int DataOffset;
 	public bool OnSecondNibble;
 
-	public ADPCMDecoder(byte[] data)
+	public void Init(byte[] data)
 	{
+		_data = data;
 		LastSample = (short)(data[0] | (data[1] << 8));
 		StepIndex = (short)((data[2] | (data[3] << 8)) & 0x7F);
 		DataOffset = 4;
-		_data = data;
+		OnSecondNibble = false;
 	}
 
-	// TODO: Span?
 	public static short[] ADPCMToPCM16(byte[] data)
 	{
-		var decoder = new ADPCMDecoder(data);
+		var decoder = new ADPCMDecoder();
+		decoder.Init(data);
+
 		short[] buffer = new short[(data.Length - 4) * 2];
 		for (int i = 0; i < buffer.Length; i++)
 		{
@@ -52,7 +55,7 @@ internal sealed class ADPCMDecoder
 	public short GetSample()
 	{
 		int val = (_data[DataOffset] >> (OnSecondNibble ? 4 : 0)) & 0xF;
-		short step = _stepTable[StepIndex];
+		short step = StepTable[StepIndex];
 		int diff =
 			(step / 8) +
 			(step / 4 * (val & 1)) +
@@ -70,7 +73,7 @@ internal sealed class ADPCMDecoder
 		}
 		LastSample = (short)a;
 
-		a = StepIndex + _indexTable[val & 7];
+		a = StepIndex + IndexTable[val & 7];
 		if (a < 0)
 		{
 			a = 0;
