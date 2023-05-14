@@ -185,6 +185,7 @@ public abstract class Player : IDisposable
 
 	public void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		if (State != PlayerState.ShutDown)
 		{
 			State = PlayerState.ShutDown;

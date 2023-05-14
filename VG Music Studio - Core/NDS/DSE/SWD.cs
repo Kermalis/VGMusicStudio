@@ -378,6 +378,7 @@ internal sealed class SWD
 		long pos = -1;
 		long oldPosition = r.Stream.Position;
 		r.Stream.Position = 0;
+
 		while (r.Stream.Position < r.Stream.Length)
 		{
 			string str = r.ReadString_Count(4);
@@ -386,6 +387,7 @@ internal sealed class SWD
 				pos = r.Stream.Position - 4;
 				break;
 			}
+
 			switch (str)
 			{
 				case "swdb":
@@ -405,6 +407,7 @@ internal sealed class SWD
 				}
 			}
 		}
+
 		r.Stream.Position = oldPosition;
 		return pos;
 	}

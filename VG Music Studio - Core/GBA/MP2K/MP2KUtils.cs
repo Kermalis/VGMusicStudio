@@ -31,7 +31,7 @@ internal static partial class MP2KUtils
 		(42048, 704), // 59.72727272727273
 	};
 
-	// Squares
+	// Squares (Use arrays since they are stored as references in MP2KSquareChannel)
 	public static readonly float[] SquareD12 = new float[8] { 0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, };
 	public static readonly float[] SquareD25 = new float[8] { 0.750f, 0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, };
 	public static readonly float[] SquareD50 = new float[8] { 0.500f, 0.500f, 0.500f, 0.500f, -0.500f, -0.500f, -0.500f, -0.500f, };

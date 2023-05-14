@@ -71,7 +71,8 @@ public static class ConfigUtils
 		return result;
 	}
 	/// <exception cref="InvalidValueException" />
-	public static TEnum ParseEnum<TEnum>(string valueName, string value) where TEnum : unmanaged
+	public static TEnum ParseEnum<TEnum>(string valueName, string value)
+		where TEnum : unmanaged
 	{
 		if (!Enum.TryParse(value, out TEnum result))
 		{
@@ -106,7 +107,8 @@ public static class ConfigUtils
 	}
 	/// <exception cref="BetterKeyNotFoundException" />
 	/// <exception cref="InvalidValueException" />
-	public static TEnum GetValidEnum<TEnum>(this YamlMappingNode yamlNode, string key) where TEnum : unmanaged
+	public static TEnum GetValidEnum<TEnum>(this YamlMappingNode yamlNode, string key)
+		where TEnum : unmanaged
 	{
 		return ParseEnum<TEnum>(key, yamlNode.Children.GetValue(key).ToString());
 	}
@@ -142,13 +144,13 @@ public static class ConfigUtils
 	{
 		return Notes[note];
 	}
-	public static string GetKeyName(int note)
+	public static string GetKeyName(int midiNote)
 	{
-		if (!_keyCache.TryGetValue(note, out string? str))
+		if (!_keyCache.TryGetValue(midiNote, out string? str))
 		{
 			// {C} + {5} = "C5"
-			str = Notes[note % 12] + ((note / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
-			_keyCache.Add(note, str);
+			str = Notes[midiNote % 12] + ((midiNote / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
+			_keyCache.Add(midiNote, str);
 		}
 		return str;
 	}
