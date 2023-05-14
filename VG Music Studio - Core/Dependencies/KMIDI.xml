@@ -8,6 +8,9 @@
             <summary>Includes the end of track event</summary>
         </member>
         <member name="M:Kermalis.MIDI.MIDITrackChunk.InsertMessage(System.Int32,Kermalis.MIDI.MIDIMessage)">
+            <summary><inheritdoc cref="M:Kermalis.MIDI.MIDITrackChunk.InsertMessage``1(System.Int32,``0)"/></summary>
+        </member>
+        <member name="M:Kermalis.MIDI.MIDITrackChunk.InsertMessage``1(System.Int32,``0)">
             <summary>If there are other events at <paramref name="ticks"/>, <paramref name="msg"/> will be inserted after them.</summary>
         </member>
         <member name="P:Kermalis.MIDI.MIDIUnsupportedChunk.ChunkName">
@@ -58,8 +61,14 @@
         <member name="T:Kermalis.MIDI.MIDIProgram">
             <summary>Used with <see cref="T:Kermalis.MIDI.ProgramChangeMessage"/></summary>
         </member>
-        <member name="P:Kermalis.MIDI.MIDIEvent.DeltaTicks">
-            <summary>How many ticks are between this event and the previous one. If this is the first event in the track, then it is equal to <see cref="P:Kermalis.MIDI.MIDIEvent.Ticks"/></summary>
+        <member name="P:Kermalis.MIDI.IMIDIEvent.DeltaTicks">
+            <summary>How many ticks are between this event and the previous one. If this is the first event in the track, then it is equal to <see cref="P:Kermalis.MIDI.IMIDIEvent.Ticks"/></summary>
+        </member>
+        <member name="M:Kermalis.MIDI.PitchBendMessage.GetPitchAsInt">
+            <summary>Returns a value in the range [-8_192, 8_191]</summary>
+        </member>
+        <member name="M:Kermalis.MIDI.PitchBendMessage.GetPitchAsInt(System.Byte,System.Byte)">
+            <summary><inheritdoc cref="M:Kermalis.MIDI.PitchBendMessage.GetPitchAsInt"/></summary>
         </member>
         <member name="F:Kermalis.MIDI.MIDINote.C_4">
             <summary>Middle C</summary>

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
-internal static class MP2KUtils
+internal static partial class MP2KUtils
 {
-	public static readonly byte[] RestTable = new byte[49]
+	public static ReadOnlySpan<byte> RestTable => new byte[49]
 	{
 		00, 01, 02, 03, 04, 05, 06, 07,
 		08, 09, 10, 11, 12, 13, 14, 15,
@@ -16,7 +15,7 @@ internal static class MP2KUtils
 		72, 76, 78, 80, 84, 88, 90, 92,
 		96,
 	};
-	public static readonly (int sampleRate, int samplesPerBuffer)[] FrequencyTable = new (int, int)[12]
+	public static ReadOnlySpan<(int sampleRate, int samplesPerBuffer)> FrequencyTable => new (int, int)[12]
 	{
 		(05734, 096), // 59.72916666666667
 		(07884, 132), // 59.72727272727273
@@ -33,15 +32,15 @@ internal static class MP2KUtils
 	};
 
 	// Squares
-	public static readonly float[] SquareD12 = new float[8] {  0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, };
-	public static readonly float[] SquareD25 = new float[8] {  0.750f,  0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, };
-	public static readonly float[] SquareD50 = new float[8] {  0.500f,  0.500f,  0.500f,  0.500f, -0.500f, -0.500f, -0.500f, -0.500f, };
-	public static readonly float[] SquareD75 = new float[8] {  0.250f,  0.250f,  0.250f,  0.250f,  0.250f,  0.250f, -0.750f, -0.750f, };
+	public static readonly float[] SquareD12 = new float[8] { 0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, };
+	public static readonly float[] SquareD25 = new float[8] { 0.750f, 0.750f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, -0.250f, };
+	public static readonly float[] SquareD50 = new float[8] { 0.500f, 0.500f, 0.500f, 0.500f, -0.500f, -0.500f, -0.500f, -0.500f, };
+	public static readonly float[] SquareD75 = new float[8] { 0.250f, 0.250f, 0.250f, 0.250f, 0.250f, 0.250f, -0.750f, -0.750f, };
 
 	// Noises
 	public static readonly BitArray NoiseFine;
 	public static readonly BitArray NoiseRough;
-	public static readonly byte[] NoiseFrequencyTable = new byte[60]
+	public static ReadOnlySpan<byte> NoiseFrequencyTable => new byte[60]
 	{
 		0xD7, 0xD6, 0xD5, 0xD4,
 		0xC7, 0xC6, 0xC5, 0xC4,
@@ -78,55 +77,6 @@ internal static class MP2KUtils
 		{
 			dest[i] -= dcCorrection;
 		}
-	}
-
-	// Pokémon Only
-	private static readonly sbyte[] _compressionLookup = new sbyte[16]
-	{
-		0, 1, 4, 9, 16, 25, 36, 49, -64, -49, -36, -25, -16, -9, -4, -1,
-	};
-	// TODO: Do runtime
-	public static sbyte[] Decompress(ReadOnlySpan<byte> src, int sampleLength)
-	{
-		var samples = new List<sbyte>();
-		sbyte compressionLevel = 0;
-		int compressionByte = 0, compressionIdx = 0;
-
-		for (int i = 0; true; i++)
-		{
-			byte b = src[i];
-			if (compressionByte == 0)
-			{
-				compressionByte = 0x20;
-				compressionLevel = (sbyte)b;
-				samples.Add(compressionLevel);
-				if (++compressionIdx >= sampleLength)
-				{
-					break;
-				}
-			}
-			else
-			{
-				if (compressionByte < 0x20)
-				{
-					compressionLevel += _compressionLookup[b >> 4];
-					samples.Add(compressionLevel);
-					if (++compressionIdx >= sampleLength)
-					{
-						break;
-					}
-				}
-				compressionByte--;
-				compressionLevel += _compressionLookup[b & 0xF];
-				samples.Add(compressionLevel);
-				if (++compressionIdx >= sampleLength)
-				{
-					break;
-				}
-			}
-		}
-
-		return samples.ToArray();
 	}
 
 	static MP2KUtils()

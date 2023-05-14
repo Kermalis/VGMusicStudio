@@ -14,7 +14,6 @@ public sealed class MP2KConfig : Config
 	private const string CONFIG_FILE = "MP2K.yaml";
 
 	internal readonly byte[] ROM;
-	internal readonly EndianBinaryReader Reader; // TODO: Need?
 	internal readonly string GameCode;
 	internal readonly byte Version;
 
@@ -31,16 +30,17 @@ public sealed class MP2KConfig : Config
 	internal MP2KConfig(byte[] rom)
 	{
 		using (StreamReader fileStream = File.OpenText(ConfigUtils.CombineWithBaseDirectory(CONFIG_FILE)))
+		using (var ms = new MemoryStream(rom))
 		{
 			string gcv = string.Empty;
 			try
 			{
 				ROM = rom;
-				Reader = new EndianBinaryReader(new MemoryStream(rom), ascii: true);
-				Reader.Stream.Position = 0xAC;
-				GameCode = Reader.ReadString_Count(4);
-				Reader.Stream.Position = 0xBC;
-				Version = Reader.ReadByte();
+				var r = new EndianBinaryReader(ms, ascii: true);
+				r.Stream.Position = 0xAC;
+				GameCode = r.ReadString_Count(4);
+				r.Stream.Position = 0xBC;
+				Version = r.ReadByte();
 				gcv = $"{GameCode}_{Version:X2}";
 				var yaml = new YamlStream();
 				yaml.Load(fileStream);
@@ -239,10 +239,5 @@ public sealed class MP2KConfig : Config
 			return s.Name;
 		}
 		return index.ToString();
-	}
-
-	public override void Dispose()
-	{
-		Reader.Stream.Dispose();
 	}
 }

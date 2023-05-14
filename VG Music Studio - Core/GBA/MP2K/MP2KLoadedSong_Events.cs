@@ -1,6 +1,7 @@
 ﻿using Kermalis.EndianBinaryIO;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
@@ -44,259 +45,261 @@ internal sealed partial class MP2KLoadedSong
 	}
 	private void AddEvents(byte trackIndex, long startOffset, ref byte runCmd, ref byte prevKey, ref byte prevVelocity, ref int callStackDepth)
 	{
-		EndianBinaryReader r = _player.Config.Reader;
-		r.Stream.Position = startOffset;
-
-		Span<byte> peek = stackalloc byte[3];
-		bool cont = true;
-		while (cont)
+		using (var ms = new MemoryStream(_player.Config.ROM))
 		{
-			long offset = r.Stream.Position;
+			var r = new EndianBinaryReader(ms, ascii: true);
+			r.Stream.Position = startOffset;
 
-			byte cmd = r.ReadByte();
-			if (cmd >= 0xBD) // Commands that work within running status
+			Span<byte> peek = stackalloc byte[3];
+			bool cont = true;
+			while (cont)
 			{
-				runCmd = cmd;
-			}
+				long offset = r.Stream.Position;
 
-			#region TIE & Notes
+				byte cmd = r.ReadByte();
+				if (cmd >= 0xBD) // Commands that work within running status
+				{
+					runCmd = cmd;
+				}
 
-			if (runCmd >= 0xCF && cmd <= 0x7F) // Within running status
-			{
-				byte velocity, addedDuration;
-				r.PeekBytes(peek.Slice(0, 2));
-				if (peek[0] > 0x7F)
-				{
-					velocity = prevVelocity;
-					addedDuration = 0;
-				}
-				else if (peek[1] > 3)
-				{
-					velocity = r.ReadByte();
-					addedDuration = 0;
-				}
-				else
-				{
-					velocity = r.ReadByte();
-					addedDuration = r.ReadByte();
-				}
-				EmulateNote(trackIndex, offset, cmd, velocity, addedDuration, ref runCmd, ref prevKey, ref prevVelocity);
-			}
-			else if (cmd >= 0xCF)
-			{
-				byte key, velocity, addedDuration;
-				r.PeekBytes(peek);
-				if (peek[0] > 0x7F)
-				{
-					key = prevKey;
-					velocity = prevVelocity;
-					addedDuration = 0;
-				}
-				else if (peek[1] > 0x7F)
-				{
-					key = r.ReadByte();
-					velocity = prevVelocity;
-					addedDuration = 0;
-				}
-				// TIE (0xCF) cannot have an added duration so it needs to stop here
-				else if (cmd == 0xCF || peek[2] > 3)
-				{
-					key = r.ReadByte();
-					velocity = r.ReadByte();
-					addedDuration = 0;
-				}
-				else
-				{
-					key = r.ReadByte();
-					velocity = r.ReadByte();
-					addedDuration = r.ReadByte();
-				}
-				EmulateNote(trackIndex, offset, key, velocity, addedDuration, ref runCmd, ref prevKey, ref prevVelocity);
-			}
+				#region TIE & Notes
 
-			#endregion
-
-			#region Rests
-
-			else if (cmd >= 0x80 && cmd <= 0xB0)
-			{
-				if (!EventExists(trackIndex, offset))
+				if (runCmd >= 0xCF && cmd <= 0x7F) // Within running status
 				{
-					AddEvent(trackIndex, offset, new RestCommand { Rest = MP2KUtils.RestTable[cmd - 0x80] });
+					byte velocity, addedDuration;
+					r.PeekBytes(peek.Slice(0, 2));
+					if (peek[0] > 0x7F)
+					{
+						velocity = prevVelocity;
+						addedDuration = 0;
+					}
+					else if (peek[1] > 3)
+					{
+						velocity = r.ReadByte();
+						addedDuration = 0;
+					}
+					else
+					{
+						velocity = r.ReadByte();
+						addedDuration = r.ReadByte();
+					}
+					EmulateNote(trackIndex, offset, cmd, velocity, addedDuration, ref runCmd, ref prevKey, ref prevVelocity);
 				}
-			}
-
-			#endregion
-
-			#region Commands
-
-			else if (runCmd < 0xCF && cmd <= 0x7F)
-			{
-				switch (runCmd)
+				else if (cmd >= 0xCF)
 				{
-					case 0xBD:
+					byte key, velocity, addedDuration;
+					r.PeekBytes(peek);
+					if (peek[0] > 0x7F)
 					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new VoiceCommand { Voice = cmd });
-						}
-						break;
+						key = prevKey;
+						velocity = prevVelocity;
+						addedDuration = 0;
 					}
-					case 0xBE:
+					else if (peek[1] > 0x7F)
 					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new VolumeCommand { Volume = cmd });
-						}
-						break;
+						key = r.ReadByte();
+						velocity = prevVelocity;
+						addedDuration = 0;
 					}
-					case 0xBF:
+					// TIE (0xCF) cannot have an added duration so it needs to stop here
+					else if (cmd == 0xCF || peek[2] > 3)
 					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new PanpotCommand { Panpot = (sbyte)(cmd - 0x40) });
-						}
-						break;
+						key = r.ReadByte();
+						velocity = r.ReadByte();
+						addedDuration = 0;
 					}
-					case 0xC0:
+					else
 					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new PitchBendCommand { Bend = (sbyte)(cmd - 0x40) });
-						}
-						break;
+						key = r.ReadByte();
+						velocity = r.ReadByte();
+						addedDuration = r.ReadByte();
 					}
-					case 0xC1:
-					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new PitchBendRangeCommand { Range = cmd });
-						}
-						break;
-					}
-					case 0xC2:
-					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new LFOSpeedCommand { Speed = cmd });
-						}
-						break;
-					}
-					case 0xC3:
-					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new LFODelayCommand { Delay = cmd });
-						}
-						break;
-					}
-					case 0xC4:
-					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new LFODepthCommand { Depth = cmd });
-						}
-						break;
-					}
-					case 0xC5:
-					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new LFOTypeCommand { Type = (LFOType)cmd });
-						}
-						break;
-					}
-					case 0xC8:
-					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new TuneCommand { Tune = (sbyte)(cmd - 0x40) });
-						}
-						break;
-					}
-					case 0xCD:
-					{
-						byte arg = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new LibraryCommand { Command = cmd, Argument = arg });
-						}
-						break;
-					}
-					case 0xCE:
-					{
-						prevKey = cmd;
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new EndOfTieCommand { Note = cmd });
-						}
-						break;
-					}
-					default: throw new MP2KInvalidRunningStatusCMDException(trackIndex, (int)offset, runCmd);
+					EmulateNote(trackIndex, offset, key, velocity, addedDuration, ref runCmd, ref prevKey, ref prevVelocity);
 				}
-			}
-			else if (cmd > 0xB0 && cmd < 0xCF)
-			{
-				switch (cmd)
+
+				#endregion
+
+				#region Rests
+
+				else if (cmd is >= 0x80 and <= 0xB0)
 				{
-					case 0xB1:
-					case 0xB6:
+					if (!EventExists(trackIndex, offset))
 					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new FinishCommand { Prev = cmd == 0xB6 });
-						}
-						cont = false;
-						break;
+						AddEvent(trackIndex, offset, new RestCommand { Rest = MP2KUtils.RestTable[cmd - 0x80] });
 					}
-					case 0xB2:
+				}
+
+				#endregion
+
+				#region Commands
+
+				else if (runCmd < 0xCF && cmd <= 0x7F)
+				{
+					switch (runCmd)
 					{
-						int jumpOffset = r.ReadInt32() - GBAUtils.CARTRIDGE_OFFSET;
-						if (!EventExists(trackIndex, offset))
+						case 0xBD:
 						{
-							AddEvent(trackIndex, offset, new JumpCommand { Offset = jumpOffset });
-							if (!EventExists(trackIndex, jumpOffset))
+							if (!EventExists(trackIndex, offset))
 							{
-								AddEvents(trackIndex, jumpOffset, ref runCmd, ref prevKey, ref prevVelocity, ref callStackDepth);
+								AddEvent(trackIndex, offset, new VoiceCommand { Voice = cmd });
 							}
+							break;
 						}
-						cont = false;
-						break;
+						case 0xBE:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new VolumeCommand { Volume = cmd });
+							}
+							break;
+						}
+						case 0xBF:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new PanpotCommand { Panpot = (sbyte)(cmd - 0x40) });
+							}
+							break;
+						}
+						case 0xC0:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new PitchBendCommand { Bend = (sbyte)(cmd - 0x40) });
+							}
+							break;
+						}
+						case 0xC1:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new PitchBendRangeCommand { Range = cmd });
+							}
+							break;
+						}
+						case 0xC2:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFOSpeedCommand { Speed = cmd });
+							}
+							break;
+						}
+						case 0xC3:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFODelayCommand { Delay = cmd });
+							}
+							break;
+						}
+						case 0xC4:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFODepthCommand { Depth = cmd });
+							}
+							break;
+						}
+						case 0xC5:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFOTypeCommand { Type = (LFOType)cmd });
+							}
+							break;
+						}
+						case 0xC8:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new TuneCommand { Tune = (sbyte)(cmd - 0x40) });
+							}
+							break;
+						}
+						case 0xCD:
+						{
+							byte arg = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LibraryCommand { Command = cmd, Argument = arg });
+							}
+							break;
+						}
+						case 0xCE:
+						{
+							prevKey = cmd;
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new EndOfTieCommand { Note = cmd });
+							}
+							break;
+						}
+						default: throw new MP2KInvalidRunningStatusCMDException(trackIndex, (int)offset, runCmd);
 					}
-					case 0xB3:
+				}
+				else if (cmd is > 0xB0 and < 0xCF)
+				{
+					switch (cmd)
 					{
-						int callOffset = r.ReadInt32() - GBAUtils.CARTRIDGE_OFFSET;
-						if (!EventExists(trackIndex, offset))
+						case 0xB1:
+						case 0xB6:
 						{
-							AddEvent(trackIndex, offset, new CallCommand { Offset = callOffset });
-						}
-						if (callStackDepth < 3)
-						{
-							long backup = r.Stream.Position;
-							callStackDepth++;
-							AddEvents(trackIndex, callOffset, ref runCmd, ref prevKey, ref prevVelocity, ref callStackDepth);
-							r.Stream.Position = backup;
-						}
-						else
-						{
-							throw new MP2KTooManyNestedCallsException(trackIndex);
-						}
-						break;
-					}
-					case 0xB4:
-					{
-						if (!EventExists(trackIndex, offset))
-						{
-							AddEvent(trackIndex, offset, new ReturnCommand());
-						}
-						if (callStackDepth != 0)
-						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new FinishCommand { Prev = cmd == 0xB6 });
+							}
 							cont = false;
-							callStackDepth--;
+							break;
 						}
-						break;
-					}
-					/*case 0xB5: // TODO: Logic so this isn't an infinite loop
+						case 0xB2:
+						{
+							int jumpOffset = r.ReadInt32() - GBAUtils.CARTRIDGE_OFFSET;
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new JumpCommand { Offset = jumpOffset });
+								if (!EventExists(trackIndex, jumpOffset))
+								{
+									AddEvents(trackIndex, jumpOffset, ref runCmd, ref prevKey, ref prevVelocity, ref callStackDepth);
+								}
+							}
+							cont = false;
+							break;
+						}
+						case 0xB3:
+						{
+							int callOffset = r.ReadInt32() - GBAUtils.CARTRIDGE_OFFSET;
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new CallCommand { Offset = callOffset });
+							}
+							if (callStackDepth < 3)
+							{
+								long backup = r.Stream.Position;
+								callStackDepth++;
+								AddEvents(trackIndex, callOffset, ref runCmd, ref prevKey, ref prevVelocity, ref callStackDepth);
+								r.Stream.Position = backup;
+							}
+							else
+							{
+								throw new MP2KTooManyNestedCallsException(trackIndex);
+							}
+							break;
+						}
+						case 0xB4:
+						{
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new ReturnCommand());
+							}
+							if (callStackDepth != 0)
+							{
+								cont = false;
+								callStackDepth--;
+							}
+							break;
+						}
+						/*case 0xB5: // TODO: Logic so this isn't an infinite loop
 						{
 							byte times = config.Reader.ReadByte();
 							int repeatOffset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
@@ -306,159 +309,160 @@ internal sealed partial class MP2KLoadedSong
 							}
 							break;
 						}*/
-					case 0xB9:
-					{
-						byte op = r.ReadByte();
-						byte address = r.ReadByte();
-						byte data = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xB9:
 						{
-							AddEvent(trackIndex, offset, new MemoryAccessCommand { Operator = op, Address = address, Data = data });
+							byte op = r.ReadByte();
+							byte address = r.ReadByte();
+							byte data = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new MemoryAccessCommand { Operator = op, Address = address, Data = data });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xBA:
-					{
-						byte priority = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xBA:
 						{
-							AddEvent(trackIndex, offset, new PriorityCommand { Priority = priority });
+							byte priority = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new PriorityCommand { Priority = priority });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xBB:
-					{
-						byte tempoArg = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xBB:
 						{
-							AddEvent(trackIndex, offset, new TempoCommand { Tempo = (ushort)(tempoArg * 2) });
+							byte tempoArg = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new TempoCommand { Tempo = (ushort)(tempoArg * 2) });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xBC:
-					{
-						sbyte transpose = r.ReadSByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xBC:
 						{
-							AddEvent(trackIndex, offset, new TransposeCommand { Transpose = transpose });
+							sbyte transpose = r.ReadSByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new TransposeCommand { Transpose = transpose });
+							}
+							break;
 						}
-						break;
-					}
-					// Commands that work within running status:
-					case 0xBD:
-					{
-						byte voice = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						// Commands that work within running status:
+						case 0xBD:
 						{
-							AddEvent(trackIndex, offset, new VoiceCommand { Voice = voice });
+							byte voice = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new VoiceCommand { Voice = voice });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xBE:
-					{
-						byte volume = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xBE:
 						{
-							AddEvent(trackIndex, offset, new VolumeCommand { Volume = volume });
+							byte volume = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new VolumeCommand { Volume = volume });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xBF:
-					{
-						byte panArg = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xBF:
 						{
-							AddEvent(trackIndex, offset, new PanpotCommand { Panpot = (sbyte)(panArg - 0x40) });
+							byte panArg = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new PanpotCommand { Panpot = (sbyte)(panArg - 0x40) });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xC0:
-					{
-						byte bendArg = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xC0:
 						{
-							AddEvent(trackIndex, offset, new PitchBendCommand { Bend = (sbyte)(bendArg - 0x40) });
+							byte bendArg = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new PitchBendCommand { Bend = (sbyte)(bendArg - 0x40) });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xC1:
-					{
-						byte range = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xC1:
 						{
-							AddEvent(trackIndex, offset, new PitchBendRangeCommand { Range = range });
+							byte range = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new PitchBendRangeCommand { Range = range });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xC2:
-					{
-						byte speed = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xC2:
 						{
-							AddEvent(trackIndex, offset, new LFOSpeedCommand { Speed = speed });
+							byte speed = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFOSpeedCommand { Speed = speed });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xC3:
-					{
-						byte delay = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xC3:
 						{
-							AddEvent(trackIndex, offset, new LFODelayCommand { Delay = delay });
+							byte delay = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFODelayCommand { Delay = delay });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xC4:
-					{
-						byte depth = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xC4:
 						{
-							AddEvent(trackIndex, offset, new LFODepthCommand { Depth = depth });
+							byte depth = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFODepthCommand { Depth = depth });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xC5:
-					{
-						byte type = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xC5:
 						{
-							AddEvent(trackIndex, offset, new LFOTypeCommand { Type = (LFOType)type });
+							byte type = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LFOTypeCommand { Type = (LFOType)type });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xC8:
-					{
-						byte tuneArg = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xC8:
 						{
-							AddEvent(trackIndex, offset, new TuneCommand { Tune = (sbyte)(tuneArg - 0x40) });
+							byte tuneArg = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new TuneCommand { Tune = (sbyte)(tuneArg - 0x40) });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xCD:
-					{
-						byte command = r.ReadByte();
-						byte arg = r.ReadByte();
-						if (!EventExists(trackIndex, offset))
+						case 0xCD:
 						{
-							AddEvent(trackIndex, offset, new LibraryCommand { Command = command, Argument = arg });
+							byte command = r.ReadByte();
+							byte arg = r.ReadByte();
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new LibraryCommand { Command = command, Argument = arg });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xCE:
-					{
-						int key = r.PeekByte() <= 0x7F ? (prevKey = r.ReadByte()) : -1;
-						if (!EventExists(trackIndex, offset))
+						case 0xCE:
 						{
-							AddEvent(trackIndex, offset, new EndOfTieCommand { Note = key });
+							int key = r.PeekByte() <= 0x7F ? (prevKey = r.ReadByte()) : -1;
+							if (!EventExists(trackIndex, offset))
+							{
+								AddEvent(trackIndex, offset, new EndOfTieCommand { Note = key });
+							}
+							break;
 						}
-						break;
+						default: throw new MP2KInvalidCMDException(trackIndex, (int)offset, cmd);
 					}
-					default: throw new MP2KInvalidCMDException(trackIndex, (int)offset, cmd);
 				}
-			}
 
-			#endregion
+				#endregion
+			}
 		}
 	}
 

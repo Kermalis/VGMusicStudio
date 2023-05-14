@@ -330,12 +330,12 @@ internal sealed class SWD
 	public IHeader Header;
 	public byte[] Unknown2;
 
-	public ProgramBank Programs;
+	public ProgramBank? Programs;
 	public SampleBlock[] Samples;
 
 	public SWD(string path)
 	{
-		using (var stream = new MemoryStream(File.ReadAllBytes(path)))
+		using (FileStream stream = File.OpenRead(path))
 		{
 			var r = new EndianBinaryReader(stream, ascii: true);
 			Type = r.ReadString_Count(4);
@@ -441,7 +441,8 @@ internal sealed class SWD
 			return samples;
 		}
 	}
-	private static ProgramBank? ReadPrograms<T>(EndianBinaryReader r, int numPRGISlots) where T : IProgramInfo, new()
+	private static ProgramBank? ReadPrograms<T>(EndianBinaryReader r, int numPRGISlots)
+		where T : IProgramInfo, new()
 	{
 		long chunkOffset = FindChunk(r, "prgi");
 		if (chunkOffset == -1)
