@@ -27,7 +27,7 @@ internal sealed partial class SDATLoadedSong
 				case InstrumentType.Noise: str = "Noise"; break;
 				case InstrumentType.Drum: str = "Drum"; break;
 				case InstrumentType.KeySplit: str = "Key Split"; break;
-				default: str = "Invalid {0}" + (byte)t; break;
+				default: str = "Invalid " + (byte)t; break;
 			}
 		}
 	}
