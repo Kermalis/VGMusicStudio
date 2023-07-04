@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectListView2019", "Objec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - GTK3", "VG Music Studio - GTK3\VG Music Studio - GTK3.csproj", "{A9471061-10D2-41AE-86C9-1D927D7B33B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VG Music Studio - GTK4", "VG Music Studio - GTK4\VG Music Studio - GTK4.csproj", "{AB599ACD-26E0-4925-B91E-E25D41CB05E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "portaudio-sharp", "portaudio2-sharp\portaudio-sharp.csproj", "{B9B3599A-1420-419A-A620-719E26099547}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9B3599A-1420-419A-A620-719E26099547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9B3599A-1420-419A-A620-719E26099547}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9B3599A-1420-419A-A620-719E26099547}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9B3599A-1420-419A-A620-719E26099547}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

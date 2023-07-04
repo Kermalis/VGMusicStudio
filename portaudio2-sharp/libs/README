@@ -1,0 +1,2 @@
+portaudio.dll in this directory was built without ASIO support as I never
+bothered to register to Steinberg and download ASIO SDK.

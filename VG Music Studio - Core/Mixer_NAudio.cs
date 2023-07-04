@@ -1,3 +1,5 @@
+﻿/* This will be used as a reference and NAudio may be used for debugging and comparing.
+
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
@@ -5,7 +7,7 @@ using System;
 
 namespace Kermalis.VGMusicStudio.Core;
 
-public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
+public abstract class Mixer_NAudio : IAudioSessionEventsHandler, IDisposable
 {
 	public static event Action<float>? MixerVolumeChanged;
 
@@ -15,7 +17,7 @@ public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 
 	private bool _shouldSendVolUpdateEvent = true;
 
-	protected Mixer()
+	protected Mixer_NAudio()
 	{
 		Mutes = new bool[SongState.MAX_TRACKS];
 	}
@@ -91,3 +93,4 @@ public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 		_appVolume.Dispose();
 	}
 }
+ */

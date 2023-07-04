@@ -1,0 +1,282 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GirCore.Adw-1" Version="0.3.0" />
+    <PackageReference Include="GirCore.Gtk-4.0.DependencyInjection" Version="0.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ContentWithTargetPath Include="/usr/share/glib-2.0/**" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>../../../share/glib-2.0/%(RecursiveDir)/%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/share/glib-2.0/**" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>../../../share/glib-2.0/%(RecursiveDir)/%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\share\glib-2.0\**" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>..\..\..\share\glib-2.0\%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libadwaita-1.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libadwaita-1.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libadwaita-1.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libadwaita-1-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libadwaita-1-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgtk-4.so.1" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgtk-4.so.1</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgtk-4.1.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgtk-4.1.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgtk-4-1.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgtk-4-1.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libpangowin32-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libpangowin32-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libpangocairo-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libpangocairo-1.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libpangocairo-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libpangocairo-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libpangocairo-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libpango-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libpango-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libadwaita-1.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libpango-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libpango-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libpango-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libharfbuzz.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libharfbuzz.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libharfbuzz.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libharfbuzz.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libharfbuzz-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libharfbuzz-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgdk_pixbuf-2.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgdk_pixbuf-2.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgdk_pixbuf-2.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgdk_pixbuf-2.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgdk_pixbuf-2.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libcairo-gobject.so.2" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libcairo-gobject.so.2</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libcairo-gobject.2.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libcairo-gobject.2.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libcairo-gobject-2.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libcairo-gobject-2.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libcairo.so.2" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libcairo.so.2</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libcairo.2.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libcairo.2.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libcairo-2.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libcairo-2.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgraphene-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgraphene-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgraphene-1.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgraphene-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgraphene-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgraphene-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgio-2.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgio-2.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgio-2.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgio-2.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgio-2.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgobject-2.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgobject-2.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgobject-2.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgobject-2.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgobject-2.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libglib-2.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libglib-2.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libglib-2.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libglib-2.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libglib-2.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgmodule-2.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgmodule-2.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgmodule-2.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgmodule-2.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgmodule-2.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgtksourceview-5.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgtksourceview-5.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgtksourceview-5.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgtksourceview-5.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgtksourceview-5-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgtksourceview-5-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libharfbuzz-gobject.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libharfbuzz-gobject.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libharfbuzz-gobject.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libharfbuzz-gobject.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libharfbuzz-gobject-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libharfbuzz-gobject-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgstreamer-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstreamer-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgstreamer-1.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libstreamer-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgstreamer-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstreamer-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgstaudio-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstaudio-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgstaudio-1.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstaudio-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgstaudio-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstaudio-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgstbase-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstbase-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgstbase-1.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstbase-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgstbase-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstbase-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgstpbutils-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstpbutils-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgstpbutils-1.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstpbutils-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgstpbutils-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstpbutils-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libgstvideo-1.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstvideo-1.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/local/lib/libgstvideo-1.0.0.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstvideo-1.0.0.dylib</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="C:\msys64\mingw64\bin\libgstvideo-1.0-0.dll" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libgstvideo-1.0-0.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="/usr/lib/x86_64-linux-gnu/libsoup-3.0.so.0" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>libsoup-3.0.so.0</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
+
+</Project>

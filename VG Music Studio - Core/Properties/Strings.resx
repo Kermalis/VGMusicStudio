@@ -134,10 +134,10 @@
     <value>MIDI Files (*.mid, *.midi)|*.mid;*.midi</value>
   </data>
   <data name="MenuData" xml:space="preserve">
-    <value>Data</value>
+    <value>_Data</value>
   </data>
   <data name="MenuFile" xml:space="preserve">
-    <value>File</value>
+    <value>_File</value>
   </data>
   <data name="MenuOpenMP2K" xml:space="preserve">
     <value>Open GBA ROM (MP2K)</value>
@@ -374,24 +374,24 @@
     <comment>{0} is the file name.</comment>
   </data>
   <data name="GTKFilterOpenGBA" xml:space="preserve">
-    <value>Game Boy Advance binary</value>
+    <value>Game Boy Advance binary (*.gba, *.srl)</value>
   </data>
   <data name="GTKFilterOpenSDAT" xml:space="preserve">
-    <value>Nitro Soundmaker Sound Data</value>
+    <value>Nitro Soundmaker Sound Data (*.sdat)</value>
   </data>
   <data name="GTKFilterSaveDLS" xml:space="preserve">
-    <value>DLS Files</value>
+    <value>DLS Soundfont Files (*.dls)</value>
   </data>
   <data name="GTKFilterSaveMIDI" xml:space="preserve">
-    <value>MIDI Files</value>
+    <value>MIDI Sequence Files (*.mid, *.midi)</value>
   </data>
   <data name="GTKFilterSaveSF2" xml:space="preserve">
-    <value>SF2 Files</value>
+    <value>SF2 Soundfont Files (*.sf2)</value>
   </data>
   <data name="GTKFilterSaveWAV" xml:space="preserve">
-    <value>WAV Files</value>
+    <value>Wave Audio Data (*.wav)</value>
   </data>
   <data name="GTKAllFiles" xml:space="preserve">
-    <value>All files</value>
+    <value>All files (*.*)</value>
   </data>
 </root>
