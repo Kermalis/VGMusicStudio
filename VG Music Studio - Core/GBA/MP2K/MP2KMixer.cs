@@ -2,6 +2,9 @@
 using NAudio.Wave;
 using System;
 using System.Linq;
+using NAudio.CoreAudioApi.Interfaces;
+using NAudio.CoreAudioApi;
+using System.Runtime.InteropServices;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
@@ -9,6 +12,7 @@ public sealed class MP2KMixer : Mixer
 {
 	internal readonly int SampleRate;
 	internal readonly int SamplesPerBuffer;
+	public readonly int BufferLength;
 	internal readonly float SampleRateReciprocal;
 	private readonly float _samplesReciprocal;
 	internal readonly float PCM8MasterVolume;
@@ -30,33 +34,33 @@ public sealed class MP2KMixer : Mixer
 
 	internal MP2KMixer(MP2KConfig config)
 	{
-		Config = config;
-		(SampleRate, SamplesPerBuffer) = Utils.FrequencyTable[config.SampleRate];
-		SampleRateReciprocal = 1f / SampleRate;
-		_samplesReciprocal = 1f / SamplesPerBuffer;
-		PCM8MasterVolume = config.Volume / 15f;
+        Config = config;
+        (SampleRate, SamplesPerBuffer) = Utils.FrequencyTable[config.SampleRate];
+        SampleRateReciprocal = 1f / SampleRate;
+        _samplesReciprocal = 1f / SamplesPerBuffer;
+        PCM8MasterVolume = config.Volume / 15f;
 
-		_pcm8Channels = new PCM8Channel[24];
-		for (int i = 0; i < _pcm8Channels.Length; i++)
-		{
-			_pcm8Channels[i] = new PCM8Channel(this);
-		}
-		_psgChannels = new PSGChannel[4] { _sq1 = new SquareChannel(this), _sq2 = new SquareChannel(this), _pcm4 = new PCM4Channel(this), _noise = new NoiseChannel(this), };
+        _pcm8Channels = new PCM8Channel[24];
+        for (int i = 0; i < _pcm8Channels.Length; i++)
+        {
+            _pcm8Channels[i] = new PCM8Channel(this);
+        }
+        _psgChannels = new PSGChannel[4] { _sq1 = new SquareChannel(this), _sq2 = new SquareChannel(this), _pcm4 = new PCM4Channel(this), _noise = new NoiseChannel(this), };
 
-		int amt = SamplesPerBuffer * 2;
-		_audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
-		_trackBuffers = new float[0x10][];
-		for (int i = 0; i < _trackBuffers.Length; i++)
-		{
-			_trackBuffers[i] = new float[amt];
-		}
-		_buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(SampleRate, 2))
-		{
-			DiscardOnBufferOverflow = true,
-			BufferLength = SamplesPerBuffer * 64,
-		};
-		Init(_buffer);
-	}
+        int amt = SamplesPerBuffer * 2;
+        _audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
+        _trackBuffers = new float[0x10][];
+        for (int i = 0; i < _trackBuffers.Length; i++)
+        {
+            _trackBuffers[i] = new float[amt];
+        }
+        _buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(SampleRate, 2))
+        {
+            DiscardOnBufferOverflow = true,
+            BufferLength = SamplesPerBuffer * 64,
+        };
+        Init(_buffer);
+    }
 
 	internal PCM8Channel AllocPCM8Channel(Track owner, ADSR env, NoteInfo note, byte vol, sbyte pan, int instPan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
 	{
@@ -155,10 +159,10 @@ public sealed class MP2KMixer : Mixer
 		}
 		nChn.SetVolume(vol, pan);
 		nChn.SetPitch(pitch);
-		return nChn;
-	}
+        return nChn;
+    }
 
-	internal void BeginFadeIn()
+    internal void BeginFadeIn()
 	{
 		_fadePos = 0f;
 		_fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1_000.0 * GBA.GBAUtils.AGB_FPS);

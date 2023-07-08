@@ -25,149 +25,12 @@ namespace Kermalis.VGMusicStudio.GTK4
 {
     internal sealed class MainWindow : Window
     {
-        [DllImport("libgobject-2.0.so.0", EntryPoint = "g_object_unref")]
-        private static extern void LinuxUnref(nint obj);
-
-        [DllImport("libgobject-2.0.0.dylib", EntryPoint = "g_object_unref")]
-        private static extern void MacOSUnref(nint obj);
-
-        [DllImport("libgobject-2.0-0.dll", EntryPoint = "g_object_unref")]
-        private static extern void WindowsUnref(nint obj);
-
-        [DllImport("libgio-2.0.so.0", EntryPoint = "g_file_get_path")]
-        private static extern string LinuxGetPath(nint file);
-
-        [DllImport("libgio-2.0.0.dylib", EntryPoint = "g_file_get_path")]
-        private static extern string MacOSGetPath(nint file);
-
-        [DllImport("libgio-2.0-0.dll", EntryPoint = "g_file_get_path")]
-        private static extern string WindowsGetPath(nint file);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_css_provider_load_from_data")]
-        private static extern void LinuxLoadFromData(nint provider, string data, int length);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_css_provider_load_from_data")]
-        private static extern void MacOSLoadFromData(nint provider, string data, int length);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_css_provider_load_from_data")]
-        private static extern void WindowsLoadFromData(nint provider, string data, int length);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_new")]
-        private static extern nint linux_gtk_file_dialog_new();
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_new")]
-        private static extern nint macos_gtk_file_dialog_new();
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_new")]
-        private static extern nint windows_gtk_file_dialog_new();
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_get_initial_file")]
-        private static extern nint LinuxGetInitialFile(nint dialog, nint file);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_get_initial_file")]
-        private static extern nint MacOSGetInitialFile(nint dialog, nint file);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_get_initial_file")]
-        private static extern nint WindowsGetInitialFile(nint dialog, nint file);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_get_initial_folder")]
-        private static extern nint LinuxGetInitialFolder(nint dialog, nint file);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_get_initial_folder")]
-        private static extern nint MacOSGetInitialFolder(nint dialog, nint file);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_get_initial_folder")]
-        private static extern nint WindowsGetInitialFolder(nint dialog, nint file);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_get_initial_name")]
-        private static extern nint LinuxGetInitialName(nint dialog, nint file);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_get_initial_name")]
-        private static extern nint MacOSGetInitialName(nint dialog, nint file);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_get_initial_name")]
-        private static extern nint WindowsGetInitialName(nint dialog, nint file);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_set_title")]
-        private static extern void LinuxSetTitle(nint dialog, string title);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_set_title")]
-        private static extern void MacOSSetTitle(nint dialog, string title);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_set_title")]
-        private static extern void WindowsSetTitle(nint dialog, string title);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_set_filters")]
-        private static extern void LinuxSetFilters(nint dialog, nint filters);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_set_filters")]
-        private static extern void MacOSSetFilters(nint dialog, nint filters);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_set_filters")]
-        private static extern void WindowsSetFilters(nint dialog, nint filters);
-
-        private delegate void GAsyncReadyCallback(nint source, nint res, nint user_data);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_open")]
-        private static extern void LinuxOpen(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_open")]
-        private static extern void MacOSOpen(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_open")]
-        private static extern void WindowsOpen(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_open_finish")]
-        private static extern nint LinuxOpenFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_open_finish")]
-        private static extern nint MacOSOpenFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_open_finish")]
-        private static extern nint WindowsOpenFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_save")]
-        private static extern void LinuxSave(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_save")]
-        private static extern void MacOSSave(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_save")]
-        private static extern void WindowsSave(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_save_finish")]
-        private static extern nint LinuxSaveFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_save_finish")]
-        private static extern nint MacOSSaveFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_save_finish")]
-        private static extern nint WindowsSaveFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_select_folder")]
-        private static extern void LinuxSelectFolder(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_select_folder")]
-        private static extern void MacOSSelectFolder(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_select_folder")]
-        private static extern void WindowsSelectFolder(nint dialog, nint parent, nint cancellable, GAsyncReadyCallback callback, nint user_data);
-
-        [DllImport("libgtk-4.so.1", EntryPoint = "gtk_file_dialog_select_folder_finish")]
-        private static extern nint LinuxSelectFolderFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4.1.dylib", EntryPoint = "gtk_file_dialog_select_folder_finish")]
-        private static extern nint MacOSSelectFolderFinish(nint dialog, nint result, nint error);
-
-        [DllImport("libgtk-4-1.dll", EntryPoint = "gtk_file_dialog_select_folder_finish")]
-        private static extern nint WindowsSelectFolderFinish(nint dialog, nint result, nint error);
-
-
         private bool _playlistPlaying;
         private Config.Playlist _curPlaylist;
         private long _curSong = -1;
         private readonly List<long> _playedSequences;
         private readonly List<long> _remainingSequences;
+        private static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows); // Because WASAPI (via NAudio) is the only audio backend currently.
 
         private bool _stopUI = false;
 
@@ -212,15 +75,15 @@ namespace Kermalis.VGMusicStudio.GTK4
 
         // Menu Actions
         private Gio.SimpleAction _openDSEAction, _openAlphaDreamAction, _openMP2KAction, _openSDATAction,
-            _dataAction, _trackViewerAction, _exportDLSAction, _exportSF2Action, _exportMIDIAction, _exportWAVAction, _playlistAction, _endPlaylistAction;
+            _dataAction, _trackViewerAction, _exportDLSAction, _exportSF2Action, _exportMIDIAction, _exportWAVAction, _playlistAction, _endPlaylistAction,
+            _soundSequenceAction;
 
         private Signal<Gio.SimpleAction> _openDSESignal;
 
         private SignalHandler<Gio.SimpleAction> _openDSEHandler;
 
         // Menu Widgets
-        private Widget _exportDLSWidget, _exportSF2Widget, _exportMIDIWidget, _exportWAVWidget, _endPlaylistWidget,
-            _sequencesScrListView, _sequencesListView;
+        private Widget _exportDLSWidget, _exportSF2Widget, _exportMIDIWidget, _exportWAVWidget, _endPlaylistWidget;
 
         // Main Box
         private Box _mainBox, _configButtonBox, _configPlayerButtonBox, _configSpinButtonBox, _configScaleBox;
@@ -242,41 +105,20 @@ namespace Kermalis.VGMusicStudio.GTK4
         // Adjustments are for indicating the numbers and the position of the scale
         private Adjustment _volumeAdjustment, _positionAdjustment, _sequenceNumberAdjustment;
 
-        // List Item Factory
-        private readonly ListItemFactory _sequencesListFactory;
+        // Sound Sequence List
+        private SoundSequenceList _soundSequenceList;
 
-        // String List
-        private string[] _sequencesListRowLabel;
-        private StringList _sequencesStringList;
-
-        // Single Selection
-        private readonly SingleSelection _sequencesSingleSelection;
-
-        // Column View
-        private readonly ColumnView _sequencesColumnView;
-        private readonly ColumnViewColumn _sequencesColumn;
-
-        // List Item
-        private readonly ListItem _sequencesListItem;
-
-        // Tree View
-        private readonly TreeView _sequencesTreeView;
-        //private readonly TreeViewColumn _sequencesColumn;
-
-        // List Store
-        private ListStore _sequencesListStore;
+        // Error Handle
+        private GLib.Internal.ErrorOwnedHandle ErrorHandle = new GLib.Internal.ErrorOwnedHandle(IntPtr.Zero);
 
         // Signal
         private Signal<ListItemFactory> _signal;
 
         // Callback
-        private Gtk.FileDialog.GAsyncReadyCallback _saveCallback { get; set; }
-        private Gtk.FileDialog.GAsyncReadyCallback _openCallback { get; set; }
-        private Gtk.FileDialog.GAsyncReadyCallback _selectFolderCallback { get; set; }
-        private Gio.AsyncReadyCallback _openCB { get; set; }
-        private Gio.AsyncReadyCallback _saveCB { get; set; }
-        private Gio.AsyncReadyCallback _selectFolderCB { get; set; }
-        private Gio.AsyncReadyCallback _exceptionCallback { get; set;}
+        private Gio.Internal.AsyncReadyCallback _saveCallback { get; set; }
+        private Gio.Internal.AsyncReadyCallback _openCallback { get; set; }
+        private Gio.Internal.AsyncReadyCallback _selectFolderCallback { get; set; }
+        private Gio.Internal.AsyncReadyCallback _exceptionCallback { get; set; }
 
         #endregion
 
@@ -452,25 +294,10 @@ namespace Kermalis.VGMusicStudio.GTK4
             _positionGestureClick.OnReleased += PositionScale_MouseButtonRelease; // ButtonRelease must go first, otherwise the scale it will follow the mouse cursor upon loading
             _positionGestureClick.OnPressed += PositionScale_MouseButtonPress;
 
-            // Sequences List View
-            _sequencesListRowLabel = new string[3] { "#", "Internal Name", null };
-            _sequencesStringList = StringList.New(_sequencesListRowLabel);
-            _sequencesScrListView = ScrolledWindow.New();
-            _sequencesSingleSelection = SingleSelection.New(_sequencesStringList);
-            _sequencesColumnView = ColumnView.New(_sequencesSingleSelection);
-            _sequencesColumn = ColumnViewColumn.New("Name", _sequencesListFactory);
-            //_sequencesColumn.GetColumnView().SetParent(_sequencesColumnView);
-            _sequencesListFactory = SignalListItemFactory.New();
-            _sequencesGestureClick = GestureClick.New();
-            _sequencesListView = ListView.New(_sequencesSingleSelection, _sequencesListFactory);
-            _sequencesListView.SetParent(_sequencesScrListView);
-            //_sequencesGestureClick.GetWidget().SetParent(_sequencesListView);
-            //_sequencesListView = new TreeView();
-            //_sequencesListStore = new ListStore(typeof(string), typeof(string));
-            //_sequencesColumn = new TreeViewColumn("Name", new CellRendererText(), "text", 1);
-            //_sequencesListView.AppendColumn("#", new CellRendererText(), "text", 0);
-            //_sequencesListView.AppendColumn(_sequencesColumn);
-            //_sequencesListView.Model = _sequencesListStore;
+            // Sound Sequence List
+            _soundSequenceList = new SoundSequenceList { Sensitive = false };
+            _soundSequenceAction = Gio.SimpleAction.New("soundSequenceList", null);
+            _soundSequenceAction.OnChangeState += SequencesListView_SelectionGet;
 
             // Main display
             _mainBox = Box.New(Orientation.Vertical, 4);
@@ -488,7 +315,7 @@ namespace Kermalis.VGMusicStudio.GTK4
             _mainBox.Append(_popoverMenuBar);
             _mainBox.Append(_configButtonBox);
             _mainBox.Append(_configScaleBox);
-            _mainBox.Append(_sequencesScrListView);
+            _mainBox.Append(_soundSequenceList);
 
             _configPlayerButtonBox.MarginStart = 40;
             _configPlayerButtonBox.MarginEnd = 40;
@@ -554,7 +381,7 @@ namespace Kermalis.VGMusicStudio.GTK4
         private void SequenceNumberSpinButton_ValueChanged(object sender, EventArgs e)
         {
             //_sequencesGestureClick.OnBegin -= SequencesListView_SelectionGet;
-            _signal.Connect(_sequencesListFactory, SequencesListView_SelectionGet, false, null);
+            //_signal.Connect(_sequencesListFactory, SequencesListView_SelectionGet, false, null);
 
             long index = (long)_sequenceNumberAdjustment.Value;
             Stop();
@@ -603,17 +430,16 @@ namespace Kermalis.VGMusicStudio.GTK4
 
             _autoplay = true;
             //_sequencesGestureClick.OnEnd += SequencesListView_SelectionGet;
-            _signal.Connect(_sequencesListFactory, SequencesListView_SelectionGet, true, null);
+            //_signal.Connect(_sequencesListFactory, SequencesListView_SelectionGet, true, null);
         }
         private void SequencesListView_SelectionGet(object sender, EventArgs e)
         {
-            var item = new object();
-            item = _sequencesSingleSelection.SelectedItem;
-            if (item is Config.Song song)
+            var item = _soundSequenceList;
+            if (item.Item is Config.Song song)
             {
                 SetAndLoadSequence(song.Index);
             }
-            else if (item is Config.Playlist playlist)
+            else if (item.Item is Config.Playlist playlist)
             {
                 if (playlist.Songs.Count > 0
                 && FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.MenuPlaylist, ButtonsType.YesNo) == ResponseType.Yes)
@@ -666,7 +492,7 @@ namespace Kermalis.VGMusicStudio.GTK4
             _remainingSequences.Clear();
             _playedSequences.Clear();
             //_endPlaylistWidget.Sensitive = false;
-            _sequenceNumberSpinButton.Sensitive = _sequencesListView.Sensitive = enableds;
+            _sequenceNumberSpinButton.Sensitive = _soundSequenceList.Sensitive = enableds;
         }
         private void EndCurrentPlaylist(object sender, EventArgs e)
         {
@@ -709,70 +535,23 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuOpenDSE);
 
                 _selectFolderCallback = (source, res, data) =>
                 {
-                    var folderHandle = d.SelectFolderFinish(res, IntPtr.Zero);
+                    //var errorHandle = new GLib.Internal.ErrorOwnedHandle(IntPtr.Zero);
+                    var folderHandle = Gtk.Internal.FileDialog.SelectFolderFinish(d.Handle, res, out ErrorHandle);
                     if (folderHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(folderHandle);
-                        OpenDSEFinish(path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(folderHandle).DangerousGetHandle());
+                        OpenDSEFinish(path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.SelectFolder(Handle, IntPtr.Zero, _selectFolderCallback, IntPtr.Zero);
-                // if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                // {
-                //     var d = linux_gtk_file_dialog_new();
-                //     LinuxSetTitle(d, Strings.MenuOpenDSE);
-
-                //     _selectFolderCallback = (source, res, data) =>
-                //     {
-                //         var folderHandle = LinuxSelectFolderFinish(d, res, IntPtr.Zero);
-                //         if (folderHandle != IntPtr.Zero)
-                //         {
-                //             var path = LinuxGetPath(folderHandle);
-                //             OpenDSEFinish(path); // GtkFileDialog also doesn't have blocking APIs.
-                //         }
-                //     };
-                //     LinuxSelectFolder(d, Handle, IntPtr.Zero, _selectFolderCallback, IntPtr.Zero);
-                // }
-                // else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                // {
-                //     var d = macos_gtk_file_dialog_new();
-                //     MacOSSetTitle(d, Strings.MenuOpenDSE);
-
-                //     _selectFolderCallback = (source, res, data) =>
-                //     {
-                //         var folderHandle = MacOSSelectFolderFinish(d, res, IntPtr.Zero);
-                //         if (folderHandle != IntPtr.Zero)
-                //         {
-                //             var path = MacOSGetPath(folderHandle);
-                //             OpenDSEFinish(path);
-                //         }
-                //     };
-                //     MacOSSelectFolder(d, Handle, IntPtr.Zero, _selectFolderCallback, IntPtr.Zero);
-                // }
-                // else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                // {
-                //     var d = windows_gtk_file_dialog_new();
-                //     WindowsSetTitle(d, Strings.MenuOpenDSE);
-
-                //     _selectFolderCallback = (source, res, data) =>
-                //     {
-                //         var folderHandle = WindowsSelectFolderFinish(d, res, IntPtr.Zero);
-                //         if (folderHandle != IntPtr.Zero)
-                //         {
-                //             var path = WindowsGetPath(folderHandle);
-                //             OpenDSEFinish(path);
-                //         }
-                //     };
-                //     WindowsSelectFolder(d, Handle, IntPtr.Zero, _selectFolderCallback, IntPtr.Zero);
-                // }
-                // else { return; }
+                Gtk.Internal.FileDialog.SelectFolder(d.Handle, Handle, IntPtr.Zero, _selectFolderCallback, IntPtr.Zero); // SelectFolder, Open and Save methods are currently missing from GirCore, but are available in the Gtk.Internal namespace, so we're using this until GirCore updates with the method bindings.
+                //d.SelectFolder(Handle, IntPtr.Zero, _selectFolderCallback, IntPtr.Zero);
             }
         }
         private void OpenDSEFinish(string path)
@@ -836,25 +615,25 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuOpenSDAT);
-                var filters = Gio.ListStore.New(Gtk.FileFilter.GetGType());
+                var filters = Gio.ListStore.New(FileFilter.GetGType());
                 filters.Append(filterSDAT);
                 filters.Append(allFiles);
                 d.SetFilters(filters);
                 _openCallback = (source, res, data) =>
                 {
-                    var fileHandle = d.OpenFinish(res, IntPtr.Zero);
+                    var fileHandle = Gtk.Internal.FileDialog.OpenFinish(d.Handle, res, out ErrorHandle);
                     if (fileHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(fileHandle);
-                        d.GetData(path);
-                        OpenSDATFinish(path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
+                        OpenSDATFinish(path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.Open(Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
+                Gtk.Internal.FileDialog.Open(d.Handle, Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
+                //d.Open(Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
             }
         }
         private void OpenSDATFinish(string path)
@@ -917,25 +696,25 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuOpenAlphaDream);
-                var filters = Gio.ListStore.New(Gtk.FileFilter.GetGType());
+                var filters = Gio.ListStore.New(FileFilter.GetGType());
                 filters.Append(filterGBA);
                 filters.Append(allFiles);
                 d.SetFilters(filters);
                 _openCallback = (source, res, data) =>
                 {
-                    var fileHandle = d.OpenFinish(res, IntPtr.Zero);
+                    var fileHandle = Gtk.Internal.FileDialog.OpenFinish(d.Handle, res, out ErrorHandle);
                     if (fileHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(fileHandle);
-                        d.GetData(path);
-                        OpenAlphaDreamFinish(path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
+                        OpenAlphaDreamFinish(path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.Open(Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
+                Gtk.Internal.FileDialog.Open(d.Handle, Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
+                //d.Open(Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
             }
         }
         private void OpenAlphaDreamFinish(string path)
@@ -1000,41 +779,49 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuOpenMP2K);
-                var filters = Gio.ListStore.New(Gtk.FileFilter.GetGType());
+                var filters = Gio.ListStore.New(FileFilter.GetGType());
                 filters.Append(filterGBA);
                 filters.Append(allFiles);
                 d.SetFilters(filters);
                 _openCallback = (source, res, data) =>
                 {
-                    var fileHandle = d.OpenFinish(res, IntPtr.Zero);
+                    var fileHandle = Gtk.Internal.FileDialog.OpenFinish(d.Handle, res, out ErrorHandle);
                     if (fileHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(fileHandle);
-                        d.GetData(path);
-                        OpenMP2KFinish(path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
+                        OpenMP2KFinish(path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.Open(Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
+                Gtk.Internal.FileDialog.Open(d.Handle, Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
+                //d.Open(Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
             }
         }
         private void OpenMP2KFinish(string path)
         {
             DisposeEngine();
-            try
+            if (IsWindows())
             {
-                _ = new MP2KEngine(File.ReadAllBytes(path));
+                try
+                {
+                    _ = new MP2KEngine(File.ReadAllBytes(path));
+                }
+                catch (Exception ex)
+                {
+                    //_dialog = Adw.MessageDialog.New(this, Strings.ErrorOpenMP2K, ex.ToString());
+                    //FlexibleMessageBox.Show(ex, Strings.ErrorOpenMP2K);
+                    DisposeEngine();
+                    ExceptionDialog(ex, Strings.ErrorOpenMP2K);
+                    return;
+                }
             }
-            catch (Exception ex)
+            else
             {
-                //_dialog = Adw.MessageDialog.New(this, Strings.ErrorOpenMP2K, ex.ToString());
-                //FlexibleMessageBox.Show(ex, Strings.ErrorOpenMP2K);
-                DisposeEngine();
+                var ex = new PlatformNotSupportedException();
                 ExceptionDialog(ex, Strings.ErrorOpenMP2K);
-                return;
             }
 
             MP2KConfig config = MP2KEngine.MP2KInstance!.Config;
@@ -1082,23 +869,24 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuSaveDLS);
-                var filters = Gio.ListStore.New(Gtk.FileFilter.GetGType());
+                var filters = Gio.ListStore.New(FileFilter.GetGType());
                 filters.Append(ff);
                 d.SetFilters(filters);
                 _saveCallback = (source, res, data) =>
                 {
-                    var fileHandle = d.SaveFinish(res, IntPtr.Zero);
+                    var fileHandle = Gtk.Internal.FileDialog.SaveFinish(d.Handle, res, out ErrorHandle);
                     if (fileHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(fileHandle);
-                        ExportDLSFinish(cfg, path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
+                        ExportDLSFinish(cfg, path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                Gtk.Internal.FileDialog.Save(d.Handle, Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                //d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
             }
         }
         private void ExportDLSFinish(AlphaDreamConfig config, string path)
@@ -1147,23 +935,24 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuSaveMIDI);
-                var filters = Gio.ListStore.New(Gtk.FileFilter.GetGType());
+                var filters = Gio.ListStore.New(FileFilter.GetGType());
                 filters.Append(ff);
                 d.SetFilters(filters);
                 _saveCallback = (source, res, data) =>
                 {
-                    var fileHandle = d.SaveFinish(res, IntPtr.Zero);
+                    var fileHandle = Gtk.Internal.FileDialog.SaveFinish(d.Handle, res, out ErrorHandle);
                     if (fileHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(fileHandle);
-                        ExportMIDIFinish(path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
+                        ExportMIDIFinish(path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                Gtk.Internal.FileDialog.Save(d.Handle, Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                //d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
             }
         }
         private void ExportMIDIFinish(string path)
@@ -1225,23 +1014,24 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuSaveSF2);
-                var filters = Gio.ListStore.New(Gtk.FileFilter.GetGType());
+                var filters = Gio.ListStore.New(FileFilter.GetGType());
                 filters.Append(ff);
                 d.SetFilters(filters);
                 _saveCallback = (source, res, data) =>
                 {
-                    var fileHandle = d.SaveFinish(res, IntPtr.Zero);
+                    var fileHandle = Gtk.Internal.FileDialog.SaveFinish(d.Handle, res, out ErrorHandle);
                     if (fileHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(fileHandle);
-                        ExportSF2Finish(cfg, path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
+                        ExportSF2Finish(cfg, path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                Gtk.Internal.FileDialog.Save(d.Handle, Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                //d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
             }
         }
         private void ExportSF2Finish(AlphaDreamConfig config, string path)
@@ -1290,23 +1080,24 @@ namespace Kermalis.VGMusicStudio.GTK4
             }
             else
             {
-                var d = Gtk.FileDialog.New();
+                var d = FileDialog.New();
                 d.SetTitle(Strings.MenuSaveWAV);
-                var filters = Gio.ListStore.New(Gtk.FileFilter.GetGType());
+                var filters = Gio.ListStore.New(FileFilter.GetGType());
                 filters.Append(ff);
                 d.SetFilters(filters);
                 _saveCallback = (source, res, data) =>
                 {
-                    var fileHandle = d.SaveFinish(res, IntPtr.Zero);
+                    var fileHandle = Gtk.Internal.FileDialog.SaveFinish(d.Handle, res, out ErrorHandle);
                     if (fileHandle != IntPtr.Zero)
                     {
-                        var path = d.GetPath(fileHandle);
-                        ExportWAVFinish(path);
+                        var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
+                        ExportWAVFinish(path!);
                         d.Unref();
                     }
                     d.Unref();
                 };
-                d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                Gtk.Internal.FileDialog.Save(d.Handle, Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
+                //d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
             }
         }
         private void ExportWAVFinish(string path)
@@ -1343,7 +1134,7 @@ namespace Kermalis.VGMusicStudio.GTK4
             md.SetResponseAppearance("ok", ResponseAppearance.Default);
             md.SetDefaultResponse("ok");
             md.SetCloseResponse("ok");
-            _exceptionCallback = (source, res) =>
+            _exceptionCallback = (source, res, data) =>
             {
                 md.Destroy();
             };
@@ -1443,10 +1234,8 @@ namespace Kermalis.VGMusicStudio.GTK4
             Engine.Instance!.Player.SongEnded += SongEnded;
             foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
             {
-                int i = 0;
-                Value v = new Value(i++);
-                _sequencesListStore.SetValue(null, playlist.GetHashCode(), v);
-                playlist.Songs.Select(s => ColumnView.New((SelectionModel)_sequencesListStore)).ToArray();
+                _soundSequenceList.AddItem(new SoundSequenceList(playlist.Name));
+                _soundSequenceList.AddRange(playlist.Songs.Select(s => new SoundSequenceList(s.Name)).ToArray());
             }
             _sequenceNumberAdjustment.Upper = numSongs - 1;
 #if DEBUG
