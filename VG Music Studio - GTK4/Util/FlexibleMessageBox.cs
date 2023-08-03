@@ -33,76 +33,76 @@ namespace Kermalis.VGMusicStudio.GTK4.Util;
 
 #region Original Author
 /*  FlexibleMessageBox – A flexible replacement for the .NET MessageBox
-     * 
-     *  Author:         Jörg Reichert (public@jreichert.de)
-     *  Contributors:   Thanks to: David Hall, Roink
-     *  Version:        1.3
-     *  Published at:   http://www.codeproject.com/Articles/601900/FlexibleMessageBox
-     *  
-     ************************************************************************************************************
-     * Features:
-     *  - It can be simply used instead of MessageBox since all important static "Show"-Functions are supported
-     *  - It is small, only one source file, which could be added easily to each solution 
-     *  - It can be resized and the content is correctly word-wrapped
-     *  - It tries to auto-size the width to show the longest text row
-     *  - It never exceeds the current desktop working area
-     *  - It displays a vertical scrollbar when needed
-     *  - It does support hyperlinks in text
-     * 
-     *  Because the interface is identical to MessageBox, you can add this single source file to your project 
-     *  and use the FlexibleMessageBox almost everywhere you use a standard MessageBox. 
-     *  The goal was NOT to produce as many features as possible but to provide a simple replacement to fit my 
-     *  own needs. Feel free to add additional features on your own, but please left my credits in this class.
-     * 
-     ************************************************************************************************************
-     * Usage examples:
-     * 
-     *  FlexibleMessageBox.Show("Just a text");
-     * 
-     *  FlexibleMessageBox.Show("A text", 
-     *                          "A caption"); 
-     *  
-     *  FlexibleMessageBox.Show("Some text with a link: www.google.com", 
-     *                          "Some caption",
-     *                          MessageBoxButtons.AbortRetryIgnore, 
-     *                          MessageBoxIcon.Information,
-     *                          MessageBoxDefaultButton.Button2);
-     *  
-     *  var dialogResult = FlexibleMessageBox.Show("Do you know the answer to life the universe and everything?", 
-     *                                             "One short question",
-     *                                             MessageBoxButtons.YesNo);     
-     * 
-     ************************************************************************************************************
-     *  THE SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS", WITHOUT WARRANTY
-     *  OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE AUTHOR BE
-     *  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM,
-     *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OF THIS
-     *  SOFTWARE.
-     *  
-     ************************************************************************************************************
-     * History:
-     *  Version 1.3 - 19.Dezember 2014
-     *  - Added refactoring function GetButtonText()
-     *  - Used CurrentUICulture instead of InstalledUICulture
-     *  - Added more button localizations. Supported languages are now: ENGLISH, GERMAN, SPANISH, ITALIAN
-     *  - Added standard MessageBox handling for "copy to clipboard" with <Ctrl> + <C> and <Ctrl> + <Insert>
-     *  - Tab handling is now corrected (only tabbing over the visible buttons)
-     *  - Added standard MessageBox handling for ALT-Keyboard shortcuts
-     *  - SetDialogSizes: Refactored completely: Corrected sizing and added caption driven sizing
-     * 
-     *  Version 1.2 - 10.August 2013
-     *   - Do not ShowInTaskbar anymore (original MessageBox is also hidden in taskbar)
-     *   - Added handling for Escape-Button
-     *   - Adapted top right close button (red X) to behave like MessageBox (but hidden instead of deactivated)
-     * 
-     *  Version 1.1 - 14.June 2013
-     *   - Some Refactoring
-     *   - Added internal form class
-     *   - Added missing code comments, etc.
-     *  
-     *  Version 1.0 - 15.April 2013
-     *   - Initial Version
-    */
+	 * 
+	 *  Author:         Jörg Reichert (public@jreichert.de)
+	 *  Contributors:   Thanks to: David Hall, Roink
+	 *  Version:        1.3
+	 *  Published at:   http://www.codeproject.com/Articles/601900/FlexibleMessageBox
+	 *  
+	 ************************************************************************************************************
+	 * Features:
+	 *  - It can be simply used instead of MessageBox since all important static "Show"-Functions are supported
+	 *  - It is small, only one source file, which could be added easily to each solution 
+	 *  - It can be resized and the content is correctly word-wrapped
+	 *  - It tries to auto-size the width to show the longest text row
+	 *  - It never exceeds the current desktop working area
+	 *  - It displays a vertical scrollbar when needed
+	 *  - It does support hyperlinks in text
+	 * 
+	 *  Because the interface is identical to MessageBox, you can add this single source file to your project 
+	 *  and use the FlexibleMessageBox almost everywhere you use a standard MessageBox. 
+	 *  The goal was NOT to produce as many features as possible but to provide a simple replacement to fit my 
+	 *  own needs. Feel free to add additional features on your own, but please left my credits in this class.
+	 * 
+	 ************************************************************************************************************
+	 * Usage examples:
+	 * 
+	 *  FlexibleMessageBox.Show("Just a text");
+	 * 
+	 *  FlexibleMessageBox.Show("A text", 
+	 *                          "A caption"); 
+	 *  
+	 *  FlexibleMessageBox.Show("Some text with a link: www.google.com", 
+	 *                          "Some caption",
+	 *                          MessageBoxButtons.AbortRetryIgnore, 
+	 *                          MessageBoxIcon.Information,
+	 *                          MessageBoxDefaultButton.Button2);
+	 *  
+	 *  var dialogResult = FlexibleMessageBox.Show("Do you know the answer to life the universe and everything?", 
+	 *                                             "One short question",
+	 *                                             MessageBoxButtons.YesNo);     
+	 * 
+	 ************************************************************************************************************
+	 *  THE SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS", WITHOUT WARRANTY
+	 *  OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE AUTHOR BE
+	 *  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM,
+	 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OF THIS
+	 *  SOFTWARE.
+	 *  
+	 ************************************************************************************************************
+	 * History:
+	 *  Version 1.3 - 19.Dezember 2014
+	 *  - Added refactoring function GetButtonText()
+	 *  - Used CurrentUICulture instead of InstalledUICulture
+	 *  - Added more button localizations. Supported languages are now: ENGLISH, GERMAN, SPANISH, ITALIAN
+	 *  - Added standard MessageBox handling for "copy to clipboard" with <Ctrl> + <C> and <Ctrl> + <Insert>
+	 *  - Tab handling is now corrected (only tabbing over the visible buttons)
+	 *  - Added standard MessageBox handling for ALT-Keyboard shortcuts
+	 *  - SetDialogSizes: Refactored completely: Corrected sizing and added caption driven sizing
+	 * 
+	 *  Version 1.2 - 10.August 2013
+	 *   - Do not ShowInTaskbar anymore (original MessageBox is also hidden in taskbar)
+	 *   - Added handling for Escape-Button
+	 *   - Adapted top right close button (red X) to behave like MessageBox (but hidden instead of deactivated)
+	 * 
+	 *  Version 1.1 - 14.June 2013
+	 *   - Some Refactoring
+	 *   - Added internal form class
+	 *   - Added missing code comments, etc.
+	 *  
+	 *  Version 1.0 - 15.April 2013
+	 *   - Initial Version
+	*/
 #endregion
 
 internal class FlexibleMessageBox
@@ -202,7 +202,7 @@ internal class FlexibleMessageBox
 		}
 	}
 
-    internal sealed class FlexibleContentBox : Gtk.Box
+	internal sealed class FlexibleContentBox : Gtk.Box
 	{
 		public Gtk.Text Text;
 
@@ -227,8 +227,8 @@ internal class FlexibleMessageBox
 		void InitializeComponent()
 		{
 			//components = new Container();
-            richTextBoxMessage = (FlexibleContentBox)Gtk.Box.New(Gtk.Orientation.Vertical, 0);
-            button1 = (FlexibleButton)Gtk.Button.New();
+			richTextBoxMessage = (FlexibleContentBox)Gtk.Box.New(Gtk.Orientation.Vertical, 0);
+			button1 = (FlexibleButton)Gtk.Button.New();
 			//FlexibleMessageBoxFormBindingSource = new BindingSource(components);
 			panel1 = (FlexibleContentBox)Gtk.Box.New(Gtk.Orientation.Vertical, 0);
 			pictureBoxForIcon = Gtk.Image.New();
@@ -274,9 +274,9 @@ internal class FlexibleMessageBox
 			//richTextBoxMessage.Size = new Size(200, 20);
 			richTextBoxMessage.WidthRequest = 200;
 			richTextBoxMessage.HeightRequest = 20;
-            //richTextBoxMessage.TabIndex = 0;
-            //richTextBoxMessage.TabStop = false;
-            richTextBoxMessage.Text.SetText("<Message>");
+			//richTextBoxMessage.TabIndex = 0;
+			//richTextBoxMessage.TabStop = false;
+			richTextBoxMessage.Text.SetText("<Message>");
 			//richTextBoxMessage.LinkClicked += new LinkClickedEventHandler(LinkClicked);
 			// 
 			// panel1
@@ -313,11 +313,11 @@ internal class FlexibleMessageBox
 			//button2.Location = new Point(92, 67);
 			//button2.MinimumSize = new Size(0, 24);
 			button2.Name = "button2";
-            //button2.Size = new Size(75, 24);
-            button2.WidthRequest = 75;
-            button2.HeightRequest = 24;
-            //button2.TabIndex = 3;
-            button2.Label = "OK";
+			//button2.Size = new Size(75, 24);
+			button2.WidthRequest = 75;
+			button2.HeightRequest = 24;
+			//button2.TabIndex = 3;
+			button2.Label = "OK";
 			//button2.UseVisualStyleBackColor = true;
 			button2.Visible = false;
 			// 
@@ -329,11 +329,11 @@ internal class FlexibleMessageBox
 			//button3.Location = new Point(173, 67);
 			//button3.MinimumSize = new Size(0, 24);
 			button3.Name = "button3";
-            //button3.Size = new Size(75, 24);
-            button3.WidthRequest = 75;
-            button3.HeightRequest = 24;
-            //button3.TabIndex = 0;
-            button3.Label = "OK";
+			//button3.Size = new Size(75, 24);
+			button3.WidthRequest = 75;
+			button3.HeightRequest = 24;
+			//button3.TabIndex = 0;
+			button3.Label = "OK";
 			//button3.UseVisualStyleBackColor = true;
 			button3.Visible = false;
 			// 
@@ -512,10 +512,10 @@ internal class FlexibleMessageBox
 					break;
 				case Gtk.MessageType.Warning:
 					flexibleMessageBoxForm.pictureBoxForIcon.SetFromIconName("dialog-warning-symbolic");
-                    break;
+					break;
 				case Gtk.MessageType.Error:
 					flexibleMessageBoxForm.pictureBoxForIcon.SetFromIconName("dialog-error-symbolic");
-                    break;
+					break;
 				case Gtk.MessageType.Question:
 					flexibleMessageBoxForm.pictureBoxForIcon.SetFromIconName("dialog-question-symbolic");
 					break;

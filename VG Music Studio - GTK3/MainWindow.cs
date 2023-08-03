@@ -715,16 +715,17 @@ namespace Kermalis.VGMusicStudio.GTK3
                 return;
             }
 
-            bool timerValue; // Used for updating _positionAdjustment to be in sync with _timer
+            //bool timerValue; // Used for updating _positionAdjustment to be in sync with _timer
 
             // Configures the buttons when player is playing a sequenced track
             _buttonPause.FocusOnClick = _buttonStop.FocusOnClick = true;
             _buttonPause.Label = Strings.PlayerPause;
+            GlobalConfig.Init();
             _timer.Interval = (int)(1_000.0 / GlobalConfig.Instance.RefreshRate);
 
             // Experimental attempt for _positionAdjustment to be synchronized with _timer
-            timerValue = _timer.Equals(_positionAdjustment);
-            timerValue.CompareTo(_timer);
+            //timerValue = _timer.Equals(_positionAdjustment);
+            //timerValue.CompareTo(_timer);
 
             _timer.Start();
         }

@@ -4,107 +4,153 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Gtk;
+using Kermalis.VGMusicStudio.Core;
+using Pango;
 
 namespace Kermalis.VGMusicStudio.GTK4.Util;
 
 internal class SoundSequenceList : Widget, IDisposable
 {
-    internal static Gio.ListStore Store;
-    internal static SortListModel Model;
-    internal static ColumnView View;
-    static SignalListItemFactory Factory;
+	internal static ListItem? ListItem { get; set; }
+	internal static long? Index { get; set; }
+	internal static new string? Name { get; set; }
+	internal static List<Config.Song>? Songs { get; set; }
+	//internal SingleSelection Selection { get; set; }
+	//private SignalListItemFactory Factory;
 
-    static long Index;
-    static string Name;
+	internal SoundSequenceList()
+	{
+		var box = Box.New(Orientation.Horizontal, 0);
+		var label = Label.New("");
+		label.SetWidthChars(2);
+		label.SetHexpand(true);
+		box.Append(label);
 
-    internal object Item { get; }
+		var sw = ScrolledWindow.New();
+		sw.SetPropagateNaturalWidth(true);
+		var listView = Create(label);
+		sw.SetChild(listView);
+		box.Prepend(sw);
+	}
+	
+	private static void SetupLabel(SignalListItemFactory factory, EventArgs e)
+	{
+		var label = Label.New("");
+		label.SetXalign(0);
+		ListItem!.SetChild(label);
+		//e.Equals(label);
+	}
+	private static void BindName(SignalListItemFactory factory, EventArgs e)
+	{
+		var label = ListItem!.GetChild();
+		var item = ListItem!.GetItem();
+		var name = item.Equals(Name);
 
-    internal SoundSequenceList(string name)
-    {
-        // Import the variables
-        Name = name;
+		label!.SetName(name.ToString());
+	}
 
-        // Allow the box to be scrollable
-        var sw = ScrolledWindow.New();
-        sw.SetHasFrame(true);
-        sw.SetPolicy(PolicyType.Never, PolicyType.Automatic);
+	private static Widget Create(object item)
+	{
+		if (item is Config.Song song)
+		{
+			Index = song.Index;
+			Name = song.Name;
+		}
+		else if (item is Config.Playlist playlist)
+		{
+			Songs = playlist.Songs;
+			Name = playlist.Name;
+		}
+		var model = Gio.ListStore.New(ColumnView.GetGType());
 
-        // Create a Sort List Model
-        Model = CreateModel();
-        Model.Unref();
+		var selection = SingleSelection.New(model);
+		selection.SetAutoselect(true);
+		selection.SetCanUnselect(false);
 
-        sw.SetChild(View);
 
-        Item = View;
+		var cv = ColumnView.New(selection);
+		cv.SetShowColumnSeparators(true);
+		cv.SetShowRowSeparators(true);
 
-        // Add the Columns
-        AddColumns(View);
-    }
-    internal SoundSequenceList()
-    {
-        // Allow the box to be scrollable
-        var sw = ScrolledWindow.New();
-        sw.SetHasFrame(true);
-        sw.SetPolicy(PolicyType.Never, PolicyType.Automatic);
+		var factory = SignalListItemFactory.New();
+		factory.OnSetup += SetupLabel;
+		factory.OnBind += BindName;
+		var column = ColumnViewColumn.New("Name", factory);
+		column.SetResizable(true);
+		cv.AppendColumn(column);
+		column.Unref();
 
-        // Create a Sort List Model
-        Model = CreateModel();
-        Model.Unref();
+		return cv;
+	}
 
-        sw.SetChild(View);
+	internal int Add(object item)
+	{
+		return Add(item);
+	}
+	internal int AddRange(Span<object> items)
+	{
+		foreach (object item in items)
+		{
+			Create(item);
+		}
+		return AddRange(items);
+	}
 
-        // Create a new name
-        Name = new string("Name");
+	//internal SignalListItemFactory Items
+	//{
+	//	get
+	//	{
+	//		if (Factory is null)
+	//		{
+	//			Factory = SignalListItemFactory.New();
+	//		}
 
-        // Add the Columns
-        AddColumns(View);
+	//		return Factory;
+	//	}
+	//}
 
-        Item = View;
-    }
+	internal object SelectedItem
+	{
+		get
+		{
+			int index = (int)Index!;
+			return (index == -1) ? null : ListItem.Item.Equals(index);
+		}
+		set
+		{
+			int x = -1;
 
-    static SortListModel CreateModel()
-    {
-        // Create List Store
-        Store = Gio.ListStore.New(SortListModel.GetGType());
+			if (ListItem is not null)
+			{
+				//
+				if (value is not null)
+				{
+					x = ListItem.GetPosition().CompareTo(value);
+				}
+				else
+				{
+					Index = -1;
+				}
+			}
 
-        // Create Column View with a Single Selection that reads from List Store
-        View = ColumnView.New(SingleSelection.New(Store));
+			if (x != -1)
+			{
+				Index = x;
+			}
+		}
+	}
+}
 
-        // Create Sort List Model
-        var model = SortListModel.New(Store, View.Sorter);
+internal class SoundSequenceListItem
+{
+	internal object Item { get; }
+	internal SoundSequenceListItem(object item)
+	{
+		Item = item;
+	}
 
-        // Add data to the list store
-        for (int i = 0; i < Index; i++)
-        {
-            Store.Append(model);
-        }
-
-        return model;
-    }
-    
-    //static void FixedToggled(object sender, EventArgs e)
-    //{
-    //    var model = Model;
-
-    //    var fixedBit = new bool();
-    //    fixedBit ^= true;
-    //}
-
-    static void AddColumns(ColumnView columnView)
-    {
-        Factory = SignalListItemFactory.New();
-        //var renderer = ToggleButton.New();
-        //renderer.OnToggled += FixedToggled;
-        var colName = ColumnViewColumn.New(Name, Factory);
-        columnView.AppendColumn(colName);
-    }
-
-    internal int AddItem(object item)
-    {
-        return AddItem(item);
-    }
-    internal int AddRange(Span<object> item)
-    {
-        return AddRange(item);
-    }
+	public override string ToString()
+	{
+		return Item.ToString();
+	}
 }
