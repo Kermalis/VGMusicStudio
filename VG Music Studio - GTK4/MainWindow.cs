@@ -5,6 +5,8 @@ using Kermalis.VGMusicStudio.Core.NDS.DSE;
 using Kermalis.VGMusicStudio.Core.NDS.SDAT;
 using Kermalis.VGMusicStudio.Core.Properties;
 using Kermalis.VGMusicStudio.Core.Util;
+using Kermalis.VGMusicStudio.GTK4.Util;
+using GObject;
 using Adw;
 using Gtk;
 using System;
@@ -13,13 +15,11 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Timers;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 using Application = Adw.Application;
 using Window = Adw.Window;
-using GObject;
-using Kermalis.VGMusicStudio.GTK4.Util;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
 
 namespace Kermalis.VGMusicStudio.GTK4;
 
@@ -103,7 +103,8 @@ internal sealed class MainWindow : Window
 		_sequencesEventController;
 
 	// Adjustments are for indicating the numbers and the position of the scale
-	private Adjustment _volumeAdjustment, _positionAdjustment, _sequenceNumberAdjustment;
+	private Adjustment _volumeAdjustment, _sequenceNumberAdjustment;
+	private ScaleControl _positionAdjustment;
 
 	// Sound Sequence List
 	private SignalListItemFactory _soundSequenceFactory;
@@ -210,32 +211,32 @@ internal sealed class MainWindow : Window
 		_exportDLSItem = Gio.MenuItem.New(Strings.MenuSaveDLS, "app.exportDLS");
 		_exportDLSAction = Gio.SimpleAction.New("exportDLS", null);
 		_app.AddAction(_exportDLSAction);
-        _exportDLSAction.Enabled = false;
-        _exportDLSAction.OnActivate += ExportDLS;
+		_exportDLSAction.Enabled = false;
+		_exportDLSAction.OnActivate += ExportDLS;
 		_dataMenu.AppendItem(_exportDLSItem);
 		_exportDLSItem.Unref();
 
 		_exportSF2Item = Gio.MenuItem.New(Strings.MenuSaveSF2, "app.exportSF2");
 		_exportSF2Action = Gio.SimpleAction.New("exportSF2", null);
 		_app.AddAction(_exportSF2Action);
-        _exportSF2Action.Enabled = false;
-        _exportSF2Action.OnActivate += ExportSF2;
+		_exportSF2Action.Enabled = false;
+		_exportSF2Action.OnActivate += ExportSF2;
 		_dataMenu.AppendItem(_exportSF2Item);
 		_exportSF2Item.Unref();
 
 		_exportMIDIItem = Gio.MenuItem.New(Strings.MenuSaveMIDI, "app.exportMIDI");
 		_exportMIDIAction = Gio.SimpleAction.New("exportMIDI", null);
 		_app.AddAction(_exportMIDIAction);
-        _exportMIDIAction.Enabled = false;
-        _exportMIDIAction.OnActivate += ExportMIDI;
+		_exportMIDIAction.Enabled = false;
+		_exportMIDIAction.OnActivate += ExportMIDI;
 		_dataMenu.AppendItem(_exportMIDIItem);
 		_exportMIDIItem.Unref();
 
 		_exportWAVItem = Gio.MenuItem.New(Strings.MenuSaveWAV, "app.exportWAV");
 		_exportWAVAction = Gio.SimpleAction.New("exportWAV", null);
 		_app.AddAction(_exportWAVAction);
-        _exportWAVAction.Enabled = false;
-        _exportWAVAction.OnActivate += ExportWAV;
+		_exportWAVAction.Enabled = false;
+		_exportWAVAction.OnActivate += ExportWAV;
 		_dataMenu.AppendItem(_exportWAVItem);
 		_exportWAVItem.Unref();
 
@@ -255,12 +256,12 @@ internal sealed class MainWindow : Window
 		_endPlaylistItem = Gio.MenuItem.New(Strings.MenuEndPlaylist, "app.endPlaylist");
 		_endPlaylistAction = Gio.SimpleAction.New("endPlaylist", null);
 		_app.AddAction(_endPlaylistAction);
-        _endPlaylistAction.Enabled = false;
-        _endPlaylistAction.OnActivate += EndCurrentPlaylist;
+		_endPlaylistAction.Enabled = false;
+		_endPlaylistAction.OnActivate += EndCurrentPlaylist;
 		_playlistMenu.AppendItem(_endPlaylistItem);
 		_endPlaylistItem.Unref();
 
-        _mainMenu.AppendItem(_playlistItem);
+		_mainMenu.AppendItem(_playlistItem);
 		_playlistItem.Unref();
 
 		// Buttons
@@ -293,14 +294,13 @@ internal sealed class MainWindow : Window
 		_volumeScale.OnValueChanged += VolumeScale_ValueChanged;
 
 		// Position Scale
-		_positionAdjustment = Adjustment.New(0, 0, -1, 1, 1, 1);
+		_positionAdjustment = new ScaleControl(0, 0, 0, 1, 1, 1);
 		_positionScale = Scale.New(Orientation.Horizontal, _positionAdjustment);
 		_positionScale.Sensitive = false;
 		_positionScale.ShowFillLevel = true;
 		_positionScale.DrawValue = false;
 		_positionScale.WidthRequest = 250;
 		_positionGestureClick = GestureClick.New();
-		//_positionGestureClick.GetWidget().SetParent(_positionScale);
 		_positionGestureClick.OnReleased += PositionScale_MouseButtonRelease; // ButtonRelease must go first, otherwise the scale it will follow the mouse cursor upon loading
 		_positionGestureClick.OnPressed += PositionScale_MouseButtonPress;
 
@@ -343,8 +343,12 @@ internal sealed class MainWindow : Window
 		_configPlayerButtonBox.Append(_buttonPause);
 		_configPlayerButtonBox.Append(_buttonStop);
 
-		_configSpinButtonBox.Append(_sequenceNumberSpinButton);
-
+		if (_configSpinButtonBox.GetFirstChild() == null)
+		{
+			_sequenceNumberSpinButton.Hide();
+			_configSpinButtonBox.Append(_sequenceNumberSpinButton);
+		}
+		
 		_volumeScale.MarginStart = 20;
 		_volumeScale.MarginEnd = 20;
 		_configScaleBox.Append(_volumeScale);
@@ -355,19 +359,27 @@ internal sealed class MainWindow : Window
 		SetContent(_mainBox);
 
 		Show();
+
+		// Ensures the entire application gets closed when the main window is closed
+		OnCloseRequest += (sender, args) =>
+		{
+			DisposeEngine(); // Engine must be disposed first, otherwise the window will softlock when closing
+			_app.Quit();
+			return true;
+		};
 	}
 
 	// When the value is changed on the volume scale
 	private void VolumeScale_ValueChanged(object sender, EventArgs e)
 	{
-		Engine.Instance.Mixer.SetVolume((float)(_volumeScale.Adjustment.Value / _volumeAdjustment.Value));
+		Engine.Instance!.Mixer.SetVolume((float)(_volumeScale.Adjustment!.Value / _volumeAdjustment.Upper));
 	}
 
 	// Sets the volume scale to the specified position
 	public void SetVolumeScale(float volume)
 	{
 		_volumeScale.OnValueChanged -= VolumeScale_ValueChanged;
-		_volumeScale.Adjustment.Value = (int)(volume * _volumeAdjustment.Upper);
+		_volumeScale.Adjustment!.Value = (int)(volume * _volumeAdjustment.Upper);
 		_volumeScale.OnValueChanged += VolumeScale_ValueChanged;
 	}
 
@@ -376,7 +388,7 @@ internal sealed class MainWindow : Window
 	{
 		if (args.NPress == 1) // Number 1 is Left Mouse Button
 		{
-			Engine.Instance.Player.SetCurrentPosition((long)_positionScale.Adjustment.Value); // Sets the value based on the position when mouse button is released
+			Engine.Instance.Player.SetCurrentPosition((long)_positionAdjustment.Value); // Sets the value based on the position when mouse button is released
 			_positionScaleFree = true; // Sets _positionScaleFree to true when mouse button is released
 			LetUIKnowPlayerIsPlaying(); // This method will run the void that tells the UI that the player is playing a track
 		}
@@ -403,6 +415,10 @@ internal sealed class MainWindow : Window
 		bool success;
 		try
 		{
+			if (Engine.Instance == null)
+			{
+				return; // Prevents referencing a null Engine.Instance when the engine is being disposed, especially while main window is being closed
+			}
 			Engine.Instance!.Player.LoadSong(index);
 			success = Engine.Instance.Player.LoadedSong is not null; // TODO: Make sure loadedsong is null when there are no tracks (for each engine, only mp2k guarantees it rn)
 		}
@@ -423,9 +439,10 @@ internal sealed class MainWindow : Window
 				this.Title = $"{ConfigUtils.PROGRAM_NAME} - {song.Name}"; // TODO: Make this a func
 				//_sequencesColumnView.SortColumnId = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
 			}
-			_positionAdjustment.Upper = Engine.Instance!.Player.LoadedSong!.MaxTicks;
-			_positionAdjustment.Value = _positionAdjustment.Upper / 10;
-			_positionAdjustment.Value = _positionAdjustment.Value / 4;
+			_positionAdjustment.Upper = (ulong)Engine.Instance!.Player.LoadedSong!.MaxTicks;
+			_positionAdjustment.LargeChange = (ulong)_positionAdjustment.Upper / 10;
+			_positionAdjustment.SmallChange = (ulong)_positionAdjustment.LargeChange / 4;
+			_positionScale.Show();
 			//_songInfo.SetNumTracks(Engine.Instance.Player.LoadedSong.Events.Length);
 			if (_autoplay)
 			{
@@ -438,7 +455,7 @@ internal sealed class MainWindow : Window
 		}
 		_positionScale.Sensitive = _exportWAVAction.Enabled = success;
 		_exportMIDIAction.Enabled = success && MP2KEngine.MP2KInstance is not null;
-        _exportDLSAction.Enabled = _exportSF2Action.Enabled = success && AlphaDreamEngine.AlphaDreamInstance is not null;
+		_exportDLSAction.Enabled = _exportSF2Action.Enabled = success && AlphaDreamEngine.AlphaDreamInstance is not null;
 
 		_autoplay = true;
 		//_sequencesGestureClick.OnEnd += SequencesListView_SelectionGet;
@@ -803,13 +820,13 @@ internal sealed class MainWindow : Window
 				{
 					var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
 					OpenMP2KFinish(path!);
-                    filterGBA.Unref();
-                    allFiles.Unref();
-                    filters.Unref();
-                    GObject.Internal.Object.Unref(fileHandle);
-                    d.Unref();
+					filterGBA.Unref();
+					allFiles.Unref();
+					filters.Unref();
+					GObject.Internal.Object.Unref(fileHandle);
+					d.Unref();
 					return;
-                }
+				}
 				d.Unref();
 			};
 			Gtk.Internal.FileDialog.Open(d.Handle, Handle, IntPtr.Zero, _openCallback, IntPtr.Zero);
@@ -1176,15 +1193,11 @@ internal sealed class MainWindow : Window
 		GlobalConfig.Init(); // A new instance needs to be initialized before it can do anything
 
 		// Configures the buttons when player is playing a sequenced track
-		_buttonPause.FocusOnClick = _buttonStop.FocusOnClick = true;
+		_buttonPause.Sensitive = _buttonStop.Sensitive = true; // Setting the 'Sensitive' property to 'true' enables the buttons, allowing you to click on them
 		_buttonPause.Label = Strings.PlayerPause;
-		_timer.Interval = (int)(1_000.0 / GlobalConfig.Instance.RefreshRate);
-
-		// Experimental attempt for _positionAdjustment to be synchronized with _timer
-		//timerValue = _timer.Equals(_positionAdjustment);
-		//timerValue.CompareTo(_timer);
-
+		_timer.Interval = (uint)(1_000.0 / GlobalConfig.Instance.RefreshRate);
 		_timer.Start();
+		Show();
 	}
 
 	private void Play()
@@ -1208,11 +1221,16 @@ internal sealed class MainWindow : Window
 	}
 	private void Stop()
 	{
+		if (Engine.Instance == null)
+		{
+			return; // This is here to ensure that it returns if the Engine.Instance is null while closing the main window
+		}
 		Engine.Instance!.Player.Stop();
 		_buttonPause.Sensitive = _buttonStop.Sensitive = false;
 		_buttonPause.Label = Strings.PlayerPause;
 		_timer.Stop();
 		UpdatePositionIndicators(0L);
+		Show();
 	}
 	private void TogglePlayback(object? sender, EventArgs? e)
 	{
