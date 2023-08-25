@@ -43,44 +43,44 @@ namespace Kermalis.VGMusicStudio.GTK4.Util;
 
 internal class ScaleControl : Adjustment
 {
-    internal Adjustment Instance { get; }
+	internal Adjustment Instance { get; }
 
-    internal ScaleControl(double value, double lower, double upper, double stepIncrement, double pageIncrement, double pageSize)
-    {
-        Instance = New(value, lower, upper, stepIncrement, pageIncrement, pageSize);
-    }
-    
-    private double _smallChange = 1L;
-    public double SmallChange
-    {
-        get => _smallChange;
-        set
-        {
-            if (value >= 0)
-            {
-                _smallChange = value;
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException(nameof(SmallChange), $"{nameof(SmallChange)} must be greater than or equal to 0.");
-            }
-        }
-    }
-    private double _largeChange = 5L;
-    public double LargeChange
-    {
-        get => _largeChange;
-        set
-        {
-            if (value >= 0)
-            {
-                _largeChange = value;
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException(nameof(LargeChange), $"{nameof(LargeChange)} must be greater than or equal to 0.");
-            }
-        }
-    }
+	internal ScaleControl(double value, double lower, double upper, double stepIncrement, double pageIncrement, double pageSize)
+	{
+		Instance = New(value, lower, upper, stepIncrement, pageIncrement, pageSize);
+	}
+	
+	private double _smallChange = 1L;
+	public double SmallChange
+	{
+		get => _smallChange;
+		set
+		{
+			if (value >= 0)
+			{
+				_smallChange = value;
+			}
+			else
+			{
+				throw new ArgumentOutOfRangeException(nameof(SmallChange), $"{nameof(SmallChange)} must be greater than or equal to 0.");
+			}
+		}
+	}
+	private double _largeChange = 5L;
+	public double LargeChange
+	{
+		get => _largeChange;
+		set
+		{
+			if (value >= 0)
+			{
+				_largeChange = value;
+			}
+			else
+			{
+				throw new ArgumentOutOfRangeException(nameof(LargeChange), $"{nameof(LargeChange)} must be greater than or equal to 0.");
+			}
+		}
+	}
 
 }

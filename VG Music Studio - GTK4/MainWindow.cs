@@ -82,9 +82,6 @@ internal sealed class MainWindow : Window
 
 	private SignalHandler<Gio.SimpleAction> _openDSEHandler;
 
-	// Menu Widgets
-	private Widget _exportDLSWidget, _exportSF2Widget, _exportMIDIWidget, _exportWAVWidget, _endPlaylistWidget;
-
 	// Main Box
 	private Box _mainBox, _configButtonBox, _configPlayerButtonBox, _configSpinButtonBox, _configScaleBox;
 
@@ -92,7 +89,7 @@ internal sealed class MainWindow : Window
 	private readonly VolumeButton _volumeButton;
 
 	// One Scale controling volume and one Scale for the sequenced track
-	private readonly Scale _volumeScale, _positionScale;
+	private Scale _volumeScale, _positionScale;
 
 	// Mouse Click Gesture
 	private GestureClick _positionGestureClick, _sequencesGestureClick;
@@ -103,16 +100,16 @@ internal sealed class MainWindow : Window
 		_sequencesEventController;
 
 	// Adjustments are for indicating the numbers and the position of the scale
-	private Adjustment _volumeAdjustment, _sequenceNumberAdjustment;
-	private ScaleControl _positionAdjustment;
+	private readonly Adjustment _volumeAdjustment, _sequenceNumberAdjustment;
+	//private ScaleControl _positionAdjustment;
 
 	// Sound Sequence List
-	private SignalListItemFactory _soundSequenceFactory;
-	private SoundSequenceList _soundSequenceList;
-	private SoundSequenceListItem _soundSequenceListItem;
-	private SortListModel _soundSequenceSortListModel;
-	private ListBox _soundSequenceListBox;
-	private DropDown _soundSequenceDropDown;
+	//private SignalListItemFactory _soundSequenceFactory;
+	//private SoundSequenceList _soundSequenceList;
+	//private SoundSequenceListItem _soundSequenceListItem;
+	//private SortListModel _soundSequenceSortListModel;
+	//private ListBox _soundSequenceListBox;
+	//private DropDown _soundSequenceDropDown;
 
 	// Error Handle
 	private GLib.Internal.ErrorOwnedHandle ErrorHandle = new GLib.Internal.ErrorOwnedHandle(IntPtr.Zero);
@@ -291,23 +288,30 @@ internal sealed class MainWindow : Window
 		_volumeScale.ShowFillLevel = true;
 		_volumeScale.DrawValue = false;
 		_volumeScale.WidthRequest = 250;
-		_volumeScale.OnValueChanged += VolumeScale_ValueChanged;
+		//_volumeScale.OnValueChanged += VolumeScale_ValueChanged;
 
 		// Position Scale
-		_positionAdjustment = new ScaleControl(0, 0, 0, 1, 1, 1);
-		_positionScale = Scale.New(Orientation.Horizontal, _positionAdjustment);
+		_positionScale = Scale.New(Orientation.Horizontal, Adjustment.New(0, 0, 1, 1, 1, 1)); // The Upper value property must contain a value of 1 or higher for the widget to show upon startup
 		_positionScale.Sensitive = false;
 		_positionScale.ShowFillLevel = true;
 		_positionScale.DrawValue = false;
 		_positionScale.WidthRequest = 250;
+		_positionScale.RestrictToFillLevel = false;
+		//_positionScale.SetRange(0, double.MaxValue);
+		//_positionScale.OnValueChanged += PositionScale_MouseButtonRelease;
+		//_positionScale.OnValueChanged += PositionScale_MouseButtonPress;
+  //      _positionScale.Focusable = true;
+		//_positionScale.HasOrigin = true;
+		//_positionScale.Visible = true;
+		//_positionScale.FillLevel = _positionAdjustment.Upper;
 		_positionGestureClick = GestureClick.New();
-		_positionGestureClick.OnReleased += PositionScale_MouseButtonRelease; // ButtonRelease must go first, otherwise the scale it will follow the mouse cursor upon loading
-		_positionGestureClick.OnPressed += PositionScale_MouseButtonPress;
+		//_positionGestureClick.OnReleased += PositionScale_MouseButtonRelease; // ButtonRelease must go first, otherwise the scale it will follow the mouse cursor upon loading
+		//_positionGestureClick.OnPressed += PositionScale_MouseButtonPress;
 
 		// Sound Sequence List
 		//_soundSequenceList = new SoundSequenceList { Sensitive = false };
-		_soundSequenceFactory = SignalListItemFactory.New();
-		_soundSequenceListBox = ListBox.New();
+		//_soundSequenceFactory = SignalListItemFactory.New();
+		//_soundSequenceListBox = ListBox.New();
 		//_soundSequenceDropDown = DropDown.New(Gio.ListStore.New(DropDown.GetGType()), new ConstantExpression(IntPtr.Zero));
 		//_soundSequenceDropDown.OnActivate += SequencesListView_SelectionGet;
 		//_soundSequenceDropDown.ListFactory = _soundSequenceFactory;
@@ -325,12 +329,6 @@ internal sealed class MainWindow : Window
 		_configSpinButtonBox.WidthRequest = 100;
 		_configScaleBox = Box.New(Orientation.Horizontal, 2);
 		_configScaleBox.Halign = Align.Center;
-
-		_mainBox.Append(_headerBar);
-		_mainBox.Append(_popoverMenuBar);
-		_mainBox.Append(_configButtonBox);
-		_mainBox.Append(_configScaleBox);
-		_mainBox.Append(_soundSequenceListBox);
 
 		_configPlayerButtonBox.MarginStart = 40;
 		_configPlayerButtonBox.MarginEnd = 40;
@@ -355,6 +353,12 @@ internal sealed class MainWindow : Window
 		_positionScale.MarginStart = 20;
 		_positionScale.MarginEnd = 20;
 		_configScaleBox.Append(_positionScale);
+
+		_mainBox.Append(_headerBar);
+		_mainBox.Append(_popoverMenuBar);
+		_mainBox.Append(_configButtonBox);
+		_mainBox.Append(_configScaleBox);
+		//_mainBox.Append(_soundSequenceListBox);
 
 		SetContent(_mainBox);
 
@@ -384,18 +388,18 @@ internal sealed class MainWindow : Window
 	}
 
 	private bool _positionScaleFree = true;
-	private void PositionScale_MouseButtonRelease(object sender, GestureClick.ReleasedSignalArgs args)
+	private void PositionScale_MouseButtonRelease(object sender, EventArgs args)
 	{
-		if (args.NPress == 1) // Number 1 is Left Mouse Button
+		if (_positionGestureClick.Button == 1) // Number 1 is Left Mouse Button
 		{
-			Engine.Instance.Player.SetCurrentPosition((long)_positionAdjustment.Value); // Sets the value based on the position when mouse button is released
+			Engine.Instance!.Player.SetCurrentPosition((long)_positionScale.Adjustment!.Value); // Sets the value based on the position when mouse button is released
 			_positionScaleFree = true; // Sets _positionScaleFree to true when mouse button is released
 			LetUIKnowPlayerIsPlaying(); // This method will run the void that tells the UI that the player is playing a track
 		}
 	}
-	private void PositionScale_MouseButtonPress(object sender, GestureClick.PressedSignalArgs args)
+	private void PositionScale_MouseButtonPress(object sender, EventArgs args)
 	{
-		if (args.NPress == 1) // Number 1 is Left Mouse Button
+		if (_positionGestureClick.Button == 1) // Number 1 is Left Mouse Button
 		{
 			_positionScaleFree = false;
 		}
@@ -439,9 +443,9 @@ internal sealed class MainWindow : Window
 				this.Title = $"{ConfigUtils.PROGRAM_NAME} - {song.Name}"; // TODO: Make this a func
 				//_sequencesColumnView.SortColumnId = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
 			}
-			_positionAdjustment.Upper = (ulong)Engine.Instance!.Player.LoadedSong!.MaxTicks;
-			_positionAdjustment.LargeChange = (ulong)_positionAdjustment.Upper / 10;
-			_positionAdjustment.SmallChange = (ulong)_positionAdjustment.LargeChange / 4;
+			_positionScale.Adjustment!.Upper = Engine.Instance!.Player.LoadedSong!.MaxTicks;
+			//_positionAdjustment.LargeChange = (long)(_positionAdjustment.Upper / 10) >> 64;
+			//_positionAdjustment.SmallChange = (long)(_positionAdjustment.LargeChange / 4) >> 64;
 			_positionScale.Show();
 			//_songInfo.SetNumTracks(Engine.Instance.Player.LoadedSong.Events.Length);
 			if (_autoplay)
@@ -461,27 +465,27 @@ internal sealed class MainWindow : Window
 		//_sequencesGestureClick.OnEnd += SequencesListView_SelectionGet;
 		//_signal.Connect(_sequencesListFactory, SequencesListView_SelectionGet, true, null);
 	}
-	private void SequencesListView_SelectionGet(object sender, EventArgs e)
-	{
-		var item = _soundSequenceList.SelectedItem;
-		if (item is Config.Song song)
-		{
-			SetAndLoadSequence(song.Index);
-		}
-		else if (item is Config.Playlist playlist)
-		{
-			if (playlist.Songs.Count > 0
-			&& FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.MenuPlaylist, ButtonsType.YesNo) == ResponseType.Yes)
-			{
-				ResetPlaylistStuff(false);
-				_curPlaylist = playlist;
-				Engine.Instance.Player.ShouldFadeOut = _playlistPlaying = true;
-				Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
-				_endPlaylistWidget.Sensitive = true;
-				SetAndLoadNextPlaylistSong();
-			}
-		}
-	}
+	//private void SequencesListView_SelectionGet(object sender, EventArgs e)
+	//{
+	//	var item = _soundSequenceList.SelectedItem;
+	//	if (item is Config.Song song)
+	//	{
+	//		SetAndLoadSequence(song.Index);
+	//	}
+	//	else if (item is Config.Playlist playlist)
+	//	{
+	//		if (playlist.Songs.Count > 0
+	//		&& FlexibleMessageBox.Show(string.Format(Strings.PlayPlaylistBody, Environment.NewLine + playlist), Strings.MenuPlaylist, ButtonsType.YesNo) == ResponseType.Yes)
+	//		{
+	//			ResetPlaylistStuff(false);
+	//			_curPlaylist = playlist;
+	//			Engine.Instance.Player.ShouldFadeOut = _playlistPlaying = true;
+	//			Engine.Instance.Player.NumLoops = GlobalConfig.Instance.PlaylistSongLoops;
+	//			_endPlaylistAction.Enabled = true;
+	//			SetAndLoadNextPlaylistSong();
+	//		}
+	//	}
+	//}
 	private void SetAndLoadSequence(long index)
 	{
 		_curSong = index;
@@ -520,8 +524,8 @@ internal sealed class MainWindow : Window
 		_curSong = -1;
 		_remainingSequences.Clear();
 		_playedSequences.Clear();
-		//_endPlaylistWidget.Sensitive = false;
-		_sequenceNumberSpinButton.Sensitive = _soundSequenceListBox.Sensitive = enableds;
+		_endPlaylistAction.Enabled = false;
+		_sequenceNumberSpinButton.Sensitive = /* _soundSequenceListBox.Sensitive = */ enableds;
 	}
 	private void EndCurrentPlaylist(object sender, EventArgs e)
 	{
@@ -799,7 +803,6 @@ internal sealed class MainWindow : Window
 					return;
 				}
 				var path = d.GetFile()!.GetPath() ?? "";
-				d.GetData(path);
 				OpenMP2KFinish(path);
 				d.Unref();
 			};
@@ -1188,14 +1191,16 @@ internal sealed class MainWindow : Window
 			return;
 		}
 
-		//bool timerValue; // Used for updating _positionAdjustment to be in sync with _timer
-
-		GlobalConfig.Init(); // A new instance needs to be initialized before it can do anything
+		// Ensures a GlobalConfig Instance is created if one doesn't exist
+		if (GlobalConfig.Instance == null)
+		{
+			GlobalConfig.Init(); // A new instance needs to be initialized before it can do anything
+		}
 
 		// Configures the buttons when player is playing a sequenced track
 		_buttonPause.Sensitive = _buttonStop.Sensitive = true; // Setting the 'Sensitive' property to 'true' enables the buttons, allowing you to click on them
 		_buttonPause.Label = Strings.PlayerPause;
-		_timer.Interval = (uint)(1_000.0 / GlobalConfig.Instance.RefreshRate);
+		_timer.Interval = (int)(1_000.0 / GlobalConfig.Instance!.RefreshRate);
 		_timer.Start();
 		Show();
 	}
@@ -1273,12 +1278,12 @@ internal sealed class MainWindow : Window
 	private void FinishLoading(long numSongs)
 	{
 		Engine.Instance!.Player.SongEnded += SongEnded;
-		foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
-		{
-			//_soundSequenceListBox.Insert(Label.New(playlist.Name), playlist.Songs.Count);
-			//_soundSequenceList.Add(new SoundSequenceListItem(playlist));
-			//_soundSequenceList.AddRange(playlist.Songs.Select(s => new SoundSequenceListItem(s)).ToArray());
-		}
+		//foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
+		//{
+		//	_soundSequenceListBox.Insert(Label.New(playlist.Name), playlist.Songs.Count);
+		//	_soundSequenceList.Add(new SoundSequenceListItem(playlist));
+		//	_soundSequenceList.AddRange(playlist.Songs.Select(s => new SoundSequenceListItem(s)).ToArray());
+		//}
 		_sequenceNumberAdjustment.Upper = numSongs - 1;
 #if DEBUG
 		// [Debug methods specific to this UI will go in here]
@@ -1342,7 +1347,7 @@ internal sealed class MainWindow : Window
 	{
 		if (_positionScaleFree)
 		{
-			_positionAdjustment.Value = ticks; // A Gtk.Adjustment field must be used here to avoid issues
+			_positionScale.SetValue(ticks); // A Gtk.Adjustment field must be used here to avoid issues
 		}
 	}
 }

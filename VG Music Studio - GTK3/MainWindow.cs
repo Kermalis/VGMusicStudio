@@ -218,14 +218,14 @@ namespace Kermalis.VGMusicStudio.GTK3
         // When the value is changed on the volume scale
         private void VolumeScale_ValueChanged(object? sender, EventArgs? e)
         {
-            Engine.Instance.Mixer.SetVolume((float)(_volumeScale.Value / _volumeAdjustment.Value));
+            Engine.Instance.Mixer.SetVolume((float)(_volumeScale.Adjustment!.Value / _volumeAdjustment.Upper));
         }
 
         // Sets the volume scale to the specified position
         public void SetVolumeScale(float volume)
         {
             _volumeScale.ValueChanged -= VolumeScale_ValueChanged;
-            _volumeScale.Value = (int)(volume * _volumeAdjustment.Upper);
+            _volumeScale.Adjustment!.Value = (int)(volume * _volumeAdjustment.Upper);
             _volumeScale.ValueChanged += VolumeScale_ValueChanged;
         }
 
@@ -480,8 +480,10 @@ namespace Kermalis.VGMusicStudio.GTK3
                 d.Destroy();
                 return;
             }
-
-            DisposeEngine();
+            if (Engine.Instance != null)
+            {
+                DisposeEngine();
+            }
             try
             {
                 _ = new MP2KEngine(File.ReadAllBytes(d.Filename));
@@ -718,7 +720,7 @@ namespace Kermalis.VGMusicStudio.GTK3
             //bool timerValue; // Used for updating _positionAdjustment to be in sync with _timer
 
             // Configures the buttons when player is playing a sequenced track
-            _buttonPause.FocusOnClick = _buttonStop.FocusOnClick = true;
+            _buttonPause.Sensitive = _buttonStop.Sensitive = true;
             _buttonPause.Label = Strings.PlayerPause;
             GlobalConfig.Init();
             _timer.Interval = (int)(1_000.0 / GlobalConfig.Instance.RefreshRate);
@@ -800,9 +802,8 @@ namespace Kermalis.VGMusicStudio.GTK3
             Engine.Instance!.Player.SongEnded += SongEnded;
             foreach (Config.Playlist playlist in Engine.Instance.Config.Playlists)
             {
-                int i = 0;
-                _sequencesListStore.AppendValues(i++, playlist);
-                playlist.Songs.Select(s => new TreeView(_sequencesListStore)).ToArray();
+                _sequencesListStore.AppendValues(playlist);
+                //_sequencesListStore.AppendValues(playlist.Songs.Select(s => new TreeView(_sequencesListStore)).ToArray());
             }
             _sequenceNumberAdjustment.Upper = numSongs - 1;
 #if DEBUG
