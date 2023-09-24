@@ -479,6 +479,16 @@ AMZE_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+APUJ_00:
+  Name: "PukuPuku Tennen Kairanban (Japan)"
+  SongTableOffsets: 0x778FC
+  SongTableSizes: 181
+  SampleRate: 7
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 AWAC_00:
   Name: "Wario Land 4 (China)"
   SongTableOffsets: 0x98CB8
@@ -961,6 +971,16 @@ B24J_00:
 B24P_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
   Copy: "B24E_00"
+B3PJ_00:
+  Name: "PukuPuku Tennen Kairanban - Youkoso! Illusion Land he (Japan)"
+  SongTableOffsets: 0x1416A8
+  SongTableSizes: 230
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 BE8E_00:
   Name: "Fire Emblem: The Sacred Stones (USA)"
   SongTableOffsets: 0x224470
@@ -1387,6 +1407,16 @@ BPPP_00:
   Name: "Pokémon Pinball: Ruby & Sapphire (Europe)"
   SongTableOffsets: 0x7C67A4
   Copy: "BPPE_00"
+BPQJ_00:
+  Name: "PukuPuku Tennen Kairanban - Koi no Cupid Daisakusen (Japan)"
+  SongTableOffsets: 0xF16C4
+  SongTableSizes: 545
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 BPRD_00:
   Name: "Pokémon Fire Red Version (Germany)"
   SongTableOffsets: 0x4A18F0
