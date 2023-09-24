@@ -981,6 +981,73 @@ B3PJ_00:
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
+B8KE_00:
+  Name: "Kirby & The Amazing Mirror (USA)"
+  SongTableOffsets: 0xB59ED0
+  SongTableSizes: 620
+  SampleRate: 5
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+  Playlists:
+    Sound Player (Music):
+      1: "Title"
+      2: "Select"
+      3: "Labyrinth Entrance Stage"
+      4: "Start Stage"
+      5: "Forest & Natural Area"
+      6: "Flame & Lava Area"
+      7: "Ice & Crystal Area"
+      8: "Cave & Rocky Area"
+      9: "Castle & Construction Area"
+      10: "Ruins Area"
+      11: "Space Area"
+      12: "Deep Ocean Area"
+      13: "Boss"
+      14: "Dark Meta Knight"
+      15: "Last Boss / 1st Form"
+      16: "Last Boss / 2nd Form"
+      17: "Last Boss / 3rd Form"
+      18: "Ending"
+      19: "You Win (Crowd)"
+      20: "Out of Health"
+      21: "Goal Game"
+      22: "Clear Dance (Long)"
+      23: "Clear Dance (Short)"
+      24: "Dark Meta Knight Appears"
+      25: "Opening"
+      26: "Dark Meta Knight Attacks"
+      27: "Dark Mind Takes to The Sky"
+      28: "Gigaton Punch"
+      29: "Surfing Star Ride"
+      30: "Start Count"
+      31: "Goal!"
+      32: "You Lose"
+      33: "You Win"
+      34: "Perfect! (1st Place)"
+      35: "Snatching Instant"
+      36: "Well Done! (2nd Place)"
+      37: "Victory Star"
+      38: "Invincible"
+      39: "Game Over"
+      40: "Gigaton Punch 2"
+      41: "Snatching Instant 2"
+      42: "You Are the Champion"
+    Unused Music (Echo):
+      50: "Forest & Natural Area (Echo)"
+      51: "Castle & Construction Area (Echo)"
+      52: "Ruins Area (Echo)"
+      53: "Last Boss / 1st Form (Echo)"
+B8KJ_01:
+  Name: "Kirby & The Amazing Mirror (Japan)"
+  SongTableOffsets: 0xB253E0
+  Copy: "B8KE_00"
+B8KP_00:
+  Name: "Kirby & The Amazing Mirror (Europe)"
+  SongTableOffsets: 0xB64334
+  Copy: "B8KE_00"
 BE8E_00:
   Name: "Fire Emblem: The Sacred Stones (USA)"
   SongTableOffsets: 0x224470
