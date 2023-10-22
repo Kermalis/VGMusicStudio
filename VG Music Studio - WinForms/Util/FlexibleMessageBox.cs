@@ -338,14 +338,6 @@ internal sealed class FlexibleMessageBox
 
 		private FlexibleMessageBoxForm()
 		{
-			InitializeComponent();
-
-			//Try to evaluate the language. If this fails, the fallback language English will be used
-			_ = Enum.TryParse(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, out languageID);
-
-			KeyPreview = true;
-			KeyUp += FlexibleMessageBoxForm_KeyUp;
-
 			components = null!;
 			button1 = null!;
 			button2 = null!;
@@ -356,6 +348,14 @@ internal sealed class FlexibleMessageBox
 			pictureBoxForIcon = null!;
 			CaptionText = null!;
 			MessageText = null!;
+
+			InitializeComponent();
+
+			//Try to evaluate the language. If this fails, the fallback language English will be used
+			_ = Enum.TryParse(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, out languageID);
+
+			KeyPreview = true;
+			KeyUp += FlexibleMessageBoxForm_KeyUp;
 		}
 
 		#endregion
