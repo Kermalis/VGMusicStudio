@@ -26,6 +26,12 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 		SWDFileName = bgm;
 		SMDFileName = bgm;
 		StringComparison comparison = StringComparison.CurrentCultureIgnoreCase;
+
+		// Check if a local SWD is accompaning a SMD
+		if (new FileInfo(Path.ChangeExtension(bgm, "swd")).Exists)
+		{
+            LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd")); // If it exists, this will be loaded as the local SWD
+        }
 		//if (SWDFileName.StartsWith("bgm", comparison) == SMDFileName.StartsWith("bgm", comparison))
 		//{
   //          LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd"));

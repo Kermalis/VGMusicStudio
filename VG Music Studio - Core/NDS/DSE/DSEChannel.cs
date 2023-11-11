@@ -64,8 +64,14 @@ internal sealed class DSEChannel
 		if (localswd == null) { SWDType = masterswd.Type; }
 		else { SWDType = localswd.Type; }
 		
-        SWD.IProgramInfo programInfo;
-        if (localswd == null) { programInfo = masterswd.Programs!.ProgramInfos![voice]; }
+        SWD.IProgramInfo? programInfo = null; // Declaring Program Info Interface here, to ensure VGMS compiles
+        if (localswd == null)
+		{
+			// Failsafe to check if SWD.ProgramBank contains an instance, if it doesn't, it will be skipped
+			// This is especially important for initializing a main SWD before the local SWDs
+			// accompaning the SMDs with the same names are loaded in.
+			if (masterswd.Programs != null) { programInfo = masterswd.Programs!.ProgramInfos![voice]; }
+        }
         else { programInfo = localswd.Programs!.ProgramInfos![voice]; }
 
         if (programInfo is null)
