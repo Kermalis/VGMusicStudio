@@ -260,3 +260,4 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/VG Music Studio - GTK4/share/glib-2.0
