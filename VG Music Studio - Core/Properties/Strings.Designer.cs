@@ -484,7 +484,7 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open SMD Folder.
+        ///   Looks up a localized string similar to Open Folder Containing SMD Files.
         /// </summary>
         public static string MenuOpenSMD {
             get {
@@ -493,7 +493,7 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open SWD File.
+        ///   Looks up a localized string similar to Open Main SWD File.
         /// </summary>
         public static string MenuOpenSWD {
             get {

@@ -26,7 +26,7 @@ public sealed class DSEPlayer : Player
 		_config = config;
 		//string swdPath = Directory.GetFiles(mainSWDFile)[0];
 
-        MainSWD = new SWD(mainSWDFile);
+		MainSWD = new SWD(mainSWDFile);
 	}
 
 	public override void LoadSong(int index)

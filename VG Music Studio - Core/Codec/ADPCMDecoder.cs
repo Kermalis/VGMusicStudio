@@ -31,12 +31,12 @@ internal sealed class ADPCMDecoder
 
 	public ADPCMDecoder(byte[] data)
 	{
-        _data = data;
-        LastSample = (short)(data[0] | (data[1] << 8));
-        StepIndex = (short)((data[2] | (data[3] << 8)) & 0x7F);
-        DataOffset = 4;
-        OnSecondNibble = false;
-    }
+		_data = data;
+		LastSample = (short)(data[0] | (data[1] << 8));
+		StepIndex = (short)((data[2] | (data[3] << 8)) & 0x7F);
+		DataOffset = 4;
+		OnSecondNibble = false;
+	}
 
 	// TODO: Span?
 	public static short[] ADPCMToPCM16(byte[] data)
