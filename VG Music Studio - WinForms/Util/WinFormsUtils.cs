@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Windows.Forms;
 
 namespace Kermalis.VGMusicStudio.WinForms.Util;
 
@@ -36,41 +35,5 @@ internal static class WinFormsUtils
 	public static float Lerp(float value, float a1, float a2, float b1, float b2)
 	{
 		return b1 + ((value - a1) / (a2 - a1) * (b2 - b1));
-	}
-
-	public static string? CreateLoadDialog(string extension, string title, string filter)
-	{
-		var d = new OpenFileDialog
-		{
-			DefaultExt = extension,
-			ValidateNames = true,
-			CheckFileExists = true,
-			CheckPathExists = true,
-			Title = title,
-			Filter = $"{filter}|All files (*.*)|*.*",
-		};
-		if (d.ShowDialog() == DialogResult.OK)
-		{
-			return d.FileName;
-		}
-		return null;
-	}
-	public static string? CreateSaveDialog(string fileName, string extension, string title, string filter)
-	{
-		var d = new SaveFileDialog
-		{
-			FileName = fileName,
-			DefaultExt = extension,
-			AddExtension = true,
-			ValidateNames = true,
-			CheckPathExists = true,
-			Title = title,
-			Filter = $"{filter}|All files (*.*)|*.*",
-		};
-		if (d.ShowDialog() == DialogResult.OK)
-		{
-			return d.FileName;
-		}
-		return null;
 	}
 }

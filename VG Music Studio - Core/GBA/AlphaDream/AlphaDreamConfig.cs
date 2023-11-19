@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using YamlDotNet.Core;
 using YamlDotNet.RepresentationModel;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream;
@@ -114,7 +113,7 @@ public sealed class AlphaDreamConfig : Config
 							var songs = new List<Song>();
 							foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
 							{
-								int songIndex = (int)ConfigUtils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, int.MaxValue);
+								long songIndex = ConfigUtils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, long.MaxValue);
 								if (songs.Any(s => s.Index == songIndex))
 								{
 									throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, CONFIG_FILE, Environment.NewLine + string.Format(Strings.ErrorAlphaDreamMP2KSongRepeated, name, songIndex)));
@@ -140,7 +139,7 @@ public sealed class AlphaDreamConfig : Config
 				}
 				AudioEngineVersion = ConfigUtils.ParseEnum<AudioEngineVersion>(nameof(AudioEngineVersion), audioEngineVersionNode.ToString());
 
-				if (songTableOffsetsNode is null)
+				if (songTableOffsetsNode == null)
 				{
 					throw new BetterKeyNotFoundException(nameof(SongTableOffsets), null);
 				}
@@ -190,7 +189,7 @@ public sealed class AlphaDreamConfig : Config
 				// The complete playlist
 				if (!Playlists.Any(p => p.Name == "Music"))
 				{
-					Playlists.Insert(0, new Playlist(Strings.PlaylistMusic, Playlists.SelectMany(p => p.Songs).Distinct().OrderBy(s => s.Index).ToList()));
+					Playlists.Insert(0, new Playlist(Strings.PlaylistMusic, Playlists.SelectMany(p => p.Songs).Distinct().OrderBy(s => s.Index)));
 				}
 			}
 			catch (BetterKeyNotFoundException ex)
@@ -201,7 +200,7 @@ public sealed class AlphaDreamConfig : Config
 			{
 				throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, CONFIG_FILE, Environment.NewLine + ex.Message));
 			}
-			catch (YamlException ex)
+			catch (YamlDotNet.Core.YamlException ex)
 			{
 				throw new Exception(string.Format(Strings.ErrorParseConfig, CONFIG_FILE, Environment.NewLine + ex.Message));
 			}
@@ -212,13 +211,10 @@ public sealed class AlphaDreamConfig : Config
 	{
 		return Name;
 	}
-	public override string GetSongName(int index)
+	public override string GetSongName(long index)
 	{
-		if (TryGetFirstSong(index, out Song s))
-		{
-			return s.Name;
-		}
-		return index.ToString();
+		Song? s = GetFirstSong(index);
+		return s is not null ? s.Name : index.ToString();
 	}
 
 	public override void Dispose()

@@ -55,8 +55,8 @@ public sealed class MIDITrackChunk : MIDIChunk
 				byte channel = (byte)(cmd & 0xF);
 				switch (cmd & ~0xF)
 				{
-					case 0x80: Insert(ticks, new NoteOffMessage(r, channel)); break;
-					case 0x90: Insert(ticks, new NoteOnMessage(r, channel)); break;
+					case 0x80: Insert(ticks, new NoteOnMessage(r, channel)); break;
+					case 0x90: Insert(ticks, new NoteOffMessage(r, channel)); break;
 					case 0xA0: Insert(ticks, new PolyphonicPressureMessage(r, channel)); break;
 					case 0xB0: Insert(ticks, new ControllerMessage(r, channel)); break;
 					case 0xC0: Insert(ticks, new ProgramChangeMessage(r, channel)); break;
@@ -239,11 +239,8 @@ public sealed class MIDITrackChunk : MIDIChunk
 		}
 
 		// Update size now
-		long endOffset = w.Stream.Position;
-		uint size = (uint)(endOffset - sizeOffset - 4);
+		uint size = (uint)(w.Stream.Position - sizeOffset + 4);
 		w.Stream.Position = sizeOffset;
 		w.WriteUInt32(size);
-
-		w.Stream.Position = endOffset; // Go back to the end
 	}
 }

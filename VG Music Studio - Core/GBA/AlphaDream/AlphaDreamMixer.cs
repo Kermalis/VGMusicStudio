@@ -19,8 +19,6 @@ public sealed class AlphaDreamMixer : Mixer
 	private readonly float[][] _trackBuffers = new float[AlphaDreamPlayer.NUM_TRACKS][];
 	private readonly BufferedWaveProvider _buffer;
 
-	protected override WaveFormat WaveFormat => _buffer.WaveFormat;
-
 	internal AlphaDreamMixer(AlphaDreamConfig config)
 	{
 		Config = config;
@@ -71,7 +69,17 @@ public sealed class AlphaDreamMixer : Mixer
 		_fadeMicroFramesLeft = 0;
 	}
 
-	internal void Process(AlphaDreamTrack[] tracks, bool output, bool recording)
+	private WaveFileWriter? _waveWriter;
+	public void CreateWaveWriter(string fileName)
+	{
+		_waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
+	}
+	public void CloseWaveWriter()
+	{
+		_waveWriter!.Dispose();
+		_waveWriter = null;
+	}
+	internal void Process(Track[] tracks, bool output, bool recording)
 	{
 		_audio.Clear();
 		float masterStep;
@@ -98,8 +106,8 @@ public sealed class AlphaDreamMixer : Mixer
 		}
 		for (int i = 0; i < AlphaDreamPlayer.NUM_TRACKS; i++)
 		{
-			AlphaDreamTrack track = tracks[i];
-			if (!track.IsEnabled || track.NoteDuration == 0 || track.Channel.Stopped || Mutes[i])
+			Track track = tracks[i];
+			if (!track.Enabled || track.NoteDuration == 0 || track.Channel.Stopped || Mutes[i])
 			{
 				continue;
 			}

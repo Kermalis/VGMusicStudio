@@ -14,13 +14,17 @@
 		<PackageReference Include="EndianBinaryIO" Version="2.0.1" />
 		<PackageReference Include="NAudio.Core" Version="2.1.0" />
 		<PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
-		<PackageReference Include="YamlDotNet" Version="12.0.0" />
+		<PackageReference Include="YamlDotNet" Version="13.0.1" />
+		<PackageReference Include="Silk.NET.SDL" Version="2.17.1" />
 		<ProjectReference Include="..\VG Music Studio - MIDI\VG Music Studio - MIDI.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="DLS2">
 			<HintPath>Dependencies\DLS2.dll</HintPath>
 		</Reference>
 		<Reference Include="SoundFont2">
-			<HintPath>Dependencies\SoundFont2.dll</HintPath>
+		  <HintPath>Dependencies\SoundFont2.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 
@@ -37,18 +41,6 @@
 		<None Include="MPlayDef.s">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Update="Properties\Strings.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Strings.resx</DependentUpon>
-		</Compile>
-		<EmbeddedResource Update="Properties\Strings.resx">
-			<Generator>PublicResXFileCodeGenerator</Generator>
-			<LastGenOutput>Strings.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
 	</ItemGroup>
 
 </Project>

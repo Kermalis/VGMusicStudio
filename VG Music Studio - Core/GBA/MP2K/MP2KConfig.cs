@@ -125,7 +125,7 @@ public sealed class MP2KConfig : Config
 							var songs = new List<Song>();
 							foreach (KeyValuePair<YamlNode, YamlNode> song in (YamlMappingNode)kvp.Value)
 							{
-								int songIndex = (int)ConfigUtils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, int.MaxValue);
+								long songIndex = ConfigUtils.ParseValue(string.Format(Strings.ConfigKeySubkey, nameof(Playlists)), song.Key.ToString(), 0, long.MaxValue);
 								if (songs.Any(s => s.Index == songIndex))
 								{
 									throw new Exception(string.Format(Strings.ErrorAlphaDreamMP2KParseGameCode, gcv, CONFIG_FILE, Environment.NewLine + string.Format(Strings.ErrorAlphaDreamMP2KSongRepeated, name, songIndex)));
@@ -178,7 +178,7 @@ public sealed class MP2KConfig : Config
 				{
 					throw new BetterKeyNotFoundException(nameof(SampleRate), null);
 				}
-				SampleRate = (int)ConfigUtils.ParseValue(nameof(SampleRate), sampleRateNode.ToString(), 0, MP2KUtils.FrequencyTable.Length - 1);
+				SampleRate = (int)ConfigUtils.ParseValue(nameof(SampleRate), sampleRateNode.ToString(), 0, Utils.FrequencyTable.Length - 1);
 
 				if (reverbTypeNode is null)
 				{
@@ -211,7 +211,10 @@ public sealed class MP2KConfig : Config
 				HasPokemonCompression = ConfigUtils.ParseBoolean(nameof(HasPokemonCompression), hasPokemonCompression.ToString());
 
 				// The complete playlist
-				ConfigUtils.TryCreateMasterPlaylist(Playlists);
+				if (!Playlists.Any(p => p.Name == "Music"))
+				{
+					Playlists.Insert(0, new Playlist(Strings.PlaylistMusic, Playlists.SelectMany(p => p.Songs).Distinct().OrderBy(s => s.Index)));
+				}
 			}
 			catch (BetterKeyNotFoundException ex)
 			{
@@ -232,13 +235,10 @@ public sealed class MP2KConfig : Config
 	{
 		return Name;
 	}
-	public override string GetSongName(int index)
+	public override string GetSongName(long index)
 	{
-		if (TryGetFirstSong(index, out Song s))
-		{
-			return s.Name;
-		}
-		return index.ToString();
+		Song? s = GetFirstSong(index);
+		return s is not null ? s.Name : index.ToString();
 	}
 
 	public override void Dispose()

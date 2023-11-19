@@ -10,14 +10,7 @@ public sealed class MIDISaveArgs
 {
 	public bool SaveCommandsBeforeTranspose; // TODO: I forgor why I would want this
 	public bool ReverseVolume;
-	public (int AbsoluteTick, (byte Numerator, byte Denominator))[] TimeSignatures;
-
-	public MIDISaveArgs(bool saveCmdsBeforeTranspose, bool reverseVol, (int, (byte, byte))[] timeSignatures)
-	{
-		SaveCommandsBeforeTranspose = saveCmdsBeforeTranspose;
-		ReverseVolume = reverseVol;
-		TimeSignatures = timeSignatures;
-	}
+	public List<(int AbsoluteTick, (byte Numerator, byte Denominator))> TimeSignatures;
 }
 
 internal sealed partial class MP2KLoadedSong
@@ -58,7 +51,6 @@ internal sealed partial class MP2KLoadedSong
 			long startOfPatternTicks = 0;
 			long endOfPatternTicks = 0;
 			sbyte transpose = 0;
-			int? endTicks = null;
 			var playing = new List<NoteCommand>();
 			List<SongEvent> trackEvents = Events[trackIndex];
 			for (int i = 0; i < trackEvents.Count; i++)
@@ -111,14 +103,13 @@ internal sealed partial class MP2KLoadedSong
 								key = 0x7F;
 							}
 							track.Insert(ticks, new NoteOnMessage(trackIndex, (MIDINote)key, 0));
-							//track.Insert(ticks, new NoteOffMessage(trackIndex, (MIDINote)key, 0));
 							playing.Remove(nc);
 						}
 						break;
 					}
 					case FinishCommand _:
 					{
-						endTicks = ticks;
+						track.Insert(ticks, new MetaMessage(MetaMessageType.EndOfTrack, Array.Empty<byte>()));
 						goto endOfTrack;
 					}
 					case JumpCommand c:
@@ -179,7 +170,6 @@ internal sealed partial class MP2KLoadedSong
 						if (c.Duration != -1)
 						{
 							track.Insert(ticks + c.Duration, new NoteOnMessage(trackIndex, (MIDINote)note, 0));
-							//track.Insert(ticks + c.Duration, new NoteOffMessage(trackIndex, (MIDINote)note, 0));
 						}
 						else
 						{
@@ -253,7 +243,7 @@ internal sealed partial class MP2KLoadedSong
 				}
 			}
 		endOfTrack:
-			track.Insert(endTicks ?? track.NumTicks, new MetaMessage(MetaMessageType.EndOfTrack, Array.Empty<byte>()));
+			;
 		}
 
 		metaTrack.Insert(metaTrack.NumTicks, new MetaMessage(MetaMessageType.EndOfTrack, Array.Empty<byte>()));

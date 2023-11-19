@@ -25,6 +25,7 @@
 
 #endregion
 
+
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -34,9 +35,9 @@ using System.Windows.Forms;
 namespace Kermalis.VGMusicStudio.WinForms.Util;
 
 [DesignerCategory(""), ToolboxBitmap(typeof(TrackBar))]
-internal sealed class ColorSlider : Control
+internal class ColorSlider : Control
 {
-	private const int THUMB_SIZE = 14;
+	private const int thumbSize = 14;
 	private Rectangle thumbRect;
 
 	private long _value = 0L;
@@ -45,13 +46,16 @@ internal sealed class ColorSlider : Control
 		get => _value;
 		set
 		{
-			if (value < _minimum || value > _maximum)
+			if (value >= _minimum && value <= _maximum)
+			{
+				_value = value;
+				ValueChanged?.Invoke(this, EventArgs.Empty);
+				Invalidate();
+			}
+			else
 			{
 				throw new ArgumentOutOfRangeException(nameof(Value), $"{nameof(Value)} must be between {nameof(Minimum)} and {nameof(Maximum)}.");
 			}
-			_value = value;
-			ValueChanged?.Invoke(this, EventArgs.Empty);
-			Invalidate();
 		}
 	}
 	private long _minimum = 0L;
@@ -60,17 +64,20 @@ internal sealed class ColorSlider : Control
 		get => _minimum;
 		set
 		{
-			if (value > _maximum)
+			if (value <= _maximum)
+			{
+				_minimum = value;
+				if (_value < _minimum)
+				{
+					_value = _minimum;
+					ValueChanged?.Invoke(this, new EventArgs());
+				}
+				Invalidate();
+			}
+			else
 			{
 				throw new ArgumentOutOfRangeException(nameof(Minimum), $"{nameof(Minimum)} cannot be higher than {nameof(Maximum)}.");
 			}
-			_minimum = value;
-			if (_value < _minimum)
-			{
-				_value = _minimum;
-				ValueChanged?.Invoke(this, new EventArgs());
-			}
-			Invalidate();
 		}
 	}
 	private long _maximum = 10L;
@@ -79,17 +86,20 @@ internal sealed class ColorSlider : Control
 		get => _maximum;
 		set
 		{
-			if (value < _minimum)
+			if (value >= _minimum)
+			{
+				_maximum = value;
+				if (_value > _maximum)
+				{
+					_value = _maximum;
+					ValueChanged?.Invoke(this, new EventArgs());
+				}
+				Invalidate();
+			}
+			else
 			{
 				throw new ArgumentOutOfRangeException(nameof(Maximum), $"{nameof(Maximum)} cannot be lower than {nameof(Minimum)}.");
 			}
-			_maximum = value;
-			if (_value > _maximum)
-			{
-				_value = _maximum;
-				ValueChanged?.Invoke(this, new EventArgs());
-			}
-			Invalidate();
 		}
 	}
 	private long _smallChange = 1L;
@@ -98,11 +108,14 @@ internal sealed class ColorSlider : Control
 		get => _smallChange;
 		set
 		{
-			if (value < 0)
+			if (value >= 0)
+			{
+				_smallChange = value;
+			}
+			else
 			{
 				throw new ArgumentOutOfRangeException(nameof(SmallChange), $"{nameof(SmallChange)} must be greater than or equal to 0.");
 			}
-			_smallChange = value;
 		}
 	}
 	private long _largeChange = 5L;
@@ -111,11 +124,14 @@ internal sealed class ColorSlider : Control
 		get => _largeChange;
 		set
 		{
-			if (value < 0)
+			if (value >= 0)
+			{
+				_largeChange = value;
+			}
+			else
 			{
 				throw new ArgumentOutOfRangeException(nameof(LargeChange), $"{nameof(LargeChange)} must be greater than or equal to 0.");
 			}
-			_largeChange = value;
 		}
 	}
 	private bool _acceptKeys = true;
@@ -129,7 +145,7 @@ internal sealed class ColorSlider : Control
 		}
 	}
 
-	public event EventHandler? ValueChanged;
+	public event EventHandler ValueChanged;
 
 	private readonly Color _thumbOuterColor = Color.White;
 	private readonly Color _thumbInnerColor = Color.White;
@@ -216,12 +232,12 @@ internal sealed class ColorSlider : Control
 		}
 
 		long a = _maximum - _minimum;
-		long x = a == 0 ? 0 : (_value - _minimum) * (ClientRectangle.Width - THUMB_SIZE) / a;
-		thumbRect = new Rectangle((int)x, ClientRectangle.Y + ClientRectangle.Height / 2 - THUMB_SIZE / 2, THUMB_SIZE, THUMB_SIZE);
+		long x = a == 0 ? 0 : (_value - _minimum) * (ClientRectangle.Width - thumbSize) / a;
+		thumbRect = new Rectangle((int)x, ClientRectangle.Y + ClientRectangle.Height / 2 - thumbSize / 2, thumbSize, thumbSize);
 		Rectangle barRect = ClientRectangle;
 		barRect.Inflate(-1, -barRect.Height / 3);
 		Rectangle elapsedRect = barRect;
-		elapsedRect.Width = thumbRect.Left + THUMB_SIZE / 2;
+		elapsedRect.Width = thumbRect.Left + thumbSize / 2;
 
 		pen.Color = barInnerColorPaint;
 		e.Graphics.DrawLine(pen, barRect.X, barRect.Y + barRect.Height / 2, barRect.X + barRect.Width, barRect.Y + barRect.Height / 2);
@@ -248,7 +264,7 @@ internal sealed class ColorSlider : Control
 			newthumbOuterColorPaint = Color.FromArgb(175, thumbOuterColorPaint);
 			newthumbInnerColorPaint = Color.FromArgb(175, thumbInnerColorPaint);
 		}
-		using (GraphicsPath thumbPath = CreateRoundRectPath(thumbRect, THUMB_SIZE))
+		using (GraphicsPath thumbPath = CreateRoundRectPath(thumbRect, thumbSize))
 		{
 			using (var lgbThumb = new LinearGradientBrush(thumbRect, newthumbOuterColorPaint, newthumbInnerColorPaint, LinearGradientMode.Vertical) { WrapMode = WrapMode.TileFlipXY })
 			{
@@ -289,7 +305,7 @@ internal sealed class ColorSlider : Control
 	private void SetValueFromPoint(Point p)
 	{
 		int x = p.X;
-		int margin = THUMB_SIZE / 2;
+		int margin = thumbSize / 2;
 		x -= margin;
 		_value = (long)(x * ((_maximum - _minimum) / (ClientSize.Width - 2f * margin)) + _minimum);
 		if (_value < _minimum)

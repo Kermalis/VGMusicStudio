@@ -31,7 +31,7 @@ public sealed class SDATConfig : Config
 	{
 		return "SDAT";
 	}
-	public override string GetSongName(int index)
+	public override string GetSongName(long index)
 	{
 		return SDAT.SYMBBlock is null || index < 0 || index >= SDAT.SYMBBlock.SequenceSymbols.NumEntries
 			? index.ToString()

@@ -62,7 +62,6 @@ public enum MIDINote : byte
 	A_3,
 	Bb_3,
 	B_3,
-	/// <summary>Middle C</summary>
 	C_4,
 	Db_4,
 	D_4,

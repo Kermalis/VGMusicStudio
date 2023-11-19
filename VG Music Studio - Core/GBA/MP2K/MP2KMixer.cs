@@ -2,6 +2,9 @@
 using NAudio.Wave;
 using System;
 using System.Linq;
+using NAudio.CoreAudioApi.Interfaces;
+using NAudio.CoreAudioApi;
+using System.Runtime.InteropServices;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
@@ -9,6 +12,7 @@ public sealed class MP2KMixer : Mixer
 {
 	internal readonly int SampleRate;
 	internal readonly int SamplesPerBuffer;
+	public readonly int BufferLength;
 	internal readonly float SampleRateReciprocal;
 	private readonly float _samplesReciprocal;
 	internal readonly float PCM8MasterVolume;
@@ -20,61 +24,59 @@ public sealed class MP2KMixer : Mixer
 	internal readonly MP2KConfig Config;
 	private readonly WaveBuffer _audio;
 	private readonly float[][] _trackBuffers;
-	private readonly MP2KPCM8Channel[] _pcm8Channels;
-	private readonly MP2KSquareChannel _sq1;
-	private readonly MP2KSquareChannel _sq2;
-	private readonly MP2KPCM4Channel _pcm4;
-	private readonly MP2KNoiseChannel _noise;
-	private readonly MP2KPSGChannel[] _psgChannels;
+	private readonly PCM8Channel[] _pcm8Channels;
+	private readonly SquareChannel _sq1;
+	private readonly SquareChannel _sq2;
+	private readonly PCM4Channel _pcm4;
+	private readonly NoiseChannel _noise;
+	private readonly PSGChannel[] _psgChannels;
 	private readonly BufferedWaveProvider _buffer;
-
-	protected override WaveFormat WaveFormat => _buffer.WaveFormat;
 
 	internal MP2KMixer(MP2KConfig config)
 	{
-		Config = config;
-		(SampleRate, SamplesPerBuffer) = MP2KUtils.FrequencyTable[config.SampleRate];
-		SampleRateReciprocal = 1f / SampleRate;
-		_samplesReciprocal = 1f / SamplesPerBuffer;
-		PCM8MasterVolume = config.Volume / 15f;
+        Config = config;
+        (SampleRate, SamplesPerBuffer) = Utils.FrequencyTable[config.SampleRate];
+        SampleRateReciprocal = 1f / SampleRate;
+        _samplesReciprocal = 1f / SamplesPerBuffer;
+        PCM8MasterVolume = config.Volume / 15f;
 
-		_pcm8Channels = new MP2KPCM8Channel[24];
-		for (int i = 0; i < _pcm8Channels.Length; i++)
-		{
-			_pcm8Channels[i] = new MP2KPCM8Channel(this);
-		}
-		_psgChannels = new MP2KPSGChannel[4] { _sq1 = new MP2KSquareChannel(this), _sq2 = new MP2KSquareChannel(this), _pcm4 = new MP2KPCM4Channel(this), _noise = new MP2KNoiseChannel(this), };
+        _pcm8Channels = new PCM8Channel[24];
+        for (int i = 0; i < _pcm8Channels.Length; i++)
+        {
+            _pcm8Channels[i] = new PCM8Channel(this);
+        }
+        _psgChannels = new PSGChannel[4] { _sq1 = new SquareChannel(this), _sq2 = new SquareChannel(this), _pcm4 = new PCM4Channel(this), _noise = new NoiseChannel(this), };
 
-		int amt = SamplesPerBuffer * 2;
-		_audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
-		_trackBuffers = new float[0x10][];
-		for (int i = 0; i < _trackBuffers.Length; i++)
-		{
-			_trackBuffers[i] = new float[amt];
-		}
-		_buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(SampleRate, 2))
-		{
-			DiscardOnBufferOverflow = true,
-			BufferLength = SamplesPerBuffer * 64,
-		};
-		Init(_buffer);
-	}
+        int amt = SamplesPerBuffer * 2;
+        _audio = new WaveBuffer(amt * sizeof(float)) { FloatBufferCount = amt };
+        _trackBuffers = new float[0x10][];
+        for (int i = 0; i < _trackBuffers.Length; i++)
+        {
+            _trackBuffers[i] = new float[amt];
+        }
+        _buffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(SampleRate, 2))
+        {
+            DiscardOnBufferOverflow = true,
+            BufferLength = SamplesPerBuffer * 64,
+        };
+        Init(_buffer);
+    }
 
-	internal MP2KPCM8Channel? AllocPCM8Channel(MP2KTrack owner, ADSR env, NoteInfo note, byte vol, sbyte pan, int instPan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
+	internal PCM8Channel AllocPCM8Channel(Track owner, ADSR env, NoteInfo note, byte vol, sbyte pan, int instPan, int pitch, bool bFixed, bool bCompressed, int sampleOffset)
 	{
-		MP2KPCM8Channel? nChn = null;
-		IOrderedEnumerable<MP2KPCM8Channel> byOwner = _pcm8Channels.OrderByDescending(c => c.Owner is null ? 0xFF : c.Owner.Index);
-		foreach (MP2KPCM8Channel i in byOwner) // Find free
+		PCM8Channel nChn = null;
+		IOrderedEnumerable<PCM8Channel> byOwner = _pcm8Channels.OrderByDescending(c => c.Owner == null ? 0xFF : c.Owner.Index);
+		foreach (PCM8Channel i in byOwner) // Find free
 		{
-			if (i.State == EnvelopeState.Dead || i.Owner is null)
+			if (i.State == EnvelopeState.Dead || i.Owner == null)
 			{
 				nChn = i;
 				break;
 			}
 		}
-		if (nChn is null) // Find releasing
+		if (nChn == null) // Find releasing
 		{
-			foreach (MP2KPCM8Channel i in byOwner)
+			foreach (PCM8Channel i in byOwner)
 			{
 				if (i.State == EnvelopeState.Releasing)
 				{
@@ -83,40 +85,40 @@ public sealed class MP2KMixer : Mixer
 				}
 			}
 		}
-		if (nChn is null) // Find prioritized
+		if (nChn == null) // Find prioritized
 		{
-			foreach (MP2KPCM8Channel i in byOwner)
+			foreach (PCM8Channel i in byOwner)
 			{
-				if (owner.Priority > i.Owner!.Priority)
+				if (owner.Priority > i.Owner.Priority)
 				{
 					nChn = i;
 					break;
 				}
 			}
 		}
-		if (nChn is null) // None available
+		if (nChn == null) // None available
 		{
-			MP2KPCM8Channel lowest = byOwner.First(); // Kill lowest track's instrument if the track is lower than this one
-			if (lowest.Owner!.Index >= owner.Index)
+			PCM8Channel lowest = byOwner.First(); // Kill lowest track's instrument if the track is lower than this one
+			if (lowest.Owner.Index >= owner.Index)
 			{
 				nChn = lowest;
 			}
 		}
-		if (nChn is not null) // Could still be null from the above if
+		if (nChn != null) // Could still be null from the above if
 		{
 			nChn.Init(owner, note, env, sampleOffset, vol, pan, instPan, pitch, bFixed, bCompressed);
 		}
 		return nChn;
 	}
-	internal MP2KPSGChannel? AllocPSGChannel(MP2KTrack owner, ADSR env, NoteInfo note, byte vol, sbyte pan, int instPan, int pitch, VoiceType type, object arg)
+	internal PSGChannel AllocPSGChannel(Track owner, ADSR env, NoteInfo note, byte vol, sbyte pan, int instPan, int pitch, VoiceType type, object arg)
 	{
-		MP2KPSGChannel nChn;
+		PSGChannel nChn;
 		switch (type)
 		{
 			case VoiceType.Square1:
 			{
 				nChn = _sq1;
-				if (nChn.State < EnvelopeState.Releasing && nChn.Owner!.Index < owner.Index)
+				if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
 				{
 					return null;
 				}
@@ -126,7 +128,7 @@ public sealed class MP2KMixer : Mixer
 			case VoiceType.Square2:
 			{
 				nChn = _sq2;
-				if (nChn.State < EnvelopeState.Releasing && nChn.Owner!.Index < owner.Index)
+				if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
 				{
 					return null;
 				}
@@ -136,7 +138,7 @@ public sealed class MP2KMixer : Mixer
 			case VoiceType.PCM4:
 			{
 				nChn = _pcm4;
-				if (nChn.State < EnvelopeState.Releasing && nChn.Owner!.Index < owner.Index)
+				if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
 				{
 					return null;
 				}
@@ -146,7 +148,7 @@ public sealed class MP2KMixer : Mixer
 			case VoiceType.Noise:
 			{
 				nChn = _noise;
-				if (nChn.State < EnvelopeState.Releasing && nChn.Owner!.Index < owner.Index)
+				if (nChn.State < EnvelopeState.Releasing && nChn.Owner.Index < owner.Index)
 				{
 					return null;
 				}
@@ -157,20 +159,20 @@ public sealed class MP2KMixer : Mixer
 		}
 		nChn.SetVolume(vol, pan);
 		nChn.SetPitch(pitch);
-		return nChn;
-	}
+        return nChn;
+    }
 
-	internal void BeginFadeIn()
+    internal void BeginFadeIn()
 	{
 		_fadePos = 0f;
-		_fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1_000.0 * GBAUtils.AGB_FPS);
+		_fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1_000.0 * GBA.GBAUtils.AGB_FPS);
 		_fadeStepPerMicroframe = 1f / _fadeMicroFramesLeft;
 		_isFading = true;
 	}
 	internal void BeginFadeOut()
 	{
 		_fadePos = 1f;
-		_fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1_000.0 * GBAUtils.AGB_FPS);
+		_fadeMicroFramesLeft = (long)(GlobalConfig.Instance.PlaylistFadeOutMilliseconds / 1_000.0 * GBA.GBAUtils.AGB_FPS);
 		_fadeStepPerMicroframe = -1f / _fadeMicroFramesLeft;
 		_isFading = true;
 	}
@@ -188,6 +190,16 @@ public sealed class MP2KMixer : Mixer
 		_fadeMicroFramesLeft = 0;
 	}
 
+	private WaveFileWriter? _waveWriter;
+	public void CreateWaveWriter(string fileName)
+	{
+		_waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
+	}
+	public void CloseWaveWriter()
+	{
+		_waveWriter!.Dispose();
+		_waveWriter = null;
+	}
 	internal void Process(bool output, bool recording)
 	{
 		for (int i = 0; i < _trackBuffers.Length; i++)
@@ -199,8 +211,8 @@ public sealed class MP2KMixer : Mixer
 
 		for (int i = 0; i < _pcm8Channels.Length; i++)
 		{
-			MP2KPCM8Channel c = _pcm8Channels[i];
-			if (c.Owner is not null)
+			PCM8Channel c = _pcm8Channels[i];
+			if (c.Owner != null)
 			{
 				c.Process(_trackBuffers[c.Owner.Index]);
 			}
@@ -208,8 +220,8 @@ public sealed class MP2KMixer : Mixer
 
 		for (int i = 0; i < _psgChannels.Length; i++)
 		{
-			MP2KPSGChannel c = _psgChannels[i];
-			if (c.Owner is not null)
+			PSGChannel c = _psgChannels[i];
+			if (c.Owner != null)
 			{
 				c.Process(_trackBuffers[c.Owner.Index]);
 			}

@@ -12,9 +12,9 @@ public sealed class AlphaDreamEngine : Engine
 
 	public AlphaDreamEngine(byte[] rom)
 	{
-		if (rom.Length > GBAUtils.CARTRIDGE_CAPACITY)
+		if (rom.Length > GBAUtils.CartridgeCapacity)
 		{
-			throw new InvalidDataException($"The ROM is too large. Maximum size is 0x{GBAUtils.CARTRIDGE_CAPACITY:X7} bytes.");
+			throw new InvalidDataException($"The ROM is too large. Maximum size is 0x{GBAUtils.CartridgeCapacity:X7} bytes.");
 		}
 
 		Config = new AlphaDreamConfig(rom);

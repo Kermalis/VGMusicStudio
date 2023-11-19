@@ -9,6 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - Core", "V
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - MIDI", "VG Music Studio - MIDI\VG Music Studio - MIDI.csproj", "{6756ED81-71F6-457D-AD23-9C03B6C934E4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectListView2019", "ObjectListView\ObjectListView2019.csproj", "{A171BF23-4281-46CD-AE0B-ED6CD118744E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - GTK3", "VG Music Studio - GTK3\VG Music Studio - GTK3.csproj", "{A9471061-10D2-41AE-86C9-1D927D7B33B8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - GTK4", "VG Music Studio - GTK4\VG Music Studio - GTK4.csproj", "{AB599ACD-26E0-4925-B91E-E25D41CB05E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +33,18 @@ Global
 		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A171BF23-4281-46CD-AE0B-ED6CD118744E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A171BF23-4281-46CD-AE0B-ED6CD118744E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A171BF23-4281-46CD-AE0B-ED6CD118744E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A171BF23-4281-46CD-AE0B-ED6CD118744E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

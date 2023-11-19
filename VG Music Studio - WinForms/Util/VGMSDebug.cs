@@ -3,10 +3,8 @@ using Kermalis.EndianBinaryIO;
 using Kermalis.VGMusicStudio.Core;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 namespace Kermalis.VGMusicStudio.WinForms.Util;
 
@@ -50,12 +48,11 @@ internal static class VGMSDebug
 	{
 		Console.WriteLine($"{nameof(EventScan)} started.");
 		var scans = new Dictionary<string, List<Config.Song>>();
-		Player player = Engine.Instance!.Player;
 		foreach (Config.Song song in songs)
 		{
 			try
 			{
-				player.LoadSong(song.Index);
+				Engine.Instance.Player.LoadSong(song.Index);
 			}
 			catch (Exception ex)
 			{
@@ -63,19 +60,21 @@ internal static class VGMSDebug
 				continue;
 			}
 
-			if (player.LoadedSong is null)
+			if (Engine.Instance.Player.LoadedSong is null)
 			{
 				continue;
 			}
 
-			foreach (string cmd in player.LoadedSong.Events.Where(ev => ev is not null).SelectMany(ev => ev).Select(ev => ev.Command.Label).Distinct())
+			foreach (string cmd in Engine.Instance.Player.LoadedSong.Events.Where(ev => ev != null).SelectMany(ev => ev).Select(ev => ev.Command.Label).Distinct())
 			{
-				if (!scans.TryGetValue(cmd, out List<Config.Song>? list))
+				if (scans.ContainsKey(cmd))
 				{
-					list = new List<Config.Song>();
-					scans.Add(cmd, list);
+					scans[cmd].Add(song);
 				}
-				list.Add(song);
+				else
+				{
+					scans.Add(cmd, new List<Config.Song> { song });
+				}
 			}
 		}
 		foreach (KeyValuePair<string, List<Config.Song>> kvp in scans.OrderBy(k => k.Key))
@@ -118,11 +117,6 @@ internal static class VGMSDebug
 			Console.WriteLine(files[i]);
 		}
 		Console.WriteLine($"{nameof(GBAGameCodeScan)} ended.");
-	}
-
-	public static void SimulateLanguage(string lang)
-	{
-		Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo(lang);
 	}
 }
 #endif

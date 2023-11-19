@@ -50,7 +50,7 @@ public sealed class NoteOffMessage : MIDIMessage
 
 	internal override byte GetCMDByte()
 	{
-		return (byte)(0x80 + Channel);
+		return (byte)(0x90 + Channel);
 	}
 
 	internal override void Write(EndianBinaryWriter w)

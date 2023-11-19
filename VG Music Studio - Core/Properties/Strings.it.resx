@@ -144,6 +144,9 @@
   <data name="MenuSaveMIDI" xml:space="preserve">
     <value>Esporta Brano in MIDI</value>
   </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Do;Do#;Re;Re#;Mi;Fa;Fa#;Sol;Sol#;La;La#;Si</value>
+  </data>
   <data name="PlayerRest" xml:space="preserve">
     <value>Pausa</value>
   </data>
@@ -239,6 +242,9 @@
   </data>
   <data name="ErrorBoolParse" xml:space="preserve">
     <value>"{0}" deve essere Vero o Falso.</value>
+  </data>
+  <data name="ErrorConfigColorInvalidKey" xml:space="preserve">
+    <value>Il colore {0} non ha una chiave valida.</value>
   </data>
   <data name="ErrorConfigColorMissing" xml:space="preserve">
     <value>Il colore {0} non è definito.</value>
@@ -338,8 +344,5 @@
   </data>
   <data name="SuccessSaveDLS" xml:space="preserve">
     <value>VoiceTable salvata in {0}.</value>
-  </data>
-  <data name="Song(s)" xml:space="preserve">
-    <value>canzoni|0_0|canzone|1_1|canzoni|2_*|</value>
   </data>
 </root>

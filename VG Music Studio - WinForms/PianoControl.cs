@@ -38,7 +38,7 @@ internal sealed class PianoControl : Control
 	private enum KeyType : byte
 	{
 		Black,
-		White,
+		White
 	}
 
 	private const double BLACK_KEY_SCALE = 2.0 / 3;
@@ -64,23 +64,23 @@ internal sealed class PianoControl : Control
 			SetStyle(ControlStyles.Selectable, false);
 
 			OnBrush = new(Color.Transparent);
-			byte c;
+			byte l;
 			if (KeyTypeTable[k % 12] == KeyType.White)
 			{
 				if (k / 12 % 2 == 0)
 				{
-					c = 255;
+					l = 240;
 				}
 				else
 				{
-					c = 127;
+					l = 120;
 				}
 			}
 			else
 			{
-				c = 0;
+				l = 0;
 			}
-			_offBrush = new SolidBrush(Color.FromArgb(c, c, c));
+			_offBrush = new SolidBrush(HSLColor.ToColor(160, 0, l));
 		}
 
 		protected override void Dispose(bool disposing)

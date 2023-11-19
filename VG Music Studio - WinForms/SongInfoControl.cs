@@ -289,19 +289,12 @@ internal sealed class SongInfoControl : Control
 						_barHeight);
 		if (rect.Width > 0)
 		{
-			float velocity = track.LeftVolume + track.RightVolume;
-			int alpha;
-			if (velocity >= 2f)
+			float velocity = (track.LeftVolume + track.RightVolume) * 2f;
+			if (velocity > 1f)
 			{
-				alpha = 255;
+				velocity = 1f;
 			}
-			else
-			{
-				const int DELTA = 125;
-				alpha = (int)WinFormsUtils.Lerp(velocity * 0.5f, 0f, DELTA);
-				alpha += 255 - DELTA;
-			}
-			_solidBrush.Color = Color.FromArgb(alpha, color);
+			_solidBrush.Color = Color.FromArgb((int)WinFormsUtils.Lerp(velocity, 20f, 255f), color);
 			g.FillRectangle(_solidBrush, rect);
 			g.DrawRectangle(_pen, rect);
 			//_solidBrush.Color = color;

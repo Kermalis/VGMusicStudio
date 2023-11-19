@@ -19,7 +19,7 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -138,6 +138,15 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         public static string ErrorBoolParse {
             get {
                 return ResourceManager.GetString("ErrorBoolParse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color {0} has an invalid key..
+        /// </summary>
+        public static string ErrorConfigColorInvalidKey {
+            get {
+                return ResourceManager.GetString("ErrorConfigColorInvalidKey", resourceCulture);
             }
         }
         
@@ -520,6 +529,15 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C;C#;D;D#;E;F;F#;G;G#;A;A#;B.
+        /// </summary>
+        public static string Notes {
+            get {
+                return ResourceManager.GetString("Notes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Next Song.
         /// </summary>
         public static string PlayerNextSong {
@@ -637,15 +655,6 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to songs|0_0|song|1_1|songs|2_*|.
-        /// </summary>
-        public static string Song_s_ {
-            get {
-                return ResourceManager.GetString("Song(s)", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to VoiceTable saved to {0}..
         /// </summary>
         public static string SuccessSaveDLS {
@@ -732,6 +741,83 @@ namespace Kermalis.VGMusicStudio.Core.Properties {
         public static string TrackViewerTrackX {
             get {
                 return ResourceManager.GetString("TrackViewerTrackX", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to GBA Files.
+        /// </summary>
+        public static string GTKFilterOpenGBA
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterOpenGBA", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SDAT Files.
+        /// </summary>
+        public static string GTKFilterOpenSDAT
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterOpenSDAT", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to DLS Files.
+        /// </summary>
+        public static string GTKFilterSaveDLS
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveDLS", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MIDI Files.
+        /// </summary>
+        public static string GTKFilterSaveMIDI
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveMIDI", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SF2 Files.
+        /// </summary>
+        public static string GTKFilterSaveSF2
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveSF2", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to WAV Files.
+        /// </summary>
+        public static string GTKFilterSaveWAV
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKFilterSaveWAV", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to WAV Files.
+        /// </summary>
+        public static string GTKAllFiles
+        {
+            get
+            {
+                return ResourceManager.GetString("GTKAllFiles", resourceCulture);
             }
         }
     }
