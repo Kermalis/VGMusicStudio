@@ -25,16 +25,17 @@ namespace Kermalis.VGMusicStudio.GTK4;
 
 internal sealed class MainWindow : Window
 {
-	private bool _playlistPlaying;
-	private Config.Playlist _curPlaylist;
-	private long _curSong = -1;
-	private readonly List<long> _playedSequences;
-	private readonly List<long> _remainingSequences;
 	private int _duration = 0;
 	private int _position = 0;
+
+	private PlayingPlaylist? _playlist;
+	private int _curSong = -1;
+
 	private static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows); // Because WASAPI (via NAudio) is the only audio backend currently.
 
+	private bool _songEnded = false;
 	private bool _stopUI = false;
+	private bool _autoplay = false;
 
 	#region Widgets
 
@@ -134,12 +135,8 @@ internal sealed class MainWindow : Window
 		Title = ConfigUtils.PROGRAM_NAME; // Sets the title to the name of the program, which is "VG Music Studio"
 		_app = app;
 
-		// Sets the _playedSequences and _remainingSequences with a List<long>() function to be ready for use
-		_playedSequences = new List<long>();
-		_remainingSequences = new List<long>();
-
 		// Configures SetVolumeScale method with the MixerVolumeChanged Event action
-		Mixer.MixerVolumeChanged += SetVolumeScale;
+		Mixer.VolumeChanged += SetVolumeScale;
 
 		// LibAdwaita Header Bar
 		_headerBar = Adw.HeaderBar.New();
@@ -281,7 +278,7 @@ internal sealed class MainWindow : Window
 
 		// Timer
 		_timer = new Timer();
-		_timer.Elapsed += UpdateUI;
+		_timer.Elapsed += Timer_Tick;
 
 		// Volume Scale
 		_volumeAdjustment = Adjustment.New(0, 0, 100, 1, 1, 1);
@@ -299,8 +296,8 @@ internal sealed class MainWindow : Window
 		_positionScale.DrawValue = false;
 		_positionScale.WidthRequest = 250;
 		_positionScale.RestrictToFillLevel = false;
-        //_positionScale.SetRange(0, double.MaxValue);
-        _positionGestureClick = GestureClick.New();
+		//_positionScale.SetRange(0, double.MaxValue);
+		_positionGestureClick = GestureClick.New();
 		//if (_positionGestureClick.Button == 1)
   //      {
   //          _positionScale.OnValueChanged += PositionScale_MouseButtonRelease;
@@ -397,7 +394,7 @@ internal sealed class MainWindow : Window
 	{
 		if (_positionGestureClick.Button == 1) // Number 1 is Left Mouse Button
 		{
-			Engine.Instance!.Player.SetCurrentPosition((long)_positionScale.GetValue()); // Sets the value based on the position when mouse button is released
+			Engine.Instance!.Player.SetSongPosition((long)_positionScale.GetValue()); // Sets the value based on the position when mouse button is released
 			_positionScaleFree = true; // Sets _positionScaleFree to true when mouse button is released
 			LetUIKnowPlayerIsPlaying(); // This method will run the void that tells the UI that the player is playing a track
 		}
@@ -410,13 +407,12 @@ internal sealed class MainWindow : Window
 		}
 	}
 
-	private bool _autoplay = false;
 	private void SequenceNumberSpinButton_ValueChanged(object sender, EventArgs e)
 	{
 		//_sequencesGestureClick.OnBegin -= SequencesListView_SelectionGet;
 		//_signal.Connect(_sequencesListFactory, SequencesListView_SelectionGet, false, null);
 
-		long index = (long)_sequenceNumberAdjustment.Value;
+		int index = (int)_sequenceNumberAdjustment.Value;
 		Stop();
 		this.Title = ConfigUtils.PROGRAM_NAME;
 		//_sequencesListView.Margin = 0;
@@ -442,18 +438,18 @@ internal sealed class MainWindow : Window
 		{
 			Config config = Engine.Instance.Config;
 			List<Config.Song> songs = config.Playlists[0].Songs; // Complete "Music" playlist is present in all configs at index 0
-			Config.Song? song = songs.SingleOrDefault(s => s.Index == index);
-			if (song is not null)
+			int songIndex = songs.FindIndex(s => s.Index == index);
+			if (songIndex != -1)
 			{
-				this.Title = $"{ConfigUtils.PROGRAM_NAME} - {song.Name}"; // TODO: Make this a func
+				this.Title = $"{ConfigUtils.PROGRAM_NAME} - {songs[songIndex].Name}"; // TODO: Make this a func
 				//_sequencesColumnView.SortColumnId = songs.IndexOf(song) + 1; // + 1 because the "Music" playlist is first in the combobox
 			}
 			//_positionScale.Adjustment!.Upper = double.MaxValue;
-            _duration = (int)(Engine.Instance!.Player.LoadedSong!.MaxTicks + 0.5);
+			_duration = (int)(Engine.Instance!.Player.LoadedSong!.MaxTicks + 0.5);
 			_positionScale.SetRange(0, _duration);
-            //_positionAdjustment.LargeChange = (long)(_positionAdjustment.Upper / 10) >> 64;
-            //_positionAdjustment.SmallChange = (long)(_positionAdjustment.LargeChange / 4) >> 64;
-            _positionScale.Show();
+			//_positionAdjustment.LargeChange = (long)(_positionAdjustment.Upper / 10) >> 64;
+			//_positionAdjustment.SmallChange = (long)(_positionAdjustment.LargeChange / 4) >> 64;
+			_positionScale.Show();
 			//_songInfo.SetNumTracks(Engine.Instance.Player.LoadedSong.Events.Length);
 			if (_autoplay)
 			{
@@ -493,7 +489,7 @@ internal sealed class MainWindow : Window
 	//		}
 	//	}
 	//}
-	private void SetAndLoadSequence(long index)
+	public void SetAndLoadSequence(int index)
 	{
 		_curSong = index;
 		if (_sequenceNumberSpinButton.Value == index)
@@ -506,33 +502,29 @@ internal sealed class MainWindow : Window
 		}
 	}
 
-	private void SetAndLoadNextPlaylistSong()
-	{
-		if (_remainingSequences.Count == 0)
-		{
-			_remainingSequences.AddRange(_curPlaylist.Songs.Select(s => s.Index));
-			if (GlobalConfig.Instance.PlaylistMode == PlaylistMode.Random)
-			{
-				_remainingSequences.Any();
-			}
-		}
-		long nextSequence = _remainingSequences[0];
-		_remainingSequences.RemoveAt(0);
-		SetAndLoadSequence(nextSequence);
-	}
-	private void ResetPlaylistStuff(bool enableds)
+	//private void SetAndLoadNextPlaylistSong()
+	//{
+	//	if (_remainingSequences.Count == 0)
+	//	{
+	//		_remainingSequences.AddRange(_curPlaylist.Songs.Select(s => s.Index));
+	//		if (GlobalConfig.Instance.PlaylistMode == PlaylistMode.Random)
+	//		{
+	//			_remainingSequences.Any();
+	//		}
+	//	}
+	//	long nextSequence = _remainingSequences[0];
+	//	_remainingSequences.RemoveAt(0);
+	//	SetAndLoadSequence(nextSequence);
+	//}
+	private void ResetPlaylistStuff(bool spinButtonAndListBoxEnabled)
 	{
 		if (Engine.Instance != null)
 		{
 			Engine.Instance.Player.ShouldFadeOut = false;
 		}
-		_playlistPlaying = false;
-		_curPlaylist = null;
 		_curSong = -1;
-		_remainingSequences.Clear();
-		_playedSequences.Clear();
 		_endPlaylistAction.Enabled = false;
-		_sequenceNumberSpinButton.Sensitive = /* _soundSequenceListBox.Sensitive = */ enableds;
+		_sequenceNumberSpinButton.Sensitive = /* _soundSequenceListBox.Sensitive = */ spinButtonAndListBoxEnabled;
 	}
 	private void EndCurrentPlaylist(object sender, EventArgs e)
 	{
@@ -680,7 +672,10 @@ internal sealed class MainWindow : Window
 		DisposeEngine();
 		try
 		{
-			_ = new SDATEngine(new SDAT(File.ReadAllBytes(path)));
+			using (FileStream stream = File.OpenRead(path))
+			{
+				_ = new SDATEngine(new SDAT(stream));
+			}
 		}
 		catch (Exception ex)
 		{
@@ -964,7 +959,7 @@ internal sealed class MainWindow : Window
 				FileChooserAction.Save,
 				"Save",
 				"Cancel");
-			d.SetCurrentName(Engine.Instance!.Config.GetSongName((long)_sequenceNumberSpinButton.Value));
+			d.SetCurrentName(Engine.Instance!.Config.GetSongName((int)_sequenceNumberSpinButton.Value));
 			d.AddFilter(ff);
 
 			d.OnResponse += (sender, e) =>
@@ -1006,15 +1001,10 @@ internal sealed class MainWindow : Window
 	private void ExportMIDIFinish(string path)
 	{
 		MP2KPlayer p = MP2KEngine.MP2KInstance!.Player;
-		var args = new MIDISaveArgs
+		var args = new MIDISaveArgs(true, false, new (int AbsoluteTick, (byte Numerator, byte Denominator))[]
 		{
-			SaveCommandsBeforeTranspose = true,
-			ReverseVolume = false,
-			TimeSignatures = new List<(int AbsoluteTick, (byte Numerator, byte Denominator))>
-				{
-				(0, (4, 4)),
-				},
-		};
+			(0, (4, 4)),
+		});
 
 		try
 		{
@@ -1055,7 +1045,7 @@ internal sealed class MainWindow : Window
 				}
 
 				var path = d.GetFile()!.GetPath() ?? "";
-				ExportSF2Finish(cfg, path);
+				ExportSF2Finish(path, cfg);
 				d.Unref();
 			};
 			d.Show();
@@ -1073,7 +1063,7 @@ internal sealed class MainWindow : Window
 				if (fileHandle != IntPtr.Zero)
 				{
 					var path = Marshal.PtrToStringUTF8(Gio.Internal.File.GetPath(fileHandle).DangerousGetHandle());
-					ExportSF2Finish(cfg, path!);
+					ExportSF2Finish(path!, cfg);
 					d.Unref();
 				}
 				d.Unref();
@@ -1082,11 +1072,11 @@ internal sealed class MainWindow : Window
 			//d.Save(Handle, IntPtr.Zero, _saveCallback, IntPtr.Zero);
 		}
 	}
-	private void ExportSF2Finish(AlphaDreamConfig config, string path)
+	private void ExportSF2Finish(string path, AlphaDreamConfig config)
 	{
 		try
 		{
-			AlphaDreamSoundFontSaver_SF2.Save(config, path);
+			AlphaDreamSoundFontSaver_SF2.Save(path, config);
 			FlexibleMessageBox.Show(string.Format(Strings.SuccessSaveSF2, path), Strings.SuccessSaveSF2);
 		}
 		catch (Exception ex)
@@ -1109,7 +1099,7 @@ internal sealed class MainWindow : Window
 			"Save",
 			"Cancel");
 
-			d.SetCurrentName(Engine.Instance!.Config.GetSongName((long)_sequenceNumberSpinButton.Value));
+			d.SetCurrentName(Engine.Instance!.Config.GetSongName((int)_sequenceNumberSpinButton.Value));
 			d.AddFilter(ff);
 
 			d.OnResponse += (sender, e) =>
@@ -1152,7 +1142,7 @@ internal sealed class MainWindow : Window
 	{
 		Stop();
 
-		IPlayer player = Engine.Instance.Player;
+		Player player = Engine.Instance.Player;
 		bool oldFade = player.ShouldFadeOut;
 		long oldLoops = player.NumLoops;
 		player.ShouldFadeOut = true;
@@ -1219,7 +1209,7 @@ internal sealed class MainWindow : Window
 	}
 	private void Pause()
 	{
-		Engine.Instance!.Player.Pause();
+		Engine.Instance!.Player.TogglePlaying();
 		if (Engine.Instance.Player.State == PlayerState.Paused)
 		{
 			_buttonPause.Label = Strings.PlayerUnpause;
@@ -1244,7 +1234,7 @@ internal sealed class MainWindow : Window
 		UpdatePositionIndicators(0L);
 		Show();
 	}
-	private void TogglePlayback(object? sender, EventArgs? e)
+	private void TogglePlayback()
 	{
 		switch (Engine.Instance!.Player.State)
 		{
@@ -1253,32 +1243,27 @@ internal sealed class MainWindow : Window
 			case PlayerState.Playing: Pause(); break;
 		}
 	}
-	private void PlayPreviousSequence(object? sender, EventArgs? e)
+	private void PlayPreviousSequence()
 	{
-		long prevSequence;
-		if (_playlistPlaying)
+
+		if (_playlist is not null)
 		{
-			int index = _playedSequences.Count - 1;
-			prevSequence = _playedSequences[index];
-			_playedSequences.RemoveAt(index);
-			_playedSequences.Insert(0, _curSong);
+			_playlist.UndoThenSetAndLoadPrevSong(this, _curSong);
 		}
 		else
 		{
-			prevSequence = (long)_sequenceNumberSpinButton.Value - 1;
+			SetAndLoadSequence((int)_sequenceNumberSpinButton.Value - 1);
 		}
-		SetAndLoadSequence(prevSequence);
 	}
 	private void PlayNextSong(object? sender, EventArgs? e)
 	{
-		if (_playlistPlaying)
+		if (_playlist is not null)
 		{
-			_playedSequences.Add(_curSong);
-			SetAndLoadNextPlaylistSong();
+			_playlist.AdvanceThenSetAndLoadNextSong(this, _curSong);
 		}
 		else
 		{
-			SetAndLoadSequence((long)_sequenceNumberSpinButton.Value + 1);
+			SetAndLoadSequence((int)_sequenceNumberSpinButton.Value + 1);
 		}
 	}
 
@@ -1293,7 +1278,7 @@ internal sealed class MainWindow : Window
 		//}
 		_sequenceNumberAdjustment.Upper = numSongs - 1;
 #if DEBUG
-		// [Debug methods specific to this UI will go in here]
+		// [Debug methods specific to this GUI will go in here]
 #endif
 		_autoplay = false;
 		SetAndLoadSequence(Engine.Instance.Config.Playlists[0].Songs.Count == 0 ? 0 : Engine.Instance.Config.Playlists[0].Songs[0].Index);
@@ -1324,14 +1309,14 @@ internal sealed class MainWindow : Window
 		_sequenceNumberSpinButton.OnValueChanged += SequenceNumberSpinButton_ValueChanged;
 	}
 
-	private void UpdateUI(object? sender, EventArgs? e)
+	private void Timer_Tick(object? sender, EventArgs e)
 	{
-		if (_stopUI)
+		if (_songEnded)
 		{
-			_stopUI = false;
-			if (_playlistPlaying)
+			_songEnded = false;
+			if (_playlist is not null)
 			{
-				_playedSequences.Add(_curSong);
+				_playlist.AdvanceThenSetAndLoadNextSong(this, _curSong);
 			}
 			else
 			{
@@ -1340,7 +1325,8 @@ internal sealed class MainWindow : Window
 		}
 		else
 		{
-			UpdatePositionIndicators(Engine.Instance!.Player.LoadedSong!.ElapsedTicks);
+			Player player = Engine.Instance!.Player;
+			UpdatePositionIndicators(player.ElapsedTicks);
 		}
 	}
 	private void SongEnded()
@@ -1355,11 +1341,11 @@ internal sealed class MainWindow : Window
 		if (_positionScaleFree)
 		{
 			if (ticks < _duration)
-            {
+			{
 				// TODO: Implement GStreamer functions to replace Gtk.Adjustment
-				//_positionScale.SetRange(0, _duration);
-                _positionScale.SetValue(ticks); // A Gtk.Adjustment field must be used here to avoid issues
-            }
+				_positionScale.SetRange(0, _duration);
+				//_positionScale.SetValue(ticks); // A Gtk.Adjustment field must be used here to avoid issues
+			}
 			else
 			{
 				return;
