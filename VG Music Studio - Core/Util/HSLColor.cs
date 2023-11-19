@@ -1,140 +1,144 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.Util;
 
-// https://www.rapidtables.com/convert/color/rgb-to-hsl.html
-// https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-// Not really used right now, but will be very useful if we are going to use OpenGL
 public readonly struct HSLColor
 {
-	/// <summary>[0, 1)</summary>
-	public readonly double Hue;
-	/// <summary>[0, 1]</summary>
-	public readonly double Saturation;
-	/// <summary>[0, 1]</summary>
-	public readonly double Lightness;
+	public readonly int H;
+	public readonly byte S;
+	public readonly byte L;
 
-	public HSLColor(double h, double s, double l)
+	public HSLColor(int h, byte s, byte l)
 	{
-		Hue = h;
-		Saturation = s;
-		Lightness = l;
+		H = h;
+		S = s;
+		L = l;
 	}
 	public HSLColor(in Color c)
 	{
-		double nR = c.R / 255.0;
-		double nG = c.G / 255.0;
-		double nB = c.B / 255.0;
+		double modifiedR, modifiedG, modifiedB, min, max, delta, h, s, l;
 
-		double max = Math.Max(Math.Max(nR, nG), nB);
-		double min = Math.Min(Math.Min(nR, nG), nB);
-		double delta = max - min;
+		modifiedR = c.R / 255.0;
+		modifiedG = c.G / 255.0;
+		modifiedB = c.B / 255.0;
 
-		Lightness = (min + max) * 0.5;
-
-		if (delta == 0)
-		{
-			Hue = 0;
-		}
-		else if (max == nR)
-		{
-			Hue = (nG - nB) / delta % 6 / 6;
-		}
-		else if (max == nG)
-		{
-			Hue = (((nB - nR) / delta) + 2) / 6;
-		}
-		else // max == nB
-		{
-			Hue = (((nR - nG) / delta) + 4) / 6;
-		}
+		min = new List<double>(3) { modifiedR, modifiedG, modifiedB }.Min();
+		max = new List<double>(3) { modifiedR, modifiedG, modifiedB }.Max();
+		delta = max - min;
+		l = (min + max) / 2;
 
 		if (delta == 0)
 		{
-			Saturation = 0;
+			h = 0;
+			s = 0;
 		}
 		else
 		{
-			Saturation = delta / (1 - Math.Abs((2 * Lightness) - 1));
+			s = (l <= 0.5) ? (delta / (min + max)) : (delta / (2 - max - min));
+
+			if (modifiedR == max)
+			{
+				h = (modifiedG - modifiedB) / 6 / delta;
+			}
+			else if (modifiedG == max)
+			{
+				h = (1.0 / 3) + ((modifiedB - modifiedR) / 6 / delta);
+			}
+			else
+			{
+				h = (2.0 / 3) + ((modifiedR - modifiedG) / 6 / delta);
+			}
+
+			h = (h < 0) ? ++h : h;
+			h = (h > 1) ? --h : h;
 		}
+
+		H = (int)Math.Round(h * 360);
+		S = (byte)Math.Round(s * 100);
+		L = (byte)Math.Round(l * 100);
 	}
 
 	public Color ToColor()
 	{
-		return ToColor(Hue, Saturation, Lightness);
+		return ToColor(H, S, L);
 	}
-	public static void ToRGB(double h, double s, double l, out double r, out double g, out double b)
+	// https://github.com/iamartyom/ColorHelper/blob/master/ColorHelper/Converter/ColorConverter.cs
+	public static Color ToColor(int h, byte s, byte l)
 	{
-		h *= 360;
+		double modifiedH, modifiedS, modifiedL,
+			r = 1, g = 1, b = 1,
+			q, p;
 
-		double c = (1 - Math.Abs((2 * l) - 1)) * s;
-		double x = c * (1 - Math.Abs((h / 60 % 2) - 1));
-		double m = l - (c * 0.5);
+		modifiedH = h / 360.0;
+		modifiedS = s / 100.0;
+		modifiedL = l / 100.0;
 
-		if (h < 60)
-		{
-			r = c;
-			g = x;
-			b = 0;
-		}
-		else if (h < 120)
-		{
-			r = x;
-			g = c;
-			b = 0;
-		}
-		else if (h < 180)
+		q = (modifiedL < 0.5) ? modifiedL * (1 + modifiedS) : modifiedL + modifiedS - modifiedL * modifiedS;
+		p = 2 * modifiedL - q;
+
+		if (modifiedL == 0) // If the lightness value is 0 it will always be black
 		{
 			r = 0;
-			g = c;
-			b = x;
-		}
-		else if (h < 240)
-		{
-			r = 0;
-			g = x;
-			b = c;
-		}
-		else if (h < 300)
-		{
-			r = x;
 			g = 0;
-			b = c;
+			b = 0;
 		}
-		else // h < 360
+		else if (modifiedS != 0)
 		{
-			r = c;
-			g = 0;
-			b = x;
+			r = GetHue(p, q, modifiedH + 1.0 / 3);
+			g = GetHue(p, q, modifiedH);
+			b = GetHue(p, q, modifiedH - 1.0 / 3);
 		}
 
-		r += m;
-		g += m;
-		b += m;
+		return Color.FromArgb(255, (byte)Math.Round(r * 255), (byte)Math.Round(g * 255), (byte)Math.Round(b * 255));
 	}
-	public static Color ToColor(double h, double s, double l)
+	private static double GetHue(double p, double q, double t)
 	{
-		ToRGB(h, s, l, out double r, out double g, out double b);
-		return Color.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
+		double value = p;
+
+		if (t < 0)
+		{
+			t++;
+		}
+		else if (t > 1)
+		{
+			t--;
+		}
+
+		if (t < 1.0 / 6)
+		{
+			value = p + (q - p) * 6 * t;
+		}
+		else if (t < 1.0 / 2)
+		{
+			value = q;
+		}
+		else if (t < 2.0 / 3)
+		{
+			value = p + (q - p) * (2.0 / 3 - t) * 6;
+		}
+
+		return value;
 	}
 
 	public override bool Equals(object? obj)
 	{
 		if (obj is HSLColor other)
 		{
-			return Hue == other.Hue && Saturation == other.Saturation && Lightness == other.Lightness;
+			return H == other.H && S == other.S && L == other.L;
 		}
 		return false;
 	}
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Hue, Saturation, Lightness);
+		return HashCode.Combine(H, S, L);
 	}
 
 	public override string ToString()
 	{
-		return $"{Hue * 360}° {Saturation:P} {Lightness:P}";
+		return $"{H}° {S}% {L}%";
 	}
 
 	public static bool operator ==(HSLColor left, HSLColor right)

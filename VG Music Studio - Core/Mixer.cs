@@ -1,28 +1,26 @@
-﻿using NAudio.CoreAudioApi;
+using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
 using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Kermalis.VGMusicStudio.Core;
 
 public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 {
-	public static event Action<float>? VolumeChanged;
+	public static event Action<float>? MixerVolumeChanged;
 
 	public readonly bool[] Mutes;
 	private IWavePlayer _out;
 	private AudioSessionControl _appVolume;
+	private Process _appVol;
 
 	private bool _shouldSendVolUpdateEvent = true;
 
-	protected WaveFileWriter? _waveWriter;
-	protected abstract WaveFormat WaveFormat { get; }
-
-	protected Mixer()
+    protected Mixer()
 	{
 		Mutes = new bool[SongState.MAX_TRACKS];
-		_out = null!;
-		_appVolume = null!;
 	}
 
 	protected void Init(IWaveProvider waveProvider)
@@ -47,21 +45,34 @@ public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 		_out.Play();
 	}
 
-	public void CreateWaveWriter(string fileName)
-	{
-		_waveWriter = new WaveFileWriter(fileName, WaveFormat);
-	}
-	public void CloseWaveWriter()
-	{
-		_waveWriter!.Dispose();
-		_waveWriter = null;
-	}
+  //  protected void Init(PortAudioOutputStream waveProvider)
+  //  {
+  //      _outStream = waveProvider;
+		//var dev = Configuration.DefaultOutputDevice;
+  //      {
+  //          var sessions = dev;
+  //          int id = Environment.ProcessId;
+  //          for (int i = 0; i < sessions; i++)
+  //          {
+		//		var sessionID = new int[i];
+		//		sessionID[i] = sessions;
+  //              var session = Process.GetProcessById(sessionID[i]);
+  //              if (session.SessionId == id)
+  //              {
+  //                  _appVol = session;
+  //                  _appVolume.RegisterEventClient(this);
+  //                  break;
+  //              }
+  //          }
+  //      }
+  //      _outStream.StartStream();
+  //  }
 
-	public void OnVolumeChanged(float volume, bool isMuted)
+    public void OnVolumeChanged(float volume, bool isMuted)
 	{
 		if (_shouldSendVolUpdateEvent)
 		{
-			VolumeChanged?.Invoke(volume);
+			MixerVolumeChanged?.Invoke(volume);
 		}
 		_shouldSendVolUpdateEvent = true;
 	}
@@ -101,7 +112,6 @@ public abstract class Mixer : IAudioSessionEventsHandler, IDisposable
 
 	public virtual void Dispose()
 	{
-		GC.SuppressFinalize(this);
 		_out.Stop();
 		_out.Dispose();
 		_appVolume.Dispose();

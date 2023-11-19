@@ -58,9 +58,29 @@ public sealed class GlobalConfig
 					{
 						throw new Exception(string.Format(Strings.ErrorParseConfig, CONFIG_FILE, Environment.NewLine + string.Format(Strings.ErrorConfigColorRepeated, i)));
 					}
-
-					string valueName = string.Format(Strings.ConfigKeySubkey, string.Format("{0} {1}", nameof(Colors), i));
-					var co = Color.FromArgb((int)(0xFF000000 + (uint)ConfigUtils.ParseValue(valueName, c.Value.ToString(), 0x000000, 0xFFFFFF)));
+					long h = 0, s = 0, l = 0;
+					foreach (KeyValuePair<YamlNode, YamlNode> v in ((YamlMappingNode)c.Value).Children)
+					{
+						string key = v.Key.ToString();
+						string valueName = string.Format(Strings.ConfigKeySubkey, string.Format("{0} {1}", nameof(Colors), i));
+						if (key == "H")
+						{
+							h = ConfigUtils.ParseValue(valueName, v.Value.ToString(), 0, 240);
+						}
+						else if (key == "S")
+						{
+							s = ConfigUtils.ParseValue(valueName, v.Value.ToString(), 0, 240);
+						}
+						else if (key == "L")
+						{
+							l = ConfigUtils.ParseValue(valueName, v.Value.ToString(), 0, 240);
+						}
+						else
+						{
+							throw new Exception(string.Format(Strings.ErrorParseConfig, CONFIG_FILE, Environment.NewLine + string.Format(Strings.ErrorConfigColorInvalidKey, i)));
+						}
+					}
+					var co = HSLColor.ToColor((int)h, (byte)s, (byte)l);
 					Colors[i] = co;
 					Colors[i + 128] = co;
 				}

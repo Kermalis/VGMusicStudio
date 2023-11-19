@@ -1,30 +1,22 @@
-﻿using Kermalis.VGMusicStudio.Core.Properties;
-using Kermalis.VGMusicStudio.Core.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading;
 
 namespace Kermalis.VGMusicStudio.Core;
 
 public abstract class Config : IDisposable
 {
-	public readonly struct Song
+	public sealed class Song
 	{
-		public readonly int Index;
-		public readonly string Name;
+		public long Index;
+		public string Name;
 
-		public Song(int index, string name)
+		public Song(long index, string name)
 		{
 			Index = index;
 			Name = name;
-		}
-
-		public static bool operator ==(Song left, Song right)
-		{
-			return left.Equals(right);
-		}
-		public static bool operator !=(Song left, Song right)
-		{
-			return !(left == right);
 		}
 
 		public override bool Equals(object? obj)
@@ -45,16 +37,32 @@ public abstract class Config : IDisposable
 		public string Name;
 		public List<Song> Songs;
 
-		public Playlist(string name, List<Song> songs)
+		public Playlist(string name, IEnumerable<Song> songs)
 		{
 			Name = name;
-			Songs = songs;
+			Songs = songs.ToList();
 		}
 
 		public override string ToString()
 		{
-			int num = Songs.Count;
-			return string.Format("{0} - ({1:N0} {2})", Name, num, LanguageUtils.HandlePlural(num, Strings.Song_s_));
+			int songCount = Songs.Count;
+			CultureInfo cul = Thread.CurrentThread.CurrentUICulture;
+			if (cul.TwoLetterISOLanguageName == "it") // Italian
+			{
+				// PlaylistName - (1 Canzone)
+				// PlaylistName - (2 Canzoni)
+				return $"{Name} - ({songCount} {(songCount == 1 ? "Canzone" : "Canzoni")})";
+			}
+			if (cul.TwoLetterISOLanguageName == "es") // Spanish
+			{
+				// PlaylistName - (1 Canción)
+				// PlaylistName - (2 Canciones)
+				return $"{Name} - ({songCount} {(songCount == 1 ? "Canción" : "Canciones")})";
+			}
+			// Fallback to en-US
+			// PlaylistName - (1 Song)
+			// PlaylistName - (2 Songs)
+			return $"{Name} - ({songCount} {(songCount == 1 ? "Song" : "Songs")})";
 		}
 	}
 
@@ -65,7 +73,7 @@ public abstract class Config : IDisposable
 		Playlists = new List<Playlist>();
 	}
 
-	public bool TryGetFirstSong(int index, out Song song)
+	public Song? GetFirstSong(long index)
 	{
 		foreach (Playlist p in Playlists)
 		{
@@ -73,17 +81,15 @@ public abstract class Config : IDisposable
 			{
 				if (s.Index == index)
 				{
-					song = s;
-					return true;
+					return s;
 				}
 			}
 		}
-		song = default;
-		return false;
+		return null;
 	}
 
 	public abstract string GetGameName();
-	public abstract string GetSongName(int index);
+	public abstract string GetSongName(long index);
 
 	public virtual void Dispose()
 	{

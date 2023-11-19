@@ -4,9 +4,9 @@ using System.Windows.Forms;
 
 namespace Kermalis.VGMusicStudio.WinForms.Util;
 
-internal sealed class ImageComboBox : ComboBox
+internal class ImageComboBox : ComboBox
 {
-	private const int IMG_SIZE = 15;
+	private const int _imgSize = 15;
 	private bool _open = false;
 
 	public ImageComboBox()
@@ -24,8 +24,8 @@ internal sealed class ImageComboBox : ComboBox
 		{
 			ImageComboBoxItem item = Items[e.Index] as ImageComboBoxItem ?? throw new InvalidCastException($"Item was not of type \"{nameof(ImageComboBoxItem)}\"");
 			int indent = _open ? item.IndentLevel : 0;
-			e.Graphics.DrawImage(item.Image, e.Bounds.Left + (indent * IMG_SIZE), e.Bounds.Top, IMG_SIZE, IMG_SIZE);
-			e.Graphics.DrawString(item.ToString(), e.Font!, new SolidBrush(e.ForeColor), e.Bounds.Left + (indent * IMG_SIZE) + IMG_SIZE, e.Bounds.Top);
+			e.Graphics.DrawImage(item.Image, e.Bounds.Left + indent * _imgSize, e.Bounds.Top, _imgSize, _imgSize);
+			e.Graphics.DrawString(item.ToString(), e.Font, new SolidBrush(e.ForeColor), e.Bounds.Left + indent * _imgSize + _imgSize, e.Bounds.Top);
 		}
 
 		base.OnDrawItem(e);
@@ -41,7 +41,7 @@ internal sealed class ImageComboBox : ComboBox
 		base.OnDropDownClosed(e);
 	}
 }
-internal sealed class ImageComboBoxItem
+internal class ImageComboBoxItem
 {
 	public object Item { get; }
 	public Image Image { get; }
@@ -54,7 +54,7 @@ internal sealed class ImageComboBoxItem
 		IndentLevel = indentLevel;
 	}
 
-	public override string? ToString()
+	public override string ToString()
 	{
 		return Item.ToString();
 	}

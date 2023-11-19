@@ -33,24 +33,72 @@ using System.Windows.Forms;
 namespace Kermalis.VGMusicStudio.WinForms;
 
 [DesignerCategory("")]
-internal sealed partial class PianoControl : Control
+internal sealed class PianoControl : Control
 {
 	private enum KeyType : byte
 	{
 		Black,
-		White,
+		White
 	}
 
 	private const double BLACK_KEY_SCALE = 2.0 / 3;
 	public const int WHITE_KEY_COUNT = 75;
 
-	private static ReadOnlySpan<KeyType> KeyTypeTable => new KeyType[12]
+	private static readonly KeyType[] KeyTypeTable = new KeyType[12]
 	{
-		// C C# D D# E
 		KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White,
-		// F F# G G# A A# B
 		KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White, KeyType.Black, KeyType.White,
 	};
+
+	public sealed class PianoKey : Control
+	{
+		public bool PrevPressed;
+		public bool Pressed;
+
+		public readonly SolidBrush OnBrush;
+		private readonly SolidBrush _offBrush;
+
+		public PianoKey(byte k)
+		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw | ControlStyles.UserPaint, true);
+			SetStyle(ControlStyles.Selectable, false);
+
+			OnBrush = new(Color.Transparent);
+			byte l;
+			if (KeyTypeTable[k % 12] == KeyType.White)
+			{
+				if (k / 12 % 2 == 0)
+				{
+					l = 240;
+				}
+				else
+				{
+					l = 120;
+				}
+			}
+			else
+			{
+				l = 0;
+			}
+			_offBrush = new SolidBrush(HSLColor.ToColor(160, 0, l));
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				OnBrush.Dispose();
+				_offBrush.Dispose();
+			}
+			base.Dispose(disposing);
+		}
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			e.Graphics.FillRectangle(Pressed ? OnBrush : _offBrush, 1, 1, Width - 2, Height - 2);
+			e.Graphics.DrawRectangle(Pens.Black, 0, 0, Width - 1, Height - 1);
+			base.OnPaint(e);
+		}
+	}
 
 	private readonly PianoKey[] _keys;
 	public int WhiteKeyWidth;
@@ -104,8 +152,8 @@ internal sealed partial class PianoControl : Control
 		for (int k = 0; k <= 0x7F; k++)
 		{
 			PianoKey key = _keys[k];
-			key.PrevIsHeld = key.IsHeld;
-			key.IsHeld = false;
+			key.PrevPressed = key.Pressed;
+			key.Pressed = false;
 		}
 		for (int i = SongState.MAX_TRACKS - 1; i >= 0; i--)
 		{
@@ -125,13 +173,13 @@ internal sealed partial class PianoControl : Control
 
 				PianoKey key = _keys[k];
 				key.OnBrush.Color = GlobalConfig.Instance.Colors[track.Voice];
-				key.IsHeld = true;
+				key.Pressed = true;
 			}
 		}
 		for (int k = 0; k <= 0x7F; k++)
 		{
 			PianoKey key = _keys[k];
-			if (key.IsHeld != key.PrevIsHeld)
+			if (key.Pressed != key.PrevPressed)
 			{
 				key.Invalidate();
 			}

@@ -13,9 +13,9 @@ internal sealed class TimeBarrier
 	private double _lastTimeStamp;
 	private bool _started;
 
-	public TimeBarrier(double ticksPerSecond)
+	public TimeBarrier(double framesPerSecond)
 	{
-		_waitInterval = 1.0 / ticksPerSecond;
+		_waitInterval = 1.0 / framesPerSecond;
 		_started = false;
 		_sw = new Stopwatch();
 		_timerInterval = 1.0 / Stopwatch.Frequency;

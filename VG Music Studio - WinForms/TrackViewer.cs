@@ -72,7 +72,7 @@ internal sealed class TrackViewer : ThemedForm
 		List<long> list = ((SongEvent)_listView.SelectedItem.RowObject).Ticks;
 		if (list.Count > 0)
 		{
-			Engine.Instance!.Player.SetSongPosition(list[0]);
+			Engine.Instance?.Player.SetCurrentPosition(list[0]);
 			MainForm.Instance.LetUIKnowPlayerIsPlaying();
 		}
 	}

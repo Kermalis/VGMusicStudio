@@ -69,7 +69,7 @@ internal sealed class SongInfoControl : Control
 
 	private void TogglePiano(object? sender, EventArgs e)
 	{
-		var check = (CheckBox)sender!;
+		var check = (CheckBox)sender;
 		CheckBox master = _pianos[SongState.MAX_TRACKS];
 		if (check == master)
 		{
@@ -100,7 +100,7 @@ internal sealed class SongInfoControl : Control
 	}
 	private void ToggleMute(object? sender, EventArgs e)
 	{
-		var check = (CheckBox)sender!;
+		var check = (CheckBox)sender;
 		CheckBox master = _mutes[SongState.MAX_TRACKS];
 		if (check == master)
 		{
@@ -117,7 +117,7 @@ internal sealed class SongInfoControl : Control
 			{
 				if (_mutes[i] == check)
 				{
-					Engine.Instance!.Mixer.Mutes[i] = !check.Checked;
+					Engine.Instance.Mixer.Mutes[i] = !check.Checked;
 				}
 				if (_mutes[i].Checked)
 				{
@@ -284,24 +284,17 @@ internal sealed class SongInfoControl : Control
 
 		// Try to draw velocity bar
 		var rect = new Rectangle((int)(_barStartX + (_barWidth / 2) - (track.LeftVolume * _barWidth / 2)) + _bwd,
-			vBarY1,
-			(int)((track.LeftVolume + track.RightVolume) * _barWidth / 2),
-			_barHeight);
+						vBarY1,
+						(int)((track.LeftVolume + track.RightVolume) * _barWidth / 2),
+						_barHeight);
 		if (rect.Width > 0)
 		{
-			float velocity = track.LeftVolume + track.RightVolume;
-			int alpha;
-			if (velocity >= 2f)
+			float velocity = (track.LeftVolume + track.RightVolume) * 2f;
+			if (velocity > 1f)
 			{
-				alpha = 255;
+				velocity = 1f;
 			}
-			else
-			{
-				const int DELTA = 125;
-				alpha = (int)WinFormsUtils.Lerp(velocity * 0.5f, 0f, DELTA);
-				alpha += 255 - DELTA;
-			}
-			_solidBrush.Color = Color.FromArgb(alpha, color);
+			_solidBrush.Color = Color.FromArgb((int)WinFormsUtils.Lerp(velocity, 20f, 255f), color);
 			g.FillRectangle(_solidBrush, rect);
 			g.DrawRectangle(_pen, rect);
 			//_solidBrush.Color = color;

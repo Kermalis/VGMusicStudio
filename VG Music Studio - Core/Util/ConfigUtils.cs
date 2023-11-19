@@ -10,9 +10,7 @@ namespace Kermalis.VGMusicStudio.Core.Util;
 public static class ConfigUtils
 {
 	public const string PROGRAM_NAME = "VG Music Studio";
-	private static ReadOnlySpan<string> Notes => new string[12] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-	private static readonly CultureInfo _enUS = new("en-US");
-	private static readonly Dictionary<int, string> _keyCache = new(128);
+	private static readonly string[] _notes = Strings.Notes.Split(';');
 
 	public static bool TryParseValue(string value, long minValue, long maxValue, out long outValue)
 	{
@@ -35,7 +33,8 @@ public static class ConfigUtils
 			return string.Format(Strings.ErrorValueParseRanged, valueName, minValue, maxValue);
 		}
 
-		if (value.StartsWith("0x") && long.TryParse(value.AsSpan(2), NumberStyles.HexNumber, _enUS, out long hexp))
+		var provider = new CultureInfo("en-US");
+		if (value.StartsWith("0x") && long.TryParse(value.AsSpan(2), NumberStyles.HexNumber, provider, out long hexp))
 		{
 			if (hexp < minValue || hexp > maxValue)
 			{
@@ -43,7 +42,7 @@ public static class ConfigUtils
 			}
 			return hexp;
 		}
-		else if (long.TryParse(value, NumberStyles.Integer, _enUS, out long dec))
+		else if (long.TryParse(value, NumberStyles.Integer, provider, out long dec))
 		{
 			if (dec < minValue || dec > maxValue)
 			{
@@ -51,7 +50,7 @@ public static class ConfigUtils
 			}
 			return dec;
 		}
-		else if (long.TryParse(value, NumberStyles.HexNumber, _enUS, out long hex))
+		else if (long.TryParse(value, NumberStyles.HexNumber, provider, out long hex))
 		{
 			if (hex < minValue || hex > maxValue)
 			{
@@ -71,8 +70,7 @@ public static class ConfigUtils
 		return result;
 	}
 	/// <exception cref="InvalidValueException" />
-	public static TEnum ParseEnum<TEnum>(string valueName, string value)
-		where TEnum : unmanaged
+	public static TEnum ParseEnum<TEnum>(string valueName, string value) where TEnum : unmanaged
 	{
 		if (!Enum.TryParse(value, out TEnum result))
 		{
@@ -82,7 +80,6 @@ public static class ConfigUtils
 	}
 	/// <exception cref="BetterKeyNotFoundException" />
 	public static TValue GetValue<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-		where TKey : notnull
 	{
 		try
 		{
@@ -107,32 +104,9 @@ public static class ConfigUtils
 	}
 	/// <exception cref="BetterKeyNotFoundException" />
 	/// <exception cref="InvalidValueException" />
-	public static TEnum GetValidEnum<TEnum>(this YamlMappingNode yamlNode, string key)
-		where TEnum : unmanaged
+	public static TEnum GetValidEnum<TEnum>(this YamlMappingNode yamlNode, string key) where TEnum : unmanaged
 	{
 		return ParseEnum<TEnum>(key, yamlNode.Children.GetValue(key).ToString());
-	}
-
-	public static void TryCreateMasterPlaylist(List<Config.Playlist> playlists)
-	{
-		if (playlists.Exists(p => p.Name == "Music"))
-		{
-			return;
-		}
-
-		var songs = new List<Config.Song>();
-		foreach (Config.Playlist p in playlists)
-		{
-			foreach (Config.Song s in p.Songs)
-			{
-				if (!songs.Exists(s1 => s1.Index == s.Index))
-				{
-					songs.Add(s);
-				}
-			}
-		}
-		songs.Sort((s1, s2) => s1.Index.CompareTo(s2.Index));
-		playlists.Insert(0, new Config.Playlist(Strings.PlaylistMusic, songs));
 	}
 
 	public static string CombineWithBaseDirectory(string path)
@@ -142,16 +116,11 @@ public static class ConfigUtils
 
 	public static string GetNoteName(int note)
 	{
-		return Notes[note];
+		return _notes[note];
 	}
-	public static string GetKeyName(int midiNote)
+	// TODO: Cache results?
+	public static string GetKeyName(int note)
 	{
-		if (!_keyCache.TryGetValue(midiNote, out string? str))
-		{
-			// {C} + {5} = "C5"
-			str = Notes[midiNote % 12] + ((midiNote / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
-			_keyCache.Add(midiNote, str);
-		}
-		return str;
+		return _notes[note % 12] + ((note / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
 	}
 }

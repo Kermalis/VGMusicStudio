@@ -128,22 +128,25 @@
     <value>Error Exporting MIDI</value>
   </data>
   <data name="FilterOpenGBA" xml:space="preserve">
-    <value>GBA Files</value>
+    <value>Game Boy Advance binary (*.gba, *srl)|*.gba;*.srl|All files (*.*)|*.*</value>
   </data>
   <data name="FilterSaveMIDI" xml:space="preserve">
-    <value>MIDI Files</value>
+    <value>MIDI Files (*.mid, *.midi)|*.mid;*.midi</value>
   </data>
   <data name="MenuData" xml:space="preserve">
-    <value>Data</value>
+    <value>_Data</value>
   </data>
   <data name="MenuFile" xml:space="preserve">
-    <value>File</value>
+    <value>_File</value>
   </data>
   <data name="MenuOpenMP2K" xml:space="preserve">
     <value>Open GBA ROM (MP2K)</value>
   </data>
   <data name="MenuSaveMIDI" xml:space="preserve">
     <value>Export Song as MIDI</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>C;C#;D;D#;E;F;F#;G;G#;A;A#;B</value>
   </data>
   <data name="PlayerRest" xml:space="preserve">
     <value>Rest</value>
@@ -199,7 +202,7 @@
     <value>Error Loading SDAT File</value>
   </data>
   <data name="FilterOpenSDAT" xml:space="preserve">
-    <value>SDAT Files</value>
+    <value>Nitro Soundmaker Sound Data (*.sdat)|*.sdat|All files (*.*)|*.*</value>
   </data>
   <data name="MenuEndPlaylist" xml:space="preserve">
     <value>End Current Playlist</value>
@@ -245,6 +248,10 @@
   <data name="ErrorBoolParse" xml:space="preserve">
     <value>"{0}" must be True or False.</value>
     <comment>{0} is the value name.</comment>
+  </data>
+  <data name="ErrorConfigColorInvalidKey" xml:space="preserve">
+    <value>Color {0} has an invalid key.</value>
+    <comment>{0} is the color number.</comment>
   </data>
   <data name="ErrorConfigColorMissing" xml:space="preserve">
     <value>Color {0} is not defined.</value>
@@ -331,7 +338,7 @@
     <value>Error Exporting WAV</value>
   </data>
   <data name="FilterSaveWAV" xml:space="preserve">
-    <value>WAV Files</value>
+    <value>WAV Files (*.wav)|*.wav</value>
   </data>
   <data name="MenuSaveWAV" xml:space="preserve">
     <value>Export Song as WAV</value>
@@ -344,7 +351,7 @@
     <value>Error Exporting SF2</value>
   </data>
   <data name="FilterSaveSF2" xml:space="preserve">
-    <value>SF2 Files</value>
+    <value>SF2 Files (*.sf2)|*.sf2</value>
   </data>
   <data name="MenuSaveSF2" xml:space="preserve">
     <value>Export VoiceTable as SF2</value>
@@ -357,7 +364,7 @@
     <value>Error Exporting DLS</value>
   </data>
   <data name="FilterSaveDLS" xml:space="preserve">
-    <value>DLS Files</value>
+    <value>DLS Files (*.dls)|*.dls</value>
   </data>
   <data name="MenuSaveDLS" xml:space="preserve">
     <value>Export VoiceTable as DLS</value>
@@ -366,7 +373,25 @@
     <value>VoiceTable saved to {0}.</value>
     <comment>{0} is the file name.</comment>
   </data>
-  <data name="Song(s)" xml:space="preserve">
-    <value>songs|0_0|song|1_1|songs|2_*|</value>
+  <data name="GTKFilterOpenGBA" xml:space="preserve">
+    <value>Game Boy Advance binary (*.gba, *.srl)</value>
+  </data>
+  <data name="GTKFilterOpenSDAT" xml:space="preserve">
+    <value>Nitro Soundmaker Sound Data (*.sdat)</value>
+  </data>
+  <data name="GTKFilterSaveDLS" xml:space="preserve">
+    <value>DLS Soundfont Files (*.dls)</value>
+  </data>
+  <data name="GTKFilterSaveMIDI" xml:space="preserve">
+    <value>MIDI Sequence Files (*.mid, *.midi)</value>
+  </data>
+  <data name="GTKFilterSaveSF2" xml:space="preserve">
+    <value>SF2 Soundfont Files (*.sf2)</value>
+  </data>
+  <data name="GTKFilterSaveWAV" xml:space="preserve">
+    <value>Wave Audio Data (*.wav)</value>
+  </data>
+  <data name="GTKAllFiles" xml:space="preserve">
+    <value>All files (*.*)</value>
   </data>
 </root>

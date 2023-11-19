@@ -4,6 +4,7 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream;
 
@@ -54,7 +55,7 @@ public static class AlphaDreamSoundFontSaver_DLS
 			}
 
 			ofs += config.SampleTableOffset;
-			var sh = new SampleHeader(config.ROM, ofs, out int sampleOffset);
+			ref SampleHeader sh = ref MemoryMarshal.AsRef<SampleHeader>(config.ROM.AsSpan(ofs));
 
 			// Create format chunk
 			var fmt = new FormatChunk(WaveFormat.PCM);
@@ -80,7 +81,7 @@ public static class AlphaDreamSoundFontSaver_DLS
 			}
 			// Get PCM sample
 			byte[] pcm = new byte[sh.Length];
-			Array.Copy(config.ROM, sampleOffset, pcm, 0, sh.Length);
+			Array.Copy(config.ROM, ofs + 0x10, pcm, 0, sh.Length);
 
 			// Add
 			int dlsIndex = waves.Count;
@@ -126,7 +127,7 @@ public static class AlphaDreamSoundFontSaver_DLS
 			lins.Add(ins);
 			for (int e = 0; e < numEntries; e++)
 			{
-				ref readonly var entry = ref VoiceEntry.Get(config.ROM.AsSpan(config.VoiceTableOffset + off + (e * 8)));
+				ref VoiceEntry entry = ref MemoryMarshal.AsRef<VoiceEntry>(config.ROM.AsSpan(config.VoiceTableOffset + off + (e * 8)));
 				// Sample
 				if (entry.Sample >= config.SampleTableSize)
 				{
@@ -139,7 +140,7 @@ public static class AlphaDreamSoundFontSaver_DLS
 					continue;
 				}
 
-				void Add(ushort low, ushort high, ushort baseNote)
+				void Add(ushort low, ushort high, ushort baseKey)
 				{
 					var rgnh = new RegionHeaderChunk();
 					rgnh.KeyRange.Low = low;
@@ -149,7 +150,7 @@ public static class AlphaDreamSoundFontSaver_DLS
 						rgnh,
 						new WaveSampleChunk
 						{
-							UnityNote = baseNote,
+							UnityNote = baseKey,
 							Options = WaveSampleOptions.NoTruncation | WaveSampleOptions.NoCompression,
 							Loop = value.Item1.Loop,
 						},

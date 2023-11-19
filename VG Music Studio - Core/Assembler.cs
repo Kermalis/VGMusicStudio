@@ -9,12 +9,12 @@ namespace Kermalis.VGMusicStudio.Core;
 
 internal sealed class Assembler : IDisposable
 {
-	private sealed class Pair // Must be a class
+	private class Pair
 	{
 		public bool Global;
 		public int Offset;
 	}
-	private struct Pointer
+	private class Pointer
 	{
 		public string Label;
 		public int BinaryOffset;
@@ -51,8 +51,7 @@ internal sealed class Assembler : IDisposable
 		_stream = new MemoryStream();
 		_writer = new EndianBinaryWriter(_stream, endianness: endianness);
 
-		string status = Read(fileName);
-		Debug.WriteLine(status);
+		Debug.WriteLine(Read(fileName));
 		SetBaseOffset(baseOffset);
 	}
 
@@ -69,7 +68,9 @@ internal sealed class Assembler : IDisposable
 			int labelOffset = oldPointer - BaseOffset; // Then labelOffset is 0x1004 (SEQ_STUFF+4)
 
 			_stream.Position = p.BinaryOffset;
-			_writer.WriteInt32(baseOffset + labelOffset); // Copy the new pointer to binary offset 0x1DF4
+			_writer.WriteInt32(baseOffset + labelOffset); // b will contain {0x04, 0x28, 0x00, 0x00} [0x2804] (SEQ_STUFF+4 + baseOffset)
+														  // Copy the new pointer to binary offset 0x1DF4
+														  // TODO: UPDATE THESE OLD COMMENTS LOL
 		}
 		BaseOffset = baseOffset;
 	}
@@ -114,7 +115,7 @@ internal sealed class Assembler : IDisposable
 			}
 
 			bool readingCMD = false; // If it's reading the command
-			string? cmd = null;
+			string cmd = null;
 			var args = new List<string>();
 			string str = string.Empty;
 			foreach (char c in line)
@@ -123,7 +124,7 @@ internal sealed class Assembler : IDisposable
 				{
 					break;
 				}
-				if (c == '.' && cmd is null)
+				else if (c == '.' && cmd == null)
 				{
 					readingCMD = true;
 				}
@@ -155,7 +156,7 @@ internal sealed class Assembler : IDisposable
 					str += c;
 				}
 			}
-			if (cmd is null)
+			if (cmd == null)
 			{
 				continue; // Commented line
 			}
@@ -190,12 +191,11 @@ internal sealed class Assembler : IDisposable
 				}
 				case "global":
 				{
-					if (!_labels.TryGetValue(args[0], out Pair? pair))
+					if (!_labels.ContainsKey(args[0]))
 					{
-						pair = new Pair();
-						_labels.Add(args[0], pair);
+						_labels.Add(args[0], new Pair());
 					}
-					pair.Global = true;
+					_labels[args[0]].Global = true;
 					break;
 				}
 				case "align":
@@ -284,7 +284,7 @@ internal sealed class Assembler : IDisposable
 		{
 			return def;
 		}
-		if (_labels.TryGetValue(value, out Pair? pair))
+		if (_labels.TryGetValue(value, out Pair pair))
 		{
 			_lPointers.Add(new Pointer { Label = value, BinaryOffset = BinaryLength });
 			return pair.Offset;
@@ -358,7 +358,7 @@ internal sealed class Assembler : IDisposable
 			return ret;
 		}
 
-		throw new ArgumentOutOfRangeException(nameof(value), value, null);
+		throw new ArgumentOutOfRangeException(nameof(value));
 	}
 
 	public void Dispose()

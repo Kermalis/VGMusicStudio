@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GtkSharp" Version="3.24.24.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
+  </ItemGroup>
+
+</Project>

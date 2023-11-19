@@ -1,5 +1,4 @@
-﻿using Kermalis.VGMusicStudio.WinForms.Properties;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -81,7 +80,7 @@ namespace Kermalis.VGMusicStudio.WinForms.Util;
      *   - Initial Version
     */
 
-internal sealed class FlexibleMessageBox
+internal class FlexibleMessageBox
 {
 	#region Public statics
 
@@ -167,13 +166,13 @@ internal sealed class FlexibleMessageBox
 
 	#region Internal form class
 
-	private sealed class FlexibleMessageBoxForm : ThemedForm
+	class FlexibleMessageBoxForm : ThemedForm
 	{
-		IContainer components;
+		IContainer components = null;
 
 		protected override void Dispose(bool disposing)
 		{
-			if (disposing && components is not null)
+			if (disposing && components != null)
 			{
 				components.Dispose();
 			}
@@ -285,7 +284,7 @@ internal sealed class FlexibleMessageBox
 			Controls.Add(panel1);
 			Controls.Add(button1);
 			DataBindings.Add(new Binding("Text", FlexibleMessageBoxFormBindingSource, "CaptionText", true));
-			Icon = Resources.Icon;
+			Icon = Properties.Resources.Icon;
 			MaximizeBox = false;
 			MinimizeBox = false;
 			MinimumSize = new Size(276, 140);
@@ -338,21 +337,10 @@ internal sealed class FlexibleMessageBox
 
 		private FlexibleMessageBoxForm()
 		{
-			components = null!;
-			button1 = null!;
-			button2 = null!;
-			button3 = null!;
-			FlexibleMessageBoxFormBindingSource = null!;
-			richTextBoxMessage = null!;
-			panel1 = null!;
-			pictureBoxForIcon = null!;
-			CaptionText = null!;
-			MessageText = null!;
-
 			InitializeComponent();
 
 			//Try to evaluate the language. If this fails, the fallback language English will be used
-			_ = Enum.TryParse(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, out languageID);
+			Enum.TryParse(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, out languageID);
 
 			KeyPreview = true;
 			KeyUp += FlexibleMessageBoxForm_KeyUp;
@@ -362,7 +350,7 @@ internal sealed class FlexibleMessageBox
 
 		#region Private helper functions
 
-		static string[]? GetStringRows(string message)
+		static string[] GetStringRows(string message)
 		{
 			if (string.IsNullOrEmpty(message))
 			{
@@ -405,15 +393,15 @@ internal sealed class FlexibleMessageBox
 			return workingAreaFactor;
 		}
 
-		static void SetDialogStartPosition(FlexibleMessageBoxForm flexibleMessageBoxForm, IWin32Window? owner)
+		static void SetDialogStartPosition(FlexibleMessageBoxForm flexibleMessageBoxForm, IWin32Window owner)
 		{
-			// If no owner given: Center on current screen
-			if (owner is null)
+			//If no owner given: Center on current screen
+			if (owner == null)
 			{
 				var screen = Screen.FromPoint(Cursor.Position);
 				flexibleMessageBoxForm.StartPosition = FormStartPosition.Manual;
-				flexibleMessageBoxForm.Left = screen.Bounds.Left + (screen.Bounds.Width / 2) - (flexibleMessageBoxForm.Width / 2);
-				flexibleMessageBoxForm.Top = screen.Bounds.Top + (screen.Bounds.Height / 2) - (flexibleMessageBoxForm.Height / 2);
+				flexibleMessageBoxForm.Left = screen.Bounds.Left + screen.Bounds.Width / 2 - flexibleMessageBoxForm.Width / 2;
+				flexibleMessageBoxForm.Top = screen.Bounds.Top + screen.Bounds.Height / 2 - flexibleMessageBoxForm.Height / 2;
 			}
 		}
 
@@ -424,8 +412,8 @@ internal sealed class FlexibleMessageBox
 														  Convert.ToInt32(SystemInformation.WorkingArea.Height * GetCorrectedWorkingAreaFactor(MAX_HEIGHT_FACTOR)));
 
 			//Get rows. Exit if there are no rows to render...
-			string[]? stringRows = GetStringRows(text);
-			if (stringRows is null)
+			string[] stringRows = GetStringRows(text);
+			if (stringRows == null)
 			{
 				return;
 			}
@@ -575,9 +563,9 @@ internal sealed class FlexibleMessageBox
 
 		#region Private event handlers
 
-		void FlexibleMessageBoxForm_Shown(object? sender, EventArgs e)
+		void FlexibleMessageBoxForm_Shown(object sender, EventArgs e)
 		{
-			int buttonIndexToFocus;
+			int buttonIndexToFocus = 1;
 			Button buttonToFocus;
 
 			//Set the default button...
@@ -616,16 +604,16 @@ internal sealed class FlexibleMessageBox
 			buttonToFocus.Focus();
 		}
 
-		void LinkClicked(object? sender, LinkClickedEventArgs e)
+		void LinkClicked(object sender, LinkClickedEventArgs e)
 		{
 			try
 			{
 				Cursor.Current = Cursors.WaitCursor;
-				Process.Start(e.LinkText!);
+				Process.Start(e.LinkText);
 			}
 			catch (Exception)
 			{
-				// Let the caller of FlexibleMessageBoxForm decide what to do with this exception...
+				//Let the caller of FlexibleMessageBoxForm decide what to do with this exception...
 				throw;
 			}
 			finally
@@ -634,7 +622,7 @@ internal sealed class FlexibleMessageBox
 			}
 		}
 
-		void FlexibleMessageBoxForm_KeyUp(object? sender, KeyEventArgs e)
+		void FlexibleMessageBoxForm_KeyUp(object sender, KeyEventArgs e)
 		{
 			//Handle standard key strikes for clipboard copy: "Ctrl + C" and "Ctrl + Insert"
 			if (e.Control && (e.KeyCode == Keys.C || e.KeyCode == Keys.Insert))
@@ -668,7 +656,7 @@ internal sealed class FlexibleMessageBox
 
 		#region Public show function
 
-		public static DialogResult Show(IWin32Window? owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton)
+		public static DialogResult Show(IWin32Window owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton)
 		{
 			//Create a new instance of the FlexibleMessageBox form
 			var flexibleMessageBoxForm = new FlexibleMessageBoxForm

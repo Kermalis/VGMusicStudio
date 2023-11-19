@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
+﻿namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
 
 internal static class SDATUtils
 {
-	public static ReadOnlySpan<byte> AttackTable => new byte[128]
+	public static readonly byte[] AttackTable = new byte[128]
 	{
 		255, 254, 253, 252, 251, 250, 249, 248,
 		247, 246, 245, 244, 243, 242, 241, 240,
@@ -23,7 +21,7 @@ internal static class SDATUtils
 		127, 123, 116, 109, 100, 92, 84, 73,
 		63, 51, 38, 26, 14, 5, 1, 0,
 	};
-	public static ReadOnlySpan<ushort> DecayTable => new ushort[128]
+	public static readonly ushort[] DecayTable = new ushort[128]
 	{
 		1, 3, 5, 7, 9, 11, 13, 15,
 		17, 19, 21, 23, 25, 27, 29, 31,
@@ -42,7 +40,7 @@ internal static class SDATUtils
 		549, 591, 640, 698, 768, 853, 960, 1097,
 		1280, 1536, 1920, 2560, 3840, 7680, 15360, 65535,
 	};
-	public static ReadOnlySpan<int> SustainTable => new int[128]
+	public static readonly int[] SustainTable = new int[128]
 	{
 		-92544, -92416, -92288, -83328, -76928, -71936, -67840, -64384,
 		-61440, -58880, -56576, -54400, -52480, -50688, -49024, -47488,
@@ -62,7 +60,7 @@ internal static class SDATUtils
 		-1280, -1024, -896, -768, -512, -384, -128, 0,
 	};
 
-	private static ReadOnlySpan<sbyte> SinTable => new sbyte[33]
+	private static readonly sbyte[] _sinTable = new sbyte[33]
 	{
 		000, 006, 012, 019, 025, 031, 037, 043,
 		049, 054, 060, 065, 071, 076, 081, 085,
@@ -74,21 +72,21 @@ internal static class SDATUtils
 	{
 		if (index < 0x20)
 		{
-			return SinTable[index];
+			return _sinTable[index];
 		}
 		if (index < 0x40)
 		{
-			return SinTable[0x20 - (index - 0x20)];
+			return _sinTable[0x20 - (index - 0x20)];
 		}
 		if (index < 0x60)
 		{
-			return -SinTable[index - 0x40];
+			return -_sinTable[index - 0x40];
 		}
 		// < 0x80
-		return -SinTable[0x20 - (index - 0x60)];
+		return -_sinTable[0x20 - (index - 0x60)];
 	}
 
-	private static ReadOnlySpan<ushort> PitchTable => new ushort[768]
+	private static readonly ushort[] _pitchTable = new ushort[768]
 	{
 		0, 59, 118, 178, 237, 296, 356, 415,
 		475, 535, 594, 654, 714, 773, 833, 893,
@@ -187,7 +185,7 @@ internal static class SDATUtils
 		63657, 63774, 63890, 64007, 64124, 64241, 64358, 64476,
 		64593, 64711, 64828, 64946, 65064, 65182, 65300, 65418,
 	};
-	private static ReadOnlySpan<byte> VolumeTable => new byte[724]
+	private static readonly byte[] _volumeTable = new byte[724]
 	{
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
@@ -299,7 +297,7 @@ internal static class SDATUtils
 			pitch -= 0x300;
 		}
 
-		ulong timer = (PitchTable[pitch] + 0x10000uL) * baseTimer;
+		ulong timer = (_pitchTable[pitch] + 0x10000uL) * baseTimer;
 		shift -= 16;
 		if (shift <= 0)
 		{
@@ -339,6 +337,6 @@ internal static class SDATUtils
 		{
 			a = 0;
 		}
-		return VolumeTable[a + 723];
+		return _volumeTable[a + 723];
 	}
 }

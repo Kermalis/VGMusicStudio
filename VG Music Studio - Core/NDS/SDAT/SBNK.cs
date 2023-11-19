@@ -119,7 +119,7 @@ internal sealed class SBNK
 		}
 	}
 
-	public SDATFileHeader FileHeader; // "SBNK"
+	public FileHeader FileHeader; // "SBNK"
 	public string BlockType; // "DATA"
 	public int BlockSize;
 	public byte[] Padding;
@@ -133,7 +133,7 @@ internal sealed class SBNK
 		using (var stream = new MemoryStream(bytes))
 		{
 			var er = new EndianBinaryReader(stream, ascii: true);
-			FileHeader = new SDATFileHeader(er);
+			FileHeader = new FileHeader(er);
 			BlockType = er.ReadString_Count(4);
 			BlockSize = er.ReadInt32();
 			Padding = new byte[32];

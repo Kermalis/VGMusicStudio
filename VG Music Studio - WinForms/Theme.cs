@@ -24,7 +24,7 @@ internal static class Theme
 	public static Color DrainColor(Color c)
 	{
 		var hsl = new HSLColor(c);
-		return HSLColor.ToColor(hsl.Hue, hsl.Saturation / 2.5, hsl.Lightness);
+		return HSLColor.ToColor(hsl.H, (byte)(hsl.S / 2.5), hsl.L);
 	}
 }
 

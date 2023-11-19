@@ -13,10 +13,8 @@ public sealed class SDATMixer : Mixer
 	private float _fadePos;
 	private float _fadeStepPerMicroframe;
 
-	internal SDATChannel[] Channels;
+	internal Channel[] Channels;
 	private readonly BufferedWaveProvider _buffer;
-
-	protected override WaveFormat WaveFormat => _buffer.WaveFormat;
 
 	internal SDATMixer()
 	{
@@ -27,10 +25,10 @@ public sealed class SDATMixer : Mixer
 		_samplesPerBuffer = 341; // TODO
 		_samplesReciprocal = 1f / _samplesPerBuffer;
 
-		Channels = new SDATChannel[0x10];
+		Channels = new Channel[0x10];
 		for (byte i = 0; i < 0x10; i++)
 		{
-			Channels[i] = new SDATChannel(i);
+			Channels[i] = new Channel(i);
 		}
 
 		_buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
@@ -44,7 +42,7 @@ public sealed class SDATMixer : Mixer
 	private static readonly int[] _pcmChanOrder = new int[] { 4, 5, 6, 7, 2, 0, 3, 1, 8, 9, 10, 11, 14, 12, 15, 13 };
 	private static readonly int[] _psgChanOrder = new int[] { 8, 9, 10, 11, 12, 13 };
 	private static readonly int[] _noiseChanOrder = new int[] { 14, 15 };
-	internal SDATChannel? AllocateChannel(InstrumentType type, SDATTrack track)
+	internal Channel? AllocateChannel(InstrumentType type, Track track)
 	{
 		int[] allowedChannels;
 		switch (type)
@@ -54,10 +52,10 @@ public sealed class SDATMixer : Mixer
 			case InstrumentType.Noise: allowedChannels = _noiseChanOrder; break;
 			default: return null;
 		}
-		SDATChannel? nChan = null;
+		Channel? nChan = null;
 		for (int i = 0; i < allowedChannels.Length; i++)
 		{
-			SDATChannel c = Channels[allowedChannels[i]];
+			Channel c = Channels[allowedChannels[i]];
 			if (nChan is not null && c.Priority >= nChan.Priority && (c.Priority != nChan.Priority || nChan.Volume <= c.Volume))
 			{
 				continue;
@@ -75,7 +73,7 @@ public sealed class SDATMixer : Mixer
 	{
 		for (int i = 0; i < 0x10; i++)
 		{
-			SDATChannel chan = Channels[i];
+			Channel chan = Channels[i];
 			if (chan.Owner is null)
 			{
 				continue;
@@ -147,13 +145,23 @@ public sealed class SDATMixer : Mixer
 		_fadeMicroFramesLeft = 0;
 	}
 
+	private WaveFileWriter? _waveWriter;
+	public void CreateWaveWriter(string fileName)
+	{
+		_waveWriter = new WaveFileWriter(fileName, _buffer.WaveFormat);
+	}
+	public void CloseWaveWriter()
+	{
+		_waveWriter!.Dispose();
+		_waveWriter = null;
+	}
 	internal void EmulateProcess()
 	{
 		for (int i = 0; i < _samplesPerBuffer; i++)
 		{
 			for (int j = 0; j < 0x10; j++)
 			{
-				SDATChannel chan = Channels[j];
+				Channel chan = Channels[j];
 				if (chan.Owner is not null)
 				{
 					chan.EmulateProcess();
@@ -192,7 +200,7 @@ public sealed class SDATMixer : Mixer
 				right = 0;
 			for (int j = 0; j < 0x10; j++)
 			{
-				SDATChannel chan = Channels[j];
+				Channel chan = Channels[j];
 				if (chan.Owner is null)
 				{
 					continue;

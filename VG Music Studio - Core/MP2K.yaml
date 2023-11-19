@@ -223,20 +223,6 @@ AFXP_00:
   Name: "Final Fantasy Tactics Advance (Europe)"
   SongTableOffsets: 0x14F540
   Copy: "AFXE_00"
-AFZE_00:
-  Name: "F-Zero: Maximum Velocity (USA)"
-  SongTableOffsets: 0x54BF8
-  SongTableSizes: 72
-  SampleRate: 2
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 10
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-AFZJ_00:
-  Name: "F-Zero: Maximum Velocity (Japan)"
-  SongTableOffsets: 0x58324
-  Copy: "AFZE_00"
 AGFD_00:
   Name: "Golden Sun: The Lost Age (Germany)"
   Copy: "AGFE_00"
@@ -975,24 +961,6 @@ B24J_00:
 B24P_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
   Copy: "B24E_00"
-B8KE_00:
-  Name: "Kirby & The Amazing Mirror (USA)"
-  SongTableOffsets: 0xB59ED0
-  SongTableSizes: 620
-  SampleRate: 4
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 15
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-B8KJ_01:
-  Name: "Kirby & The Amazing Mirror (Japan)"
-  SongTableOffsets: 0xB253E0
-  Copy: "B8KE_00"
-B8KP_00:
-  Name: "Kirby & The Amazing Mirror (Europe/Australia)"
-  SongTableOffsets: 0xB64334
-  Copy: "B8KE_00"
 BE8E_00:
   Name: "Fire Emblem: The Sacred Stones (USA)"
   SongTableOffsets: 0x224470
@@ -1011,52 +979,6 @@ BE8P_00:
   Name: "Fire Emblem: The Sacred Stones (Europe)"
   SongTableOffsets: 0x42FFB0
   Copy: "BE8E_00"
-BFFE_00:
-  Name: "Final Fantasy I & II - Dawn of Souls (USA)"
-  SongTableOffsets: 0x8D3058
-  SongTableSizes: 717
-  SampleRate: 5
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 15
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-BFFJ_01:
-  Name: "Final Fantasy I & II Advance (Japan)"
-  SongTableOffsets: 0x8F7BA8
-  Copy: "BFFE_00"
-BFFP_00:
-  Name: "Final Fantasy I & II - Dawn of Souls (Europe)"
-  SongTableOffsets: 0x974660
-  Copy: "BFFE_00"
-BFTJ_00:
-  Name: "F-Zero Climax (Japan)"
-  SongTableOffsets: 0x9EE84
-  SongTableSizes: 439
-  SampleRate: 5
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 14
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-BFZE_00:
-  Name: "F-Zero: GP Legend (USA)"
-  SongTableOffsets: 0x97B44
-  SongTableSizes: 352
-  SampleRate: 5
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 14
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-BFZJ_00:
-  Name: "F-Zero: GP Legend (Japan)"
-  SongTableOffsets: 0xA3BEC
-  Copy: "BFZE_00"
-BFZP_00:
-  Name: "F-Zero: GP Legend (Europe)"
-  SongTableOffsets: 0xA21D4
-  Copy: "BFZE_00"
 BMXC_00:
   Name: "Metroid: Zero Mission (China)"
   SongTableOffsets: 0xA8AAC
@@ -1596,63 +1518,6 @@ BPRS_00:
   Name: "Pokémon Fire Red Version (Spain)"
   SongTableOffsets: 0x499BC8
   Copy: "BPRE_00"
-BZ4E_00:
-  Name: "Final Fantasy IV Advance (USA)"
-  SongTableOffsets: 0x3DC894
-  SongTableSizes: 221
-  SampleRate: 5
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 15
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-BZ4J_00:
-  Name: "Final Fantasy IV Advance (Japan)"
-  SongTableOffsets: 0x416D0C
-  Copy: "BZ4E_00"
-BZ4J_01:
-  SongTableOffsets: 0x3FA87C
-  Copy: "BZ4J_00"
-BZ4P_00:
-  Name: "Final Fantasy IV Advance (Europe)"
-  SongTableOffsets: 0x4F5A5C
-  Copy: "BZ4E_00"
-BZ5E_00:
-  Name: "Final Fantasy V Advance (USA)"
-  SongTableOffsets: 0x3F2CB4
-  SongTableSizes: 290
-  SampleRate: 5
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 15
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-BZ5J_00:
-  Name: "Final Fantasy V Advance (Japan)"
-  SongTableOffsets: 0x41524C
-  Copy: "BZ5E_00"
-BZ5P_00:
-  Name: "Final Fantasy V Advance (Europe)"
-  SongTableOffsets: 0x540620
-  Copy: "BZ5E_00"
-BZ6E_00:
-  Name: "Final Fantasy VI Advance (USA)"
-  SongTableOffsets: 0x1C6A94
-  SongTableSizes: 371
-  SampleRate: 5
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 15
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-BZ6J_00:
-  Name: "Final Fantasy VI Advance (Japan)"
-  SongTableOffsets: 0x1EA5DC
-  Copy: "BZ6E_00"
-BZ6P_00:
-  Name: "Final Fantasy VI Advance (Europe)"
-  SongTableOffsets: 0x16F41C
-  Copy: "BZ6E_00"
 BZME_00:
   Name: "The Legend of Zelda: The Minish Cap (USA)"
   SongTableOffsets: 0xA11DBC
@@ -1671,24 +1536,6 @@ BZMP_00:
   Name: "The Legend of Zelda: The Minish Cap (Europe)"
   SongTableOffsets: 0xB1D414
   Copy: "BZME_00"
-KYGE_00:
-  Name: "Yoshi Topsy-Turvy (USA)"
-  SongTableOffsets: 0x4A5E94
-  SongTableSizes: 347
-  SampleRate: 2
-  ReverbType: "Normal"
-  Reverb: 0
-  Volume: 10
-  HasGoldenSunSynths: False
-  HasPokemonCompression: False
-KYGJ_00:
-  Name: "Yoshi Topsy-Turvy (Japan)"
-  SongTableOffsets: 0x4A79D8
-  Copy: "KYGE_00"
-KYGP_00:
-  Name: "Yoshi Topsy-Turvy (Europe)"
-  SongTableOffsets: 0x619658
-  Copy: "KYGE_00"
 U32E_00:
   Name: "Boktai 2 - Solar Boy Django (USA)"
   SongTableOffsets: 0x25EEA8
