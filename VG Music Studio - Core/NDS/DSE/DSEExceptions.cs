@@ -4,11 +4,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
 public sealed class DSENoSequencesException : Exception
 {
-	public string BGMPath { get; }
+	public string SMDPath { get; }
 
 	internal DSENoSequencesException(string bgmPath)
 	{
-		BGMPath = bgmPath;
+		SMDPath = bgmPath;
 	}
 }
 

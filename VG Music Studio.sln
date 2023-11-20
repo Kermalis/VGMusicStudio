@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - WinForms"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - Core", "VG Music Studio - Core\VG Music Studio - Core.csproj", "{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - MIDI", "VG Music Studio - MIDI\VG Music Studio - MIDI.csproj", "{6756ED81-71F6-457D-AD23-9C03B6C934E4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EndianBinaryIO", "..\EndianBinaryIO\Source\EndianBinaryIO.csproj", "{D376BB1C-0DBC-4FED-9C8F-9E837CC913A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6756ED81-71F6-457D-AD23-9C03B6C934E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D376BB1C-0DBC-4FED-9C8F-9E837CC913A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D376BB1C-0DBC-4FED-9C8F-9E837CC913A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D376BB1C-0DBC-4FED-9C8F-9E837CC913A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D376BB1C-0DBC-4FED-9C8F-9E837CC913A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

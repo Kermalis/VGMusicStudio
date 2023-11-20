@@ -15,7 +15,8 @@ internal enum EnvelopeState : byte
 
 internal enum SampleFormat : ushort
 {
-	PCM8 = 0x000,
-	PCM16 = 0x100,
-	ADPCM = 0x200,
+	PCM8 = 0,
+	PCM16 = 1,
+	ADPCM = 2,
+	PSG = 3
 }

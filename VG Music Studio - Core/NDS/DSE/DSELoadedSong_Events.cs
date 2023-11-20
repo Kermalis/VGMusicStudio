@@ -1,4 +1,5 @@
-﻿using Kermalis.EndianBinaryIO;
+﻿using Kermalis.VGMusicStudio.Core.Util;
+using Kermalis.VGMusicStudio.Core.Util.EndianBinaryExtras;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -108,59 +109,31 @@ internal sealed partial class DSELoadedSong
 					}
 					case 0x94:
 					{
-						lastRest = (uint)(r.ReadByte() | (r.ReadByte() << 8) | (r.ReadByte() << 16));
+						lastRest = r.ReadUInt24();
 						if (!EventExists(trackIndex, cmdOffset))
 						{
 							AddEvent(trackIndex, cmdOffset, new RestCommand { Rest = lastRest });
 						}
 						break;
 					}
+					case 0x95:
+					{
+						uint intervals = r.ReadByte();
+						if (!EventExists(trackIndex, cmdOffset))
+						{
+							AddEvent(trackIndex, cmdOffset, new CheckIntervalCommand { Interval = intervals });
+						}
+						break;
+					}
 					case 0x96:
+					{
+						if (!EventExists(trackIndex, cmdOffset))
+						{
+							AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+						}
+						break;
+					}
 					case 0x97:
-					case 0x9A:
-					case 0x9B:
-					case 0x9F:
-					case 0xA2:
-					case 0xA3:
-					case 0xA6:
-					case 0xA7:
-					case 0xAD:
-					case 0xAE:
-					case 0xB7:
-					case 0xB8:
-					case 0xB9:
-					case 0xBA:
-					case 0xBB:
-					case 0xBD:
-					case 0xC1:
-					case 0xC2:
-					case 0xC4:
-					case 0xC5:
-					case 0xC6:
-					case 0xC7:
-					case 0xC8:
-					case 0xC9:
-					case 0xCA:
-					case 0xCC:
-					case 0xCD:
-					case 0xCE:
-					case 0xCF:
-					case 0xD9:
-					case 0xDA:
-					case 0xDE:
-					case 0xE6:
-					case 0xEB:
-					case 0xEE:
-					case 0xF4:
-					case 0xF5:
-					case 0xF7:
-					case 0xF9:
-					case 0xFA:
-					case 0xFB:
-					case 0xFC:
-					case 0xFD:
-					case 0xFE:
-					case 0xFF:
 					{
 						if (!EventExists(trackIndex, cmdOffset))
 						{
@@ -173,209 +146,936 @@ internal sealed partial class DSELoadedSong
 						if (!EventExists(trackIndex, cmdOffset))
 						{
 							AddEvent(trackIndex, cmdOffset, new FinishCommand());
+							r.Stream.Align(4);
 						}
 						cont = false;
 						break;
 					}
 					case 0x99:
-					{
-						if (!EventExists(trackIndex, cmdOffset))
 						{
-							AddEvent(trackIndex, cmdOffset, new LoopStartCommand { Offset = r.Stream.Position });
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new LoopStartCommand { Offset = r.Stream.Position });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xA0:
-					{
-						byte octave = r.ReadByte();
-						if (!EventExists(trackIndex, cmdOffset))
+					case 0x9A:
 						{
-							AddEvent(trackIndex, cmdOffset, new OctaveSetCommand { Octave = octave });
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xA1:
-					{
-						sbyte change = r.ReadSByte();
-						if (!EventExists(trackIndex, cmdOffset))
+					case 0x9B:
 						{
-							AddEvent(trackIndex, cmdOffset, new OctaveAddCommand { OctaveChange = change });
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xA4:
-					case 0xA5: // The code for these two is identical
-					{
-						byte tempoArg = r.ReadByte();
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new TempoCommand { Command = cmd, Tempo = tempoArg });
-						}
-						break;
-					}
-					case 0xAB:
-					{
-						byte[] bytes = new byte[1];
-						r.ReadBytes(bytes);
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new SkipBytesCommand { Command = cmd, SkippedBytes = bytes });
-						}
-						break;
-					}
-					case 0xAC:
-					{
-						byte voice = r.ReadByte();
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new VoiceCommand { Voice = voice });
-						}
-						break;
-					}
-					case 0xCB:
-					case 0xF8:
-					{
-						byte[] bytes = new byte[2];
-						r.ReadBytes(bytes);
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new SkipBytesCommand { Command = cmd, SkippedBytes = bytes });
-						}
-						break;
-					}
-					case 0xD7:
-					{
-						ushort bend = r.ReadUInt16();
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new PitchBendCommand { Bend = bend });
-						}
-						break;
-					}
-					case 0xE0:
-					{
-						byte volume = r.ReadByte();
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new VolumeCommand { Volume = volume });
-						}
-						break;
-					}
-					case 0xE3:
-					{
-						byte expression = r.ReadByte();
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new ExpressionCommand { Expression = expression });
-						}
-						break;
-					}
-					case 0xE8:
-					{
-						byte panArg = r.ReadByte();
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new PanpotCommand { Panpot = (sbyte)(panArg - 0x40) });
-						}
-						break;
-					}
-					case 0x9D:
-					case 0xB0:
-					case 0xC0:
-					{
-						if (!EventExists(trackIndex, cmdOffset))
-						{
-							AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = Array.Empty<byte>() });
-						}
-						break;
-					}
 					case 0x9C:
-					case 0xA9:
-					case 0xAA:
-					case 0xB1:
-					case 0xB2:
-					case 0xB3:
-					case 0xB5:
-					case 0xB6:
-					case 0xBC:
-					case 0xBE:
-					case 0xBF:
-					case 0xC3:
-					case 0xD0:
-					case 0xD1:
-					case 0xD2:
-					case 0xDB:
-					case 0xDF:
-					case 0xE1:
-					case 0xE7:
-					case 0xE9:
-					case 0xEF:
-					case 0xF6:
-					{
-						byte[] args = new byte[1];
-						r.ReadBytes(args);
-						if (!EventExists(trackIndex, cmdOffset))
 						{
-							AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
 						}
-						break;
-					}
+					case 0x9D:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0x9E:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0x9F:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xA0:
+						{
+							byte octave = r.ReadByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new OctaveSetCommand { Octave = octave });
+							}
+							break;
+						}
+					case 0xA1:
+						{
+							sbyte change = r.ReadSByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new OctaveAddCommand { OctaveChange = change });
+							}
+							break;
+						}
+					case 0xA2:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xA3:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xA4:
+						{
+							byte tempoArg = r.ReadByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new TempoCommand { Command = cmd, Tempo = tempoArg });
+							}
+							break;
+						}
+					case 0xA5: // The code for these two is identical
+						{
+							byte tempoArg = r.ReadByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new TempoCommand { Command = cmd, Tempo = tempoArg });
+							}
+							break;
+						}
+					case 0xA6:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xA7:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
 					case 0xA8:
-					case 0xB4:
-					case 0xD3:
-					case 0xD5:
-					case 0xD6:
-					case 0xD8:
-					case 0xF2:
-					{
-						byte[] args = new byte[2];
-						r.ReadBytes(args);
-						if (!EventExists(trackIndex, cmdOffset))
 						{
-							AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							byte[] args = new byte[2];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
 						}
-						break;
-					}
+					case 0xA9:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xAA:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xAB:
+						{
+							byte[] bytes = new byte[1];
+							r.ReadBytes(bytes);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new SkipBytesCommand { Command = cmd, SkippedBytes = bytes });
+							}
+							break;
+						}
+					case 0xAC:
+						{
+							byte voice = r.ReadByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new VoiceCommand { Voice = voice });
+							}
+							break;
+						}
+					case 0xAD:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xAE:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
 					case 0xAF:
+						{
+							byte[] args = new byte[3];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xB0:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xB1:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xB2:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xB3:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xB4:
+						{
+							byte[] args = new byte[2];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xB5:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xB6:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xB7:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xB8:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xB9:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xBA:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xBB:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xBC:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xBD:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xBE:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xBF:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xC0:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xC1:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xC2:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xC3:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xC4:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xC5:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xC6:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xC7:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xC8:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xC9:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xCA:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xCB:
+						{
+							byte[] bytes = new byte[2];
+							r.ReadBytes(bytes);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new SkipBytesCommand { Command = cmd, SkippedBytes = bytes });
+							}
+							break;
+						}
+					case 0xCC:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xCD:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xCE:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xCF:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xD0:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xD1:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xD2:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xD3:
+						{
+							byte[] args = new byte[2];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
 					case 0xD4:
-					case 0xE2:
-					case 0xEA:
-					case 0xF3:
-					{
-						byte[] args = new byte[3];
-						r.ReadBytes(args);
-						if (!EventExists(trackIndex, cmdOffset))
 						{
-							AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							byte[] args = new byte[3];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
 						}
-						break;
-					}
-					case 0xDD:
-					case 0xE5:
-					case 0xED:
-					case 0xF1:
-					{
-						byte[] args = new byte[4];
-						r.ReadBytes(args);
-						if (!EventExists(trackIndex, cmdOffset))
+					case 0xD5:
 						{
-							AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							byte[] args = new byte[2];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
 						}
-						break;
-					}
+					case 0xD6:
+						{
+							byte[] args = new byte[2];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xD7:
+						{
+							ushort bend = r.ReadUInt16();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new PitchBendCommand { Bend = bend });
+							}
+							break;
+						}
+					case 0xD8:
+						{
+							byte[] args = new byte[2];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xD9:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xDA:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xDB:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
 					case 0xDC:
-					case 0xE4:
-					case 0xEC:
-					case 0xF0:
-					{
-						byte[] args = new byte[5];
-						r.ReadBytes(args);
-						if (!EventExists(trackIndex, cmdOffset))
 						{
-							AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							byte[] args = new byte[5];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
 						}
-						break;
-					}
+					case 0xDD:
+						{
+							byte[] args = new byte[4];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xDE:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xDF:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xE0:
+						{
+							byte volume = r.ReadByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new VolumeCommand { Volume = volume });
+							}
+							break;
+						}
+					case 0xE1:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xE2:
+						{
+							byte[] args = new byte[3];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xE3:
+						{
+							byte expression = r.ReadByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new ExpressionCommand { Expression = expression });
+							}
+							break;
+						}
+					case 0xE4:
+						{
+							byte[] args = new byte[5];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xE5:
+						{
+							byte[] args = new byte[4];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xE6:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xE7:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xE8:
+						{
+							byte panArg = r.ReadByte();
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new PanpotCommand { Panpot = (sbyte)(panArg - 0x40) });
+							}
+							break;
+						}
+					case 0xE9:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xEA:
+						{
+							byte[] args = new byte[3];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xEB:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xEC:
+						{
+							byte[] args = new byte[5];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xED:
+						{
+							byte[] args = new byte[4];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xEE:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xEF:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xF0:
+						{
+							byte[] args = new byte[5];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xF1:
+						{
+							byte[] args = new byte[4];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xF2:
+						{
+							byte[] args = new byte[2];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xF3:
+						{
+							byte[] args = new byte[3];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xF4:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xF5:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xF6:
+						{
+							byte[] args = new byte[1];
+							r.ReadBytes(args);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new UnknownCommand { Command = cmd, Args = args });
+							}
+							break;
+						}
+					case 0xF7:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xF8:
+						{
+							byte[] bytes = new byte[2];
+							r.ReadBytes(bytes);
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new SkipBytesCommand { Command = cmd, SkippedBytes = bytes });
+							}
+							break;
+						}
+					case 0xF9:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xFA:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xFB:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xFC:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xFD:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xFE:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
+					case 0xFF:
+						{
+							if (!EventExists(trackIndex, cmdOffset))
+							{
+								AddEvent(trackIndex, cmdOffset, new InvalidCommand { Command = cmd });
+							}
+							break;
+						}
 					default: throw new DSEInvalidCMDException(trackIndex, (int)cmdOffset, cmd);
 				}
 			}

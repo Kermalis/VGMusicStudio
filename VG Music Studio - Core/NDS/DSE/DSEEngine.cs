@@ -1,4 +1,6 @@
-﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
+﻿using System;
+
+namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
 public sealed class DSEEngine : Engine
 {
@@ -8,11 +10,11 @@ public sealed class DSEEngine : Engine
 	public override DSEMixer Mixer { get; }
 	public override DSEPlayer Player { get; }
 
-	public DSEEngine(string bgmPath)
+	public DSEEngine(string mainSWDFile, string bgmPath)
 	{
 		Config = new DSEConfig(bgmPath);
 		Mixer = new DSEMixer();
-		Player = new DSEPlayer(Config, Mixer);
+		Player = new DSEPlayer(mainSWDFile, Config, Mixer);
 
 		DSEInstance = this;
 		Instance = this;

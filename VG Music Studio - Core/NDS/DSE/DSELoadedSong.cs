@@ -2,6 +2,7 @@
 using Kermalis.VGMusicStudio.Core.Util;
 using System.Collections.Generic;
 using System.IO;
+using static Kermalis.VGMusicStudio.Core.NDS.DSE.SMD;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
@@ -12,35 +13,32 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 	public int LongestTrack;
 
 	private readonly DSEPlayer _player;
-	private readonly SWD LocalSWD;
+	private readonly string SWDFileName;
+	private readonly string SMDFileName;
+	private readonly SWD? LocalSWD;
 	private readonly byte[] SMDFile;
 	public readonly DSETrack[] Tracks;
 
 	public DSELoadedSong(DSEPlayer player, string bgm)
 	{
 		_player = player;
+		SWDFileName = bgm;
+		SMDFileName = bgm;
+		//StringComparison comparison = StringComparison.CurrentCultureIgnoreCase;
 
-		LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd"));
+		// Check if a local SWD is accompaning a SMD
+		if (new FileInfo(Path.ChangeExtension(bgm, "swd")).Exists)
+		{
+			LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd")); // If it exists, this will be loaded as the local SWD
+		}
+
 		SMDFile = File.ReadAllBytes(bgm);
 		using (var stream = new MemoryStream(SMDFile))
 		{
 			var r = new EndianBinaryReader(stream, ascii: true);
-			SMD.Header header = r.ReadObject<SMD.Header>();
-			SMD.ISongChunk songChunk;
-			switch (header.Version)
-			{
-				case 0x402:
-				{
-					songChunk = r.ReadObject<SMD.SongChunk_V402>();
-					break;
-				}
-				case 0x415:
-				{
-					songChunk = r.ReadObject<SMD.SongChunk_V415>();
-					break;
-				}
-				default: throw new DSEInvalidHeaderVersionException(header.Version);
-			}
+			Header header = new Header(r);
+			if (header.Version != 0x415) { throw new DSEInvalidHeaderVersionException(header.Version); }
+			SongChunk songChunk = new SongChunk(r);
 
 			Tracks = new DSETrack[songChunk.NumTracks];
 			Events = new List<SongEvent>[songChunk.NumTracks];
