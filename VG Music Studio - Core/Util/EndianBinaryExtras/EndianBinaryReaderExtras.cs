@@ -7,18 +7,40 @@ using Kermalis.EndianBinaryIO;
 
 namespace Kermalis.VGMusicStudio.Core.Util.EndianBinaryExtras;
 
-public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
+public partial class EndianBinaryReaderExtras
 {
-	public EndianBinaryReader(Stream stream, Endianness endianness = Endianness.LittleEndian, BooleanSize booleanSize = BooleanSize.U8, bool ascii = false)
-		: base(stream, endianness, booleanSize, ascii)
+	protected delegate void ReadArrayMethod<TDest>(ReadOnlySpan<byte> src, Span<TDest> dest, Endianness endianness);
+	EndianBinaryReader Reader { get; set; }
+
+	protected readonly byte[] _buffer;
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public EndianBinaryReaderExtras(EndianBinaryReader reader)
 	{
+		Reader = reader;
+		_buffer = new byte[64];
+	}
+
+	protected void ReadArray<TDest>(Span<TDest> dest, int elementSize, ReadArrayMethod<TDest> readArray)
+	{
+		int num = dest.Length * elementSize;
+		int num2 = 0;
+		while (num != 0)
+		{
+			int num3 = Math.Min(num, 64);
+			Span<byte> span = _buffer.AsSpan(0, num3);
+			Reader.ReadBytes(span);
+			readArray(span, dest.Slice(num2, num3 / elementSize), Reader.Endianness);
+			num -= num3;
+			num2 += num3 / elementSize;
+		}
 	}
 
 	public int ReadInt24()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 3);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadInt24(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadInt24(buffer, Reader.Endianness);
 	}
 	public void ReadInt24s(Span<int> dest)
 	{
@@ -27,8 +49,8 @@ public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
 	public uint ReadUInt24()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 3);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadUInt24(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadUInt24(buffer, Reader.Endianness);
 	}
 	public void ReadUInt24s(Span<uint> dest)
 	{
@@ -37,8 +59,8 @@ public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
 	public long ReadInt40()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 5);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadInt40(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadInt40(buffer, Reader.Endianness);
 	}
 	public void ReadInt40s(Span<long> dest)
 	{
@@ -47,8 +69,8 @@ public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
 	public ulong ReadUInt40()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 5);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadUInt40(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadUInt40(buffer, Reader.Endianness);
 	}
 	public void ReadUInt40s(Span<ulong> dest)
 	{
@@ -57,8 +79,8 @@ public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
 	public long ReadInt48()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 6);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadInt48(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadInt48(buffer, Reader.Endianness);
 	}
 	public void ReadInt48s(Span<long> dest)
 	{
@@ -67,8 +89,8 @@ public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
 	public ulong ReadUInt48()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 6);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadUInt48(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadUInt48(buffer, Reader.Endianness);
 	}
 	public void ReadUInt48s(Span<ulong> dest)
 	{
@@ -77,8 +99,8 @@ public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
 	public long ReadInt56()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 7);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadInt56(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadInt56(buffer, Reader.Endianness);
 	}
 	public void ReadInt56s(Span<long> dest)
 	{
@@ -87,8 +109,8 @@ public partial class EndianBinaryReader : EndianBinaryIO.EndianBinaryReader
 	public ulong ReadUInt56()
 	{
 		Span<byte> buffer = _buffer.AsSpan(0, 7);
-		ReadBytes(buffer);
-		return EndianBinaryPrimitivesExtras.ReadUInt56(buffer, Endianness);
+		Reader.ReadBytes(buffer);
+		return EndianBinaryPrimitivesExtras.ReadUInt56(buffer, Reader.Endianness);
 	}
 	public void ReadUInt56s(Span<ulong> dest)
 	{

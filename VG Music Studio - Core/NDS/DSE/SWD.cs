@@ -728,7 +728,7 @@ internal sealed class SWD
 		public WavInfo? WavInfo;
 		public DSPADPCM? DSPADPCM;
 		public byte[]? Data;
-		//public short[]? Data16Bit;
+		public short[]? Data16Bit;
 	}
 	public class ProgramBank
 	{
@@ -815,7 +815,7 @@ internal sealed class SWD
 
 	public SWD(string path)
 	{
-		using (var stream = new MemoryStream(File.ReadAllBytes(path)))
+		using (var stream = File.OpenRead(path))
 		{
 			var r = new EndianBinaryReader(stream, ascii: true);
 			Info = new Header(r);
@@ -845,55 +845,13 @@ internal sealed class SWD
 		return;
 	}
 
-	#region FindChunk
-	private static long FindChunk(EndianBinaryReader r, string chunk)
-	{
-		long pos = -1;
-		long oldPosition = r.Stream.Position;
-		r.Stream.Position = 0;
-		while (r.Stream.Position < r.Stream.Length)
-		{
-			string str = r.ReadString_Count(4);
-			if (str == chunk)
-			{
-				pos = r.Stream.Position - 4;
-				break;
-			}
-			switch (str)
-			{
-				case "swdb":
-				{
-					r.Stream.Position += 0x4C;
-					break;
-				}
-				case "swdl":
-				{
-					r.Stream.Position += 0x4C;
-					break;
-				}
-				default:
-				{
-					Debug.WriteLine($"Ignoring {str} chunk");
-					r.Stream.Position += 0x8;
-					uint length = r.ReadUInt32();
-					r.Stream.Position += length;
-					r.Stream.Align(16);
-					break;
-				}
-			}
-		}
-		r.Stream.Position = oldPosition;
-		return pos;
-	}
-	#endregion
-
 	#region SampleBlock
 	private SampleBlock[] ReadSamples(EndianBinaryReader r, int numWAVISlots, SWD swd)
 	{
 		// These apply the chunk offsets that are found to both local and the field functions, chunk header constructors are available here incase they're needed
-		long waviChunkOffset = swd.WaviChunkOffset = FindChunk(r, "wavi");
-		long pcmdChunkOffset = swd.PcmdChunkOffset = FindChunk(r, "pcmd");
-		long eodChunkOffset = swd.EodChunkOffset = FindChunk(r, "eod ");
+		long waviChunkOffset = swd.WaviChunkOffset = DSEUtils.FindChunk(r, "wavi");
+		long pcmdChunkOffset = swd.PcmdChunkOffset = DSEUtils.FindChunk(r, "pcmd");
+		long eodChunkOffset = swd.EodChunkOffset = DSEUtils.FindChunk(r, "eod ");
 		if (waviChunkOffset == -1 || pcmdChunkOffset == -1)
 		{
 			throw new InvalidDataException();
@@ -938,47 +896,13 @@ internal sealed class SWD
 							{
 								samples[i] = new SampleBlock
 								{
-									WavInfo = wavInfo,
-									//Data = new byte[samples[i].DSPADPCM!.Info.num_samples]
+									WavInfo = wavInfo, // This is the only variable we can use for this initializer declarator, since the samples are DSP-ADPCM compressed
 								};
-								r.Stream.Position = pcmdDataOffset + wavInfo.SampleOffset;
-								samples[i].DSPADPCM = new DSPADPCM(r);
-								Span<short> data = new short[samples[i].DSPADPCM!.Info.num_samples / 2];
-								data = DSPADPCM.DSPADPCMToPCM16(samples[i].DSPADPCM!.Data, samples[i].DSPADPCM!.Info.num_samples, samples[i].DSPADPCM!.Info);
-								samples[i].Data = new byte[samples[i].DSPADPCM!.Info.ea];
-								//wavInfo.LoopStart = wavInfo.LoopStart / 4;
-								//wavInfo.LoopEnd = wavInfo.LoopEnd / 4;
-								//samples[i].Data16Bit = new short[(int)((wavInfo.LoopStart + wavInfo.LoopEnd) / 4) / 4 + 85];
-								//DSPADPCM.Decode(samples[i].DSPADPCM!.Data, samples[i].Data16Bit, ref samples[i].DSPADPCM!.Info, samples[i].DSPADPCM!.Info.num_samples);
-								int e = 0;
-								for (int d = 0; d < samples[i].DSPADPCM!.Info.num_adpcm_nibbles; d++)
-								{
-									samples[i].Data![e] = (byte)(data[d] >> 8);
-									if (e < samples[i].Data!.Length) { e += 1; }
-									if (e >= samples[i].Data!.Length) { break; }
-									samples[i].Data![e] = (byte)(data[d]);
-									if (e < samples[i].Data!.Length) { e += 1; }
-									if (e >= samples[i].Data!.Length) { break; }
-								}
+								r.Stream.Position = pcmdDataOffset + wavInfo.SampleOffset; // This sets the EndianBinaryReader stream position offset to the encoded DSP-ADPCM data
+								var outputSize = (int)(wavInfo.LoopStart + wavInfo.LoopEnd * 4); // So we set a local variable with the size of Procyon DSE's LoopStart and LoopEnd offsets
 
-								// Trying to implement an error message that informs anyone of a EndOfStreamException caused by a different encoding type.
-								//if (swd.PcmdDataOffset + samples[i].WavInfo!.SampleOffset + (samples[i].DSPADPCM!.NumADPCMNibbles / 2) + 9 > swd.EodChunkOffset)
-								//{
-								//    throw new EndOfStreamException("End of Stream Exception:\n" +
-								//        "The number of ADPCM nibbles, divided by 2, plus 9 bytes, reads the sample data beyond this SWD.\n" +
-								//        "\n" +
-								//        "This is because VG Music Studio is incorrectly reading the actual size of the DSP-ADPCM sample data.\n" +
-								//        "\n" +
-								//        "If you are a developer of VG Music Studio, please check the code in DSPADPCM.cs\n" +
-								//        "and verify the SWD file in a hex editor to make sure it's being read correctly.\n" +
-								//        "\n" +
-								//        "Call Stack:");
-								//}
+								samples[i].DSPADPCM = new DSPADPCM(r, outputSize); // Then we read the entire DSP-ADPCM data
 
-								//samples[i].DSPADPCM.GetSamples(samples[i].DSPADPCM.Info, samples[i].DSPADPCM.Info.ea);
-								//samples[i].Data = samples[i].DSPADPCM!.Data;
-								//Array.Resize(ref samples[i].Data, (int)((wavInfo.LoopStart + wavInfo.LoopEnd) / 6));
-								//samples[i].Data = samples[i].DSPADPCM.Data;
 								break;
 							}
 						default:
@@ -996,7 +920,7 @@ internal sealed class SWD
 	#region ProgramBank and KeyGroup
 	private static ProgramBank? ReadPrograms(EndianBinaryReader r, int numPRGISlots, SWD swd)
 	{
-		long chunkOffset = swd.PrgiChunkOffset = FindChunk(r, "prgi");
+		long chunkOffset = swd.PrgiChunkOffset = DSEUtils.FindChunk(r, "prgi");
 		if (chunkOffset == -1)
 		{
 			return null;
@@ -1023,7 +947,7 @@ internal sealed class SWD
 	}
 	private static KeyGroup[] ReadKeyGroups(EndianBinaryReader r, SWD swd)
 	{
-		long chunkOffset = swd.KgrpChunkOffset = FindChunk(r, "kgrp");
+		long chunkOffset = swd.KgrpChunkOffset = DSEUtils.FindChunk(r, "kgrp");
 		if (chunkOffset == -1)
 		{
 			return Array.Empty<KeyGroup>();

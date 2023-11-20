@@ -48,7 +48,7 @@ public sealed class SongState
 	}
 
 	public const int MAX_KEYS = 32 + 1; // DSE is currently set to use 32 channels
-	public const int MAX_TRACKS = 18; // PMD2 has a few songs with 18 tracks
+	public const int MAX_TRACKS = 256; // PMD2 has a few songs with 18 tracks, PMD WiiWare has some that are 21+ tracks
 
 	public ushort Tempo;
 	public readonly Track[] Tracks;

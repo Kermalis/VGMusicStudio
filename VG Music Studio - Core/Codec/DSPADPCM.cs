@@ -14,7 +14,7 @@ namespace Kermalis.VGMusicStudio.Core.Codec
 
 		public DSPADPCMInfo Info;
 		public byte[] Data;
-		public uint NumADPCMNibbles;
+		public short[] DataOutput;
 		//public static short[]? DataOutput;
 
 		public static class DSPADPCMConstants
@@ -24,89 +24,89 @@ namespace Kermalis.VGMusicStudio.Core.Codec
 			public const int NibblesPerFrame = 16;
 		}
 
-		public DSPADPCM(EndianBinaryReader r)
+		public DSPADPCM(EndianBinaryReader r, int outputSize)
 		{
-			Info = new DSPADPCMInfo(r);
-			NumADPCMNibbles = Info.num_adpcm_nibbles;
-			Data = new byte[(Info.num_adpcm_nibbles / 2) + 9];
+			Info = new DSPADPCMInfo(r); // First, the DSP-ADPCM table is read and each variable is assigned with a value
+			Data = new byte[(Info.NumAdpcmNibbles / 2) + 9]; // Next, the allocated size of the compressed sample data is determined based on NumAdpcmNibbles divided by 2, plus 9
+			DataOutput = new short[outputSize]; // The data output needs to be the actual size of the sample data when uncompressed
 
-			r.ReadBytes(Data);
-			r.Stream.Align(16);
+			r.ReadBytes(Data); // This reads the compressed sample data based on the size allocated
+			r.Stream.Align(16); // This will align the EndianBinaryReader stream offset to the 16th byte, since all sample data ends at every 16th byte
 			return;
 		}
 
 		#region DSP-ADPCM Info
 		public interface IDSPADPCMInfo
 		{
-			public short[] coef { get; }
-			public ushort gain { get; }
-			public ushort pred_scale { get; }
-			public short yn1 { get; }
-			public short yn2 { get; }
+			public short[] Coef { get; }
+			public ushort Gain { get; }
+			public ushort PredScale { get; }
+			public short Yn1 { get; }
+			public short Yn2 { get; }
 
-			public ushort loop_pred_scale { get; }
-			public short loop_yn1 { get; }
-			public short loop_yn2 { get; }
+			public ushort LoopPredScale { get; }
+			public short LoopYn1 { get; }
+			public short LoopYn2 { get; }
 		}
 
 		public class DSPADPCMInfo : IDSPADPCMInfo
 		{
-			public uint num_samples { get; set; }
-			public uint num_adpcm_nibbles { get; set; }
-			public uint sample_rate { get; set; }
-			public ushort loop_flag { get; set; }
-			public ushort format { get; set; }
-			public uint sa { get; set; }
-			public uint ea { get; set; }
-			public uint ca { get; set; }
-			public short[] coef { get; set; }
-			public ushort gain { get; set; }
-			public ushort pred_scale { get; set; }
-			public short yn1 { get; set; }
-			public short yn2 { get; set; }
+			public uint NumSamples { get; set; }
+			public uint NumAdpcmNibbles { get; set; }
+			public uint SampleRate { get; set; }
+			public ushort LoopFlag { get; set; }
+			public ushort Format { get; set; }
+			public uint Sa { get; set; }
+			public uint Ea { get; set; }
+			public uint Ca { get; set; }
+			public short[] Coef { get; set; }
+			public ushort Gain { get; set; }
+			public ushort PredScale { get; set; }
+			public short Yn1 { get; set; }
+			public short Yn2 { get; set; }
 
-			public ushort loop_pred_scale { get; set; }
-			public short loop_yn1 { get; set; }
-			public short loop_yn2 { get; set; }
-			public ushort[] padding { get; set; }
+			public ushort LoopPredScale { get; set; }
+			public short LoopYn1 { get; set; }
+			public short LoopYn2 { get; set; }
+			public ushort[] Padding { get; set; }
 
 			public DSPADPCMInfo(EndianBinaryReader r)
 			{
-				num_samples = r.ReadUInt32();
+				NumSamples = r.ReadUInt32();
 
-				num_adpcm_nibbles = r.ReadUInt32();
+				NumAdpcmNibbles = r.ReadUInt32();
 
-				sample_rate = r.ReadUInt32();
+				SampleRate = r.ReadUInt32();
 
-				loop_flag = r.ReadUInt16();
+				LoopFlag = r.ReadUInt16();
 
-				format = r.ReadUInt16();
+				Format = r.ReadUInt16();
 
-				sa = r.ReadUInt32();
+				Sa = r.ReadUInt32();
 
-				ea = r.ReadUInt32();
+				Ea = r.ReadUInt32();
 
-				ca = r.ReadUInt32();
+				Ca = r.ReadUInt32();
 
-				coef = new short[16];
-				r.ReadInt16s(coef);
+				Coef = new short[16];
+				r.ReadInt16s(Coef);
 
-				gain = r.ReadUInt16();
+				Gain = r.ReadUInt16();
 
-				pred_scale = r.ReadUInt16();
+				PredScale = r.ReadUInt16();
 
-				yn1 = r.ReadInt16();
+				Yn1 = r.ReadInt16();
 
-				yn2 = r.ReadInt16();
+				Yn2 = r.ReadInt16();
 
-				loop_pred_scale = r.ReadUInt16();
+				LoopPredScale = r.ReadUInt16();
 
-				loop_yn1 = r.ReadInt16();
+				LoopYn1 = r.ReadInt16();
 
-				loop_yn2 = r.ReadInt16();
+				LoopYn2 = r.ReadInt16();
 
-				padding = new ushort[11];
-				r.ReadUInt16s(padding);
+				Padding = new ushort[11];
+				r.ReadUInt16s(Padding);
 			}
 		}
 		#endregion
@@ -118,23 +118,21 @@ namespace Kermalis.VGMusicStudio.Core.Codec
 		//    return DSPADPCMToPCM16(Data, loopEnd, cxt);
 		//}
 
-		public static Span<short> DSPADPCMToPCM16(Span<byte> dspadpcm, uint numSamples, DSPADPCMInfo cxt)
+		public static Span<short> DSPADPCMToPCM16(DSPADPCM dspadpcm, DSPADPCMInfo cxt, int numChannels, bool useSubInterframes)
 		{
-			Span<short> dataOutput = new short[dspadpcm.Length]; // This is the new output data that's converted to PCM16
-			Span<short> dataIndex = new short[numSamples];
-			for (int i = 0; i < dataOutput.Length; i++)
+			//Span<short> dataOutput = new short[outputSize]; // This is the new output data that's converted to PCM16
+			for (int i = 0; i < dspadpcm.Data.Length; i++)
 			{
-				dataOutput[i] = dataIndex[i];
-				Decode(dspadpcm, dataOutput, ref cxt, numSamples);
+				Decode(dspadpcm, ref cxt, numChannels, useSubInterframes);
 			}
-			return dataOutput;
+			return dspadpcm.DataOutput;
 		}
 		#endregion
 
 		#region DSP-ADPCM Encode
 		public static void Encode(short[] src, byte[] dst, DSPADPCMInfo cxt, uint samples)
 		{
-			short[] coefs = cxt.coef;
+			short[] coefs = cxt.Coef;
 			CorrelateCoefs(src, samples, coefs);
 
 			int frameCount = (int)((samples / DSPADPCMConstants.SamplesPerFrame) + (samples % DSPADPCMConstants.SamplesPerFrame));
@@ -157,10 +155,10 @@ namespace Kermalis.VGMusicStudio.Core.Codec
 				pcmFrame[1] = pcmFrame[15];
 			}
 
-			cxt.gain = 0;
-			cxt.pred_scale = dst[dstIndex++];
-			cxt.yn1 = 0;
-			cxt.yn2 = 0;
+			cxt.Gain = 0;
+			cxt.PredScale = dst[dstIndex++];
+			cxt.Yn1 = 0;
+			cxt.Yn2 = 0;
 		}
 
 		public static void InnerProductMerge(double[] vecOut, short[] pcmBuf)
@@ -745,56 +743,107 @@ namespace Kermalis.VGMusicStudio.Core.Codec
 			return (short)value;
 		}
 
-		public static void Decode(Span<byte> src, Span<short> dst, ref DSPADPCMInfo cxt, uint samples)
+		public static void Decode(DSPADPCM samples, ref DSPADPCMInfo ctx, int numChannels, bool useSubInterframes)
 		{
-			short hist1 = cxt.yn1;
-			short hist2 = cxt.yn2;
-			short[] coefs = cxt.coef;
-			int srcIndex = 0;
-			int dstIndex = 0;
-
-			int frameCount = DivideByRoundUp((int)samples, DSPADPCMConstants.SamplesPerFrame);
-			int samplesRemaining = (int)samples;
-
-			for (int i = 0; i < frameCount; i++)
+			int data_offset = 0;
+			int sample_pos = 0;
+			while (sample_pos < samples.Info.NumSamples)
 			{
-				int predictor = GetHighNibble(src[srcIndex]) & 0xF;
-				int scale = 1 << GetLowNibble(src[srcIndex++]);
-				short coef1 = coefs[predictor * 2];
-				short coef2 = coefs[predictor * 2 + 1];
+				// Decodes 1 single DSP frame of size 0x08 (src) into a 14 samples in a PCM buffer (dst)
+				int hist1 = ctx.Yn1;
+				int hist2 = ctx.Yn2;
 
-				int samplesToRead = Math.Min(DSPADPCMConstants.SamplesPerFrame, samplesRemaining);
+				/* parse frame header */
+				int scale = 1 << ((samples.Data[0x00] >> 0) & 0xf);
+				int index = (samples.Data[0x00] >> 4) & 0xf;
 
+				int coef1 = ctx.Coef[index * 2 + 0];
+				int coef2 = ctx.Coef[index * 2 + 1];
 
-				for (int s = 0; s < samplesToRead; s++)
+				/* decode nibbles */
+				for (int i = 0; i < DSPADPCMConstants.SamplesPerFrame; i++)
 				{
-					// Get bits per byte
-					//byte bits = src[srcIndex++];
-					byte bits = src[srcIndex + (s >> 1)];
-					int sample = (s % 2) == 0 ? GetHighNibble(bits) : GetLowNibble(bits);
-					sample = sample >= 8 ? sample - 16 : sample;
-					sample = (((scale * sample) << 11) + 1024 + ((coef1 * hist1) + (coef2 * hist2))) >> 11;
-					short finalSample = Clamp16(sample);
+					byte nibbles = samples.Data[0x01 + i / 2];
+
+					int sample = (i & 1) != 0 ? /* high nibble first */
+							get_low_nibble_signed(nibbles) :
+							get_high_nibble_signed(nibbles);
+					sample = ((sample * scale) << 11);
+					sample = ((sample + 1024) + (coef1 * hist1) + (coef2 * hist2)) >> 11;
+					sample = clamp16(sample);
+
+					samples.DataOutput[(sample_pos + i) * numChannels] = (byte)sample;
 
 					hist2 = hist1;
-					hist1 = finalSample;
-
-					//if (samplesToRead <= 14) { samplesToRead = 0; }
-					//srcIndex += 1;
-					dst[dstIndex++] = finalSample;
-					if (dstIndex >= samplesToRead) break;
+					hist1 = sample;
 				}
 
-				//samplesRemaining -= samplesToRead;
-				srcIndex += samplesToRead / 2;
+				ctx.Yn1 = (short)hist1;
+				ctx.Yn2 = (short)hist2;
+
+				data_offset += DSPADPCMConstants.BytesPerFrame;
+				sample_pos += DSPADPCMConstants.SamplesPerFrame;
 			}
+			
 		}
+
+		public void DecodeSample(DSPADPCM sample, ref DSPADPCMInfo ctx, bool useSubInterframes)
+		{
+			
+		}
+
+		#region Old Code
+		//public static void Decode(Span<byte> src, Span<short> dst, ref DSPADPCMInfo cxt, uint samples)
+		//{
+		//	short hist1 = cxt.Yn1;
+		//	short hist2 = cxt.Yn2;
+		//	short[] coefs = cxt.Coef;
+		//	int srcIndex = 0;
+		//	int dstIndex = 0;
+
+		//	int frameCount = DivideByRoundUp((int)samples, DSPADPCMConstants.SamplesPerFrame);
+		//	int samplesRemaining = (int)samples;
+
+		//	for (int i = 0; i < frameCount; i++)
+		//	{
+		//		int predictor = GetHighNibble(src[srcIndex]) & 0xF;
+		//		int scale = 1 << GetLowNibble(src[srcIndex++]);
+		//		short coef1 = coefs[predictor * 2];
+		//		short coef2 = coefs[predictor * 2 + 1];
+
+		//		int samplesToRead = Math.Min(DSPADPCMConstants.SamplesPerFrame, samplesRemaining);
+
+
+		//		for (int s = 0; s < samplesToRead; s++)
+		//		{
+		//			// Get bits per byte
+		//			//byte bits = src[srcIndex++];
+		//			byte bits = src[srcIndex + (s >> 1)];
+		//			int sample = (s % 2) == 0 ? GetHighNibble(bits) : GetLowNibble(bits);
+		//			sample = sample >= 8 ? sample - 16 : sample;
+		//			sample = (((scale * sample) << 11) + 1024 + ((coef1 * hist1) + (coef2 * hist2))) >> 11;
+		//			short finalSample = Clamp16(sample);
+
+		//			hist2 = hist1;
+		//			hist1 = finalSample;
+
+		//			//if (samplesToRead <= 14) { samplesToRead = 0; }
+		//			//srcIndex += 1;
+		//			dst[dstIndex++] = finalSample;
+		//			if (dstIndex >= samplesToRead) break;
+		//		}
+
+		//		//samplesRemaining -= samplesToRead;
+		//		srcIndex += samplesToRead / 2;
+		//	}
+		//}
+		#endregion
 
 		public static void GetLoopContext(Span<byte> src, ref DSPADPCMInfo cxt, uint samples)
 		{
-			short hist1 = cxt.yn1;
-			short hist2 = cxt.yn2;
-			short[] coefs = cxt.coef;
+			short hist1 = cxt.Yn1;
+			short hist2 = cxt.Yn2;
+			short[] coefs = cxt.Coef;
 			int srcIndex = 0;
 			byte ps = 0;
 
@@ -824,9 +873,9 @@ namespace Kermalis.VGMusicStudio.Core.Codec
 				samplesRemaining -= samplesToRead;
 			}
 
-			cxt.loop_pred_scale = ps;
-			cxt.loop_yn1 = hist1;
-			cxt.loop_yn2 = hist2;
+			cxt.LoopPredScale = ps;
+			cxt.LoopYn1 = hist1;
+			cxt.LoopYn2 = hist2;
 		}
 		#endregion
 

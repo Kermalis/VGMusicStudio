@@ -1,4 +1,5 @@
-﻿using Kermalis.VGMusicStudio.Core.Util;
+﻿using Kermalis.EndianBinaryIO;
+using Kermalis.VGMusicStudio.Core.Util;
 using Kermalis.VGMusicStudio.Core.Util.EndianBinaryExtras;
 using System;
 using System.Collections.Generic;
@@ -109,7 +110,7 @@ internal sealed partial class DSELoadedSong
 					}
 					case 0x94:
 					{
-						lastRest = r.ReadUInt24();
+						lastRest = new EndianBinaryReaderExtras(r).ReadUInt24();
 						if (!EventExists(trackIndex, cmdOffset))
 						{
 							AddEvent(trackIndex, cmdOffset, new RestCommand { Rest = lastRest });

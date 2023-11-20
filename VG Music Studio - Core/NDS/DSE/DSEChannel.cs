@@ -42,7 +42,7 @@ internal sealed class DSEChannel
 	// PCM8, PCM16
 	private int _dataOffset;
 	// ADPCM
-	private ADPCMDecoder? _adpcmDecoder;
+	private IMAADPCM _adpcmDecoder;
 	private short _adpcmLoopLastSample;
 	private short _adpcmLoopStepIndex;
 	// DSP-ADPCM
@@ -99,11 +99,11 @@ internal sealed class DSEChannel
 					case "wds ": throw new NotImplementedException("The base timer for the WDS type is not yet implemented."); // PlayStation
 					case "swdm": throw new NotImplementedException("The base timer for the SWDM type is not yet implemented."); // PlayStation 2
 					case "swdl": BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo!.SampleRate); break; // Nintendo DS
-					case "swdb": BaseTimer = (ushort)(WiiUtils.PPC_Broadway_Clock + _sample.WavInfo!.SampleRate / 33); break; // Wii
+					case "swdb": BaseTimer = (ushort)(WiiUtils.PPC_Broadway_Clock + _sample.WavInfo!.SampleRate / 34); break; // Wii
 				}
 				if (_sample.WavInfo!.SampleFormat == SampleFormat.ADPCM)
 				{
-				_adpcmDecoder.Init(_sample.Data);
+				_adpcmDecoder.Decode(_sample.Data);
 				}
 				//if (masterswd.Type == "swdb")
 				//{
@@ -446,12 +446,14 @@ internal sealed class DSEChannel
 					}
 				case "swdb":
 					{
+						DSPADPCM.Decode(_sample!.DSPADPCM!, ref _sample!.DSPADPCM!.Info, 1, false);
+
 						// If hit end
-						if (_dataOffset >= _sample!.Data!.Length)
+						if (_dataOffset >= _sample!.DSPADPCM!.DataOutput.Length)
 						{
 							if (_sample.WavInfo!.Loop)
 							{
-								_dataOffset = (int)(_sample.WavInfo.LoopStart * 4);
+								_dataOffset = (int)(_sample.WavInfo.LoopStart / 4);
 							}
 							else
 							{
@@ -460,8 +462,7 @@ internal sealed class DSEChannel
 								return;
 							}
 						}
-						if (_dataOffset + 10 > _sample.Data.Length) { break; }
-						short samp = (short)(_sample.Data[_dataOffset++] | (_sample.Data[_dataOffset++] << 8));
+						short samp = (short)(((byte)_sample.DSPADPCM!.DataOutput[_dataOffset] << 8) | (byte)_sample.DSPADPCM!.DataOutput[_dataOffset++]);
 						samp = (short)(samp * Volume / 0x7F);
 						_prevLeft = (short)(samp * (-Panpot + 0x40) / 0x80);
 						_prevRight = (short)(samp * (Panpot + 0x40) / 0x80);

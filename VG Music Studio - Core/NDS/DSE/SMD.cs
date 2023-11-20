@@ -1,9 +1,14 @@
 ﻿using Kermalis.EndianBinaryIO;
+using Kermalis.VGMusicStudio.Core.Util;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
 internal sealed class SMD
 {
+
+	#region Header
 	public sealed class Header // Size 0x40
 	{
 		public string Type { get; set; } // "smdb" or "smdl"
@@ -58,10 +63,12 @@ internal sealed class SMD
 			Unknown3 = new byte[16];
 			r.ReadBytes(Unknown3);
 
-            if (Type == "smdb") { r.Endianness = Endianness.BigEndian; }
-        }
+			if (Type == "smdb") { r.Endianness = Endianness.BigEndian; }
+		}
 	}
+	#endregion
 
+	#region SongChunk
 	public interface ISongChunk
 	{
 		byte NumTracks { get; }
@@ -96,4 +103,6 @@ internal sealed class SMD
 			r.ReadBytes(Unknown3);
 		}
 	}
+	#endregion
+
 }

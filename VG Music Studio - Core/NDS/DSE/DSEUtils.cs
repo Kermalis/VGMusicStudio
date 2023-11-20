@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Kermalis.EndianBinaryIO;
+using Kermalis.VGMusicStudio.Core.Util;
+using System;
+using System.Diagnostics;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
@@ -51,4 +54,48 @@ internal static class DSEUtils
 	{
 		return state is EnvelopeState.Two or >= EnvelopeState.Seven;
 	}
+
+
+	#region FindChunk
+	internal static long FindChunk(EndianBinaryReader r, string chunk)
+	{
+		long pos = -1;
+		long oldPosition = r.Stream.Position;
+		r.Stream.Position = 0;
+		while (r.Stream.Position < r.Stream.Length)
+		{
+			string str = r.ReadString_Count(4);
+			if (str == chunk)
+			{
+				pos = r.Stream.Position - 4;
+				break;
+			}
+			switch (str)
+			{
+				case "swdb" or "swdl":
+					{
+						r.Stream.Position += 0x4C;
+						break;
+					}
+				case "smdb" or "smdl":
+					{
+						r.Stream.Position += 0x3C;
+						break;
+					}
+				default:
+					{
+						Debug.WriteLine($"Ignoring {str} chunk");
+						r.Stream.Position += 0x8;
+						uint length = r.ReadUInt32();
+						r.Stream.Position += length;
+						r.Stream.Align(16);
+						break;
+					}
+			}
+		}
+		r.Stream.Position = oldPosition;
+		return pos;
+	}
+	#endregion
+
 }

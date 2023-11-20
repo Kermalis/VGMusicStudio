@@ -1,5 +1,6 @@
 ﻿using Kermalis.EndianBinaryIO;
 using Kermalis.VGMusicStudio.Core.Util;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using static Kermalis.VGMusicStudio.Core.NDS.DSE.SMD;
@@ -13,8 +14,6 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 	public int LongestTrack;
 
 	private readonly DSEPlayer _player;
-	private readonly string SWDFileName;
-	private readonly string SMDFileName;
 	private readonly SWD? LocalSWD;
 	private readonly byte[] SMDFile;
 	public readonly DSETrack[] Tracks;
@@ -22,8 +21,6 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 	public DSELoadedSong(DSEPlayer player, string bgm)
 	{
 		_player = player;
-		SWDFileName = bgm;
-		SMDFileName = bgm;
 		//StringComparison comparison = StringComparison.CurrentCultureIgnoreCase;
 
 		// Check if a local SWD is accompaning a SMD
@@ -53,7 +50,7 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 				r.Stream.Position = chunkStart + 0xC;
 				uint chunkLength = r.ReadUInt32();
 				r.Stream.Position += chunkLength;
-				r.Stream.Align(16);
+				r.Stream.Align(4);
 			}
 		}
 	}
