@@ -98,7 +98,7 @@ public sealed class DSEMixer : Mixer
 			{
 				chan.Volume = SDATUtils.GetChannelVolume(vol);
 				chan.Panpot = chan.Owner.Panpot;
-				chan.Timer = SDATUtils.GetChannelTimer(chan.BaseTimer, pitch);
+				chan.Timer = DSEUtils.GetChannelTimer(chan.BaseTimer, pitch);
 			}
 		}
 	}

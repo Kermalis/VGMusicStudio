@@ -96,6 +96,7 @@ internal sealed class DSETrack
 			for (int j = 0; j < channels.Length; j++)
 			{
 				DSEChannel c = channels[j];
+				c ??= new DSEChannel((byte)j); // Failsafe in the rare event that the c variable becomes null
 				if (!DSEUtils.IsStateRemovable(c.State))
 				{
 					tin.Keys[numKeys++] = c.Key;

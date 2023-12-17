@@ -24,7 +24,6 @@ public sealed class DSEPlayer : Player
 	{
 		DMixer = mixer;
 		_config = config;
-		//string swdPath = Directory.GetFiles(mainSWDFile)[0];
 
 		MainSWD = new SWD(mainSWDFile);
 	}
@@ -78,7 +77,14 @@ public sealed class DSEPlayer : Player
 		bool allDone = false;
 		while (!allDone && TempoStack >= 240)
 		{
-			TempoStack -= 240;
+			if (_config.Header.Type == "smdb")
+			{
+				TempoStack -= 130;
+			}
+			else
+			{
+				TempoStack -= 240;
+			}
 			allDone = true;
 			for (int i = 0; i < s.Tracks.Length; i++)
 			{

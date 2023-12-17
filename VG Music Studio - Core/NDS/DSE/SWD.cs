@@ -2,8 +2,10 @@
 using Kermalis.VGMusicStudio.Core.Codec;
 using Kermalis.VGMusicStudio.Core.Util;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
@@ -726,9 +728,8 @@ internal sealed class SWD
 	public class SampleBlock
 	{
 		public WavInfo? WavInfo;
-		public DSPADPCM? DSPADPCM;
+		public DSPADPCM DSPADPCM;
 		public byte[]? Data;
-		public short[]? Data16Bit;
 	}
 	public class ProgramBank
 	{
@@ -798,6 +799,7 @@ internal sealed class SWD
 		}
 	}
 
+	public string FileName;
 	public Header? Info;
 	public string Type; // "swdb" or "swdl"
 	public uint Length;
@@ -815,32 +817,31 @@ internal sealed class SWD
 
 	public SWD(string path)
 	{
-		using (var stream = File.OpenRead(path))
-		{
-			var r = new EndianBinaryReader(stream, ascii: true);
-			Info = new Header(r);
-			Type = Info.Type;
-			Length = Info.Length;
-			Version = Info.Version;
-			Programs = ReadPrograms(r, Info.NumPRGISlots, this);
+		FileName = new FileInfo(path).Name;
+		var stream = File.OpenRead(path);
+		var r = new EndianBinaryReader(stream, ascii: true);
+		Info = new Header(r);
+		Type = Info.Type;
+		Length = Info.Length;
+		Version = Info.Version;
+		Programs = ReadPrograms(r, Info.NumPRGISlots, this);
 
-			switch (Version)
-			{
-				case 0x402:
+		switch (Version)
+		{
+			case 0x402:
+				{
+					Samples = ReadSamples(r, Info.NumWAVISlots, this);
+					break;
+				}
+			case 0x415:
+				{
+					if (Info.PCMDLength != 0 && (Info.PCMDLength & 0xFFFF0000) != 0xAAAA0000)
 					{
 						Samples = ReadSamples(r, Info.NumWAVISlots, this);
-						break;
 					}
-				case 0x415:
-					{
-						if (Info.PCMDLength != 0 && (Info.PCMDLength & 0xFFFF0000) != 0xAAAA0000)
-						{
-							Samples = ReadSamples(r, Info.NumWAVISlots, this);
-						}
-						break;
-					}
-				default: throw new InvalidDataException();
-			}
+					break;
+				}
+			default: throw new InvalidDataException();
 		}
 		return;
 	}
@@ -871,7 +872,7 @@ internal sealed class SWD
 				if (offset != 0)
 				{
 					r.Stream.Position = offset + waviDataOffset;
-					WavInfo wavInfo = new WavInfo(r, swd);
+					var wavInfo = new WavInfo(r, swd);
 					switch (Type)
 					{
 						case "swdm":
@@ -899,10 +900,16 @@ internal sealed class SWD
 									WavInfo = wavInfo, // This is the only variable we can use for this initializer declarator, since the samples are DSP-ADPCM compressed
 								};
 								r.Stream.Position = pcmdDataOffset + wavInfo.SampleOffset; // This sets the EndianBinaryReader stream position offset to the encoded DSP-ADPCM data
-								var outputSize = (int)(wavInfo.LoopStart + wavInfo.LoopEnd * 4); // So we set a local variable with the size of Procyon DSE's LoopStart and LoopEnd offsets
 
-								samples[i].DSPADPCM = new DSPADPCM(r, outputSize); // Then we read the entire DSP-ADPCM data
-
+								samples[i].DSPADPCM = new DSPADPCM(r, 1, false); // Reads the entire DSP-ADPCM header and encoded data
+								samples[i].DSPADPCM.Decode(); // Decodes all bytes into PCM16 data
+#if DEBUG
+								// This is for dumping both the encoded and decoded samples, for ensuring that the decoder works correctly
+								new FileInfo("./ExtractedSamples/" + FileName + "/dsp/").Directory!.Create();
+								File.WriteAllBytes("./ExtractedSamples/" + FileName + "/dsp/" + "sample" + i.ToString() + ".dsp", [.. samples[i].DSPADPCM.Info.ToBytes(), .. samples[i].DSPADPCM.Data]);
+								new FileInfo("./ExtractedSamples/" + FileName + "/wav/").Directory!.Create();
+								File.WriteAllBytes("./ExtractedSamples/" + FileName + "/wav/" + "sample" + i.ToString() + ".wav", samples[i].DSPADPCM.ConvertToWav());
+#endif
 								break;
 							}
 						default:
@@ -950,7 +957,7 @@ internal sealed class SWD
 		long chunkOffset = swd.KgrpChunkOffset = DSEUtils.FindChunk(r, "kgrp");
 		if (chunkOffset == -1)
 		{
-			return Array.Empty<KeyGroup>();
+			return [];
 		}
 
 		ChunkHeader info = swd.KgrpInfo = new ChunkHeader(r, chunkOffset, swd);

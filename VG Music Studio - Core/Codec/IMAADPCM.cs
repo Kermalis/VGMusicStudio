@@ -4,6 +4,7 @@ namespace Kermalis.VGMusicStudio.Core.Codec;
 
 internal struct IMAADPCM
 {
+	// TODO: Add encoding functionality and PCM16 to IMA-ADPCM conversion
 	private static ReadOnlySpan<short> IndexTable => new short[8]
 	{
 		-1, -1, -1, -1, 2, 4, 6, 8,
@@ -30,7 +31,7 @@ internal struct IMAADPCM
 	public int DataOffset;
 	public bool OnSecondNibble;
 
-	public void Decode(byte[] data)
+	public void Init(byte[] data)
 	{
 		_data = data;
 		LastSample = (short)(data[0] | (data[1] << 8));
@@ -42,7 +43,7 @@ internal struct IMAADPCM
 	public static short[] IMAADPCMToPCM16(byte[] data)
 	{
 		var decoder = new IMAADPCM();
-		decoder.Decode(data);
+		decoder.Init(data);
 
 		short[] buffer = new short[(data.Length - 4) * 2];
 		for (int i = 0; i < buffer.Length; i++)

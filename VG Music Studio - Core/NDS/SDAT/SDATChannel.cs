@@ -71,7 +71,7 @@ internal sealed class SDATChannel
 		_swav = swav;
 		if (swav.Format == SWAVFormat.ADPCM)
 		{
-			_adpcmDecoder.Decode(swav.Samples);
+			_adpcmDecoder.Init(swav.Samples);
 		}
 		BaseTimer = swav.Timer;
 		Start(noteDuration);

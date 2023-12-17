@@ -46,10 +46,7 @@ internal sealed class DSEChannel
 	private short _adpcmLoopLastSample;
 	private short _adpcmLoopStepIndex;
 	// DSP-ADPCM
-	//private DSPADPCM dspADPCM = new DSPADPCM();
-	//private short[] _loopContext;
-	//private DSPADPCM _outputData;
-	//private DSPADPCM? _dspADPCM;
+	private DSPADPCM _dspADPCM;
 	// PSG
 	private byte _psgDuty;
 	private int _psgCounter;
@@ -99,16 +96,16 @@ internal sealed class DSEChannel
 					case "wds ": throw new NotImplementedException("The base timer for the WDS type is not yet implemented."); // PlayStation
 					case "swdm": throw new NotImplementedException("The base timer for the SWDM type is not yet implemented."); // PlayStation 2
 					case "swdl": BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo!.SampleRate); break; // Nintendo DS
-					case "swdb": BaseTimer = (ushort)(WiiUtils.PPC_Broadway_Clock + _sample.WavInfo!.SampleRate / 34); break; // Wii
+					case "swdb": BaseTimer = 380; break; // Wii
 				}
 				if (_sample.WavInfo!.SampleFormat == SampleFormat.ADPCM)
 				{
-				_adpcmDecoder.Decode(_sample.Data);
+					_adpcmDecoder.Init(_sample.Data!);
 				}
-				//if (masterswd.Type == "swdb")
-				//{
-				//    _dspADPCM = _sample.DSPADPCM;
-				//}
+				if (masterswd.Type == "swdb")
+				{
+					_dspADPCM.Init(_sample.DSPADPCM.Data, _sample.DSPADPCM.Info);
+				}
 				//attackVolume = sample.WavInfo.AttackVolume == 0 ? split.AttackVolume : sample.WavInfo.AttackVolume;
 				//attack = sample.WavInfo.Attack == 0 ? split.Attack : sample.WavInfo.Attack;
 				//decay = sample.WavInfo.Decay == 0 ? split.Decay : sample.WavInfo.Decay;
@@ -368,7 +365,7 @@ internal sealed class DSEChannel
 									{
 										if (_sample.WavInfo.Loop)
 										{
-											_dataOffset = (int)(_sample.WavInfo.LoopStart * 4);
+											_dataOffset = (int)(_sample.WavInfo.LoopStart * 4); // DS counts LoopStart 32-bits (4 bytes) at a time, so LoopStart needs to be bigger
 										}
 										else
 										{
@@ -446,14 +443,12 @@ internal sealed class DSEChannel
 					}
 				case "swdb":
 					{
-						DSPADPCM.Decode(_sample!.DSPADPCM!, ref _sample!.DSPADPCM!.Info, 1, false);
-
 						// If hit end
-						if (_dataOffset >= _sample!.DSPADPCM!.DataOutput.Length)
+						if (_dataOffset >= _sample!.DSPADPCM!.DataOutput!.Length)
 						{
 							if (_sample.WavInfo!.Loop)
 							{
-								_dataOffset = (int)(_sample.WavInfo.LoopStart / 4);
+								_dataOffset = (int)(_sample.WavInfo.LoopStart / 2); // Wii values for LoopStart are counted 8-bits at a time, but because DataOutput is using a 16-bit array, LoopStart needs to be divided by 2
 							}
 							else
 							{
@@ -462,8 +457,8 @@ internal sealed class DSEChannel
 								return;
 							}
 						}
-						short samp = (short)(((byte)_sample.DSPADPCM!.DataOutput[_dataOffset] << 8) | (byte)_sample.DSPADPCM!.DataOutput[_dataOffset++]);
-						samp = (short)(samp * Volume / 0x7F);
+                        short samp = _sample.DSPADPCM!.DataOutput![_dataOffset++]; // Since DataOutput is already a 16-bit array, only one array entry is needed per loop, no bitshifting needed either
+                        samp = (short)(samp * Volume / 0x7F);
 						_prevLeft = (short)(samp * (-Panpot + 0x40) / 0x80);
 						_prevRight = (short)(samp * (Panpot + 0x40) / 0x80);
 						break;
