@@ -75,25 +75,42 @@ public sealed class DSEPlayer : Player
 		DSELoadedSong s = _loadedSong!;
 
 		bool allDone = false;
-		while (!allDone && TempoStack >= 240)
+		switch (_config.Header.Type)
 		{
-			if (_config.Header.Type == "smdb")
-			{
-				TempoStack -= 130;
-			}
-			else
-			{
-				TempoStack -= 240;
-			}
-			allDone = true;
-			for (int i = 0; i < s.Tracks.Length; i++)
-			{
-				TickTrack(s, s.Tracks[i], ref allDone);
-			}
-			if (DMixer.IsFadeDone())
-			{
-				allDone = true;
-			}
+			case "smdl":
+				{
+                    while (!allDone && TempoStack >= 240)
+                    {
+                        TempoStack -= 240;
+                        allDone = true;
+                        for (int i = 0; i < s.Tracks.Length; i++)
+                        {
+                            TickTrack(s, s.Tracks[i], ref allDone);
+                        }
+                        if (DMixer.IsFadeDone())
+                        {
+                            allDone = true;
+                        }
+                    }
+					break;
+                }
+			case "smdb":
+				{
+                    while (!allDone && TempoStack >= 120)
+                    {
+                        TempoStack -= 120;
+                        allDone = true;
+                        for (int i = 0; i < s.Tracks.Length; i++)
+                        {
+                            TickTrack(s, s.Tracks[i], ref allDone);
+                        }
+                        if (DMixer.IsFadeDone())
+                        {
+                            allDone = true;
+                        }
+                    }
+					break;
+                }
 		}
 		if (!allDone)
 		{

@@ -17,9 +17,9 @@ internal struct DSPADPCM
 
 	public static double[] Tvec = new double[3];
 
-	public DSPADPCMInfo Info;
+	public DSPADPCMInfo[] Info;
 	private readonly ushort NumChannels;
-	private readonly bool IsInterleaved;
+	private ushort Channel;
 	public byte[] Data;
 	public short[]? DataOutput;
 
@@ -28,10 +28,10 @@ internal struct DSPADPCM
 	public int Scale;
 	public byte ByteValue;
 	public int FrameOffset;
-	public int Coef1;
-	public int Coef2;
-	public short Hist1;
-	public short Hist2;
+	public int[]? Coef1;
+	public int[]? Coef2;
+	public short[]? Hist1;
+	public short[]? Hist2;
 	private int Nibble;
 
 	public static class DSPADPCMConstants
@@ -41,13 +41,16 @@ internal struct DSPADPCM
 		public const int NibblesPerFrame = 16;
 	}
 
-	public DSPADPCM(EndianBinaryReader r, ushort numChannels, bool hasInterleavedFrames)
+	public DSPADPCM(EndianBinaryReader r, ushort? numChannels)
 	{
-		Info = new DSPADPCMInfo(r); // First, the 96 byte-long DSP-ADPCM header table is read and each variable is assigned with a value
-		NumChannels = numChannels; // The number of waveform channels
-		IsInterleaved = hasInterleavedFrames; // If the frames are byte-interleaved
-		Data = new byte[DataUtils.RoundUp((int)Info.NumAdpcmNibbles / 2, 16)]; // Next, this allocates the full size of the data, based on NumAdpcmNibbles divided by 2 and rounded up to the 16th byte
-		DataOutput = new short[Info.NumSamples]; // This will allocate the size of the DataOutput array based on the value in NumSamples
+		_ = numChannels == null ? NumChannels = 1 : NumChannels = (ushort)numChannels; // The number of waveform channels
+		Info = new DSPADPCMInfo[NumChannels];
+		for (int i = 0; i < NumChannels; i++)
+		{
+			Info[i] = new DSPADPCMInfo(r); // First, the 96 byte-long DSP-ADPCM header table is read and each variable is assigned with a value
+		}
+		Data = new byte[DataUtils.RoundUp((int)Info[0].NumAdpcmNibbles / 2, 16) * NumChannels]; // Next, this allocates the full size of the data, based on NumAdpcmNibbles divided by 2 and rounded up to the 16th byte
+		DataOutput = new short[Info[0].NumSamples * NumChannels]; // This will allocate the size of the DataOutput array based on the value in NumSamples
 		
 		r.ReadBytes(Data); // This reads the compressed sample data based on the size allocated
 		r.Stream.Align(16); // This will align the EndianBinaryReader stream offset to the 16th byte, since all sample data ends at every 16th byte
@@ -183,6 +186,30 @@ internal struct DSPADPCM
 
 	#region DSP-ADPCM Convert
 
+	public static int NibblesToSamples(int nibbles)
+	{
+		var fullFrames = nibbles / 16;
+		var remainder = nibbles % 16;
+
+		return remainder > 0 ? (fullFrames * 14) + remainder - 2 : fullFrames * 14;
+	}
+
+	public static int BytesToSamples(int bytes, int channels)
+	{
+		return channels <= 0 ? 0 : (bytes / channels) / (8 * 14);
+	}
+
+	public readonly byte[] InfoToBytes()
+	{
+		var info = new DSPADPCMInfo[NumChannels];
+		var infoData = new byte[96 * NumChannels];
+		for (int i = 0; i < NumChannels; i++)
+		{
+			Array.Copy(info[i].ToBytes(), infoData, 96 * (i + 1));
+		}
+		return infoData;
+	}
+
 	public readonly byte[] DataOutputToBytes()
 	{
 		int index = 0;
@@ -205,10 +232,10 @@ internal struct DSPADPCM
 		uint formatLength = 16; // Always a length 16
 		ushort formatType = 1; // Always PCM16
 		// Number of channels is already manually defined
-		uint sampleRate = Info.SampleRate; // Sample Rate is read directly from the Info context
+		uint sampleRate = Info[0].SampleRate; // Sample Rate is read directly from the Info context
 		ushort bitsPerSample = 16; // bitsPerSample must be written to AFTER numNibbles
-		uint numNibbles = sampleRate * bitsPerSample * NumChannels / 8; // numNibbles must be written BEFORE bitsPerSample is written
-		ushort bitRate = (ushort)((bitsPerSample * NumChannels) / 8);
+		uint numNibbles = sampleRate * bitsPerSample * Channel / 8; // numNibbles must be written BEFORE bitsPerSample is written
+		ushort bitRate = (ushort)((bitsPerSample * Channel) / 8);
 		string dataID = "data";
 		uint dataSize = (uint)(DataOutput!.Length * 2);
 
@@ -264,17 +291,18 @@ internal struct DSPADPCM
 	#endregion
 
 	#region DSP-ADPCM Encode
-	public static void Encode(short[] src, byte[] dst, DSPADPCMInfo cxt, uint samples)
+
+	public static void Encode(Span<short> src, Span<byte> dst, DSPADPCMInfo cxt, uint samples)
 	{
-		short[] coefs = cxt.Coef;
+		Span<short> coefs = cxt.Coef;
 		CorrelateCoefs(src, samples, coefs);
 
 		int frameCount = (int)((samples / DSPADPCMConstants.SamplesPerFrame) + (samples % DSPADPCMConstants.SamplesPerFrame));
 
-		short[] pcm = src;
-		byte[] adpcm = dst;
-		short[] pcmFrame = new short[DSPADPCMConstants.SamplesPerFrame + 2];
-		byte[] adpcmFrame = new byte[DSPADPCMConstants.BytesPerFrame];
+		Span<short> pcm = src;
+		Span<byte> adpcm = dst;
+		Span<short> pcmFrame = new short[DSPADPCMConstants.SamplesPerFrame + 2];
+		Span<byte> adpcmFrame = new byte[DSPADPCMConstants.BytesPerFrame];
 
 		short srcIndex = 0;
 		short dstIndex = 0;
@@ -295,9 +323,9 @@ internal struct DSPADPCM
 		cxt.Yn2 = 0;
 	}
 
-	public static void InnerProductMerge(double[] vecOut, short[] pcmBuf)
+	public static void InnerProductMerge(Span<double> vecOut, Span<short> pcmBuf)
 	{
-		pcmBuf = new short[14];
+		pcmBuf = new short[14].AsSpan();
 		vecOut = Tvec;
 
 		for (int i = 0; i <= 2; i++)
@@ -309,9 +337,9 @@ internal struct DSPADPCM
 		}
 	}
 
-	public static void OuterProductMerge(double[] mtxOut, short[] pcmBuf)
+	public static void OuterProductMerge(Span<double> mtxOut, Span<short> pcmBuf)
 	{
-		pcmBuf = new short[14];
+		pcmBuf = new short[14].AsSpan();
 		mtxOut[3] = Tvec[3];
 
 		for (int x = 1; x <= 2; x++)
@@ -324,10 +352,10 @@ internal struct DSPADPCM
 			}
 	}
 
-	public static bool AnalyzeRanges(double[] mtx, int[] vecIdxsOut)
+	public static bool AnalyzeRanges(Span<double> mtx, Span<int> vecIdxsOut)
 	{
 		mtx[3] = Tvec[3];
-		double[] recips = new double[3];
+		Span<double> recips = new double[3].AsSpan();
 		double val, tmp, min, max;
 
 		/* Get greatest distance from zero */
@@ -409,7 +437,7 @@ internal struct DSPADPCM
 		return false;
 	}
 
-	public static void BidirectionalFilter(double[] mtx, int[] vecIdxs, double[] vecOut)
+	public static void BidirectionalFilter(Span<double> mtx, Span<int> vecIdxs, Span<double> vecOut)
 	{
 		mtx[3] = Tvec[3];
 		vecOut = Tvec;
@@ -439,7 +467,7 @@ internal struct DSPADPCM
 		vecOut[0] = 1.0;
 	}
 
-	public static bool QuadraticMerge(double[] inOutVec)
+	public static bool QuadraticMerge(Span<double> inOutVec)
 	{
 		inOutVec = Tvec;
 
@@ -458,7 +486,7 @@ internal struct DSPADPCM
 		return Math.Abs(v1) > 1.0;
 	}
 
-	public static void FinishRecord(double[] vIn, double[] vOut)
+	public static void FinishRecord(Span<double> vIn, Span<double> vOut)
 	{
 		vIn = Tvec;
 		vOut = Tvec;
@@ -475,7 +503,7 @@ internal struct DSPADPCM
 		vOut[2] = vIn[2];
 	}
 
-	public static void MatrixFilter(double[] src, double[] dst)
+	public static void MatrixFilter(Span<double> src, Span<double> dst)
 	{
 		src = Tvec;
 		dst = Tvec;
@@ -502,12 +530,12 @@ internal struct DSPADPCM
 		}
 	}
 
-	public static void MergeFinishRecord(double[] src, double[] dst)
+	public static void MergeFinishRecord(Span<double> src, Span<double> dst)
 	{
 		src = Tvec;
 		dst = Tvec;
 		int dstIndex = 0;
-		double[] tmp = new double[dstIndex];
+		Span<double> tmp = new double[dstIndex].AsSpan();
 		double val = src[0];
 
 		dst[0] = 1.0;
@@ -533,7 +561,7 @@ internal struct DSPADPCM
 		FinishRecord(tmp, dst);
 	}
 
-	public static double ContrastVectors(double[] source1, double[] source2)
+	public static double ContrastVectors(Span<double> source1, Span<double> source2)
 	{
 		source1 = Tvec;
 		source2 = Tvec;
@@ -544,15 +572,15 @@ internal struct DSPADPCM
 		return val1 + (2.0 * val * val2) + (2.0 * (-source2[1] * val + -source2[2]) * val3);
 	}
 
-	public static void FilterRecords(double[] vecBest, int exp, double[] records, int recordCount)
+	public static void FilterRecords(Span<double> vecBest, int exp, Span<double> records, int recordCount)
 	{
 		vecBest[8] = Tvec[8];
 		records = Tvec;
-		double[] bufferList = new double[8];
+		Span<double> bufferList = new double[8].AsSpan();
 		bufferList[8] = Tvec[8];
 
-		int[] buffer1 = new int[8];
-		double[] buffer2 = Tvec;
+		Span<int> buffer1 = new int[8].AsSpan();
+		Span<double> buffer2 = Tvec;
 
 		int index;
 		double value, tempVal = 0;
@@ -571,8 +599,8 @@ internal struct DSPADPCM
 				value = 1.0e30;
 				for (int i = 0; i < exp; i++)
 				{
-					vecBest = new double[i];
-					records = new double[z];
+					vecBest = new double[i].AsSpan();
+					records = new double[z].AsSpan();
 					tempVal = ContrastVectors(vecBest, records);
 					if (tempVal < value)
 					{
@@ -597,26 +625,26 @@ internal struct DSPADPCM
 		}
 	}
 
-	public static void CorrelateCoefs(short[] source, uint samples, short[] coefsOut)
+	public static void CorrelateCoefs(Span<short> source, uint samples, Span<short> coefsOut)
 	{
 		int numFrames = (int)((samples + 13) / 14);
 		int frameSamples;
 
-		short[] blockBuffer = new short[0x3800];
-		short[] pcmHistBuffer = new short[2 + 14];
+		Span<short> blockBuffer = new short[0x3800].AsSpan();
+		Span<short> pcmHistBuffer = new short[2 + 14].AsSpan();
 
-		double[] vec1 = Tvec;
-		double[] vec2 = Tvec;
+		Span<double> vec1 = Tvec;
+		Span<double> vec2 = Tvec;
 
-		double[] mtx = Tvec;
+		Span<double> mtx = Tvec;
 		mtx[3] = Tvec[3];
-		int[] vecIdxs = new int[3];
+		Span<int> vecIdxs = new int[3].AsSpan();
 
-		double[] records = new double[numFrames * 2];
+		Span<double> records = new double[numFrames * 2].AsSpan();
 		records = Tvec;
 		int recordCount = 0;
 
-		double[] vecBest = new double[8];
+		Span<double> vecBest = new double[8].AsSpan();
 		vecBest[8] = Tvec[8];
 
 		int sourceIndex = 0;
@@ -649,7 +677,7 @@ internal struct DSPADPCM
 				for (int z = 0; z < 14; z++)
 					pcmHistBuffer[1 + z] = blockBuffer[i++];
 
-				pcmHistBuffer = new short[1];
+				pcmHistBuffer = new short[1].AsSpan();
 
 				InnerProductMerge(vec1, pcmHistBuffer);
 				if (Math.Abs(vec1[0]) > 10.0)
@@ -660,7 +688,7 @@ internal struct DSPADPCM
 						BidirectionalFilter(mtx, vecIdxs, vec1);
 						if (!QuadraticMerge(vec1))
 						{
-							records = new double[recordCount];
+							records = new double[recordCount].AsSpan();
 							FinishRecord(vec1, records);
 							recordCount++;
 						}
@@ -675,8 +703,8 @@ internal struct DSPADPCM
 
 		for (int z = 0; z < recordCount; z++)
 		{
-			records = new double[z];
-			vecBest = new double[0];
+			records = new double[z].AsSpan();
+			vecBest = new double[0].AsSpan();
 			MatrixFilter(records, vecBest);
 			for (int y = 1; y <= 2; y++)
 				vec1[y] += vecBest[0] + vecBest[y];
@@ -720,22 +748,22 @@ internal struct DSPADPCM
 	}
 
 	/* Make sure source includes the yn values (16 samples total) */
-	public static void DSPEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn)
+	public static void DSPEncodeFrame(Span<short> pcmInOut, int sampleCount, Span<byte> adpcmOut, Span<short> coefsIn)
 	{
-		pcmInOut = new short[16];
-		adpcmOut = new byte[8];
-		coefsIn = new short[8];
-		coefsIn = new short[2];
+		pcmInOut = new short[16].AsSpan();
+		adpcmOut = new byte[8].AsSpan();
+		coefsIn = new short[8].AsSpan();
+		coefsIn = new short[2].AsSpan();
 
-		int[] inSamples = new int[8];
-		inSamples = new int[16];
-		int[] outSamples = new int[8];
-		outSamples = new int[14];
+		Span<int> inSamples = new int[8].AsSpan();
+		inSamples = new int[16].AsSpan();
+		Span<int> outSamples = new int[8].AsSpan();
+		outSamples = new int[14].AsSpan();
 
 		int bestIndex = 0;
 
-		int[] scale = new int[8];
-		double[] distAccum = new double[8];
+		Span<int> scale = new int[8].AsSpan();
+		Span<double> distAccum = new double[8].AsSpan();
 
 		/* Iterate through each coef set, finding the set with the smallest error */
 		for (int i = 0; i < 8; i++)
@@ -843,11 +871,12 @@ internal struct DSPADPCM
 		}
 	}
 
-	public static void EncodeFrame(short[] src, byte[] dst, short[] coefs, byte one)
+	public static void EncodeFrame(Span<short> src, Span<byte> dst, Span<short> coefs, byte one)
 	{
 		coefs = new short[0 + 2];
 		DSPEncodeFrame(src, 14, dst, coefs);
 	}
+
 	#endregion
 
 	#region DSP-ADPCM Decode
@@ -881,14 +910,19 @@ internal struct DSPADPCM
 	}
 
 	#region Current code
-	public void Init(byte[] data, DSPADPCMInfo info)
+	public void Init(byte[] data, DSPADPCMInfo[] info)
 	{
 		Info = info;
 		Data = data;
 		DataOffset = 0;
 		SamplePos = 0;
 		FrameOffset = 0;
-	}
+
+        Hist1 = new short[NumChannels];
+        Hist2 = new short[NumChannels];
+        Coef1 = new int[NumChannels];
+        Coef2 = new int[NumChannels];
+    }
 
 	public void Decode()
 	{
@@ -896,7 +930,7 @@ internal struct DSPADPCM
 
 		// Each DSP-ADPCM frame is 8 bytes long: 1 byte for header, 7 bytes for sample data
 		// This loop reads every 8 bytes and decodes them until the samplePos reaches NumSamples
-		while (SamplePos < Info.NumSamples)
+		while (SamplePos < Info[0].NumSamples)
 		{
 			// This function will decode one frame at a time
 			DecodeFrame();
@@ -910,41 +944,54 @@ internal struct DSPADPCM
 
 	public void DecodeFrame()
 	{
-		// It will decode 1 single DSP frame of size 0x08 (src) into a 14 samples in a PCM buffer (dst)
-		Hist1 = Info.Yn1;
-		Hist2 = Info.Yn2;
+		// It will decode 1 single DSP frame of size 0x08 (src) into 14 samples in a PCM buffer (dst)
+        for (int i = 0; i < NumChannels; i++)
+		{
+			Hist1![i] = Info[i].Yn1;
+			Hist2![i] = Info[i].Yn2;
+		}
 
 		// Parsing the frame's header byte
 		Scale = 1 << ((Data[DataOffset]) & 0xf);
 		int coefIndex = ((Data[DataOffset] >> 4) & 0xf) * 2;
 
-		// Parsing the coefficient pairs, based on the nibble's value
-		Coef1 = Info.Coef[coefIndex + 0];
-		Coef2 = Info.Coef[coefIndex + 1];
+        // Parsing the coefficient pairs, based on the nibble's value
+        for (int i = 0; i < NumChannels; i++)
+		{
+			Coef1![i] = Info[i].Coef[coefIndex + 0];
+			Coef2![i] = Info[i].Coef[coefIndex + 1];
+		}
 
 		// This loop decodes the frame's nibbles, each of which are 4-bits long (half a byte in length)
-		for (FrameOffset = 0; FrameOffset < DSPADPCMConstants.SamplesPerFrame; FrameOffset++)
+		for (FrameOffset = 0; FrameOffset < DSPADPCMConstants.SamplesPerFrame * NumChannels; FrameOffset += NumChannels)
 		{
-			// Stores the value of the entire byte based on the frame's offset
-			ByteValue = Data[DataOffset + 0x01 + FrameOffset / 2];
+			// This ensures multi-channel DSP-ADPCM data is decoded as well
+			for (Channel = 0; Channel < NumChannels; Channel++)
+			{
+				// Stores the value of the entire byte based on the frame's offset
+				ByteValue = Data[DataOffset + 0x01 + FrameOffset / 2];
 
-			// This function decodes one nibble within a frame into a sample
-			short sample = GetSample();
+				// This function decodes one nibble within a frame into a sample
+				short sample = GetSample();
 
-			// The DSP-ADPCM frame may have bytes that go beyond the DataOutput length, if this happens, this will safely finish the DecodeFrame function's task as is
-			if ((SamplePos + FrameOffset) * NumChannels >= DataOutput!.Length) { return; }
+				// The DSP-ADPCM frame may have bytes that go beyond the DataOutput length, if this happens, this will safely finish the DecodeFrame function's task as is
+				if ((SamplePos + FrameOffset) * (Channel + 1) >= DataOutput!.Length) { return; }
 
-			// The PCM16 sample is stored into the array entry, based on the sample offset and frame offset, multiplied by the number of wave channels
-			DataOutput[(SamplePos + FrameOffset) * NumChannels] = sample;
+				// The PCM16 sample is stored into the array entry, based on the sample offset and frame offset, multiplied by which wave channel is being used
+				DataOutput[(SamplePos + FrameOffset) * (Channel + 1)] = sample;
 
-			// History values are stored, hist1 is copied into hist2 and the PCM16 sample is copied into hist1, before moving onto the next byte in the frame
-			Hist2 = Hist1;
-			Hist1 = sample;
+				// History values are stored, hist1 is copied into hist2 and the PCM16 sample is copied into hist1, before moving onto the next byte in the frame
+				Hist2![Channel] = Hist1![Channel];
+				Hist1[Channel] = sample;
+			}
 		}
 
 		// After the frame is decoded, the values in hist1 and hist2 are copied into Yn1 and Yn2 to prepare for the next frame
-		Info.Yn1 = Hist1;
-		Info.Yn2 = Hist2;
+		for (int i = 0; i < NumChannels; i++)
+		{
+			Info[i].Yn1 = Hist1![i];
+			Info[i].Yn2 = Hist2![i];
+        }
 	}
 
 	public short GetSample()
@@ -953,7 +1000,7 @@ internal struct DSPADPCM
 				GetLowNibble(ByteValue) : // If the byte is not 0, it will obtain the least significant nibble (4-bits)
 				GetHighNibble(ByteValue); // Otherwise, if the byte is 0, it will obtain the most significant nibble (4-bits)
 		int largerVal = (Nibble * Scale) << 11; // The nibble's value is multiplied by scale's value, then 11 bits are shifted left, making the value larger
-		int newVal = (largerVal + 1024 + (Coef1 * Hist1) + (Coef2 * Hist2)) >> 11; // Coefficients are multiplied by the value stored in hist1 and hist2 respectively, then the values are added together to make a new value
+		int newVal = (largerVal + 1024 + (Coef1![Channel] * Hist1![Channel]) + (Coef2![Channel] * Hist2![Channel])) >> 11; // Coefficients are multiplied by the value stored in hist1 and hist2 respectively, then the values are added together to make a new value
 		short sample = Clamp16(newVal); // The new value is then clamped into a 16-bit value, which makes a PCM16 sample
 
 		return sample;
@@ -961,640 +1008,9 @@ internal struct DSPADPCM
 
 	#endregion
 
-	#region Old Code 1
-	//public static void Decode(Span<byte> src, Span<short> dst, ref DSPADPCMInfo cxt, uint samples)
-	//{
-	//	short hist1 = cxt.Yn1;
-	//	short hist2 = cxt.Yn2;
-	//	short[] coefs = cxt.Coef;
-	//	int srcIndex = 0;
-	//	int dstIndex = 0;
-
-	//	int frameCount = DivideByRoundUp((int)samples, DSPADPCMConstants.SamplesPerFrame);
-	//	int samplesRemaining = (int)samples;
-
-	//	for (int i = 0; i < frameCount; i++)
-	//	{
-	//		int predictor = GetHighNibble(src[srcIndex]) & 0xF;
-	//		int scale = 1 << GetLowNibble(src[srcIndex++]);
-	//		short coef1 = coefs[predictor * 2];
-	//		short coef2 = coefs[predictor * 2 + 1];
-
-	//		int samplesToRead = Math.Min(DSPADPCMConstants.SamplesPerFrame, samplesRemaining);
-
-
-	//		for (int s = 0; s < samplesToRead; s++)
-	//		{
-	//			// Get bits per byte
-	//			//byte bits = src[srcIndex++];
-	//			byte bits = src[srcIndex + (s >> 1)];
-	//			int sample = (s % 2) == 0 ? GetHighNibble(bits) : GetLowNibble(bits);
-	//			sample = sample >= 8 ? sample - 16 : sample;
-	//			sample = (((scale * sample) << 11) + 1024 + ((coef1 * hist1) + (coef2 * hist2))) >> 11;
-	//			short finalSample = Clamp16(sample);
-
-	//			hist2 = hist1;
-	//			hist1 = finalSample;
-
-	//			//if (samplesToRead <= 14) { samplesToRead = 0; }
-	//			//srcIndex += 1;
-	//			dst[dstIndex++] = finalSample;
-	//			if (dstIndex >= samplesToRead) break;
-	//		}
-
-	//		//samplesRemaining -= samplesToRead;
-	//		srcIndex += samplesToRead / 2;
-	//	}
-	//}
-
-
-	//public static void GetLoopContext(Span<byte> src, ref DSPADPCMInfo cxt, uint samples)
-	//{
-	//	short hist1 = cxt.Yn1;
-	//	short hist2 = cxt.Yn2;
-	//	short[] coefs = cxt.Coef;
-	//	int srcIndex = 0;
-	//	byte ps = 0;
-
-	//	int frameCount = DivideByRoundUp((int)samples, DSPADPCMConstants.SamplesPerFrame);
-	//	int samplesRemaining = (int)samples;
-
-	//	for (int i = 0; i < frameCount; i++)
-	//	{
-	//		ps = src[srcIndex];
-	//		int predictor = GetHighNibble(src[srcIndex]) & 0x7;
-	//		int scale = 1 << GetLowNibble(src[srcIndex++]);
-	//		short coef1 = coefs[predictor * 2];
-	//		short coef2 = coefs[predictor * 2 + 1];
-
-	//		int samplesToRead = Math.Min(DSPADPCMConstants.SamplesPerFrame, samplesRemaining);
-
-	//		for (int s = 0; s < samplesToRead; s++)
-	//		{
-	//			int sample = s % 2 == 0 ? GetHighNibble(src[srcIndex]) : GetLowNibble(src[srcIndex++]);
-	//			sample = sample >= 8 ? sample - 16 : sample;
-	//			sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
-	//			short finalSample = Clamp16(sample);
-
-	//			hist2 = hist1;
-	//			hist1 = finalSample;
-	//		}
-	//		samplesRemaining -= samplesToRead;
-	//	}
-
-	//	cxt.LoopPredScale = ps;
-	//	cxt.LoopYn1 = hist1;
-	//	cxt.LoopYn2 = hist2;
-	//}
-	#endregion
 
 	#endregion
 
-	#region Method 2
-
-	public class PlayConfigType
-	{
-		int config_set; /* some of the mods below are set */
-
-		/* modifiers */
-		int play_forever;
-		int ignore_loop;
-		int force_loop;
-		int really_force_loop;
-		int ignore_fade;
-
-		/* processing */
-		double loop_count;
-		int pad_begin;
-		int trim_begin;
-		int body_time;
-		int trim_end;
-		double fade_delay; /* not in samples for backwards compatibility */
-		double fade_time;
-		int pad_end;
-
-		double pad_begin_s;
-		double trim_begin_s;
-		double body_time_s;
-		double trim_end_s;
-		//double fade_delay_s;
-		//double fade_time_s;
-		double pad_end_s;
-
-		/* internal flags */
-		int pad_begin_set;
-		int trim_begin_set;
-		int body_time_set;
-		int loop_count_set;
-		int trim_end_set;
-		int fade_delay_set;
-		int fade_time_set;
-		int pad_end_set;
-
-		/* for lack of a better place... */
-		int is_txtp;
-		int is_mini_txtp;
-
-	}
-
-
-	public class PlayStateType
-	{
-		int input_channels;
-		int output_channels;
-
-		int pad_begin_duration;
-		int pad_begin_left;
-		int trim_begin_duration;
-		int trim_begin_left;
-		int body_duration;
-		int fade_duration;
-		int fade_left;
-		int fade_start;
-		int pad_end_duration;
-		//int pad_end_left;
-		int pad_end_start;
-
-		int play_duration;      /* total samples that the stream lasts (after applying all config) */
-		int play_position;      /* absolute sample where stream is */
-
-	}
-
-	public class Stream
-	{
-		/* basic config */
-		int num_samples;            /* the actual max number of samples */
-		int sample_rate;            /* sample rate in Hz */
-		public int channels;                   /* number of channels */
-		CodecType coding_type;           /* type of encoding */
-		LayoutType layout_type;           /* type of layout */
-		MetaType meta_type;               /* type of metadata */
-
-		/* loopin config */
-		int loop_flag;                  /* is this stream looped? */
-		int loop_start_sample;      /* first sample of the loop (included in the loop) */
-		int loop_end_sample;        /* last sample of the loop (not included in the loop) */
-
-		/* layouts/block config */
-		int interleave_block_size;   /* interleave, or block/frame size (depending on the codec) */
-		int interleave_first_block_size; /* different interleave for first block */
-		int interleave_first_skip;   /* data skipped before interleave first (needed to skip other channels) */
-		int interleave_last_block_size; /* smaller interleave for last block */
-		int frame_size;              /* for codecs with configurable size */
-
-		/* subsong config */
-		int num_streams;                /* for multi-stream formats (0=not set/one stream, 1=one stream) */
-		int stream_index;               /* selected subsong (also 1-based) */
-		int stream_size;             /* info to properly calculate bitrate in case of subsongs */
-		char[] stream_name = new char[255]; /* name of the current stream (info), if the file stores it and it's filled */
-
-		/* mapping config (info for plugins) */
-		uint channel_layout;        /* order: FL FR FC LFE BL BR FLC FRC BC SL SR etc (WAVEFORMATEX flags where FL=lowest bit set) */
-
-		/* other config */
-		int allow_dual_stereo;          /* search for dual stereo (file_L.ext + file_R.ext = single stereo file) */
-
-
-		/* layout/block state */
-		int full_block_size;         /* actual data size of an entire block (ie. may be fixed, include padding/headers, etc) */
-		int current_sample;         /* sample point within the file (for loop detection) */
-		int samples_into_block;     /* number of samples into the current block/interleave/segment/etc */
-		int current_block_offset;     /* start of this block (offset of block header) */
-		int current_block_size;      /* size in usable bytes of the block we're in now (used to calculate num_samples per block) */
-		int current_block_samples;  /* size in samples of the block we're in now (used over current_block_size if possible) */
-		int next_block_offset;        /* offset of header of the next block */
-
-		/* loop state (saved when loop is hit to restore later) */
-		int loop_current_sample;    /* saved from current_sample (same as loop_start_sample, but more state-like) */
-		int loop_samples_into_block;/* saved from samples_into_block */
-		int loop_block_offset;        /* saved from current_block_offset */
-		int loop_block_size;         /* saved from current_block_size */
-		int loop_block_samples;     /* saved from current_block_samples */
-		int loop_next_block_offset;   /* saved from next_block_offset */
-		int hit_loop;                   /* save config when loop is hit, but first time only */
-
-
-		/* decoder config/state */
-		int codec_endian;               /* little/big endian marker; name is left vague but usually means big endian */
-		int codec_config;               /* flags for codecs or layouts with minor variations; meaning is up to them */
-		int ws_output_size;         /* WS ADPCM: output bytes for this block */
-
-
-		/* main state */
-		public Channel[] ch;           /* array of channels */
-		Channel start_ch;     /* shallow copy of channels as they were at the beginning of the stream (for resets) */
-		Channel loop_ch;      /* shallow copy of channels as they were at the loop point (for loops) */
-		IntPtr start_vgmstream;          /* shallow copy of the VGMSTREAM as it was at the beginning of the stream (for resets) */
-
-		IntPtr mixing_data;              /* state for mixing effects */
-
-		/* Optional data the codec needs for the whole stream. This is for codecs too
-		 * different from vgmstream's structure to be reasonably shoehorned.
-		 * Note also that support must be added for resetting, looping and
-		 * closing for every codec that uses this, as it will not be handled. */
-		IntPtr codec_data;
-		/* Same, for special layouts. layout_data + codec_data may exist at the same time. */
-		IntPtr layout_data;
-
-
-		/* play config/state */
-		int config_enabled;             /* config can be used */
-		PlayConfigType config;           /* player config (applied over decoding) */
-		PlayStateType pstate;            /* player state (applied over decoding) */
-		int loop_count;                 /* counter of complete loops (1=looped once) */
-		int loop_target;                /* max loops before continuing with the stream end (loops forever if not set) */
-		short[] tmpbuf;               /* garbage buffer used for seeking/trimming */
-		int tmpbuf_size;             /* for all channels (samples = tmpbuf_size / channels) */
-
-	}
-
-	/* read from a file, returns number of bytes read */
-	public static int read_streamfile(Span<byte> dst, int offset, int length, StreamFile sf)
-	{
-		return read_streamfile(dst, offset, length, sf);
-	}
-
-	/* return file size */
-	public static int get_streamfile_size(StreamFile sf)
-	{
-		return get_streamfile_size(sf);
-	}
-
-	public class StreamFile
-	{
-
-		/* read 'length' data at 'offset' to 'dst' */
-		static int read(Span<byte> dst, int offset, int length, StreamFile[] sf)
-		{
-			return read(dst, offset, length, sf);
-		}
-
-		/* get max offset */
-		static int get_size(StreamFile[] sf)
-		{
-			return get_size(sf);
-		}
-
-		//todo: DO NOT USE, NOT RESET PROPERLY (remove?)
-		static int get_offset(StreamFile[] sf)
-		{
-			return get_offset(sf);
-		}
-
-		/* copy current filename to name buf */
-		static void get_name(string name, int name_size, StreamFile[] sf)
-		{
-			sf.SetValue(name, name_size);
-		}
-
-		/* open another streamfile from filename */
-		public StreamFile()
-		{
-			string filename;
-			int buf_size;
-			StreamFile[] sf;
-		}
-
-		/* free current STREAMFILE */
-		//void (* close) (struct _StreamFile sf);
-
-		/* Substream selection for formats with subsongs.
-		 * Not ideal here, but it was the simplest way to pass to all init_vgmstream_x functions. */
-		int stream_index; /* 0=default/auto (first), 1=first, N=Nth */
-
-	}
-
-	public class g72x_state
-	{
-		long yl;    /* Locked or steady state step size multiplier. */
-		short yu;   /* Unlocked or non-steady state step size multiplier. */
-		short dms;  /* Short term energy estimate. */
-		short dml;  /* Long term energy estimate. */
-		short ap;   /* Linear weighting coefficient of 'yl' and 'yu'. */
-
-		short[] a = new short[2]; /* Coefficients of pole portion of prediction filter. */
-		short[] b = new short[6]; /* Coefficients of zero portion of prediction filter. */
-		short[] pk = new short[2];    /*
-		 * Signs of previous two samples of a partially
-		 * reconstructed signal.
-		 */
-		short[] dq = new short[6];    /*
-		 * Previous 6 samples of the quantized difference
-		 * signal represented in an internal floating point
-		 * format.
-		 */
-		short[] sr = new short[2];    /*
-		 * Previous 2 samples of the quantized difference
-		 * signal represented in an internal floating point
-		 * format.
-		 */
-		char td;    /* delayed tone detect, new in 1988 version */
-	};
-
-	public class Channel
-	{
-		public StreamFile streamfile = new StreamFile();     /* file used by this channel */
-		public long channel_start_offset; /* where data for this channel begins */
-		public long offset;               /* current location in the file */
-
-		public int frame_header_offset;  /* offset of the current frame header (for WS) */
-		public int samples_left_in_frame;  /* for WS */
-
-		/* format specific */
-
-		/* adpcm */
-		public short[] adpcm_coef = new short[16];             /* formats with decode coefficients built in (DSP, some ADX) */
-		public int[] adpcm_coef_3by32 = new int[0x60];     /* Level-5 0x555 */
-		public short[] vadpcm_coefs = new short[8 * 2 * 8];        /* VADPCM: max 8 groups * max 2 order * fixed 8 subframe coefs */
-		public short adpcm_history1_16;      /* previous sample */
-		public int adpcm_history1_32;
-
-		public short adpcm_history2_16;      /* previous previous sample */
-		public int adpcm_history2_32;
-
-		public short adpcm_history3_16;
-		public int adpcm_history3_32;
-
-		public short adpcm_history4_16;
-		public int adpcm_history4_32;
-
-
-		//double adpcm_history1_double;
-		//double adpcm_history2_double;
-
-		public int adpcm_step_index;               /* for IMA */
-		public int adpcm_scale;                    /* for MS ADPCM */
-
-		/* state for G.721 decoder, sort of big but we might as well keep it around */
-		public g72x_state g72x_state = new g72x_state();
-
-		/* ADX encryption */
-		public int adx_channels;
-		public short adx_xor;
-		public short adx_mult;
-		public short adx_add;
-
-	};
-
-	public static int[] nibble_to_int = new int[16] {0,1,2,3,4,5,6,7,-8,-7,-6,-5,-4,-3,-2,-1};
-
-	public static int get_nibble_signed(byte n, int upper)
-	{
-		/*return ((n&0x70)-(n&0x80))>>4;*/
-		return nibble_to_int[(n >> (upper != 0 ? 4 : 0)) & 0x0f];
-	}
-
-	public static int get_high_nibble_signed(byte n)
-	{
-		/*return ((n&0x70)-(n&0x80))>>4;*/
-		return nibble_to_int[n >> 4];
-	}
-
-	public static int get_low_nibble_signed(byte n)
-	{
-		/*return (n&7)-(n&8);*/
-		return nibble_to_int[n & 0xf];
-	}
-
-	public static int clamp16(int val)
-	{
-		if (val > 32767) return 32767;
-		else if (val < -32768) return -32768;
-		else return val;
-	}
-
-	public static void decode_ngc_dsp(Channel stream, Span<int> outbuf, int channelspacing, int first_sample, int samples_to_do)
-	{
-		byte[] frame = new byte[0x08] { 0,0,0,0,0,0,0,0 };
-		int frame_offset;
-		int i, frames_in, sample_count = 0;
-		int bytes_per_frame, samples_per_frame;
-		int coef_index, scale, coef1, coef2;
-		int hist1 = stream.adpcm_history1_16;
-		int hist2 = stream.adpcm_history2_16;
-
-
-		/* external interleave (fixed size), mono */
-		bytes_per_frame = 0x08;
-		samples_per_frame = (bytes_per_frame - 0x01) * 2; /* always 14 */
-		frames_in = first_sample / samples_per_frame;
-		first_sample = first_sample % samples_per_frame;
-
-		/* parse frame header */
-		frame_offset = (int)((stream.offset + bytes_per_frame) * frames_in);
-		read_streamfile(frame, frame_offset, bytes_per_frame, stream.streamfile); /* ignore EOF errors */
-		scale = 1 << ((frame[0] >> 0) & 0xf);
-		coef_index = (frame[0] >> 4) & 0xf;
-
-		if (coef_index >= 8) { Debug.WriteLine($"DSP: incorrect coefs at %x\n", (uint)frame_offset); }
-		//if (coef_index > 8) //todo not correctly clamped in original decoder?
-		//    coef_index = 8;
-
-		coef1 = stream.adpcm_coef[coef_index * 2 + 0];
-		coef2 = stream.adpcm_coef[coef_index * 2 + 1];
-
-
-		/* decode nibbles */
-		for (i = first_sample; i < first_sample + samples_to_do; i++)
-		{
-			int sample = 0;
-			byte nibbles = frame[0x01 + i / 2];
-
-			sample = (i & 1) != 0 ? /* high nibble first */
-					get_low_nibble_signed(nibbles) :
-					get_high_nibble_signed(nibbles);
-			sample = ((sample * scale) << 11);
-			sample = (sample + 1024 + coef1 * hist1 + coef2 * hist2) >> 11;
-			sample = clamp16(sample);
-
-			outbuf[sample_count] = sample;
-			sample_count += channelspacing;
-
-			hist2 = hist1;
-			hist1 = sample;
-		}
-
-		stream.adpcm_history1_16 = (short)hist1;
-		stream.adpcm_history2_16 = (short)hist2;
-	}
-
-
-	/* read from memory rather than a file */
-	public static void decode_ngc_dsp_subint_internal(Channel stream, Span<int> outbuf, int channelspacing, int first_sample, int samples_to_do, Span<byte> frame)
-	{
-		int i, sample_count = 0;
-		int bytes_per_frame, samples_per_frame;
-		int coef_index, scale, coef1, coef2;
-		int hist1 = stream.adpcm_history1_16;
-		int hist2 = stream.adpcm_history2_16;
-
-
-		/* external interleave (fixed size), mono */
-		bytes_per_frame = 0x08;
-		samples_per_frame = (bytes_per_frame - 0x01) * 2; /* always 14 */
-		first_sample = first_sample % samples_per_frame;
-		if (samples_to_do > samples_per_frame) { Debug.WriteLine($"DSP: layout error, too many samples\n"); }
-
-		/* parse frame header */
-		scale = 1 << ((frame[0] >> 0) & 0xf);
-		coef_index = (frame[0] >> 4) & 0xf;
-
-		if (coef_index >= 8) { Debug.WriteLine($"DSP: incorrect coefs\n"); }
-		//if (coef_index > 8) //todo not correctly clamped in original decoder?
-		//    coef_index = 8;
-
-		coef1 = stream.adpcm_coef[coef_index * 2 + 0];
-		coef2 = stream.adpcm_coef[coef_index * 2 + 1];
-
-		for (i = first_sample; i < first_sample + samples_to_do; i++)
-		{
-			int sample = 0;
-			byte nibbles = frame[0x01 + i / 2];
-
-			sample = (i & 1) != 0 ?
-					get_low_nibble_signed(nibbles) :
-					get_high_nibble_signed(nibbles);
-			sample = ((sample * scale) << 11);
-			sample = (sample + 1024 + coef1 * hist1 + coef2 * hist2) >> 11;
-			sample = clamp16(sample);
-
-			outbuf[sample_count] = sample;
-			sample_count += channelspacing;
-
-			hist2 = hist1;
-			hist1 = sample;
-		}
-
-		stream.adpcm_history1_16 = (short)hist1;
-		stream.adpcm_history2_16 = (short)hist2;
-	}
-
-	private static sbyte read_8bit(int offset, StreamFile sf)
-	{
-		byte[] buf = new byte[1];
-
-		if (read_streamfile(buf, offset, 1, sf) != 1) return -1;
-		return (sbyte)buf[0];
-	}
-
-	/* decode DSP with byte-interleaved frames (ex. 0x08: 1122112211221122) */
-	public static void decode_ngc_dsp_subint(Channel stream, Span<int> outbuf, int channelspacing, int first_sample, int samples_to_do, int channel, int interleave)
-	{
-		byte[] frame = new byte[0x08];
-		int i;
-		int frames_in = first_sample / 14;
-
-		for (i = 0; i < 0x08; i++)
-		{
-			/* base + current frame + subint section + subint byte + channel adjust */
-			frame[i] = (byte)read_8bit(
-					(int)((stream.offset
-					+ frames_in) * (0x08 * channelspacing)
-					+ i / interleave * interleave * channelspacing
-					+ i % interleave
-					+ interleave * channel), stream.streamfile);
-		}
-
-		decode_ngc_dsp_subint_internal(stream, outbuf, channelspacing, first_sample, samples_to_do, frame);
-	}
-
-
-	/*
-	 * The original DSP spec uses nibble counts for loop points, and some
-	 * variants don't have a proper sample count, so we (who are interested
-	 * in sample counts) need to do this conversion occasionally.
-	 */
-	public static int dsp_nibbles_to_samples(int nibbles)
-	{
-		int whole_frames = nibbles / 16;
-		int remainder = nibbles % 16;
-
-		if (remainder > 0) return whole_frames * 14 + remainder - 2;
-		else return whole_frames * 14;
-	}
-
-	public static int dsp_bytes_to_samples(int bytes, int channels)
-	{
-		if (channels <= 0) return 0;
-		return bytes / channels / 8 * 14;
-	}
-
-	/* host endian independent multi-byte integer reading */
-	public static short get_16bitBE(Span<byte> p)
-	{
-		return (short)(((ushort)p[0] << 8) | ((ushort)p[1]));
-	}
-
-	public static short get_16bitLE(Span<byte> p)
-	{
-		return (short)(((ushort)p[0]) | ((ushort)p[1] << 8));
-	}
-
-	public static short read_16bitLE(int offset, StreamFile sf)
-	{
-		byte[] buf = new byte[2];
-
-		if (read_streamfile(buf, offset, 2, sf) != 2) return -1;
-		return get_16bitLE(buf);
-	}
-	public static short read_16bitBE(int offset, StreamFile sf)
-	{
-		byte[] buf = new byte[2];
-
-		if (read_streamfile(buf, offset, 2, sf) != 2) return -1;
-		return get_16bitBE(buf);
-	}
-
-	/* reads DSP coefs built in the streamfile */
-	public static void dsp_read_coefs_be(Stream vgmstream, StreamFile streamFile, int offset, int spacing)
-	{
-		dsp_read_coefs(vgmstream, streamFile, offset, spacing, 1);
-	}
-	public static void dsp_read_coefs_le(Stream vgmstream, StreamFile streamFile, int offset, int spacing)
-	{
-		dsp_read_coefs(vgmstream, streamFile, offset, spacing, 0);
-	}
-	public static void dsp_read_coefs(Stream vgmstream, StreamFile streamFile, int offset, int spacing, int be)
-	{
-		int ch, i;
-		/* get ADPCM coefs */
-		for (ch = 0; ch < vgmstream.channels; ch++)
-		{
-			for (i = 0; i < 16; i++)
-			{
-				vgmstream.ch[ch].adpcm_coef[i] = be != 0 ?
-						read_16bitBE(offset + ch * spacing + i * 2, streamFile) :
-						read_16bitLE(offset + ch * spacing + i * 2, streamFile);
-			}
-		}
-	}
-
-	/* reads DSP initial hist built in the streamfile */
-	public static void dsp_read_hist_be(Stream vgmstream, StreamFile streamFile, int offset, int spacing)
-	{
-		dsp_read_hist(vgmstream, streamFile, offset, spacing, 1);
-	}
-	public static void dsp_read_hist_le(Stream vgmstream, StreamFile streamFile, int offset, int spacing)
-	{
-		dsp_read_hist(vgmstream, streamFile, offset, spacing, 0);
-	}
-	public static void dsp_read_hist(Stream vgmstream, StreamFile streamFile, int offset, int spacing, int be)
-	{
-		int ch;
-		/* get ADPCM hist */
-		for (ch = 0; ch < vgmstream.channels; ch++)
-		{
-			vgmstream.ch[ch].adpcm_history1_16 = be != 0 ?
-					read_16bitBE(offset + ch * spacing + 0 * 2, streamFile) :
-					read_16bitLE(offset + ch * spacing + 0 * 2, streamFile); ;
-			vgmstream.ch[ch].adpcm_history2_16 = be != 0 ?
-					read_16bitBE(offset + ch * spacing + 1 * 2, streamFile) :
-					read_16bitLE(offset + ch * spacing + 1 * 2, streamFile); ;
-		}
-	}
-
-
-	#endregion
 
 	#endregion
 

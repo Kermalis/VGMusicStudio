@@ -96,7 +96,7 @@ internal sealed class DSEChannel
 					case "wds ": throw new NotImplementedException("The base timer for the WDS type is not yet implemented."); // PlayStation
 					case "swdm": throw new NotImplementedException("The base timer for the SWDM type is not yet implemented."); // PlayStation 2
 					case "swdl": BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo!.SampleRate); break; // Nintendo DS
-					case "swdb": BaseTimer = 380; break; // Wii
+					case "swdb": BaseTimer = (ushort)(_sample.WavInfo!.SampleRate / 116); break; // Wii // The best I can get is setting the BaseTimer to 380
 				}
 				if (_sample.WavInfo!.SampleFormat == SampleFormat.ADPCM)
 				{
@@ -444,11 +444,11 @@ internal sealed class DSEChannel
 				case "swdb":
 					{
 						// If hit end
-						if (_dataOffset >= _sample!.DSPADPCM!.DataOutput!.Length)
+						if (_dataOffset >= DSPADPCM.NibblesToSamples((int)_sample!.WavInfo!.LoopEnd)) // Wii DSE always reads the LoopEnd address (in nibbles) when looping is enabled for a SWD entry, instead of reading until the end of the sample data
 						{
 							if (_sample.WavInfo!.Loop)
 							{
-								_dataOffset = (int)(_sample.WavInfo.LoopStart / 2); // Wii values for LoopStart are counted 8-bits at a time, but because DataOutput is using a 16-bit array, LoopStart needs to be divided by 2
+								_dataOffset = DSPADPCM.NibblesToSamples((int)_sample.WavInfo.LoopStart); // Wii values for LoopStart offset are counted in nibbles (4-bits or half a byte) at a time, but because DataOutput is using a 16-bit array, LoopStart value needs to be converted to a 16-bit PCM sample offset
 							}
 							else
 							{
@@ -457,8 +457,8 @@ internal sealed class DSEChannel
 								return;
 							}
 						}
-                        short samp = _sample.DSPADPCM!.DataOutput![_dataOffset++]; // Since DataOutput is already a 16-bit array, only one array entry is needed per loop, no bitshifting needed either
-                        samp = (short)(samp * Volume / 0x7F);
+						short samp = _sample.DSPADPCM!.DataOutput![_dataOffset++]; // Since DataOutput is already a 16-bit array, only one array entry is needed per loop, no bitshifting needed either
+						samp = (short)(samp * Volume / 0x7F);
 						_prevLeft = (short)(samp * (-Panpot + 0x40) / 0x80);
 						_prevRight = (short)(samp * (Panpot + 0x40) / 0x80);
 						break;

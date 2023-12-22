@@ -80,7 +80,7 @@ internal sealed class SMD
 		public ushort TicksPerQuarter { get; set; }
 		public byte[] Unknown2 { get; set; }
 		public byte NumTracks { get; set; }
-		public byte NumChannels { get; set; }
+		public byte Channel { get; set; }
 		public byte[] Unknown3 { get; set; }
 
 		public SongChunk(EndianBinaryReader r)
@@ -97,7 +97,7 @@ internal sealed class SMD
 
 			NumTracks = r.ReadByte();
 
-			NumChannels = r.ReadByte();
+			Channel = r.ReadByte();
 
 			Unknown3 = new byte[40];
 			r.ReadBytes(Unknown3);

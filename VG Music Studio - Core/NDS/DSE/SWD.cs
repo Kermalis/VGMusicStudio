@@ -899,14 +899,14 @@ internal sealed class SWD
 								{
 									WavInfo = wavInfo, // This is the only variable we can use for this initializer declarator, since the samples are DSP-ADPCM compressed
 								};
-								r.Stream.Position = pcmdDataOffset + wavInfo.SampleOffset; // This sets the EndianBinaryReader stream position offset to the encoded DSP-ADPCM data
+								r.Stream.Position = pcmdDataOffset + wavInfo.SampleOffset; // This sets the EndianBinaryReader stream position offset to the DSP-ADPCM header
 
-								samples[i].DSPADPCM = new DSPADPCM(r, 1, false); // Reads the entire DSP-ADPCM header and encoded data
+								samples[i].DSPADPCM = new DSPADPCM(r, null); // Reads the entire DSP-ADPCM header and encoded data, also the SWD spec doesn't define number of channels
 								samples[i].DSPADPCM.Decode(); // Decodes all bytes into PCM16 data
 #if DEBUG
 								// This is for dumping both the encoded and decoded samples, for ensuring that the decoder works correctly
 								new FileInfo("./ExtractedSamples/" + FileName + "/dsp/").Directory!.Create();
-								File.WriteAllBytes("./ExtractedSamples/" + FileName + "/dsp/" + "sample" + i.ToString() + ".dsp", [.. samples[i].DSPADPCM.Info.ToBytes(), .. samples[i].DSPADPCM.Data]);
+								File.WriteAllBytes("./ExtractedSamples/" + FileName + "/dsp/" + "sample" + i.ToString() + ".dsp", [.. samples[i].DSPADPCM.Info[0].ToBytes(), .. samples[i].DSPADPCM.Data]);
 								new FileInfo("./ExtractedSamples/" + FileName + "/wav/").Directory!.Create();
 								File.WriteAllBytes("./ExtractedSamples/" + FileName + "/wav/" + "sample" + i.ToString() + ".wav", samples[i].DSPADPCM.ConvertToWav());
 #endif
