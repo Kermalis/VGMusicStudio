@@ -9,7 +9,7 @@ public sealed class DSEConfig : Config
 {
 	public readonly string SMDPath;
 	public readonly string[] SMDFiles;
-	internal SMD.Header Header;
+	internal SMD.Header? Header;
 
 	internal DSEConfig(string smdPath)
 	{
@@ -24,24 +24,22 @@ public sealed class DSEConfig : Config
 		var songs = new List<Song>(SMDFiles.Length);
 		for (int i = 0; i < SMDFiles.Length; i++)
 		{
-			using (FileStream stream = File.OpenRead(SMDFiles[i]))
+			using FileStream stream = File.OpenRead(SMDFiles[i]);
+			// This will read the SMD header to determine if the majority of the file is little endian or big endian
+			var r = new EndianBinaryReader(stream, ascii: true);
+			Header = new SMD.Header(r);
+			if (Header.Type == "smdl")
 			{
-				// This will read the SMD header to determine if the majority of the file is little endian or big endian
-				var r = new EndianBinaryReader(stream, ascii: true);
-				Header = new SMD.Header(r);
-				if(Header.Type == "smdl")
-				{
-					char[] chars = Header.Label.ToCharArray();
-					EndianBinaryPrimitives.TrimNullTerminators(ref chars);
-					songs.Add(new Song(i, $"{Path.GetFileNameWithoutExtension(SMDFiles[i])} - {new string(chars)}"));
-				}
-				else if(Header.Type == "smdb")
-				{
-					r.Endianness = Endianness.BigEndian;
-					char[] chars = Header.Label.ToCharArray();
-					EndianBinaryPrimitives.TrimNullTerminators(ref chars);
-					songs.Add(new Song(i, $"{Path.GetFileNameWithoutExtension(SMDFiles[i])} - {new string(chars)}"));
-				}
+				char[] chars = Header.Label.ToCharArray();
+				EndianBinaryPrimitives.TrimNullTerminators(ref chars);
+				songs.Add(new Song(i, $"{Path.GetFileNameWithoutExtension(SMDFiles[i])} - {new string(chars)}"));
+			}
+			else if (Header.Type == "smdb")
+			{
+				r.Endianness = Endianness.BigEndian;
+				char[] chars = Header.Label.ToCharArray();
+				EndianBinaryPrimitives.TrimNullTerminators(ref chars);
+				songs.Add(new Song(i, $"{Path.GetFileNameWithoutExtension(SMDFiles[i])} - {new string(chars)}"));
 			}
 		}
 		Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));

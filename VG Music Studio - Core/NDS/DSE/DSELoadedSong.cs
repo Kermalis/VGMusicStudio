@@ -3,7 +3,6 @@ using Kermalis.VGMusicStudio.Core.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using static Kermalis.VGMusicStudio.Core.NDS.DSE.SMD;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
@@ -16,6 +15,8 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 	private readonly DSEPlayer _player;
 	private readonly SWD? LocalSWD;
 	private readonly byte[] SMDFile;
+	public SMD.SongChunk SongChunk;
+	public SMD.Header Header;
 	public readonly DSETrack[] Tracks;
 
 	public DSELoadedSong(DSEPlayer player, string bgm)
@@ -30,28 +31,26 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 		}
 
 		SMDFile = File.ReadAllBytes(bgm);
-		using (var stream = new MemoryStream(SMDFile))
+		using var stream = new MemoryStream(SMDFile);
+		var r = new EndianBinaryReader(stream, ascii: true);
+		Header = new SMD.Header(r);
+		if (Header.Version != 0x415) { throw new DSEInvalidHeaderVersionException(Header.Version); }
+		SongChunk = new SMD.SongChunk(r);
+
+		Tracks = new DSETrack[SongChunk.NumTracks];
+		Events = new List<SongEvent>[SongChunk.NumTracks];
+		for (byte trackIndex = 0; trackIndex < SongChunk.NumTracks; trackIndex++)
 		{
-			var r = new EndianBinaryReader(stream, ascii: true);
-			Header header = new Header(r);
-			if (header.Version != 0x415) { throw new DSEInvalidHeaderVersionException(header.Version); }
-			SongChunk songChunk = new SongChunk(r);
+			long chunkStart = r.Stream.Position;
+			r.Stream.Position += 0x14; // Skip header
+			Tracks[trackIndex] = new DSETrack(trackIndex, (int)r.Stream.Position);
 
-			Tracks = new DSETrack[songChunk.NumTracks];
-			Events = new List<SongEvent>[songChunk.NumTracks];
-			for (byte trackIndex = 0; trackIndex < songChunk.NumTracks; trackIndex++)
-			{
-				long chunkStart = r.Stream.Position;
-				r.Stream.Position += 0x14; // Skip header
-				Tracks[trackIndex] = new DSETrack(trackIndex, (int)r.Stream.Position);
+			AddTrackEvents(trackIndex, r);
 
-				AddTrackEvents(trackIndex, r);
-
-				r.Stream.Position = chunkStart + 0xC;
-				uint chunkLength = r.ReadUInt32();
-				r.Stream.Position += chunkLength;
-				r.Stream.Align(4);
-			}
+			r.Stream.Position = chunkStart + 0xC;
+			uint chunkLength = r.ReadUInt32();
+			r.Stream.Position += chunkLength;
+			r.Stream.Align(4);
 		}
 	}
 }

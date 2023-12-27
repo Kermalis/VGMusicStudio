@@ -19,6 +19,7 @@ internal sealed class DSEChannel
 	public ushort Timer;
 	public uint NoteLength;
 	public byte Volume;
+	public static readonly float Root12Of2 = MathF.Pow(2, 1f / 12);
 
 	private int _pos;
 	private short _prevLeft;
@@ -37,11 +38,11 @@ internal sealed class DSEChannel
 	private byte _decay2;
 	private byte _release;
 
-	// PCM8, PCM16, ADPCM, DSP-ADPCM
+	// PCM8, PCM16, IMA-ADPCM, DSP-ADPCM
 	private SWD.SampleBlock? _sample;
 	// PCM8, PCM16
 	private int _dataOffset;
-	// ADPCM
+	// IMA-ADPCM
 	private IMAADPCM _adpcmDecoder;
 	private short _adpcmLoopLastSample;
 	private short _adpcmLoopStepIndex;
@@ -57,7 +58,7 @@ internal sealed class DSEChannel
 		Index = i;
 	}
 
-	public bool StartPCM(SWD localswd, SWD masterswd, byte voice, int key, uint noteLength)
+	public bool StartPCM(SWD localswd, SWD masterswd, ushort ticksPerQuarter, byte voice, int key, int note, uint noteLength)
 	{
 		if (localswd == null) { SWDType = masterswd.Type; }
 		else { SWDType = localswd.Type; }
@@ -91,12 +92,12 @@ internal sealed class DSEChannel
 			RootKey = split.SampleRootKey;
 			if (_sample != null)
 			{
-				switch (SWDType) // Configures the base timer based on the specific console's CPU and sample rate
+				switch (SWDType) // Configures the base timer based on the specific console's sound framework and sample rate
 				{
 					case "wds ": throw new NotImplementedException("The base timer for the WDS type is not yet implemented."); // PlayStation
 					case "swdm": throw new NotImplementedException("The base timer for the SWDM type is not yet implemented."); // PlayStation 2
-					case "swdl": BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo!.SampleRate); break; // Nintendo DS
-					case "swdb": BaseTimer = (ushort)(_sample.WavInfo!.SampleRate / 116); break; // Wii // The best I can get is setting the BaseTimer to 380
+					case "swdl": BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo!.SampleRate); break; // Nintendo DS // Time Base algorithm is the ARM7 CPU clock rate divided by SampleRate
+					case "swdb": BaseTimer = (ushort)(ticksPerQuarter * ticksPerQuarter * 7.1 / (_sample.WavInfo!.SampleRate >> 8)); break; // Wii // Time Base algorithm is TicksPerQuarterNote multiplied by TicksPerQuarterNote Length, multiplied by 7.1, divided by a SampleRate that's made smaller with Rsh by 8
 				}
 				if (_sample.WavInfo!.SampleFormat == SampleFormat.ADPCM)
 				{

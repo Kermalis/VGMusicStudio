@@ -1130,26 +1130,58 @@ internal sealed partial class DSELoadedSong
 				goto finish;
 			}
 
-			while (_player.TempoStack >= 240)
+			switch (Header.Type)
 			{
-				_player.TempoStack -= 240;
-				for (int trackIndex = 0; trackIndex < Tracks.Length; trackIndex++)
-				{
-					DSETrack track = Tracks[trackIndex];
-					if (!track.Stopped)
+				case "smdl":
 					{
-						track.Tick();
-						while (track.Rest == 0 && !track.Stopped)
+						while (_player.TempoStack >= 240)
 						{
-							ExecuteNext(track);
+							_player.TempoStack -= 240;
+							for (int trackIndex = 0; trackIndex < Tracks.Length; trackIndex++)
+							{
+								DSETrack track = Tracks[trackIndex];
+								if (!track.Stopped)
+								{
+									track.Tick();
+									while (track.Rest == 0 && !track.Stopped)
+									{
+										ExecuteNext(track);
+									}
+								}
+							}
+							_player.ElapsedTicks++;
+							if (_player.ElapsedTicks == ticks)
+							{
+								goto finish;
+							}
 						}
+						break;
 					}
-				}
-				_player.ElapsedTicks++;
-				if (_player.ElapsedTicks == ticks)
-				{
-					goto finish;
-				}
+				case "smdb":
+					{
+						while (_player.TempoStack >= 120)
+						{
+							_player.TempoStack -= 120;
+							for (int trackIndex = 0; trackIndex < Tracks.Length; trackIndex++)
+							{
+								DSETrack track = Tracks[trackIndex];
+								if (!track.Stopped)
+								{
+									track.Tick();
+									while (track.Rest == 0 && !track.Stopped)
+									{
+										ExecuteNext(track);
+									}
+								}
+							}
+							_player.ElapsedTicks++;
+							if (_player.ElapsedTicks == ticks)
+							{
+								goto finish;
+							}
+						}
+						break;
+					}
 			}
 			_player.TempoStack += _player.Tempo;
 		}
