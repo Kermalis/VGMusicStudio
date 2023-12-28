@@ -10,11 +10,11 @@ public sealed class DSEEngine : Engine
 	public override DSEMixer Mixer { get; }
 	public override DSEPlayer Player { get; }
 
-	public DSEEngine(string mainSWDFile, string bgmPath)
+	public DSEEngine(string[] SWDFiles, string bgmPath)
 	{
 		Config = new DSEConfig(bgmPath);
 		Mixer = new DSEMixer();
-		Player = new DSEPlayer(mainSWDFile, Config, Mixer);
+		Player = new DSEPlayer(SWDFiles, Config, Mixer);
 
 		DSEInstance = this;
 		Instance = this;

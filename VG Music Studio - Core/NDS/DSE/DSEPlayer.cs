@@ -10,6 +10,7 @@ public sealed class DSEPlayer : Player
 	private readonly DSEConfig _config;
 	internal readonly DSEMixer DMixer;
 	internal readonly SWD MainSWD;
+	internal readonly SWD? LocalSWD;
 	private DSELoadedSong? _loadedSong;
 
 	internal byte Tempo;
@@ -19,13 +20,17 @@ public sealed class DSEPlayer : Player
 	public override ILoadedSong? LoadedSong => _loadedSong;
 	protected override Mixer Mixer => DMixer;
 
-	public DSEPlayer(string mainSWDFile, DSEConfig config, DSEMixer mixer)
+	public DSEPlayer(string[] SWDFiles, DSEConfig config, DSEMixer mixer)
 		: base(192)
 	{
 		DMixer = mixer;
 		_config = config;
 
-		MainSWD = new SWD(mainSWDFile);
+		MainSWD = new SWD(SWDFiles[0]);
+		if (SWDFiles.Length > 1 )
+		{
+			LocalSWD = new SWD(SWDFiles[1]);
+		}
 	}
 
 	public override void LoadSong(int index)

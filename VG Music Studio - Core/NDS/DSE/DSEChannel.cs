@@ -58,7 +58,7 @@ internal sealed class DSEChannel
 		Index = i;
 	}
 
-	public bool StartPCM(SWD localswd, SWD masterswd, ushort ticksPerQuarter, byte voice, int key, int note, uint noteLength)
+	public bool StartPCM(SWD localswd, SWD masterswd, byte voice, int key, uint noteLength)
 	{
 		if (localswd == null) { SWDType = masterswd.Type; }
 		else { SWDType = localswd.Type; }
@@ -70,6 +70,10 @@ internal sealed class DSEChannel
 			// This is especially important for initializing a main SWD before the local SWDs
 			// accompaning the SMDs with the same names are loaded in.
 			if (masterswd.Programs != null) { programInfo = masterswd.Programs!.ProgramInfos![voice]; }
+		}
+		else if (voice > localswd.Programs!.ProgramInfos!.Length)
+		{
+			programInfo = masterswd.Programs!.ProgramInfos![voice];
 		}
 		else { programInfo = localswd.Programs!.ProgramInfos![voice]; }
 
@@ -97,7 +101,7 @@ internal sealed class DSEChannel
 					case "wds ": throw new NotImplementedException("The base timer for the WDS type is not yet implemented."); // PlayStation
 					case "swdm": throw new NotImplementedException("The base timer for the SWDM type is not yet implemented."); // PlayStation 2
 					case "swdl": BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo!.SampleRate); break; // Nintendo DS // Time Base algorithm is the ARM7 CPU clock rate divided by SampleRate
-					case "swdb": BaseTimer = (ushort)(ticksPerQuarter * ticksPerQuarter * 7.1 / (_sample.WavInfo!.SampleRate >> 8)); break; // Wii // Time Base algorithm is TicksPerQuarterNote multiplied by TicksPerQuarterNote Length, multiplied by 7.1, divided by a SampleRate that's made smaller with Rsh by 8
+					case "swdb": BaseTimer = (ushort)(256 * 65536 / _sample.WavInfo!.SampleRate); break; // Wii // The AX Time Base algorithm is 256 multiplied by 65536, divided by SampleRate
 				}
 				if (_sample.WavInfo!.SampleFormat == SampleFormat.ADPCM)
 				{

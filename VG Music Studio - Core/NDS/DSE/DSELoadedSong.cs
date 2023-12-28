@@ -24,10 +24,17 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 		_player = player;
 		//StringComparison comparison = StringComparison.CurrentCultureIgnoreCase;
 
-		// Check if a local SWD is accompaning a SMD
-		if (new FileInfo(Path.ChangeExtension(bgm, "swd")).Exists)
+		if (_player.LocalSWD != null)
 		{
-			LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd")); // If it exists, this will be loaded as the local SWD
+			LocalSWD = _player.LocalSWD;
+		}
+		else
+		{
+			// Check if a local SWD is accompaning a SMD
+			if (new FileInfo(Path.ChangeExtension(bgm, "swd")).Exists)
+			{
+				LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd")); // If it exists, this will be loaded as the local SWD
+			}
 		}
 
 		SMDFile = File.ReadAllBytes(bgm);

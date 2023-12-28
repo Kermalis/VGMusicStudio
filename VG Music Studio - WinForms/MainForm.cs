@@ -264,7 +264,7 @@ internal sealed class MainForm : ThemedForm
 
 	private void OpenDSE(object? sender, EventArgs e)
 	{
-		var f = WinFormsUtils.CreateLoadDialog(".swd", Strings.MenuOpenSWD, Strings.FilterOpenSWD + " (*.swd)|*.swd");
+		var f = WinFormsUtils.CreateLoadMultipleDialog(".swd", Strings.MenuOpenSWD, Strings.FilterOpenSWD + " (*.swd)|*.swd");
 		if (f is null)
 		{
 			return;
@@ -282,7 +282,7 @@ internal sealed class MainForm : ThemedForm
 		DisposeEngine();
 		try
 		{
-			_ = new DSEEngine(f.ToString(), d.SelectedPath);
+			_ = new DSEEngine([.. f], d.SelectedPath);
 		}
 		catch (Exception ex)
 		{

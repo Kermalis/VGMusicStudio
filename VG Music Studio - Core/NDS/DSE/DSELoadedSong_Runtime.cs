@@ -45,7 +45,7 @@ internal sealed partial class DSELoadedSong
 
 			channel.Stop();
 			track.Octave = (byte)(track.Octave + oct);
-			if (channel.StartPCM(LocalSWD!, _player.MainSWD, SongChunk.TicksPerQuarter, track.Voice, n + (12 * track.Octave), n, duration))
+			if (channel.StartPCM(LocalSWD!, _player.MainSWD, track.Voice, n + (12 * track.Octave), duration))
 			{
 				channel.NoteVelocity = cmd;
 				channel.Owner = track;

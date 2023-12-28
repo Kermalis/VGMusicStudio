@@ -55,7 +55,25 @@ internal static class WinFormsUtils
 		}
 		return null;
 	}
-	public static string? CreateSaveDialog(string fileName, string extension, string title, string filter)
+    public static string[]? CreateLoadMultipleDialog(string extension, string title, string filter)
+    {
+        var d = new OpenFileDialog
+        {
+            DefaultExt = extension,
+            ValidateNames = true,
+			Multiselect = true,
+            CheckFileExists = true,
+            CheckPathExists = true,
+            Title = title,
+            Filter = $"{filter}|All files (*.*)|*.*",
+        };
+        if (d.ShowDialog() == DialogResult.OK)
+        {
+            return d.FileNames;
+        }
+        return null;
+    }
+    public static string? CreateSaveDialog(string fileName, string extension, string title, string filter)
 	{
 		var d = new SaveFileDialog
 		{
