@@ -1,3 +1,21 @@
+A2NE_00:
+  Name: "Sonic Advance 2 (USA)"
+  SongTableOffsets: 0xAD4F4C
+  SongTableSizes: 507
+  SampleRate: 2
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
+A2NP_00:
+  Name: "Sonic Advance 2 (Europe)"
+  SongTableOffsets: 0xAD4F4C
+  Copy: "A2NE_00"
+A2NJ_00:
+  Name: "Sonic Advance 2 (Japan)"
+  SongTableOffsets: 0xAD4B14
+  Copy: "A2NE_00"
 A2UJ_00:
   Name: "Mother 1 + 2 (Japan)"
   SongTableOffsets: 0x10B530
