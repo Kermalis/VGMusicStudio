@@ -260,3 +260,10 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/ObjectListView
+/.vscode
+/VG Music Studio - Core/GBA/AlphaDream/AlphaDreamChannel.cs
+/VG Music Studio - Core/GBA/MP2K/MP2KChannel.cs
+/VG Music Studio - WinForms/ObjectListView
+/VG Music Studio - WinForms/API
+/VG Music Studio - MIDI

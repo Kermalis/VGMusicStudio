@@ -85,6 +85,14 @@ internal sealed class RestCommand : ICommand
 
 	public uint Rest { get; set; }
 }
+internal sealed class CheckIntervalCommand : ICommand
+{
+	public Color Color => Color.DarkViolet;
+	public string Label => "Check Interval";
+	public string Arguments => Interval.ToString();
+
+	public uint Interval { get; set; }
+}
 internal sealed class SkipBytesCommand : ICommand
 {
 	public Color Color => Color.MediumVioletRed;

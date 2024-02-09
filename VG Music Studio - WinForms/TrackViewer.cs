@@ -23,7 +23,7 @@ internal sealed class TrackViewer : ThemedForm
 		const int H = 400 - 12 - 11;
 
 		_listView = new ObjectListView
-		{
+        {
 			FullRowSelect = true,
 			HeaderStyle = ColumnHeaderStyle.Nonclickable,
 			HideSelection = false,

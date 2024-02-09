@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
@@ -8,7 +9,8 @@ public sealed class DSEPlayer : Player
 
 	private readonly DSEConfig _config;
 	internal readonly DSEMixer DMixer;
-	internal readonly SWD MasterSWD;
+	internal readonly SWD MainSWD;
+	internal readonly SWD? LocalSWD;
 	private DSELoadedSong? _loadedSong;
 
 	internal byte Tempo;
@@ -18,13 +20,17 @@ public sealed class DSEPlayer : Player
 	public override ILoadedSong? LoadedSong => _loadedSong;
 	protected override Mixer Mixer => DMixer;
 
-	public DSEPlayer(DSEConfig config, DSEMixer mixer)
+	public DSEPlayer(string[] SWDFiles, DSEConfig config, DSEMixer mixer)
 		: base(192)
 	{
 		DMixer = mixer;
 		_config = config;
 
-		MasterSWD = new SWD(Path.Combine(config.BGMPath, "bgm.swd"));
+		MainSWD = new SWD(SWDFiles[0]);
+		if (SWDFiles.Length > 1 )
+		{
+			LocalSWD = new SWD(SWDFiles[1]);
+		}
 	}
 
 	public override void LoadSong(int index)
@@ -35,7 +41,7 @@ public sealed class DSEPlayer : Player
 		}
 
 		// If there's an exception, this will remain null
-		_loadedSong = new DSELoadedSong(this, _config.BGMFiles[index]);
+		_loadedSong = new DSELoadedSong(this, _config.SMDFiles[index]);
 		_loadedSong.SetTicks();
 	}
 	public override void UpdateSongState(SongState info)
@@ -74,18 +80,42 @@ public sealed class DSEPlayer : Player
 		DSELoadedSong s = _loadedSong!;
 
 		bool allDone = false;
-		while (!allDone && TempoStack >= 240)
+		switch (_config.Header!.Type)
 		{
-			TempoStack -= 240;
-			allDone = true;
-			for (int i = 0; i < s.Tracks.Length; i++)
-			{
-				TickTrack(s, s.Tracks[i], ref allDone);
-			}
-			if (DMixer.IsFadeDone())
-			{
-				allDone = true;
-			}
+			case "smdl":
+				{
+					while (!allDone && TempoStack >= 240)
+					{
+						TempoStack -= 240;
+						allDone = true;
+						for (int i = 0; i < s.Tracks.Length; i++)
+						{
+							TickTrack(s, s.Tracks[i], ref allDone);
+						}
+						if (DMixer.IsFadeDone())
+						{
+							allDone = true;
+						}
+					}
+					break;
+				}
+			case "smdb":
+				{
+					while (!allDone && TempoStack >= 120) // Wii tempo is 120 by default
+					{
+						TempoStack -= 120;
+						allDone = true;
+						for (int i = 0; i < s.Tracks.Length; i++)
+						{
+							TickTrack(s, s.Tracks[i], ref allDone);
+						}
+						if (DMixer.IsFadeDone())
+						{
+							allDone = true;
+						}
+					}
+					break;
+				}
 		}
 		if (!allDone)
 		{

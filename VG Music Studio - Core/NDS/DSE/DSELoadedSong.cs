@@ -1,5 +1,6 @@
 ﻿using Kermalis.EndianBinaryIO;
 using Kermalis.VGMusicStudio.Core.Util;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -12,51 +13,51 @@ internal sealed partial class DSELoadedSong : ILoadedSong
 	public int LongestTrack;
 
 	private readonly DSEPlayer _player;
-	private readonly SWD LocalSWD;
+	private readonly SWD? LocalSWD;
 	private readonly byte[] SMDFile;
+	public SMD.SongChunk SongChunk;
+	public SMD.Header Header;
 	public readonly DSETrack[] Tracks;
 
 	public DSELoadedSong(DSEPlayer player, string bgm)
 	{
 		_player = player;
+		//StringComparison comparison = StringComparison.CurrentCultureIgnoreCase;
 
-		LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd"));
-		SMDFile = File.ReadAllBytes(bgm);
-		using (var stream = new MemoryStream(SMDFile))
+		if (_player.LocalSWD != null)
 		{
-			var r = new EndianBinaryReader(stream, ascii: true);
-			SMD.Header header = r.ReadObject<SMD.Header>();
-			SMD.ISongChunk songChunk;
-			switch (header.Version)
+			LocalSWD = _player.LocalSWD;
+		}
+		else
+		{
+			// Check if a local SWD is accompaning a SMD
+			if (new FileInfo(Path.ChangeExtension(bgm, "swd")).Exists)
 			{
-				case 0x402:
-				{
-					songChunk = r.ReadObject<SMD.SongChunk_V402>();
-					break;
-				}
-				case 0x415:
-				{
-					songChunk = r.ReadObject<SMD.SongChunk_V415>();
-					break;
-				}
-				default: throw new DSEInvalidHeaderVersionException(header.Version);
+				LocalSWD = new SWD(Path.ChangeExtension(bgm, "swd")); // If it exists, this will be loaded as the local SWD
 			}
+		}
 
-			Tracks = new DSETrack[songChunk.NumTracks];
-			Events = new List<SongEvent>[songChunk.NumTracks];
-			for (byte trackIndex = 0; trackIndex < songChunk.NumTracks; trackIndex++)
-			{
-				long chunkStart = r.Stream.Position;
-				r.Stream.Position += 0x14; // Skip header
-				Tracks[trackIndex] = new DSETrack(trackIndex, (int)r.Stream.Position);
+		SMDFile = File.ReadAllBytes(bgm);
+		using var stream = new MemoryStream(SMDFile);
+		var r = new EndianBinaryReader(stream, ascii: true);
+		Header = new SMD.Header(r);
+		if (Header.Version != 0x415) { throw new DSEInvalidHeaderVersionException(Header.Version); }
+		SongChunk = new SMD.SongChunk(r);
 
-				AddTrackEvents(trackIndex, r);
+		Tracks = new DSETrack[SongChunk.NumTracks];
+		Events = new List<SongEvent>[SongChunk.NumTracks];
+		for (byte trackIndex = 0; trackIndex < SongChunk.NumTracks; trackIndex++)
+		{
+			long chunkStart = r.Stream.Position;
+			r.Stream.Position += 0x14; // Skip header
+			Tracks[trackIndex] = new DSETrack(trackIndex, (int)r.Stream.Position);
 
-				r.Stream.Position = chunkStart + 0xC;
-				uint chunkLength = r.ReadUInt32();
-				r.Stream.Position += chunkLength;
-				r.Stream.Align(16);
-			}
+			AddTrackEvents(trackIndex, r);
+
+			r.Stream.Position = chunkStart + 0xC;
+			uint chunkLength = r.ReadUInt32();
+			r.Stream.Position += chunkLength;
+			r.Stream.Align(4);
 		}
 	}
 }

@@ -1,10 +1,15 @@
-﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
+﻿using Kermalis.VGMusicStudio.Core.Codec;
+using Kermalis.VGMusicStudio.Core.Wii;
+using System;
+
+namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
 internal sealed class DSEChannel
 {
 	public readonly byte Index;
 
 	public DSETrack? Owner;
+	public string? SWDType;
 	public EnvelopeState State;
 	public byte RootKey;
 	public byte Key;
@@ -14,6 +19,7 @@ internal sealed class DSEChannel
 	public ushort Timer;
 	public uint NoteLength;
 	public byte Volume;
+	public static readonly float Root12Of2 = MathF.Pow(2, 1f / 12);
 
 	private int _pos;
 	private short _prevLeft;
@@ -32,14 +38,19 @@ internal sealed class DSEChannel
 	private byte _decay2;
 	private byte _release;
 
-	// PCM8, PCM16, ADPCM
-	private SWD.SampleBlock _sample;
+	// PCM8, PCM16, IMA-ADPCM, DSP-ADPCM
+	private SWD.SampleBlock? _sample;
 	// PCM8, PCM16
 	private int _dataOffset;
-	// ADPCM
-	private ADPCMDecoder _adpcmDecoder;
+	// IMA-ADPCM
+	private IMAADPCM _adpcmDecoder;
 	private short _adpcmLoopLastSample;
 	private short _adpcmLoopStepIndex;
+	// DSP-ADPCM
+	private DSPADPCM _dspADPCM;
+	// PSG
+	private byte _psgDuty;
+	private int _psgCounter;
 
 	public DSEChannel(byte i)
 	{
@@ -49,7 +60,23 @@ internal sealed class DSEChannel
 
 	public bool StartPCM(SWD localswd, SWD masterswd, byte voice, int key, uint noteLength)
 	{
-		SWD.IProgramInfo? programInfo = localswd.Programs?.ProgramInfos[voice];
+		if (localswd == null) { SWDType = masterswd.Type; }
+		else { SWDType = localswd.Type; }
+		
+		SWD.IProgramInfo? programInfo = null; // Declaring Program Info Interface here, to ensure VGMS compiles
+		if (localswd == null)
+		{
+			// Failsafe to check if SWD.ProgramBank contains an instance, if it doesn't, it will be skipped
+			// This is especially important for initializing a main SWD before the local SWDs
+			// accompaning the SMDs with the same names are loaded in.
+			if (masterswd.Programs != null) { programInfo = masterswd.Programs!.ProgramInfos![voice]; }
+		}
+		else if (voice > localswd.Programs!.ProgramInfos!.Length)
+		{
+			programInfo = masterswd.Programs!.ProgramInfos![voice];
+		}
+		else { programInfo = localswd.Programs!.ProgramInfos![voice]; }
+
 		if (programInfo is null)
 		{
 			return false;
@@ -63,47 +90,82 @@ internal sealed class DSEChannel
 				continue;
 			}
 
+			//if (_sample == null) { throw new NullReferenceException("Null Reference Exception:\n\nThere's no data associated with this Sample Block in this SWD. Please check to make sure the samples are being read correctly.\n\nCall Stack:"); }
 			_sample = masterswd.Samples![split.SampleId];
 			Key = (byte)key;
 			RootKey = split.SampleRootKey;
-			BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo.SampleRate);
-			if (_sample.WavInfo.SampleFormat == SampleFormat.ADPCM)
+			if (_sample != null)
 			{
-				_adpcmDecoder.Init(_sample.Data);
+				switch (SWDType) // Configures the base timer based on the specific console's sound framework and sample rate
+				{
+					case "wds ": throw new NotImplementedException("The base timer for the WDS type is not yet implemented."); // PlayStation
+					case "swdm": throw new NotImplementedException("The base timer for the SWDM type is not yet implemented."); // PlayStation 2
+					case "swdl": BaseTimer = (ushort)(NDSUtils.ARM7_CLOCK / _sample.WavInfo!.SampleRate); break; // Nintendo DS // Time Base algorithm is the ARM7 CPU clock rate divided by SampleRate
+					case "swdb": BaseTimer = (ushort)(256 * 65536 / _sample.WavInfo!.SampleRate); break; // Wii // The AX Time Base algorithm is 256 multiplied by 65536, divided by SampleRate
+				}
+				if (_sample.WavInfo!.SampleFormat == SampleFormat.ADPCM)
+				{
+					_adpcmDecoder.Init(_sample.Data!);
+				}
+				if (masterswd.Type == "swdb")
+				{
+					_dspADPCM.Init(_sample.DSPADPCM.Data, _sample.DSPADPCM.Info);
+				}
+				//attackVolume = sample.WavInfo.AttackVolume == 0 ? split.AttackVolume : sample.WavInfo.AttackVolume;
+				//attack = sample.WavInfo.Attack == 0 ? split.Attack : sample.WavInfo.Attack;
+				//decay = sample.WavInfo.Decay == 0 ? split.Decay : sample.WavInfo.Decay;
+				//sustain = sample.WavInfo.Sustain == 0 ? split.Sustain : sample.WavInfo.Sustain;
+				//hold = sample.WavInfo.Hold == 0 ? split.Hold : sample.WavInfo.Hold;
+				//decay2 = sample.WavInfo.Decay2 == 0 ? split.Decay2 : sample.WavInfo.Decay2;
+				//release = sample.WavInfo.Release == 0 ? split.Release : sample.WavInfo.Release;
+				//attackVolume = split.AttackVolume == 0 ? sample.WavInfo.AttackVolume : split.AttackVolume;
+				//attack = split.Attack == 0 ? sample.WavInfo.Attack : split.Attack;
+				//decay = split.Decay == 0 ? sample.WavInfo.Decay : split.Decay;
+				//sustain = split.Sustain == 0 ? sample.WavInfo.Sustain : split.Sustain;
+				//hold = split.Hold == 0 ? sample.WavInfo.Hold : split.Hold;
+				//decay2 = split.Decay2 == 0 ? sample.WavInfo.Decay2 : split.Decay2;
+				//release = split.Release == 0 ? sample.WavInfo.Release : split.Release;
+				_attackVolume = split.AttackVolume == 0 ? _sample.WavInfo.AttackVolume == 0 ? (byte)0x7F : _sample.WavInfo.AttackVolume : split.AttackVolume;
+				_attack = split.Attack == 0 ? _sample.WavInfo.Attack == 0 ? (byte)0x7F : _sample.WavInfo.Attack : split.Attack;
+				_decay = split.Decay1 == 0 ? _sample.WavInfo.Decay1 == 0 ? (byte)0x7F : _sample.WavInfo.Decay1 : split.Decay1;
+				_sustain = split.Sustain == 0 ? _sample.WavInfo.Sustain == 0 ? (byte)0x7F : _sample.WavInfo.Sustain : split.Sustain;
+				_hold = split.Hold == 0 ? _sample.WavInfo.Hold == 0 ? (byte)0x7F : _sample.WavInfo.Hold : split.Hold;
+				_decay2 = split.Decay2 == 0 ? _sample.WavInfo.Decay2 == 0 ? (byte)0x7F : _sample.WavInfo.Decay2 : split.Decay2;
+				_release = split.Release == 0 ? _sample.WavInfo.Release == 0 ? (byte)0x7F : _sample.WavInfo.Release : split.Release;
+				DetermineEnvelopeStartingPoint();
+				_pos = 0;
+				_prevLeft = _prevRight = 0;
+				NoteLength = noteLength;
+				return true;
 			}
-			//attackVolume = sample.WavInfo.AttackVolume == 0 ? split.AttackVolume : sample.WavInfo.AttackVolume;
-			//attack = sample.WavInfo.Attack == 0 ? split.Attack : sample.WavInfo.Attack;
-			//decay = sample.WavInfo.Decay == 0 ? split.Decay : sample.WavInfo.Decay;
-			//sustain = sample.WavInfo.Sustain == 0 ? split.Sustain : sample.WavInfo.Sustain;
-			//hold = sample.WavInfo.Hold == 0 ? split.Hold : sample.WavInfo.Hold;
-			//decay2 = sample.WavInfo.Decay2 == 0 ? split.Decay2 : sample.WavInfo.Decay2;
-			//release = sample.WavInfo.Release == 0 ? split.Release : sample.WavInfo.Release;
-			//attackVolume = split.AttackVolume == 0 ? sample.WavInfo.AttackVolume : split.AttackVolume;
-			//attack = split.Attack == 0 ? sample.WavInfo.Attack : split.Attack;
-			//decay = split.Decay == 0 ? sample.WavInfo.Decay : split.Decay;
-			//sustain = split.Sustain == 0 ? sample.WavInfo.Sustain : split.Sustain;
-			//hold = split.Hold == 0 ? sample.WavInfo.Hold : split.Hold;
-			//decay2 = split.Decay2 == 0 ? sample.WavInfo.Decay2 : split.Decay2;
-			//release = split.Release == 0 ? sample.WavInfo.Release : split.Release;
-			_attackVolume = split.AttackVolume == 0 ? _sample.WavInfo.AttackVolume == 0 ? (byte)0x7F : _sample.WavInfo.AttackVolume : split.AttackVolume;
-			_attack = split.Attack == 0 ? _sample.WavInfo.Attack == 0 ? (byte)0x7F : _sample.WavInfo.Attack : split.Attack;
-			_decay = split.Decay == 0 ? _sample.WavInfo.Decay == 0 ? (byte)0x7F : _sample.WavInfo.Decay : split.Decay;
-			_sustain = split.Sustain == 0 ? _sample.WavInfo.Sustain == 0 ? (byte)0x7F : _sample.WavInfo.Sustain : split.Sustain;
-			_hold = split.Hold == 0 ? _sample.WavInfo.Hold == 0 ? (byte)0x7F : _sample.WavInfo.Hold : split.Hold;
-			_decay2 = split.Decay2 == 0 ? _sample.WavInfo.Decay2 == 0 ? (byte)0x7F : _sample.WavInfo.Decay2 : split.Decay2;
-			_release = split.Release == 0 ? _sample.WavInfo.Release == 0 ? (byte)0x7F : _sample.WavInfo.Release : split.Release;
-			DetermineEnvelopeStartingPoint();
-			_pos = 0;
-			_prevLeft = _prevRight = 0;
-			NoteLength = noteLength;
-			return true;
 		}
 		return false;
 	}
 
+	public void StartPSG(byte duty, uint noteDuration)
+	{
+		_sample!.WavInfo!.SampleFormat = SampleFormat.PSG;
+		_psgCounter = 0;
+		_psgDuty = duty;
+		BaseTimer = 8006; // NDSUtils.ARM7_CLOCK / 2093
+		Start(noteDuration);
+	}
+
+	private void Start(uint noteDuration)
+	{
+		State = EnvelopeState.One;
+		_velocity = -92544;
+		_pos = 0;
+		_prevLeft = _prevRight = 0;
+		NoteLength = noteDuration;
+	}
+
 	public void Stop()
 	{
-		Owner?.Channels.Remove(this);
+		if (Owner is not null)
+		{
+			Owner.Channels.Remove(this);
+		}
 		Owner = null;
 		Volume = 0;
 	}
@@ -111,9 +173,9 @@ internal sealed class DSEChannel
 	private bool CMDB1___sub_2074CA0()
 	{
 		bool b = true;
-		bool ge = _sample.WavInfo.EnvMult >= 0x7F;
-		bool ee = _sample.WavInfo.EnvMult == 0x7F;
-		if (_sample.WavInfo.EnvMult > 0x7F)
+		bool ge = _sample!.WavInfo!.EnvMulti >= 0x7F;
+		bool ee = _sample.WavInfo.EnvMulti == 0x7F;
+		if (_sample.WavInfo.EnvMulti > 0x7F)
 		{
 			ge = _attackVolume >= 0x7F;
 			ee = _attackVolume == 0x7F;
@@ -271,9 +333,9 @@ internal sealed class DSEChannel
 		else
 		{
 			_targetVolume = targetVolume;
-			_envelopeTimeLeft = _sample.WavInfo.EnvMult == 0
+			_envelopeTimeLeft = _sample!.WavInfo!.EnvMulti == 0
 				? DSEUtils.Duration32[envelopeParam] * 1_000 / 10_000
-				: DSEUtils.Duration16[envelopeParam] * _sample.WavInfo.EnvMult * 1_000 / 10_000;
+				: DSEUtils.Duration16[envelopeParam] * _sample.WavInfo.EnvMulti * 1_000 / 10_000;
 			_volumeIncrement = _envelopeTimeLeft == 0 ? 0 : ((targetVolume << 23) - _velocity) / _envelopeTimeLeft;
 		}
 	}
@@ -292,80 +354,121 @@ internal sealed class DSEChannel
 		// prevLeft and prevRight are stored because numSamples can be 0.
 		for (int i = 0; i < numSamples; i++)
 		{
-			short samp;
-			switch (_sample.WavInfo.SampleFormat)
+			switch (SWDType)
 			{
-				case SampleFormat.PCM8:
-				{
-					// If hit end
-					if (_dataOffset >= _sample.Data.Length)
+				case "wds ":
+				case "swdm":
+				case "swdl":
 					{
-						if (_sample.WavInfo.Loop)
+						short samp;
+						switch (_sample!.WavInfo!.SampleFormat)
 						{
-							_dataOffset = (int)(_sample.WavInfo.LoopStart * 4);
+							case SampleFormat.PCM8:
+								{
+									// If hit end
+									if (_dataOffset >= _sample.Data!.Length)
+									{
+										if (_sample.WavInfo.Loop)
+										{
+											_dataOffset = (int)(_sample.WavInfo.LoopStart * 4); // DS counts LoopStart 32-bits (4 bytes) at a time, so LoopStart needs to be bigger
+										}
+										else
+										{
+											left = right = _prevLeft = _prevRight = 0;
+											Stop();
+											return;
+										}
+									}
+									samp = (short)((sbyte)_sample.Data[_dataOffset++] << 8);
+									break;
+								}
+							case SampleFormat.PCM16:
+								{
+									// If hit end
+									if (_dataOffset >= _sample.Data!.Length)
+									{
+										if (_sample.WavInfo.Loop)
+										{
+											_dataOffset = (int)(_sample.WavInfo.LoopStart * 4);
+										}
+										else
+										{
+											left = right = _prevLeft = _prevRight = 0;
+											Stop();
+											return;
+										}
+									}
+									samp = (short)(_sample.Data[_dataOffset++] | (_sample.Data[_dataOffset++] << 8));
+									break;
+								}
+							case SampleFormat.ADPCM:
+								{
+									// If just looped
+									if (_adpcmDecoder!.DataOffset == _sample.WavInfo.LoopStart * 4 && !_adpcmDecoder.OnSecondNibble)
+									{
+										_adpcmLoopLastSample = _adpcmDecoder.LastSample;
+										_adpcmLoopStepIndex = _adpcmDecoder.StepIndex;
+									}
+									// If hit end
+									if (_adpcmDecoder.DataOffset >= _sample.Data!.Length && !_adpcmDecoder.OnSecondNibble)
+									{
+										if (_sample.WavInfo.Loop)
+										{
+											_adpcmDecoder.DataOffset = (int)(_sample.WavInfo.LoopStart * 4);
+											_adpcmDecoder.StepIndex = _adpcmLoopStepIndex;
+											_adpcmDecoder.LastSample = _adpcmLoopLastSample;
+											_adpcmDecoder.OnSecondNibble = false;
+										}
+										else
+										{
+											left = right = _prevLeft = _prevRight = 0;
+											Stop();
+											return;
+										}
+									}
+									samp = _adpcmDecoder.GetSample();
+									break;
+								}
+							case SampleFormat.PSG:
+								{
+									samp = _psgCounter <= _psgDuty ? short.MinValue : short.MaxValue;
+									_psgCounter++;
+									if (_psgCounter >= 8)
+									{
+										_psgCounter = 0;
+									}
+									break;
+								}
+							default: samp = 0; break;
 						}
-						else
-						{
-							left = right = _prevLeft = _prevRight = 0;
-							Stop();
-							return;
-						}
+						samp = (short)(samp * Volume / 0x7F);
+						_prevLeft = (short)(samp * (-Panpot + 0x40) / 0x80);
+						_prevRight = (short)(samp * (Panpot + 0x40) / 0x80);
+						break;
 					}
-					samp = (short)((sbyte)_sample.Data[_dataOffset++] << 8);
-					break;
-				}
-				case SampleFormat.PCM16:
-				{
-					// If hit end
-					if (_dataOffset >= _sample.Data.Length)
+				case "swdb":
 					{
-						if (_sample.WavInfo.Loop)
+						// If hit end
+						if (_dataOffset >= DSPADPCM.NibblesToSamples((int)_sample!.WavInfo!.LoopEnd)) // Wii DSE always reads the LoopEnd address (in nibbles) when looping is enabled for a SWD entry, instead of reading until the end of the sample data
 						{
-							_dataOffset = (int)(_sample.WavInfo.LoopStart * 4);
+							if (_sample.WavInfo!.Loop)
+							{
+								_dataOffset = DSPADPCM.NibblesToSamples((int)_sample.WavInfo.LoopStart); // Wii values for LoopStart offset are counted in nibbles (4-bits or half a byte) at a time, but because DataOutput is using a 16-bit array, LoopStart value needs to be converted to a 16-bit PCM sample offset
+							}
+							else
+							{
+								left = right = _prevLeft = _prevRight = 0;
+								Stop();
+								return;
+							}
 						}
-						else
-						{
-							left = right = _prevLeft = _prevRight = 0;
-							Stop();
-							return;
-						}
+						short samp = _sample.DSPADPCM!.DataOutput![_dataOffset++]; // Since DataOutput is already a 16-bit array, only one array entry is needed per loop, no bitshifting needed either
+						samp = (short)(samp * Volume / 0x7F);
+						_prevLeft = (short)(samp * (-Panpot + 0x40) / 0x80);
+						_prevRight = (short)(samp * (Panpot + 0x40) / 0x80);
+						break;
 					}
-					samp = (short)(_sample.Data[_dataOffset++] | (_sample.Data[_dataOffset++] << 8));
-					break;
-				}
-				case SampleFormat.ADPCM:
-				{
-					// If just looped
-					if (_adpcmDecoder.DataOffset == _sample.WavInfo.LoopStart * 4 && !_adpcmDecoder.OnSecondNibble)
-					{
-						_adpcmLoopLastSample = _adpcmDecoder.LastSample;
-						_adpcmLoopStepIndex = _adpcmDecoder.StepIndex;
-					}
-					// If hit end
-					if (_adpcmDecoder.DataOffset >= _sample.Data.Length && !_adpcmDecoder.OnSecondNibble)
-					{
-						if (_sample.WavInfo.Loop)
-						{
-							_adpcmDecoder.DataOffset = (int)(_sample.WavInfo.LoopStart * 4);
-							_adpcmDecoder.StepIndex = _adpcmLoopStepIndex;
-							_adpcmDecoder.LastSample = _adpcmLoopLastSample;
-							_adpcmDecoder.OnSecondNibble = false;
-						}
-						else
-						{
-							left = right = _prevLeft = _prevRight = 0;
-							Stop();
-							return;
-						}
-					}
-					samp = _adpcmDecoder.GetSample();
-					break;
-				}
-				default: samp = 0; break;
 			}
-			samp = (short)(samp * Volume / 0x7F);
-			_prevLeft = (short)(samp * (-Panpot + 0x40) / 0x80);
-			_prevRight = (short)(samp * (Panpot + 0x40) / 0x80);
 		}
 		left = _prevLeft;
 		right = _prevRight;
