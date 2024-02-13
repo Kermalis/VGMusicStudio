@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<OutputType>WinExe</OutputType>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>Kermalis.VGMusicStudio.WinForms</RootNamespace>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<UseWPF>true</UseWPF> <!--Needed for the taskbar-->
+		<OutputPath>..\Build</OutputPath>
+
+		<Authors>Kermalis</Authors>
+		<Copyright>Kermalis</Copyright>
+		<Product>VG Music Studio</Product>
+		<Title>VG Music Studio</Title>
+		<AssemblyName>VG Music Studio</AssemblyName>
+		<Version>0.3.0</Version>
+		<ApplicationIcon>Properties\Icon.ico</ApplicationIcon>
+		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="EndianBinaryIO" Version="2.1.0" /> <!--Only used for VGMSDebug right now-->
+		
+		<!--These 3 are .NET framework 4.6.1 but still work-->
+		<PackageReference Include="Microsoft.WindowsAPICodePack-Core" Version="1.1.0.2">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		<PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		<PackageReference Include="ObjectListView.Official" Version="2.9.1">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		
+		<ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="../VG Music Studio - Core/AlphaDream.yaml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Include="../VG Music Studio - Core/MP2K.yaml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Include="../VG Music Studio - Core/Config.yaml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Include="../VG Music Studio - Core/MPlayDef.s">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>

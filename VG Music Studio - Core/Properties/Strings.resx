@@ -1,0 +1,372 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ErrorLoadSong" xml:space="preserve">
+    <value>Error Loading Song {0}</value>
+    <comment>{0} is the song number.</comment>
+  </data>
+  <data name="ErrorOpenAlphaDream" xml:space="preserve">
+    <value>Error Loading GBA ROM (AlphaDream)</value>
+  </data>
+  <data name="ErrorSaveMIDI" xml:space="preserve">
+    <value>Error Exporting MIDI</value>
+  </data>
+  <data name="FilterOpenGBA" xml:space="preserve">
+    <value>GBA Files</value>
+  </data>
+  <data name="FilterSaveMIDI" xml:space="preserve">
+    <value>MIDI Files</value>
+  </data>
+  <data name="MenuData" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="MenuOpenMP2K" xml:space="preserve">
+    <value>Open GBA ROM (MP2K)</value>
+  </data>
+  <data name="MenuSaveMIDI" xml:space="preserve">
+    <value>Export Song as MIDI</value>
+  </data>
+  <data name="PlayerRest" xml:space="preserve">
+    <value>Rest</value>
+  </data>
+  <data name="PlayerNotes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="PlayerPause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="PlayerPlay" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="PlayerPosition" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="PlayerStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="PlayerTempo" xml:space="preserve">
+    <value>Tempo</value>
+  </data>
+  <data name="PlayerType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="PlayerUnpause" xml:space="preserve">
+    <value>Unpause</value>
+  </data>
+  <data name="SuccessSaveMIDI" xml:space="preserve">
+    <value>MIDI saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
+  <data name="PlayPlaylistBody" xml:space="preserve">
+    <value>Would you like to play the following playlist?{0}</value>
+    <comment>{0} is a newline character followed by the playlist name.</comment>
+  </data>
+  <data name="PlayerNextSong" xml:space="preserve">
+    <value>Next Song</value>
+  </data>
+  <data name="PlayerPreviousSong" xml:space="preserve">
+    <value>Previous Song</value>
+  </data>
+  <data name="EndPlaylistBody" xml:space="preserve">
+    <value>Would you like to stop playing the current playlist?</value>
+  </data>
+  <data name="ErrorOpenDSE" xml:space="preserve">
+    <value>Error Loading DSE Folder</value>
+  </data>
+  <data name="ErrorOpenMP2K" xml:space="preserve">
+    <value>Error Loading GBA ROM (MP2K)</value>
+  </data>
+  <data name="ErrorOpenSDAT" xml:space="preserve">
+    <value>Error Loading SDAT File</value>
+  </data>
+  <data name="FilterOpenSDAT" xml:space="preserve">
+    <value>SDAT Files</value>
+  </data>
+  <data name="MenuEndPlaylist" xml:space="preserve">
+    <value>End Current Playlist</value>
+  </data>
+  <data name="MenuOpenDSE" xml:space="preserve">
+    <value>Open DSE Folder</value>
+  </data>
+  <data name="MenuOpenAlphaDream" xml:space="preserve">
+    <value>Open GBA ROM (AlphaDream)</value>
+  </data>
+  <data name="MenuOpenSDAT" xml:space="preserve">
+    <value>Open SDAT File</value>
+  </data>
+  <data name="MenuPlaylist" xml:space="preserve">
+    <value>Playlist</value>
+  </data>
+  <data name="PlaylistMusic" xml:space="preserve">
+    <value>Music</value>
+  </data>
+  <data name="TrackViewerArguments" xml:space="preserve">
+    <value>Arguments</value>
+  </data>
+  <data name="TrackViewerEvent" xml:space="preserve">
+    <value>Event</value>
+  </data>
+  <data name="TrackViewerOffset" xml:space="preserve">
+    <value>Offset</value>
+  </data>
+  <data name="TrackViewerTicks" xml:space="preserve">
+    <value>Ticks</value>
+  </data>
+  <data name="TrackViewerTitle" xml:space="preserve">
+    <value>Track Viewer</value>
+  </data>
+  <data name="TrackViewerTrackX" xml:space="preserve">
+    <value>Track {0}</value>
+    <comment>{0} is the track number.</comment>
+  </data>
+  <data name="ConfigKeySubkey" xml:space="preserve">
+    <value>{0} key</value>
+    <comment>{0} is the parent key name.</comment>
+  </data>
+  <data name="ErrorBoolParse" xml:space="preserve">
+    <value>"{0}" must be True or False.</value>
+    <comment>{0} is the value name.</comment>
+  </data>
+  <data name="ErrorConfigColorMissing" xml:space="preserve">
+    <value>Color {0} is not defined.</value>
+    <comment>{0} is the color number.</comment>
+  </data>
+  <data name="ErrorConfigColorRepeated" xml:space="preserve">
+    <value>Color {0} is defined more than once between decimal and hexadecimal.</value>
+    <comment>{0} is the color number.</comment>
+  </data>
+  <data name="ErrorConfigKeyInvalid" xml:space="preserve">
+    <value>"{0}" is invalid.</value>
+    <comment>{0} is the invalid key.</comment>
+  </data>
+  <data name="ErrorConfigKeyMissing" xml:space="preserve">
+    <value>"{0}" is missing.</value>
+    <comment>{0} is the missing key.</comment>
+  </data>
+  <data name="ErrorConfigKeyNoEntries" xml:space="preserve">
+    <value>"{0}" must have at least one entry.</value>
+    <comment>{0} is the key.</comment>
+  </data>
+  <data name="ErrorDSEInvalidHeaderVersion" xml:space="preserve">
+    <value>Unknown header version: 0x{0:X}</value>
+    <comment>{0} is the header version.</comment>
+  </data>
+  <data name="ErrorDSEInvalidKey" xml:space="preserve">
+    <value>Invalid key in track {0} at 0x{1:X}: {2}</value>
+    <comment>{0} is the track number, {1} is the offset, {2} is the key.</comment>
+  </data>
+  <data name="ErrorAlphaDreamDSEMP2KSDATInvalidCommand" xml:space="preserve">
+    <value>Invalid command in track {0} at 0x{1:X}: 0x{2:X}</value>
+    <comment>{0} is the track number, {1} is the offset, {2} is the command.</comment>
+  </data>
+  <data name="ErrorDSENoSequences" xml:space="preserve">
+    <value>There are no "bgm(NNNN).smd" files.</value>
+  </data>
+  <data name="ErrorGlobalConfig" xml:space="preserve">
+    <value>Error Loading Global Config</value>
+  </data>
+  <data name="ErrorAlphaDreamMP2KCopyInvalidGameCode" xml:space="preserve">
+    <value>Cannot copy invalid game code "{0}"</value>
+    <comment>{0} is the invalid game code.</comment>
+  </data>
+  <data name="ErrorAlphaDreamMP2KMissingGameCode" xml:space="preserve">
+    <value>Game code "{0}" is missing.</value>
+    <comment>{0} is the game code.</comment>
+  </data>
+  <data name="ErrorAlphaDreamMP2KParseGameCode" xml:space="preserve">
+    <value>Error parsing game code "{0}" in "{1}"{2}</value>
+    <comment>{0} is the game code, {1} is the config filename, {2} is a newline character followed by the error message.</comment>
+  </data>
+  <data name="ErrorAlphaDreamMP2KSongRepeated" xml:space="preserve">
+    <value>Playlist "{0}" has song {1} defined more than once between decimal and hexadecimal.</value>
+    <comment>{0} is the playlist name, {1} is the song index.</comment>
+  </data>
+  <data name="ErrorAlphaDreamMP2KSongTableCounts" xml:space="preserve">
+    <value>"{0}" count must be the same as "{1}" count.</value>
+    <comment>{0} is key 1, {1} is key 2.</comment>
+  </data>
+  <data name="ErrorMP2KInvalidRunningStatusCommand" xml:space="preserve">
+    <value>Invalid running status command in track {0} at 0x{1:X}: 0x{2:X}</value>
+    <comment>{0} is the track number, {1} is the offset, {2} is the command.</comment>
+  </data>
+  <data name="ErrorMP2KSDATNestedCalls" xml:space="preserve">
+    <value>Too many nested call events in track {0}</value>
+    <comment>{0} is the track number.</comment>
+  </data>
+  <data name="ErrorParseConfig" xml:space="preserve">
+    <value>Error parsing "{0}"{1}</value>
+    <comment>{0} is the config filename, {1} is a newline character followed by the error message.</comment>
+  </data>
+  <data name="ErrorSDATNoSequences" xml:space="preserve">
+    <value>This SDAT archive has no sequences.</value>
+  </data>
+  <data name="ErrorValueParse" xml:space="preserve">
+    <value>"{0}" is not an integer value.</value>
+    <comment>{0} is the value name.</comment>
+  </data>
+  <data name="ErrorValueParseRanged" xml:space="preserve">
+    <value>"{0}" must be between {1} and {2}.</value>
+    <comment>{0} is the value name, {1} is the minimum allowed value, {2} is the maximum allowed value.</comment>
+  </data>
+  <data name="ErrorSaveWAV" xml:space="preserve">
+    <value>Error Exporting WAV</value>
+  </data>
+  <data name="FilterSaveWAV" xml:space="preserve">
+    <value>WAV Files</value>
+  </data>
+  <data name="MenuSaveWAV" xml:space="preserve">
+    <value>Export Song as WAV</value>
+  </data>
+  <data name="SuccessSaveWAV" xml:space="preserve">
+    <value>WAV saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
+  <data name="ErrorSaveSF2" xml:space="preserve">
+    <value>Error Exporting SF2</value>
+  </data>
+  <data name="FilterSaveSF2" xml:space="preserve">
+    <value>SF2 Files</value>
+  </data>
+  <data name="MenuSaveSF2" xml:space="preserve">
+    <value>Export VoiceTable as SF2</value>
+  </data>
+  <data name="SuccessSaveSF2" xml:space="preserve">
+    <value>VoiceTable saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
+  <data name="ErrorSaveDLS" xml:space="preserve">
+    <value>Error Exporting DLS</value>
+  </data>
+  <data name="FilterSaveDLS" xml:space="preserve">
+    <value>DLS Files</value>
+  </data>
+  <data name="MenuSaveDLS" xml:space="preserve">
+    <value>Export VoiceTable as DLS</value>
+  </data>
+  <data name="SuccessSaveDLS" xml:space="preserve">
+    <value>VoiceTable saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
+  <data name="Song(s)" xml:space="preserve">
+    <value>songs|0_0|song|1_1|songs|2_*|</value>
+  </data>
+</root>
