@@ -286,6 +286,7 @@ internal sealed class MainWindow : Window
 		_volumeScale.ShowFillLevel = true;
 		_volumeScale.DrawValue = false;
 		_volumeScale.WidthRequest = 250;
+		//_volumeScale.OnValueChanged += VolumeScale_ValueChanged;
 
 		// Position Scale
 		_positionScale = Scale.NewWithRange(Orientation.Horizontal, 0, 1, 1); // The Upper value property must contain a value of 1 or higher for the widget to show upon startup
