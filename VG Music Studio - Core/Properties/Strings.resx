@@ -128,10 +128,10 @@
     <value>Error Exporting MIDI</value>
   </data>
   <data name="FilterOpenGBA" xml:space="preserve">
-    <value>GBA Files</value>
+    <value>Game Boy Advance binary (*.gba, *srl)|*.gba;*.srl|All files (*.*)|*.*</value>
   </data>
   <data name="FilterSaveMIDI" xml:space="preserve">
-    <value>MIDI Files</value>
+    <value>MIDI Files (*.mid, *.midi)|*.mid;*.midi</value>
   </data>
   <data name="MenuData" xml:space="preserve">
     <value>Data</value>
@@ -199,7 +199,7 @@
     <value>Error Loading SDAT File</value>
   </data>
   <data name="FilterOpenSDAT" xml:space="preserve">
-    <value>SDAT Files</value>
+    <value>Nitro Soundmaker Sound Data (*.sdat)|*.sdat|All files (*.*)|*.*</value>
   </data>
   <data name="MenuEndPlaylist" xml:space="preserve">
     <value>End Current Playlist</value>
@@ -331,7 +331,7 @@
     <value>Error Exporting WAV</value>
   </data>
   <data name="FilterSaveWAV" xml:space="preserve">
-    <value>WAV Files</value>
+    <value>WAV Files (*.wav)|*.wav</value>
   </data>
   <data name="MenuSaveWAV" xml:space="preserve">
     <value>Export Song as WAV</value>
@@ -344,7 +344,7 @@
     <value>Error Exporting SF2</value>
   </data>
   <data name="FilterSaveSF2" xml:space="preserve">
-    <value>SF2 Files</value>
+    <value>SF2 Files (*.sf2)|*.sf2</value>
   </data>
   <data name="MenuSaveSF2" xml:space="preserve">
     <value>Export VoiceTable as SF2</value>
@@ -357,7 +357,7 @@
     <value>Error Exporting DLS</value>
   </data>
   <data name="FilterSaveDLS" xml:space="preserve">
-    <value>DLS Files</value>
+    <value>DLS Files (*.dls)|*.dls</value>
   </data>
   <data name="MenuSaveDLS" xml:space="preserve">
     <value>Export VoiceTable as DLS</value>
@@ -368,5 +368,26 @@
   </data>
   <data name="Song(s)" xml:space="preserve">
     <value>songs|0_0|song|1_1|songs|2_*|</value>
+  </data>
+  <data name="GTKFilterOpenGBA" xml:space="preserve">
+    <value>Game Boy Advance binary (*.gba, *.srl)</value>
+  </data>
+  <data name="GTKFilterOpenSDAT" xml:space="preserve">
+    <value>Nitro Soundmaker Sound Data (*.sdat)</value>
+  </data>
+  <data name="GTKFilterSaveDLS" xml:space="preserve">
+    <value>DLS Soundfont Files (*.dls)</value>
+  </data>
+  <data name="GTKFilterSaveMIDI" xml:space="preserve">
+    <value>MIDI Sequence Files (*.mid, *.midi)</value>
+  </data>
+  <data name="GTKFilterSaveSF2" xml:space="preserve">
+    <value>SF2 Soundfont Files (*.sf2)</value>
+  </data>
+  <data name="GTKFilterSaveWAV" xml:space="preserve">
+    <value>Wave Audio Data (*.wav)</value>
+  </data>
+  <data name="GTKAllFiles" xml:space="preserve">
+    <value>All files (*.*)</value>
   </data>
 </root>

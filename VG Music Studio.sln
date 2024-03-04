@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - WinForms"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - Core", "VG Music Studio - Core\VG Music Studio - Core.csproj", "{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - GTK3", "VG Music Studio - GTK3\VG Music Studio - GTK3.csproj", "{A9471061-10D2-41AE-86C9-1D927D7B33B8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio - GTK4", "VG Music Studio - GTK4\VG Music Studio - GTK4.csproj", "{AB599ACD-26E0-4925-B91E-E25D41CB05E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DC1E437-AEA1-4C0E-A57F-09D3DC9F4E7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9471061-10D2-41AE-86C9-1D927D7B33B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB599ACD-26E0-4925-B91E-E25D41CB05E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
