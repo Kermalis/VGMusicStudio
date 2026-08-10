@@ -4,11 +4,11 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
 public sealed class DSENoSequencesException : Exception
 {
-	public string BGMPath { get; }
+	public string SMDPath { get; }
 
 	internal DSENoSequencesException(string bgmPath)
 	{
-		BGMPath = bgmPath;
+		SMDPath = bgmPath;
 	}
 }
 
@@ -19,6 +19,18 @@ public sealed class DSEInvalidHeaderVersionException : Exception
 	internal DSEInvalidHeaderVersionException(ushort version)
 	{
 		Version = version;
+	}
+}
+
+public sealed class DSEArrayIndexAndHeaderIDMismatchException : Exception
+{
+	public int ArrayIndex { get; }
+	public ushort HeaderID { get; }
+
+	internal DSEArrayIndexAndHeaderIDMismatchException(int arrayIndex, ushort headerID)
+	{
+		ArrayIndex = arrayIndex;
+		HeaderID = headerID;
 	}
 }
 

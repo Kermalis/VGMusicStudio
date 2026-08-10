@@ -144,6 +144,9 @@
   <data name="MenuSaveMIDI" xml:space="preserve">
     <value>Exporter le titre en MIDI</value>
   </data>
+  <data name="MenuSaveASM" xml:space="preserve">
+    <value>Exporter le titre en ASM</value>
+  </data>
   <data name="PlayerRest" xml:space="preserve">
     <value>Silence</value>
   </data>
@@ -160,7 +163,10 @@
     <value>Position</value>
   </data>
   <data name="PlayerStop" xml:space="preserve">
-    <value>Stop</value>
+    <value>Arrêt</value>
+  </data>
+  <data name="PlayerRecord" xml:space="preserve">
+    <value>Enregistrer une Chanson</value>
   </data>
   <data name="PlayerTempo" xml:space="preserve">
     <value>Tempo</value>
@@ -198,11 +204,11 @@
   <data name="FilterOpenSDAT" xml:space="preserve">
     <value>Fichiers SDAT</value>
   </data>
+  <data name="MenuPlayPlaylist" xml:space="preserve">
+    <value>Lecture la playlist en cours</value>
+  </data>
   <data name="MenuEndPlaylist" xml:space="preserve">
     <value>Arrêter la playlist en cours</value>
-  </data>
-  <data name="MenuOpenDSE" xml:space="preserve">
-    <value>Ouvrir dossier DSE</value>
   </data>
   <data name="MenuOpenAlphaDream" xml:space="preserve">
     <value>Ouvrir ROM GBA (AlphaDream)</value>
@@ -213,25 +219,28 @@
   <data name="MenuPlaylist" xml:space="preserve">
     <value>Playlist</value>
   </data>
-  <data name="PlaylistMusic" xml:space="preserve">
-    <value>Musique</value>
+  <data name="InternalSongName" xml:space="preserve">
+    <value>Nom de la Chanson Interne</value>
   </data>
-  <data name="TrackViewerArguments" xml:space="preserve">
+  <data name="PlaylistMusic" xml:space="preserve">
+    <value>Toutes les Chansons</value>
+  </data>
+  <data name="TrackEditorArguments" xml:space="preserve">
     <value>Arguments</value>
   </data>
-  <data name="TrackViewerEvent" xml:space="preserve">
+  <data name="TrackEditorEvent" xml:space="preserve">
     <value>Event</value>
   </data>
-  <data name="TrackViewerOffset" xml:space="preserve">
+  <data name="TrackEditorOffset" xml:space="preserve">
     <value>Offset</value>
   </data>
-  <data name="TrackViewerTicks" xml:space="preserve">
+  <data name="TrackEditorTicks" xml:space="preserve">
     <value>Ticks</value>
   </data>
-  <data name="TrackViewerTitle" xml:space="preserve">
+  <data name="TrackEditorTitle" xml:space="preserve">
     <value>Visualiseur de pistes</value>
   </data>
-  <data name="TrackViewerTrackX" xml:space="preserve">
+  <data name="TrackEditorTrackX" xml:space="preserve">
     <value>Piste {0}</value>
   </data>
   <data name="ConfigKeySubkey" xml:space="preserve">
@@ -265,7 +274,7 @@
     <value>Commande invalide pour la piste {0} à l'adresse 0x{1:X}: 0x{2:X}</value>
   </data>
   <data name="ErrorDSENoSequences" xml:space="preserve">
-    <value>Il n'y a pas de fichiers "bgm(NNNN).smd".</value>
+    <value>Il n'y a pas de fichiers SMD.</value>
   </data>
   <data name="ErrorGlobalConfig" xml:space="preserve">
     <value>Echec du chargement de la configuration globale.</value>
@@ -341,5 +350,8 @@
   </data>
   <data name="Song(s)" xml:space="preserve">
     <value>titres|0_0|titre|1_1|titres|2_*|</value>
+  </data>
+  <data name="MenuOpenDSE" xml:space="preserve">
+    <value>Ouvrir dossier DSE</value>
   </data>
 </root>

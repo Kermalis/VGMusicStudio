@@ -1,8 +1,8 @@
-﻿using Kermalis.VGMusicStudio.Core.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Kermalis.VGMusicStudio.Core.Util;
 
 namespace Kermalis.VGMusicStudio.Core;
 
@@ -15,34 +15,32 @@ public enum PlayerState : byte
 	ShutDown,
 }
 
-public interface ILoadedSong
-{
-	List<SongEvent>?[] Events { get; }
-	long MaxTicks { get; }
-}
-
-public abstract class Player : IDisposable
+public abstract class Player(double ticksPerSecond) : IDisposable
 {
 	protected abstract string Name { get; }
 	protected abstract Mixer Mixer { get; }
 
 	public abstract ILoadedSong? LoadedSong { get; }
+	public abstract ushort Tempo { get; set; }
 	public bool ShouldFadeOut { get; set; }
 	public long NumLoops { get; set; }
+	public SongState? Info { get; set; }
 
 	public long ElapsedTicks { get; internal set; }
 	public PlayerState State { get; protected set; }
+	public Exception? ErrorDetails { get; set; }
+
 	public event Action? SongEnded;
 
-	private readonly TimeBarrier _time;
+	private readonly BetterTimer _timer = new(ticksPerSecond);
 	private Thread? _thread;
-
-	protected Player(double ticksPerSecond)
-	{
-		_time = new TimeBarrier(ticksPerSecond);
-	}
+	private double? _deltaTimeElapsed;
+	public bool IsStreamStopped = true;
+	public bool IsPauseToggled = false;
 
 	public abstract void LoadSong(int index);
+	public virtual void LoadSong(LoadedSong song) { }
+	public virtual void RefreshSong() { }
 	public abstract void UpdateSongState(SongState info);
 	internal abstract void InitEmulation();
 	protected abstract void SetCurTick(long ticks);
@@ -86,7 +84,10 @@ public abstract class Player : IDisposable
 
 		if (State is not PlayerState.ShutDown)
 		{
-			Stop();
+			if (State is not PlayerState.Stopped)
+			{
+				Stop();
+			}
 			InitEmulation();
 			State = PlayerState.Playing;
 			CreateThread();
@@ -97,18 +98,17 @@ public abstract class Player : IDisposable
 		switch (State)
 		{
 			case PlayerState.Playing:
-			{
-				State = PlayerState.Paused;
-				WaitThread();
-				break;
-			}
+				{
+					State = PlayerState.Paused;
+					break;
+				}
 			case PlayerState.Paused:
 			case PlayerState.Stopped:
-			{
-				State = PlayerState.Playing;
-				CreateThread();
-				break;
-			}
+				{
+					State = PlayerState.Playing;
+					CreateThread();
+					break;
+				}
 		}
 	}
 	public void Stop()
@@ -118,6 +118,7 @@ public abstract class Player : IDisposable
 			State = PlayerState.Stopped;
 			WaitThread();
 			OnStopped();
+			ElapsedTicks = 0L;
 		}
 	}
 	public void Record(string fileName)
@@ -144,43 +145,62 @@ public abstract class Player : IDisposable
 			return;
 		}
 
+		if (State is PlayerState.Stopped)
+		{
+			Play();
+		}
+
 		if (State is PlayerState.Playing)
 		{
 			TogglePlaying();
 		}
 		InitEmulation();
 		SetCurTick(ticks);
-		TogglePlaying();
+		if (State is PlayerState.Paused && !IsPauseToggled || State is PlayerState.Stopped)
+		{
+			TogglePlaying();
+		}
 	}
 
 	private void TimerTick()
 	{
-		_time.Start();
+		_deltaTimeElapsed = 0;
+		_timer.Start();
 		while (true)
 		{
-			PlayerState state = State;
-			bool playing = state == PlayerState.Playing;
-			bool recording = state == PlayerState.Recording;
+			var state = State;
+			var playing = state == PlayerState.Playing;
+			var recording = state == PlayerState.Recording;
 			if (!playing && !recording)
 			{
 				break;
 			}
-
-			bool allDone = Tick(playing, recording);
-			if (allDone)
+			_deltaTimeElapsed += _timer.GetDeltaTime();
+			while (_deltaTimeElapsed >= _timer.GetDeltaTick())
 			{
-				// TODO: lock state
-				_time.Stop(); // TODO: Don't need timer if recording
-				State = PlayerState.Stopped;
-				SongEnded?.Invoke();
-				return;
-			}
-			if (playing)
-			{
-				_time.Wait();
+				_deltaTimeElapsed -= _timer.GetDeltaTick();
+				try
+				{
+					bool allDone = Tick(playing, recording);
+					if (Info is not null)
+					{
+						UpdateSongState(Info);
+					}
+					if (allDone)
+					{
+						// TODO: lock state
+						_timer.Stop(); // TODO: Don't need timer if recording
+						SongEnded?.Invoke();
+						return;
+					}
+				}
+				catch (Exception ex)
+				{
+					ErrorDetails = ex;
+				}
 			}
 		}
-		_time.Stop();
+		_timer.Stop();
 	}
 
 	public void Dispose()

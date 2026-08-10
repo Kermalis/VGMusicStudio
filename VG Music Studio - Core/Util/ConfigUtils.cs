@@ -113,26 +113,51 @@ public static class ConfigUtils
 		return ParseEnum<TEnum>(key, yamlNode.Children.GetValue(key).ToString());
 	}
 
-	public static void TryCreateMasterPlaylist(List<Config.Playlist> playlists)
+	public static class TryCreateMasterPlaylist
 	{
-		if (playlists.Exists(p => p.Name == "Music"))
+		public static void CreateFirst(List<Config.Playlist> playlists)
 		{
-			return;
-		}
-
-		var songs = new List<Config.Song>();
-		foreach (Config.Playlist p in playlists)
-		{
-			foreach (Config.Song s in p.Songs)
+			if (playlists.Exists(p => p.Name == "All Songs"))
 			{
-				if (!songs.Exists(s1 => s1.Index == s.Index))
+				return;
+			}
+
+			var songs = new List<Config.Song>();
+			foreach (Config.Playlist p in playlists)
+			{
+				foreach (Config.Song s in p.Songs)
 				{
-					songs.Add(s);
+					if (!songs.Exists(s1 => s1.Index == s.Index))
+					{
+						songs.Add(s);
+					}
 				}
 			}
+			songs.Sort((s1, s2) => s1.Index.CompareTo(s2.Index));
+			playlists.Insert(0, new Config.Playlist(Strings.PlaylistMusic, songs));
 		}
-		songs.Sort((s1, s2) => s1.Index.CompareTo(s2.Index));
-		playlists.Insert(0, new Config.Playlist(Strings.PlaylistMusic, songs));
+
+		public static void CreateLast(List<Config.Playlist> playlists)
+		{
+			if (playlists.Exists(p => p.Name == "All Songs"))
+			{
+				return;
+			}
+
+			var songs = new List<Config.Song>();
+			foreach (Config.Playlist p in playlists)
+			{
+				foreach (Config.Song s in p.Songs)
+				{
+					if (!songs.Exists(s1 => s1.Index == s.Index))
+					{
+						songs.Add(s);
+					}
+				}
+			}
+			songs.Sort((s1, s2) => s1.Index.CompareTo(s2.Index));
+			playlists.Insert(playlists.Count, new Config.Playlist(Strings.PlaylistMusic, songs));
+		}
 	}
 
 	public static string CombineWithBaseDirectory(string path)
@@ -140,18 +165,29 @@ public static class ConfigUtils
 		return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
 	}
 
-	public static string GetNoteName(int note)
+	public static string GetKeyNameASM(int midiNote)
 	{
-		return Notes[note];
-	}
+		string str = GetKeyName(midiNote).Replace('-', 'M').Replace('#', 's');
+		if (str.Length is 2)
+		{
+			str = str.Insert(1, "n");
+		}
+        return str;
+    }
 	public static string GetKeyName(int midiNote)
 	{
+		if (GlobalConfig.Instance is null) return ""; // Nullability check
 		if (!_keyCache.TryGetValue(midiNote, out string? str))
 		{
 			// {C} + {5} = "C5"
-			str = Notes[midiNote % 12] + ((midiNote / 12) + (GlobalConfig.Instance.MiddleCOctave - 5));
+			str = Notes[midiNote % 12] + ((midiNote / 12) + (GlobalConfig.Instance.MiddleCOctave - 6));
 			_keyCache.Add(midiNote, str);
 		}
 		return str;
+	}
+
+	public static string CenterValueString(sbyte value)
+	{
+		return string.Format("c_v{0}{1}", value >= 0 ? "+" : "", value);
 	}
 }

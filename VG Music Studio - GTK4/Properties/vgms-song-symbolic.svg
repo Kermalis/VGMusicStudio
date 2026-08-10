@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   height="16"
+   viewBox="0 0 16 16"
+   width="16"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   sodipodi:docname="vgms-song-symbolic.svg"
+   version="1.1"
+   id="svg2"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="22.627417"
+     inkscape:cx="7.0047765"
+     inkscape:cy="9.9436891"
+     inkscape:window-width="1216"
+     inkscape:window-height="991"
+     inkscape:window-x="26"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2"
+     id="namedview1" />
+  <g
+     transform="matrix(0.34811753 0 0 0.38216691 -4.316766 -3.558098)"
+     id="g2"
+     inkscape:label="g1">
+    <path
+       d="m 24.752462,34.945393 c -4.442087,-0.115964 -10.855085,3.279833 -10.855085,7.58877 0,4.308937 4.559392,7.802021 10.855085,7.802021 6.295693,0 11.981247,-3.493084 11.921261,-7.718818 V 23.748569 c 0,0 2.126083,-0.435947 5.116286,4.778873 2.990204,5.21482 6.194805,5.627537 9.103508,3.871609 4.319184,-2.607409 6.662022,-8.121643 6.662022,-8.121643 -5.18302,3.555562 -6.933044,5.200634 -9.91802,-3.809235 -2.591511,-7.822232 -10.963796,-7.076186 -10.963796,-7.076186 0.02086,-3.6256826 -5.181643,-3.673733 -5.170667,3.24e-4 0.01098,5.466493 0.11073,16.047342 0,23.39292 0,0 -2.50056,-1.728888 -6.750594,-1.839838 z"
+       sodipodi:nodetypes="scssccsscsccs"
+       id="path1"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke-width:0;stroke-dasharray:none" />
+  </g>
+</svg>

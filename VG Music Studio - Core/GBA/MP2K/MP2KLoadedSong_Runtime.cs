@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Linq;
+using Kermalis.MIDI;
 
 namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
 internal sealed partial class MP2KLoadedSong
 {
-	private void TryPlayNote(MP2KTrack track, byte note, byte velocity, byte addedDuration)
+	private void TryPlayNote(MP2KTrack track, byte note, byte velocity, int addedDuration)
 	{
 		int n = note + track.Transpose;
 		if (n < 0)
@@ -21,72 +25,231 @@ internal sealed partial class MP2KLoadedSong
 		// Tracks do not play unless they have had a voice change event
 		if (track.Ready)
 		{
-			PlayNote(_player.Config.ROM, track, note, velocity, addedDuration);
+			PlayNote(track, note, velocity, addedDuration);
+
+			track.UpdateVolume = true;
+			track.UpdatePitch = true;
 		}
 	}
-	private void PlayNote(byte[] rom, MP2KTrack track, byte note, byte velocity, byte addedDuration)
+	// private void PlayNote(byte[] rom, MP2KTrack track, byte cmd)
+	private void PlayNote(MP2KTrack track, byte note, byte velocity, int addedDuration)
 	{
+		// foreach ((byte command, byte len) in MP2KUtils.NoteLUT)
+		// {
+		// 	if (cmd == command)
+		// 	{
+		// 		track.PrevLength = len;
+		// 		break;
+		// 	}
+		// }
+
+		// if (rom[track.Position] < 0x80)
+		// {
+		// 	track.PrevNote = rom[track.Position++];
+
+		// 	if (rom[track.Position] < 0x80)
+		// 	{
+		// 		track.PrevVelocity = rom[track.Position++];
+
+		// 		if (rom[track.Position] < 0x80)
+		// 		{
+		// 			track.PrevLength += rom[track.Position++];
+		// 		}
+		// 	}
+		// }
 		bool fromDrum = false;
-		int offset = _voiceTableOffset + (track.Voice * 12);
+		// int offset = _soundBankOffset + (track.Voice * 12);
+		IVoice[] voices = Voicegroup.Voices;
+		IVoice[] sub;
+		WrappedVoice wv = (WrappedVoice)voices[track.Voice];
+		byte rootNote;
+		sbyte rythmPan = 0;
 		while (true)
 		{
-			var v = new VoiceEntry(rom.AsSpan(offset));
+			// var v = new VoiceEntry(rom.AsSpan(offset));
+			var v = wv.VoiceEntry;
 			if (v.Type == (int)VoiceFlags.KeySplit)
 			{
 				fromDrum = false; // In case there is a multi within a drum
-				byte inst = rom[v.Int8 - GBAUtils.CARTRIDGE_OFFSET + note];
-				offset = v.Int4 - GBAUtils.CARTRIDGE_OFFSET + (inst * 12);
+								  // byte inst = rom[v.Int8 - GBAUtils.CARTRIDGE_OFFSET + note];
+				sub = wv.Table!.Voices;
+				int inst = wv.Keys![note];
+				// offset = v.Int4 - GBAUtils.CARTRIDGE_OFFSET + (inst * 12);
+				wv = (WrappedVoice)sub[inst];
+				rootNote = track.PrevNote;
+				if (wv.VoiceEntry.Type is (int)VoiceFlags.KeySplit or (int)VoiceFlags.Drum)
+				{
+					break;
+				}
 			}
 			else if (v.Type == (int)VoiceFlags.Drum)
 			{
 				fromDrum = true;
-				offset = v.Int4 - GBAUtils.CARTRIDGE_OFFSET + (note * 12);
+				// offset = v.Int4 - GBAUtils.CARTRIDGE_OFFSET + (note * 12);
+				sub = wv.Table!.Voices;
+				wv = (WrappedVoice)sub[note];
+				if ((v.PanSweep & 0x80) != 0)
+				{
+					rythmPan = (sbyte)((v.PanSweep - 0xC0) * 2);
+				}
+				rootNote = v.RootNote;
+				if (wv.VoiceEntry.Type is (int)VoiceFlags.KeySplit or (int)VoiceFlags.Drum)
+				{
+					break;
+				}
 			}
 			else
 			{
+				rootNote = v.RootNote;
+				track.LFODelayCount = track.LFODelay;
+				if (track.LFODelay != 0)
+				{
+					track.ResetLFOValue();
+				}
+
 				var ni = new NoteInfo
 				{
-					Duration = track.RunCmd == 0xCF ? -1 : (MP2KUtils.RestTable[track.RunCmd - 0xCF] + addedDuration),
-					Velocity = velocity,
-					OriginalNote = note,
+					// Duration = track.RunCmd == 0xCF ? -1 : (MP2KUtils.RestTable[track.RunCmd - 0xCF] + addedDuration),
+					Duration = addedDuration,
+					// Duration = track.PrevLength,
 					Note = fromDrum ? v.RootNote : note,
+					OriginalNote = note,
+					Velocity = velocity,
+					Priority = track.Priority,
+					RhythmPan = rythmPan,
+					PseudoEchoVolume = track.PseudoEchoVolume,
+					PseudoEchoLength = track.PseudoEchoLength,
+					TrackIndex = track.Index,
+					PSGLength = v.TimeLength,
 				};
+				// static int OrderChannels(MP2KChannel c)
+				// {
+				// 	return c.Track is null ? 0xFF : c.Track.Index;
+				// }
+				// int instPan = (v.PanSweep & 0x80) != 0 ? v.PanSweep - 0xC0 : 0;
 				var type = (VoiceType)(v.Type & 0x7);
-				int instPan = v.Pan;
-				instPan = (instPan & 0x80) != 0 ? instPan - 0xC0 : 0;
 				switch (type)
 				{
 					case VoiceType.PCM8:
-					{
-						bool bFixed = (v.Type & (int)VoiceFlags.Fixed) != 0;
-						bool bCompressed = _player.Config.HasPokemonCompression && ((v.Type & (int)VoiceFlags.Compressed) != 0);
-						_player.MMixer.AllocPCM8Channel(track, v.ADSR, ni,
-							track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
-							bFixed, bCompressed, v.Int4 - GBAUtils.CARTRIDGE_OFFSET);
-						return;
-					}
+						{
+							// SampleInfo sInfo = new(rom, v.Int4 - GBAUtils.CARTRIDGE_OFFSET);
+							MP2KSample sInfo = wv.Sample!;
+
+							bool bFixed = (v.Type & (int)VoiceFlags.Fixed) != 0;
+							// bool bCompressed = _player.Config.HasPokemonCompression && ((v.Type & (int)VoiceFlags.Compressed) != 0);
+							// _player.MMixer.AllocPCM8Channel(track, v.ADSR, ni,
+							// 		track.GetVolume(), track.GetPanpot(), v.PanSweep, track.GetPitch(),
+							// 		bFixed, bCompressed, v.Int4 - GBAUtils.CARTRIDGE_OFFSET);
+
+							MP2KPCM8Channel nChn = new(_player.MContext, _player.MMixer, track, sInfo, v.ADSR, ni, bFixed);
+
+							if (_player.MContext.PCM8Channels.Count <= track.Index)
+							{
+								_player.MContext.PCM8Channels.Add(nChn);
+							}
+							else if (_player.MContext.PCM8Channels[track.Index].Track.Index != track.Index || _player.MContext.PCM8Channels[track.Index] is null)
+							{
+								_player.MContext.PCM8Channels.Insert(track.Index, nChn);
+							}
+							else
+							{
+								_player.MContext.PCM8Channels[track.Index] = nChn;
+							}
+							return;
+						}
 					case VoiceType.Square1:
+						{
+							MP2KSquareChannel nChn = new(_player.MContext, _player.MMixer, track, v.Int4, v.ADSR, ni, v.PanSweep);
+							if (nChn.State < EnvelopeState.Releasing && nChn.Track!.Index < track.Index)
+							{
+								return;
+							}
+							if (_player.MContext.Square1Channels.Count <= track.Index)
+							{
+								_player.MContext.Square1Channels.Add(nChn);
+							}
+							else if (_player.MContext.Square1Channels[track.Index].Track.Index != track.Index || _player.MContext.Square1Channels[track.Index] is null)
+							{
+								_player.MContext.Square1Channels.Insert(track.Index, nChn);
+							}
+							else
+							{
+								_player.MContext.Square1Channels[track.Index] = nChn;
+							}
+							return;
+						}
 					case VoiceType.Square2:
-					{
-						_player.MMixer.AllocPSGChannel(track, v.ADSR, ni,
-							track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
-							type, (SquarePattern)v.Int4);
-						return;
-					}
+						{
+							// _player.MMixer.AllocPSGChannel(track, v.ADSR, ni,
+							// 		track.GetVolume(), track.GetPanpot(), v.PanSweep, track.GetPitch(),
+							// 		type, (SquarePattern)v.Int4);
+							MP2KSquareChannel nChn = new(_player.MContext, _player.MMixer, track, v.Int4, v.ADSR, ni, 0);
+							if (nChn.State < EnvelopeState.Releasing && nChn.Track!.Index < track.Index)
+							{
+								return;
+							}
+							if (_player.MContext.Square2Channels.Count <= track.Index)
+							{
+								_player.MContext.Square2Channels.Add(nChn);
+							}
+							else if (_player.MContext.Square2Channels[track.Index].Track.Index != track.Index || _player.MContext.Square2Channels[track.Index] is null)
+							{
+								_player.MContext.Square2Channels.Insert(track.Index, nChn);
+							}
+							else
+							{
+								_player.MContext.Square2Channels[track.Index] = nChn;
+							}
+							return;
+						}
 					case VoiceType.PCM4:
-					{
-						_player.MMixer.AllocPSGChannel(track, v.ADSR, ni,
-							track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
-							type, v.Int4 - GBAUtils.CARTRIDGE_OFFSET);
-						return;
-					}
+						{
+							// _player.MMixer.AllocPSGChannel(track, v.ADSR, ni,
+							// 		track.GetVolume(), track.GetPanpot(), v.PanSweep, track.GetPitch(),
+							// 		type, v.Int4 - GBAUtils.CARTRIDGE_OFFSET);
+							MP2KPCM4Channel nChn = new(_player.MContext, _player.MMixer, track, wv.Sample!, v.ADSR, ni, _player.MContext.PlayerSoundMode.AccurateCh3Volume);
+							if (nChn.State < EnvelopeState.Releasing && nChn.Track!.Index < track.Index)
+							{
+								return;
+							}
+							if (_player.MContext.PCM4Channels.Count <= track.Index)
+							{
+								_player.MContext.PCM4Channels.Add(nChn);
+							}
+							else if (_player.MContext.PCM4Channels[track.Index].Track.Index != track.Index || _player.MContext.PCM4Channels[track.Index] is null)
+							{
+								_player.MContext.PCM4Channels.Insert(track.Index, nChn);
+							}
+							else
+							{
+								_player.MContext.PCM4Channels[track.Index] = nChn;
+							}
+							return;
+						}
 					case VoiceType.Noise:
-					{
-						_player.MMixer.AllocPSGChannel(track, v.ADSR, ni,
-							track.GetVolume(), track.GetPanpot(), instPan, track.GetPitch(),
-							type, (NoisePattern)v.Int4);
-						return;
-					}
+						{
+							// _player.MMixer.AllocPSGChannel(track, v.ADSR, ni,
+							// 		track.GetVolume(), track.GetPanpot(), v.PanSweep, track.GetPitch(),
+							// 		type, (NoisePattern)v.Int4);
+							MP2KNoiseChannel nChn = new(_player.MContext, _player.MMixer, track, v.Int4, v.ADSR, ni);
+							if (nChn.State < EnvelopeState.Releasing && nChn.Track!.Index < track.Index)
+							{
+								return;
+							}
+							if (_player.MContext.NoiseChannels.Count <= track.Index)
+							{
+								_player.MContext.NoiseChannels.Add(nChn);
+							}
+							else if (_player.MContext.NoiseChannels[track.Index].Track.Index != track.Index || _player.MContext.NoiseChannels[track.Index] is null)
+							{
+								_player.MContext.NoiseChannels.Insert(track.Index, nChn);
+							}
+							else
+							{
+								_player.MContext.NoiseChannels[track.Index] = nChn;
+							}
+							return;
+						}
 				}
 				return; // Prevent infinite loop with invalid instruments
 			}
@@ -94,337 +257,744 @@ internal sealed partial class MP2KLoadedSong
 	}
 	public void ExecuteNext(MP2KTrack track, ref bool update)
 	{
-		byte[] rom = _player.Config.ROM;
-		byte cmd = rom[track.DataOffset++];
-		if (cmd >= 0xBD) // Commands that work within running status
+		List<SongEvent> events = Events[track.Index];
+		SongEvent evt = events[track.EventPosition];
+		ICommand cmd = evt.Command;
+		track.ROMOffset = evt.Offset;
+		track.ROMOffset++;
+
+		// byte[] rom = _player.Config.ROM;
+		// byte cmd = rom[track.ROMOffset++];
+		// byte cmd = rom[track.Position];
+		if ((cmd is ISequenceCommand run && run.SequenceType >= SequenceCommand.Voice) || cmd is NoteCommand) // Commands that work within running status
 		{
 			track.RunCmd = cmd;
 		}
+		// if (cmd < 0x80)
+		// {
+		// 	cmd = track.RunCmd;
+		// 	if (cmd < 0x80)
+		// 	{
+		// 		FineCommand(track);
+		// 		return;
+		// 	}
+		// }
+		// else
+		// {
+		// 	track.Position++;
+		// 	if (cmd >= 0xBD) // Commands that work within running status
+		// 	{
+		// 		track.RunCmd = cmd;
+		// 	}
+		// }
 
-		if (track.RunCmd >= 0xCF && cmd <= 0x7F) // Within running status
+		// if (track.RunCmd is NoteCommand nc && cmd <= 0x7F) // Within running status
+		// {
+		// 	byte peek0 = rom[track.ROMOffset];
+		// 	byte peek1 = rom[track.ROMOffset + 1];
+		// 	byte velocity, addedDuration;
+		// 	if (peek0 > 0x7F)
+		// 	{
+		// 		velocity = track.PrevVelocity;
+		// 		addedDuration = 0;
+		// 	}
+		// 	else if (peek1 > 3)
+		// 	{
+		// 		track.ROMOffset++;
+		// 		velocity = peek0;
+		// 		addedDuration = 0;
+		// 	}
+		// 	else
+		// 	{
+		// 		track.ROMOffset += 2;
+		// 		velocity = peek0;
+		// 		addedDuration = peek1;
+		// 	}
+		// 	TryPlayNote(track, cmd, velocity, addedDuration);
+		// }
+		if (cmd is NoteCommand nc)
 		{
-			byte peek0 = rom[track.DataOffset];
-			byte peek1 = rom[track.DataOffset + 1];
-			byte velocity, addedDuration;
-			if (peek0 > 0x7F)
+			// byte peek0 = rom[track.ROMOffset];
+			// byte peek1 = rom[track.ROMOffset + 1];
+			// byte peek2 = rom[track.ROMOffset + 2];
+			// byte key, velocity, addedDuration;
+			if (nc.Note > 0x7F)
 			{
-				velocity = track.PrevVelocity;
-				addedDuration = 0;
+				// key = track.PrevNote;
+				// velocity = track.PrevVelocity;
+				// addedDuration = 0;
 			}
-			else if (peek1 > 3)
+			else if (nc.Velocity > 0x7F)
 			{
-				track.DataOffset++;
-				velocity = peek0;
-				addedDuration = 0;
+				track.ROMOffset++;
+				// key = nc.Note;
+				// velocity = track.PrevVelocity;
+				// addedDuration = 0;
+			}
+			else if (nc.Note == 0xCF || nc.Duration > 3)
+			{
+				track.ROMOffset += 2;
+				// key = nc.Note;
+				// velocity = nc.Velocity;
+				// addedDuration = 0;
 			}
 			else
 			{
-				track.DataOffset += 2;
-				velocity = peek0;
-				addedDuration = peek1;
+				if (nc.IsRepeated)
+				{
+					track.ROMOffset += 2;
+				}
+				else
+				{
+					track.ROMOffset += 3;
+				}
+				// key = nc.Note;
+				// velocity = nc.Velocity;
+				// addedDuration = (byte)nc.Duration;
 			}
-			TryPlayNote(track, cmd, velocity, addedDuration);
+			TryPlayNote(track, nc.Note, nc.Velocity, nc.Duration);
+			track.EventPosition++;
+			// PlayNote(rom, track, cmd);
 		}
-		else if (cmd >= 0xCF)
+		else if (cmd is RestCommand rc)
 		{
-			byte peek0 = rom[track.DataOffset];
-			byte peek1 = rom[track.DataOffset + 1];
-			byte peek2 = rom[track.DataOffset + 2];
-			byte key, velocity, addedDuration;
-			if (peek0 > 0x7F)
-			{
-				key = track.PrevNote;
-				velocity = track.PrevVelocity;
-				addedDuration = 0;
-			}
-			else if (peek1 > 0x7F)
-			{
-				track.DataOffset++;
-				key = peek0;
-				velocity = track.PrevVelocity;
-				addedDuration = 0;
-			}
-			else if (cmd == 0xCF || peek2 > 3)
-			{
-				track.DataOffset += 2;
-				key = peek0;
-				velocity = peek1;
-				addedDuration = 0;
-			}
-			else
-			{
-				track.DataOffset += 3;
-				key = peek0;
-				velocity = peek1;
-				addedDuration = peek2;
-			}
-			TryPlayNote(track, key, velocity, addedDuration);
+			track.Rest = rc.Rest;
+			track.EventPosition++;
+			// foreach ((byte command, byte len) in MP2KUtils.DelayLUT)
+			// {
+			// 	if (cmd == command)
+			// 	{
+			// 		track.Rest = len;
+			// 	}
+			// }
 		}
-		else if (cmd >= 0x80 && cmd <= 0xB0)
+		// else if (track.RunCmd is IRunCommand && cmd <= 0x7F)
+		// {
+		// 	ExecuteCommand(track, (IRunCommand)cmd, ref update);
+		// }
+		else if (cmd is ISequenceCommand irc && irc.SequenceType > (SequenceCommand)0xB0 && irc.SequenceType < (SequenceCommand)0xCF)
 		{
-			track.Rest = MP2KUtils.RestTable[cmd - 0x80];
+			ExecuteCommand(track, irc, ref update);
 		}
-		else if (track.RunCmd < 0xCF && cmd <= 0x7F)
+
+		evt = events[track.EventPosition];
+		track.ROMOffset = evt.Offset;
+
+		if (!track.Ready)
 		{
-			switch (track.RunCmd)
+			return;
+		}
+
+		track.Pitch = track.GetPitch();
+
+		if (!track.UpdateVolume && !track.UpdatePitch)
+		{
+			return;
+		}
+
+		void SetVolPitch(MP2KChannel chn)
+		{
+			if (chn is not null)
 			{
-				case 0xBD:
+				if (chn.Track == track)
 				{
-					track.Voice = cmd;
-					//track.Ready = true; // This is unnecessary because if we're in running status of a voice command, then Ready was already set
-					break;
-				}
-				case 0xBE:
-				{
-					track.Volume = cmd;
-					update = true;
-					break;
-				}
-				case 0xBF:
-				{
-					track.Panpot = (sbyte)(cmd - 0x40);
-					update = true;
-					break;
-				}
-				case 0xC0:
-				{
-					track.PitchBend = (sbyte)(cmd - 0x40);
-					update = true;
-					break;
-				}
-				case 0xC1:
-				{
-					track.PitchBendRange = cmd;
-					update = true;
-					break;
-				}
-				case 0xC2:
-				{
-					track.LFOSpeed = cmd;
-					track.LFOPhase = 0;
-					track.LFODelayCount = 0;
-					update = true;
-					break;
-				}
-				case 0xC3:
-				{
-					track.LFODelay = cmd;
-					track.LFOPhase = 0;
-					track.LFODelayCount = 0;
-					update = true;
-					break;
-				}
-				case 0xC4:
-				{
-					track.LFODepth = cmd;
-					update = true;
-					break;
-				}
-				case 0xC5:
-				{
-					track.LFOType = (LFOType)cmd;
-					update = true;
-					break;
-				}
-				case 0xC8:
-				{
-					track.Tune = (sbyte)(cmd - 0x40);
-					update = true;
-					break;
-				}
-				case 0xCD:
-				{
-					track.DataOffset++;
-					break;
-				}
-				case 0xCE:
-				{
-					track.PrevNote = cmd;
-					int k = cmd + track.Transpose;
-					if (k < 0)
+					if (track.UpdateVolume)
 					{
-						k = 0;
+						chn.SetVolume(track.GetVolume(), track.GetPanpot());
 					}
-					else if (k > 0x7F)
+					if (track.UpdatePitch)
 					{
-						k = 0x7F;
+						chn.SetPitch(track.Pitch);
 					}
-					track.ReleaseChannels(k);
-					break;
 				}
-				default: throw new MP2KInvalidRunningStatusCMDException(track.Index, track.DataOffset - 1, track.RunCmd);
 			}
 		}
-		else if (cmd > 0xB0 && cmd < 0xCF)
+
+		foreach (MP2KPCM8Channel chn in _player.MContext.PCM8Channels)
 		{
-			switch (cmd)
-			{
-				case 0xB1:
-				case 0xB6:
+			SetVolPitch(chn);
+		}
+		foreach (MP2KSquareChannel chn in _player.MContext.Square1Channels)
+		{
+			SetVolPitch(chn);
+		}
+		foreach (MP2KSquareChannel chn in _player.MContext.Square2Channels)
+		{
+			SetVolPitch(chn);
+		}
+		foreach (MP2KPCM4Channel chn in _player.MContext.PCM4Channels)
+		{
+			SetVolPitch(chn);
+		}
+		foreach (MP2KNoiseChannel chn in _player.MContext.NoiseChannels)
+		{
+			SetVolPitch(chn);
+		}
+
+		track.UpdateVolume = false;
+		track.UpdatePitch = false;
+	}
+
+	private void ExecuteCommand(MP2KTrack track, ISequenceCommand cmd, ref bool update)
+	{
+		// bool isRunning = track.RunCmd < 0xCF && cmd <= 0x7F;
+		// SequenceCommand cmdType = isRunning ? (SequenceCommand)track.RunCmd : (SequenceCommand)cmd;
+		switch (cmd)
+		{
+			case FinishCommand f:
 				{
-					track.Stopped = true;
-					//track.ReleaseAllTieingChannels(); // Necessary?
+					FineCommand(track);
 					break;
 				}
-				case 0xB2:
+			case JumpCommand j:
 				{
-					track.DataOffset = (rom[track.DataOffset++] | (rom[track.DataOffset++] << 8) | (rom[track.DataOffset++] << 16) | (rom[track.DataOffset++] << 24)) - GBAUtils.CARTRIDGE_OFFSET;
+					track.ROMOffset = j.Pointer.Offset;
+					track.EventPosition = j.Pointer.Index;
 					break;
 				}
-				case 0xB3:
+			case CallCommand c:
 				{
-					if (track.CallStackDepth >= 3)
+					if (track.CallStackDepth >= track.CallStack.Length)
 					{
-						throw new MP2KTooManyNestedCallsException(track.Index);
+						FineCommand(track);
+						break;
+					}
+					track.CallStack[0][track.CallStackDepth] = track.ROMOffset + 4;
+					track.CallStack[1][track.CallStackDepth++] = track.EventPosition + 1;
+					track.ROMOffset = c.Pointer.Offset;
+					track.EventPosition = c.Pointer.Index;
+					break;
+				}
+			case ReturnCommand:
+				{
+					if (track.CallStackDepth is 0)
+					{
+						track.EventPosition++;
+						break;
 					}
 
-					int callOffset = (rom[track.DataOffset++] | (rom[track.DataOffset++] << 8) | (rom[track.DataOffset++] << 16) | (rom[track.DataOffset++] << 24)) - GBAUtils.CARTRIDGE_OFFSET;
-					track.CallStack[track.CallStackDepth] = track.DataOffset;
-					track.CallStackDepth++;
-					track.DataOffset = callOffset;
+					track.ROMOffset = track.CallStack[0][--track.CallStackDepth];
+					track.EventPosition = (int)track.CallStack[1][track.CallStackDepth];
 					break;
 				}
-				case 0xB4:
+			case RepeatCommand r:
 				{
-					if (track.CallStackDepth != 0)
+					// byte count = rom[track.ROMOffset++];
+					track.ROMOffset++;
+					if (r.Times is 0)
 					{
-						track.CallStackDepth--;
-						track.DataOffset = track.CallStack[track.CallStackDepth];
+						FineCommand(track);
 					}
-					break;
-				}
-				/*case 0xB5: // TODO: Logic so this isn't an infinite loop
-				{
-					byte times = config.Reader.ReadByte();
-					int repeatOffset = config.Reader.ReadInt32() - GBA.Utils.CartridgeOffset;
-					if (!EventExists(offset))
+					if (++track.RepeatTimes < r.Times)
 					{
-						AddEvent(new RepeatCommand { Times = times, Offset = repeatOffset });
-					}
-					break;
-				}*/
-				case 0xB9:
-				{
-					track.DataOffset += 3;
-					break;
-				}
-				case 0xBA:
-				{
-					track.Priority = rom[track.DataOffset++];
-					break;
-				}
-				case 0xBB:
-				{
-					_player.Tempo = (ushort)(rom[track.DataOffset++] * 2);
-					break;
-				}
-				case 0xBC:
-				{
-					track.Transpose = (sbyte)rom[track.DataOffset++];
-					break;
-				}
-				// Commands that work within running status:
-				case 0xBD:
-				{
-					track.Voice = rom[track.DataOffset++];
-					track.Ready = true;
-					break;
-				}
-				case 0xBE:
-				{
-					track.Volume = rom[track.DataOffset++];
-					update = true;
-					break;
-				}
-				case 0xBF:
-				{
-					track.Panpot = (sbyte)(rom[track.DataOffset++] - 0x40);
-					update = true;
-					break;
-				}
-				case 0xC0:
-				{
-					track.PitchBend = (sbyte)(rom[track.DataOffset++] - 0x40);
-					update = true;
-					break;
-				}
-				case 0xC1:
-				{
-					track.PitchBendRange = rom[track.DataOffset++];
-					update = true;
-					break;
-				}
-				case 0xC2:
-				{
-					track.LFOSpeed = rom[track.DataOffset++];
-					track.LFOPhase = 0;
-					track.LFODelayCount = 0;
-					update = true;
-					break;
-				}
-				case 0xC3:
-				{
-					track.LFODelay = rom[track.DataOffset++];
-					track.LFOPhase = 0;
-					track.LFODelayCount = 0;
-					update = true;
-					break;
-				}
-				case 0xC4:
-				{
-					track.LFODepth = rom[track.DataOffset++];
-					update = true;
-					break;
-				}
-				case 0xC5:
-				{
-					track.LFOType = (LFOType)rom[track.DataOffset++];
-					update = true;
-					break;
-				}
-				case 0xC8:
-				{
-					track.Tune = (sbyte)(rom[track.DataOffset++] - 0x40);
-					update = true;
-					break;
-				}
-				case 0xCD:
-				{
-					track.DataOffset += 2;
-					break;
-				}
-				case 0xCE:
-				{
-					byte peek = rom[track.DataOffset];
-					if (peek > 0x7F)
-					{
-						track.ReleaseChannels(track.PrevNote);
+						track.ROMOffset = r.Pointer.Offset;
+						track.EventPosition = r.Pointer.Index;
 					}
 					else
 					{
-						track.DataOffset++;
-						track.PrevNote = peek;
-						int k = peek + track.Transpose;
-						if (k < 0)
-						{
-							k = 0;
-						}
-						else if (k > 0x7F)
-						{
-							k = 0x7F;
-						}
-						track.ReleaseChannels(k);
+						track.RepeatTimes = 0;
+						track.ROMOffset += 4;
+						track.EventPosition++;
 					}
 					break;
 				}
-				default: throw new MP2KInvalidCMDException(track.Index, track.DataOffset - 1, cmd);
-			}
+			case MemoryAccessCommand ma:
+				{
+					MemoryAccessCommand(track, ma);
+					break;
+				}
+			case PriorityCommand p:
+				{
+					track.Priority = p.Priority;
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case TempoCommand t:
+				{
+					_player.Tempo = t.Tempo;
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case TransposeCommand k:
+				{
+					track.Transpose = k.Transpose;
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			// Commands that work within running status:
+			case VoiceCommand voi:
+				{
+					if (voi.IsRepeated)
+					{
+						track.Voice = voi.Voice;
+					}
+					else
+					{
+						track.ROMOffset++;
+						track.Voice = voi.Voice;
+						track.Ready = true; // To indicate that it's ready to be used in running status
+					}
+					track.EventPosition++;
+					break;
+				}
+			case VolumeCommand vol:
+				{
+					track.Volume = vol.Volume;
+					if (!vol.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					track.UpdateVolume = true;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case PanpotCommand pan:
+				{
+					track.Panpot = pan.Panpot;
+					if (!pan.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					track.UpdateVolume = true;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case PitchBendCommand bend:
+				{
+					track.PitchBend = bend.Bend;
+					if (!bend.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					track.UpdatePitch = true;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case PitchBendRangeCommand bendr:
+				{
+					track.PitchBendRange = bendr.Range;
+					if (!bendr.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					track.UpdatePitch = true;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case LFOSpeedCommand lfos:
+				{
+					track.LFOSpeed = lfos.Speed;
+					if (!lfos.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					if (track.LFOSpeed is 0)
+					{
+						track.ResetLFOValue();
+					}
+					track.LFODelayCount = 0;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case LFODelayCommand lfodl:
+				{
+					track.LFODelay = lfodl.Delay;
+					if (!lfodl.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					track.LFOPhase = 0;
+					track.LFODelayCount = 0;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case LFODepthCommand mod:
+				{
+					track.LFODepth = mod.Depth;
+					if (!mod.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					update = true;
+					if (track.LFODepth is 0)
+					{
+						track.ResetLFOValue();
+					}
+					track.EventPosition++;
+					break;
+				}
+			case LFOTypeCommand modt:
+				{
+					if (!modt.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					if (modt.Type == track.LFOType)
+					{
+						return;
+					}
+					track.LFOType = modt.Type;
+					track.UpdateVolume = true;
+					track.UpdatePitch = true;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case TuneCommand tune:
+				{
+					track.Tune = tune.Tune;
+					if (!tune.IsRepeated)
+					{
+						track.ROMOffset++;
+					}
+					track.UpdatePitch = true;
+					update = true;
+					track.EventPosition++;
+					break;
+				}
+			case LibraryCommand xcmd:
+				{
+					ExtendedCommand(track, xcmd);
+					break;
+				}
+			case EndOfTieCommand eot:
+				{
+					byte key;
+					if (eot.IsRepeated)
+					{
+						track.PrevNote = (byte)eot.Note;
+						key = (byte)eot.Note;
+					}
+					else
+					{
+						key = (byte)eot.Note;
+						if (key >= 0x80)
+						{
+							key = track.PrevNote;
+						}
+						else
+						{
+							track.ROMOffset++;
+							track.PrevNote = key;
+						}
+					}
+					foreach (MP2KChannel channel in track.Channels)
+					{
+						if (channel.State == EnvelopeState.Dead)
+						{
+							continue;
+						}
+						if (channel.IsReleasing())
+						{
+							continue;
+						}
+						if (channel.Note.Note == key)
+						{
+							channel.Release();
+							break;
+						}
+					}
+					track.EventPosition++;
+					break;
+				}
+			default:
+				{
+					FineCommand(track);
+					break;
+				}
+		}
+	}
+
+	internal static void FineCommand(MP2KTrack track)
+	{
+		for (int i = 0; i < track.Channels.Count; i++)
+		{
+			track.Channels[i].Release();
+			track.Channels[i].RemoveFromTrack();
+		}
+
+		// if (track.Channels.Count > 0)
+		// {
+		// 	track.Channels.Clear();
+		// }
+
+		track.Stopped = true;
+		// track.ActiveNotes.AsSpan().Clear();
+		// track.ActiveVoiceTypes = VoiceConfigType.None;
+	}
+
+	internal void MemoryAccessCommand(MP2KTrack track, MemoryAccessCommand cmd)
+	{
+		track.ROMOffset++;
+		ref byte memory = ref _player.MContext.MemAccArea.Span[cmd.MemoryAreaAddress];
+
+		switch (cmd.Operator)
+		{
+			case MemoryOperatorType.MemSet:
+				{
+					memory = cmd.Data;
+					break;
+				}
+			case MemoryOperatorType.MemAdd:
+				{
+					memory += cmd.Data;
+					break;
+				}
+			case MemoryOperatorType.MemSub:
+				{
+					memory -= cmd.Data;
+					break;
+				}
+			case MemoryOperatorType.MemMemSet:
+				{
+					memory = _player.MContext.MemAccArea.Span[cmd.Data];
+					break;
+				}
+			case MemoryOperatorType.MemMemAdd:
+				{
+					memory += _player.MContext.MemAccArea.Span[cmd.Data];
+					break;
+				}
+			case MemoryOperatorType.MemMemSub:
+				{
+					memory -= _player.MContext.MemAccArea.Span[cmd.Data];
+					break;
+				}
+			case MemoryOperatorType.MemBEq:
+				{
+					if (memory == cmd.Data)
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemBNEq:
+				{
+					if (memory != cmd.Data)
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemBHi:
+				{
+					if (memory > cmd.Data)
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemBHS:
+				{
+					if (memory >= cmd.Data)
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemBLS:
+				{
+					if (memory <= cmd.Data)
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemBLo:
+				{
+					if (memory < cmd.Data)
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemMemBEq:
+				{
+					if (memory == _player.MContext.MemAccArea.Span[cmd.Data])
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemMemBNEq:
+				{
+					if (memory != _player.MContext.MemAccArea.Span[cmd.Data])
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemMemBHi:
+				{
+					if (memory > _player.MContext.MemAccArea.Span[cmd.Data])
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemMemBHS:
+				{
+					if (memory >= _player.MContext.MemAccArea.Span[cmd.Data])
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemMemBLS:
+				{
+					if (memory <= _player.MContext.MemAccArea.Span[cmd.Data])
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			case MemoryOperatorType.MemMemBLo:
+				{
+					if (memory < _player.MContext.MemAccArea.Span[cmd.Data])
+					{
+						track.ROMOffset = cmd.Pointer.Offset;
+						track.EventPosition = cmd.Pointer.Index;
+						return;
+					}
+					break;
+				}
+			default:
+				{
+					break;
+				}
+		}
+
+		track.EventPosition++;
+	}
+
+	internal static void ExtendedCommand(MP2KTrack track, LibraryCommand xCmd)
+	{
+		track.ROMOffset++;
+		switch (xCmd.LibraryCommandType)
+		{
+			case ExtendedCommandType.xWAVE:
+				{
+					track.ROMOffset += 4;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xTYPE:
+				{
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xATTA:
+				{
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xDECA:
+				{
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xSUST:
+				{
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xRELA:
+				{
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xIECV:
+				{
+					if (!xCmd.IsRepeated)
+					{
+						track.PseudoEchoVolume = xCmd.Argument;
+					}
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xIECL:
+				{
+					if (!xCmd.IsRepeated)
+					{
+						track.PseudoEchoLength = xCmd.Argument;
+					}
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xLENG:
+				{
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xSWEE:
+				{
+					track.ROMOffset++;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xWAIT:
+				{
+					track.Rest = xCmd.Argument;
+					track.ROMOffset += 2;
+					track.EventPosition++;
+					break;
+				}
+			case ExtendedCommandType.xSOFF:
+				{
+					track.ROMOffset += 4;
+					track.EventPosition++;
+					break;
+				}
+			default:
+				{
+					FineCommand(track);
+					break;
+				}
 		}
 	}
 
 	public void UpdateInstrumentCache(byte voice, out string str)
 	{
-		byte t = _player.Config.ROM[_voiceTableOffset + (voice * 12)];
+		byte t = _player.Config.ROM[_voicegroupOffset + (voice * 12)];
 		if (t == (byte)VoiceFlags.KeySplit)
 		{
 			str = "Key Split";

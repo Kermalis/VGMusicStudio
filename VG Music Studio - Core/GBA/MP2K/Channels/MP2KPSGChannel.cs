@@ -1,282 +1,512 @@
-﻿namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
+﻿using System;
+
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
 internal abstract class MP2KPSGChannel : MP2KChannel
 {
-	protected enum GBPan : byte
+	protected enum PSGPan : byte
 	{
 		Left,
 		Center,
 		Right,
 	}
 
-	private byte _processStep;
-	private EnvelopeState _nextState;
-	private byte _peakVelocity;
-	private byte _sustainVelocity;
-	protected GBPan _panpot = GBPan.Center;
+	protected MP2KContext _context;
+	protected MP2KMixer _mixer;
+	private byte _envInterStep;
+	private byte _envFrameCount = 0;
+	private float _envFadeLevel = 0.0f;
+	protected byte _envLevelCur;
+	private byte _envPeak;
+	private byte _envSustain;
+	protected PSGPan _panpotCurrent = PSGPan.Center;
+	protected PSGPan _panpotPrev = PSGPan.Center;
+	protected ChannelVolume _channelVolume = new();
 
-	public MP2KPSGChannel(MP2KMixer mixer)
-		: base(mixer)
+	protected bool _useStairstep;
+	protected bool _fastRelease;
+	protected ushort _volume = 0;
+	protected short _panpot = 0;
+	protected bool _playingVolBugUpdate = false;
+
+	protected ushort _psgLengthCount = 0;
+	protected bool _psgLengthActive = false;
+
+	public MP2KPSGChannel(MP2KContext context, MP2KMixer mixer, MP2KTrack track, ADSR env, NoteInfo note, bool useStairstep = false)
+		: base(track, note, env)
 	{
-		//
-	}
-	protected void Init(MP2KTrack owner, NoteInfo note, ADSR env, int instPan)
-	{
-		State = EnvelopeState.Initializing;
-		Owner?.Channels.Remove(this);
-		Owner = owner;
-		Owner.Channels.Add(this);
-		Note = note;
-		_adsr.A = (byte)(env.A & 0x7);
-		_adsr.D = (byte)(env.D & 0x7);
-		_adsr.S = (byte)(env.S & 0xF);
-		_adsr.R = (byte)(env.R & 0x7);
-		_instPan = instPan;
+		_context = context;
+		_mixer = mixer;
+		_useStairstep = useStairstep;
+		Env.A = (byte)(env.A & 0x7);
+		Env.D = (byte)(env.D & 0x7);
+		Env.S = (byte)(env.S & 0xF);
+		Env.R = (byte)(env.R & 0x7);
+
+		if (note.PSGLength > 0)
+		{
+			byte invertedLength = (byte)(64 - (note.PSGLength & 0x3F));
+			_psgLengthCount = (ushort)((invertedLength * GBAUtils.AGB_APPROX_FPS * GBAUtils.INTERFRAMES + 128) / 256);
+			_psgLengthActive = true;
+		}
 	}
 
-	public override void Release()
+	internal override void SetVolume(byte vol, sbyte pan)
+	{
+		if (Stop)
+		{
+			return;
+		}
+
+		_volume = vol;
+		_panpot = Math.Clamp(_panpot, (short)-128, (short)127);
+		_playingVolBugUpdate = true;
+	}
+	internal override ChannelVolume GetVolume()
+	{
+		return _channelVolume;
+	}
+
+	public byte GetPseudoEchoLevel()
+	{
+		return (byte)(((_envPeak * Note.PseudoEchoVolume) + 0xFF) >> 8);
+	}
+
+	internal static float TimerToFrequency(float timer)
+	{
+		return 131072.0f / (float)(2048.0f - timer);
+	}
+
+	internal static float FrequencyToTimer(float freq)
+	{
+		return 2048.0f - MathF.Min(131072.0f / freq, 2047.0f);
+	}
+
+	internal override void Release()
+	{
+		Release(false);
+	}
+	public void Release(bool fastRelease)
+	{
+		Stop = true;
+		_fastRelease = fastRelease;
+	}
+	internal override bool TickNote()
 	{
 		if (State < EnvelopeState.Releasing)
 		{
-			if (_adsr.R == 0)
+			if (Note.Duration > 0)
 			{
-				_velocity = 0;
-				Stop();
+				Note.Duration--;
+				if (Note.Duration == 0)
+				{
+					Release(false);
+					return false;
+				}
 			}
-			else if (_velocity == 0)
-			{
-				Stop();
-			}
-			else
-			{
-				_nextState = EnvelopeState.Releasing;
-			}
-		}
-	}
-	public override bool TickNote()
-	{
-		if (State >= EnvelopeState.Releasing)
-		{
-			return false;
-		}
-		if (Note.Duration <= 0)
-		{
 			return true;
 		}
-
-		Note.Duration--;
-		if (Note.Duration == 0)
-		{
-			if (_velocity == 0)
-			{
-				Stop();
-			}
-			else
-			{
-				State = EnvelopeState.Releasing;
-			}
-			return false;
-		}
-		return true;
+		return false;
 	}
 
-	public override ChannelVolume GetVolume()
+	public bool IsFastReleasing()
 	{
-		const float MAX = 0x20;
-		return new ChannelVolume
-		{
-			LeftVol = _panpot == GBPan.Right ? 0 : _velocity / MAX,
-			RightVol = _panpot == GBPan.Left ? 0 : _velocity / MAX
-		};
+		return _fastRelease;
 	}
-	public override void SetVolume(byte vol, sbyte pan)
+
+	protected virtual bool IsChn3()
 	{
-		int combinedPan = pan + _instPan;
-		if (combinedPan > 63)
-		{
-			combinedPan = 63;
-		}
-		else if (combinedPan < -64)
-		{
-			combinedPan = -64;
-		}
-		if (State < EnvelopeState.Releasing)
-		{
-			_panpot = combinedPan < -21 ? GBPan.Left : combinedPan > 20 ? GBPan.Right : GBPan.Center;
-			_peakVelocity = (byte)((Note.Velocity * vol) >> 10);
-			_sustainVelocity = (byte)(((_peakVelocity * _adsr.S) + 0xF) >> 4); // TODO
-			if (State == EnvelopeState.Playing)
-			{
-				_velocity = _sustainVelocity;
-			}
-		}
+		return false;
 	}
 
 	protected void StepEnvelope()
 	{
-		void dec()
+		// void BeginDecay()
+		// {
+		// 	State = EnvelopeState.Decaying;
+		// 	_envFrameCount = Env.D;
+		// 	if (_envPeak == 0 || _envFrameCount == 0 || _envPeak == _envSustain)
+		// 	{
+		// 		BeginSustain();
+		// 	}
+		// 	else
+		// 	{
+		// 		_envLevelCur = _envPeak;
+		// 	}
+		// }
+		// void BeginSustain()
+		// {
+		// 	if (Env.S == 0)
+		// 	{
+		// 		State = EnvelopeState.Releasing;
+		// 		BeginPseudoEcho();
+		// 	}
+		// 	else
+		// 	{
+		// 		State = EnvelopeState.Playing;
+		// 		_envLevelCur = _envSustain;
+		// 		SustainState();
+		// 	}
+		// }
+		// void BeginPseudoEcho()
+		// {
+		// 	_envFrameCount = 1;
+		// 	_envLevelCur = GetPseudoEchoLevel();
+		// 	if (_envLevelCur != 0 && Note.PseudoEchoLength != 0)
+		// 	{
+		// 		State = EnvelopeState.PseudoEcho;
+		// 	}
+		// 	else
+		// 	{
+		// 		State = EnvelopeState.Dying;
+		// 		_envInterStep = GBAUtils.INTERFRAMES - 1;
+		// 		return;
+		// 	}
+		// }
+		void SustainState()
 		{
-			_processStep = 0;
-			if (_velocity - 1 <= _sustainVelocity)
+			_envFrameCount = 7;
+			if (IsChn3())
 			{
-				_velocity = _sustainVelocity;
-				_nextState = EnvelopeState.Playing;
-			}
-			else if (_velocity != 0)
-			{
-				_velocity--;
-			}
-		}
-		void sus()
-		{
-			_processStep = 0;
-		}
-		void rel()
-		{
-			if (_adsr.R == 0)
-			{
-				_velocity = 0;
-				Stop();
-			}
-			else
-			{
-				_processStep = 0;
-				if (_velocity - 1 <= 0)
-				{
-					_nextState = EnvelopeState.Dying;
-					_velocity = 0;
-				}
-				else
-				{
-					_velocity--;
-				}
+				_envLevelCur = _envSustain;
 			}
 		}
 
-		switch (State)
+		if (State == EnvelopeState.Initializing)
 		{
-			case EnvelopeState.Initializing:
+			if (Stop)
 			{
-				_nextState = EnvelopeState.Rising;
-				_processStep = 0;
-				if ((_adsr.A | _adsr.D) == 0 || (_sustainVelocity == 0 && _peakVelocity == 0))
-				{
-					State = EnvelopeState.Playing;
-					_velocity = _sustainVelocity;
-					return;
-				}
-				else if (_adsr.A == 0 && _adsr.S < 0xF)
-				{
-					State = EnvelopeState.Decaying;
-					int next = _peakVelocity - 1;
-					if (next < 0)
-					{
-						next = 0;
-					}
-					_velocity = (byte)next;
-					if (_velocity < _sustainVelocity)
-					{
-						_velocity = _sustainVelocity;
-					}
-					return;
-				}
-				else if (_adsr.A == 0)
-				{
-					State = EnvelopeState.Playing;
-					_velocity = _sustainVelocity;
-					return;
-				}
-				else
-				{
-					State = EnvelopeState.Rising;
-					_velocity = 1;
-					return;
-				}
+				State = EnvelopeState.Dead;
+				return;
 			}
-			case EnvelopeState.Rising:
+
+			ApplyVolume();
+			_panpotPrev = _panpotCurrent;
+
+			_envInterStep = 0;
+
+			_envLevelCur = 0;
+			_envFrameCount = Env.A;
+			State = EnvelopeState.Rising;
+
+			if (_envFrameCount > 0)
 			{
-				if (++_processStep >= _adsr.A)
+				_envFadeLevel = 0.0f;
+				return;
+			}
+			else
+			{
+				if (Env.D > 0)
 				{
-					if (_nextState == EnvelopeState.Decaying)
-					{
-						State = EnvelopeState.Decaying;
-						dec(); return;
-					}
-					if (_nextState == EnvelopeState.Playing)
-					{
-						State = EnvelopeState.Playing;
-						sus(); return;
-					}
-					if (_nextState == EnvelopeState.Releasing)
+					_envFadeLevel = _envPeak;
+				}
+				else if (_envSustain > 0)
+				{
+					_envFadeLevel = _envSustain;
+				}
+				else if (GetPseudoEchoLevel() > 0)
+				{
+					_envFadeLevel = GetPseudoEchoLevel();
+				}
+				State = EnvelopeState.Decaying;
+				_envFrameCount = Env.D;
+				if (_envPeak == 0 || _envFrameCount == 0 || _envPeak == _envSustain)
+				{
+					if (Env.S == 0)
 					{
 						State = EnvelopeState.Releasing;
-						rel(); return;
-					}
-					_processStep = 0;
-					if (++_velocity >= _peakVelocity)
-					{
-						if (_adsr.D == 0)
+						_envFrameCount = 1;
+						_envLevelCur = GetPseudoEchoLevel();
+						if (_envLevelCur != 0 && Note.PseudoEchoLength != 0)
 						{
-							_nextState = EnvelopeState.Playing;
-						}
-						else if (_peakVelocity == _sustainVelocity)
-						{
-							_nextState = EnvelopeState.Playing;
-							_velocity = _peakVelocity;
+							State = EnvelopeState.PseudoEcho;
 						}
 						else
 						{
-							_velocity = _peakVelocity;
-							_nextState = EnvelopeState.Decaying;
+							State = EnvelopeState.Dying;
+							_envInterStep = GBAUtils.INTERFRAMES - 1;
+							return;
 						}
 					}
-				}
-				break;
-			}
-			case EnvelopeState.Decaying:
-			{
-				if (++_processStep >= _adsr.D)
-				{
-					if (_nextState == EnvelopeState.Playing)
+					else
 					{
 						State = EnvelopeState.Playing;
-						sus(); return;
+						_envLevelCur = _envSustain;
+						SustainState();
 					}
-					if (_nextState == EnvelopeState.Releasing)
-					{
-						State = EnvelopeState.Releasing;
-						rel(); return;
-					}
-					dec();
+					_envFrameCount = Env.D;
 				}
-				break;
-			}
-			case EnvelopeState.Playing:
-			{
-				if (++_processStep >= 1)
+				else
 				{
-					if (_nextState == EnvelopeState.Releasing)
-					{
-						State = EnvelopeState.Releasing;
-						rel(); return;
-					}
-					sus();
+					_envLevelCur = _envPeak;
 				}
-				break;
-			}
-			case EnvelopeState.Releasing:
-			{
-				if (++_processStep >= _adsr.R)
-				{
-					if (_nextState == EnvelopeState.Dying)
-					{
-						Stop();
-						return;
-					}
-					rel();
-				}
-				break;
 			}
 		}
+		else
+		{
+			if (_psgLengthActive && _psgLengthCount > 0)
+			{
+				_psgLengthCount--;
+				if (_psgLengthCount is 0)
+				{
+					Release(true);
+				}
+			}
+			if (_fastRelease && State != EnvelopeState.Dying)
+			{
+				if (Env.R == 0 || State == EnvelopeState.PseudoEcho)
+				{
+					_envInterStep = GBAUtils.INTERFRAMES - 1;
+				}
+				else
+				{
+					_envInterStep = 0;
+				}
+
+				State = EnvelopeState.Dying;
+				_envFrameCount = 1;
+				return;
+			}
+
+			if (++_envInterStep < GBAUtils.INTERFRAMES)
+			{
+				return;
+			}
+
+			_envInterStep = 0;
+
+			_envFrameCount--;
+		}
+
+		if (State == EnvelopeState.PseudoEcho)
+		{
+			_envFrameCount = 1;
+			if (--Note.PseudoEchoLength == 0)
+			{
+				State = EnvelopeState.Dying;
+				_envInterStep = GBAUtils.INTERFRAMES - 1;
+			}
+		}
+		else if (Stop && State < EnvelopeState.Releasing)
+		{
+			State = EnvelopeState.Releasing;
+			_envFrameCount = Env.R;
+			if (_envLevelCur == 0 || _envFrameCount == 0)
+			{
+				_envFrameCount = 1;
+				_envLevelCur = GetPseudoEchoLevel();
+				if (_envLevelCur != 0 && Note.PseudoEchoLength != 0)
+				{
+					State = EnvelopeState.PseudoEcho;
+				}
+				else
+				{
+					State = EnvelopeState.Dying;
+					_envInterStep = GBAUtils.INTERFRAMES - 1;
+					return;
+				}
+			}
+			else
+			{
+				return;
+			}
+		}
+		else if (_envFrameCount == 0)
+		{
+			ApplyVolume();
+
+			if (State == EnvelopeState.Releasing)
+			{
+				_envLevelCur--;
+
+				if (_envLevelCur == 0)
+				{
+					_envFrameCount = 1;
+					_envLevelCur = GetPseudoEchoLevel();
+					if (_envLevelCur != 0 && Note.PseudoEchoLength != 0)
+					{
+						State = EnvelopeState.PseudoEcho;
+					}
+					else
+					{
+						State = EnvelopeState.Dying;
+						_envInterStep = GBAUtils.INTERFRAMES - 1;
+						return;
+					}
+				}
+				else
+				{
+					_envFrameCount = Env.R;
+				}
+			}
+			else if (State == EnvelopeState.Playing)
+			{
+				SustainState();
+			}
+			else if (State == EnvelopeState.Decaying)
+			{
+				_envLevelCur--;
+
+				if (_envLevelCur <= _envSustain)
+				{
+					if (Env.S == 0)
+					{
+						State = EnvelopeState.Releasing;
+						_envFrameCount = 1;
+						_envLevelCur = GetPseudoEchoLevel();
+						if (_envLevelCur != 0 && Note.PseudoEchoLength != 0)
+						{
+							State = EnvelopeState.PseudoEcho;
+						}
+						else
+						{
+							State = EnvelopeState.Dying;
+							_envInterStep = GBAUtils.INTERFRAMES - 1;
+							return;
+						}
+					}
+					else
+					{
+						State = EnvelopeState.Playing;
+						_envLevelCur = _envSustain;
+						SustainState();
+					}
+				}
+				_envFrameCount = Env.D;
+			}
+			else if (State == EnvelopeState.Rising)
+			{
+				_envLevelCur++;
+
+				if (_envLevelCur >= _envPeak)
+				{
+					State = EnvelopeState.Decaying;
+					_envFrameCount = Env.D;
+					if (_envPeak == 0 || _envFrameCount == 0 || _envPeak == _envSustain)
+					{
+						if (Env.S == 0)
+						{
+							State = EnvelopeState.Releasing;
+							_envFrameCount = 1;
+							_envLevelCur = GetPseudoEchoLevel();
+							if (_envLevelCur != 0 && Note.PseudoEchoLength != 0)
+							{
+								State = EnvelopeState.PseudoEcho;
+							}
+							else
+							{
+								State = EnvelopeState.Dying;
+								_envInterStep = GBAUtils.INTERFRAMES - 1;
+								return;
+							}
+						}
+						else
+						{
+							State = EnvelopeState.Playing;
+							_envLevelCur = _envSustain;
+							SustainState();
+						}
+						_envFrameCount = Env.D;
+					}
+					else
+					{
+						_envLevelCur = _envPeak;
+					}
+				}
+				else
+				{
+					_envFrameCount = Env.A;
+				}
+			}
+			else if (State == EnvelopeState.Dying)
+			{
+				State = EnvelopeState.Dead;
+				return;
+			}
+		}
+	}
+
+	protected void UpdateVolumeFade()
+	{
+		int fadeInterframesCount = _envFrameCount * GBAUtils.INTERFRAMES - _envInterStep;
+
+		byte _fadeVelocityTo = 0xFF;
+		switch (State)
+		{
+			case EnvelopeState.Initializing:
+				break;
+			case EnvelopeState.Rising:
+				_fadeVelocityTo = (byte)(_envLevelCur + 1);
+				break;
+			case EnvelopeState.Decaying:
+			case EnvelopeState.Releasing:
+				_fadeVelocityTo = (byte)(_envLevelCur - 1);
+				break;
+			case EnvelopeState.Playing:
+			case EnvelopeState.PseudoEcho:
+				_fadeVelocityTo = _envLevelCur;
+				fadeInterframesCount = 1;
+				break;
+			case EnvelopeState.Dying:
+				_fadeVelocityTo = 0;
+				break;
+			case EnvelopeState.Dead:
+				break;
+		}
+
+		float fadeVelocityNew;
+		if (_useStairstep)
+		{
+			if (fadeInterframesCount == 1)
+			{
+				fadeVelocityNew = _fadeVelocityTo;
+			}
+			else
+			{
+				fadeVelocityNew = _envFadeLevel;
+			}
+		}
+		else
+		{
+			fadeVelocityNew = _envFadeLevel + (_fadeVelocityTo - _envFadeLevel) / fadeInterframesCount;
+		}
+
+		_channelVolume.FromVolLeft = (_panpotPrev == PSGPan.Right) ? 0.0f : _envFadeLevel * (1.0f / 32.0f);
+		_channelVolume.FromVolRight = (_panpotPrev == PSGPan.Left) ? 0.0f : _envFadeLevel * (1.0f / 32.0f);
+		_channelVolume.ToVolLeft = (_panpotCurrent == PSGPan.Right) ? 0.0f : fadeVelocityNew * (1.0f / 32.0f);
+		_channelVolume.ToVolRight = (_panpotCurrent == PSGPan.Left) ? 0.0f : fadeVelocityNew * (1.0f / 32.0f);
+
+		_panpotPrev = _panpotCurrent;
+		_envFadeLevel = fadeVelocityNew;
+	}
+
+	protected void ApplyVolume()
+	{
+		int trkVolML = ((127 - _panpot) * _volume) >> 8;
+		int trkVolMR = ((_panpot + 128) * _volume) >> 8;
+		int chnVolL = ((127 - Note.RhythmPan) * Note.Velocity * trkVolML) >> 14;
+		int chnVolR = ((Note.RhythmPan + 128) * Note.Velocity * trkVolMR) >> 14;
+
+		if ((chnVolR / 2) >= chnVolL)
+		{
+			_panpotCurrent = PSGPan.Right;
+		}
+		else if ((chnVolL / 2) >= chnVolR)
+		{
+			_panpotCurrent = PSGPan.Left;
+		}
+		else
+		{
+			_panpotCurrent = PSGPan.Center;
+		}
+
+		if (!IsChn3() && _playingVolBugUpdate && State == EnvelopeState.Playing)
+		{
+			_envLevelCur = _envSustain;
+			_playingVolBugUpdate = false;
+		}
+
+		_envPeak = (byte)Math.Clamp((chnVolL + chnVolR) >> 4, 0, 15);
+		_envSustain = (byte)Math.Clamp((_envPeak * Env.S + 15) >> 4, 0, 15);
 	}
 }

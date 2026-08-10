@@ -10,6 +10,7 @@ public sealed class SongState
 		public int LFO;
 		public long Rest;
 		public sbyte Panpot;
+		public byte Reverb;
 		public float LeftVolume;
 		public float RightVolume;
 		public int PitchBend;
@@ -34,7 +35,7 @@ public sealed class SongState
 
 		public void Reset()
 		{
-			Position = Rest = 0;
+			Position = Rest = Reverb = 0;
 			Voice = Volume = Extra = 0;
 			LFO = PitchBend = PreviousKeysTime = 0;
 			Panpot = 0;
@@ -48,7 +49,7 @@ public sealed class SongState
 	}
 
 	public const int MAX_KEYS = 32 + 1; // DSE is currently set to use 32 channels
-	public const int MAX_TRACKS = 18; // PMD2 has a few songs with 18 tracks
+	public const int MAX_TRACKS = 255 + 1; // PMD2 has a few songs with 18 tracks, where as PMD WiiWare has some that are up to 27 tracks, but made it 255 to future proof it
 
 	public ushort Tempo;
 	public readonly Track[] Tracks;

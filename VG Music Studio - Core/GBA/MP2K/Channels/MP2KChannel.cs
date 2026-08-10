@@ -1,62 +1,73 @@
-﻿namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
+﻿using System;
+
+namespace Kermalis.VGMusicStudio.Core.GBA.MP2K;
 
 internal abstract class MP2KChannel
 {
-	public EnvelopeState State;
-	public MP2KTrack? Owner;
-	protected readonly MP2KMixer _mixer;
+	internal MP2KTrack Track;
 
-	public NoteInfo Note;
-	protected ADSR _adsr;
-	protected int _instPan;
+	internal MP2KTrack TrackOrg;
 
-	protected byte _velocity;
-	protected int _pos;
-	protected float _interPos;
-	protected float _frequency;
+	internal MP2KResampler? Rs;
 
-	protected MP2KChannel(MP2KMixer mixer)
+	internal NoteInfo Note;
+	internal ADSR Env;
+	internal EnvelopeState State = EnvelopeState.Initializing;
+
+	internal long Pos = 0;
+	internal float InterPos = 0.0f;
+	internal float Freq = 0.0f;
+
+	internal bool Stop = false;
+
+	internal abstract void Process(Span<float> buffer, MixingArgs args);
+	internal abstract void SetVolume(byte volume, sbyte panpot);
+	internal abstract ChannelVolume GetVolume();
+	internal abstract void SetPitch(short pitch);
+
+	internal virtual void Release() { }
+	internal virtual bool TickNote()
 	{
-		_mixer = mixer;
+		return false;
+	}
+	internal virtual VoiceConfigType GetVoiceType()
+	{
+		return VoiceConfigType.None;
+	}
+
+	internal MP2KChannel(MP2KTrack track, NoteInfo note, ADSR env)
+	{
+		Note = note;
+		Env = env;
+		Track = track;
+		TrackOrg = track;
+
+		track.Channels.Add(this);
+	}
+
+	~MP2KChannel()
+	{
+		RemoveFromTrack();
+	}
+
+	internal void RemoveFromTrack()
+	{
+		if (Track is null || Track.Channels is null)
+		{
+			return;
+		}
+
+		Track.Channels.Remove(this);
+	}
+
+	internal virtual bool IsReleasing()
+	{
+		return Stop;
+	}
+
+	internal void Kill()
+	{
 		State = EnvelopeState.Dead;
-	}
-
-	public abstract ChannelVolume GetVolume();
-	public abstract void SetVolume(byte vol, sbyte pan);
-	public abstract void SetPitch(int pitch);
-	public virtual void Release()
-	{
-		if (State < EnvelopeState.Releasing)
-		{
-			State = EnvelopeState.Releasing;
-		}
-	}
-
-	public abstract void Process(float[] buffer);
-
-	/// <summary>Returns whether the note is active or not</summary>
-	public virtual bool TickNote()
-	{
-		if (State >= EnvelopeState.Releasing)
-		{
-			return false;
-		}
-
-		if (Note.Duration > 0)
-		{
-			Note.Duration--;
-			if (Note.Duration == 0)
-			{
-				State = EnvelopeState.Releasing;
-				return false;
-			}
-		}
-		return true;
-	}
-	public void Stop()
-	{
-		State = EnvelopeState.Dead;
-		Owner?.Channels.Remove(this);
-		Owner = null;
+		RemoveFromTrack();
 	}
 }

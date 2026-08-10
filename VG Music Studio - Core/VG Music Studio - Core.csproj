@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<OutputType>Library</OutputType>
 		<LangVersion>latest</LangVersion>
 		<RootNamespace>Kermalis.VGMusicStudio.Core</RootNamespace>
@@ -11,15 +11,31 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EndianBinaryIO" Version="2.1.0" />
-		<PackageReference Include="NAudio.Core" Version="2.1.0" />
-		<PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
-		<PackageReference Include="YamlDotNet" Version="12.0.0" />
+		<PackageReference Include="EndianBinaryIO" Version="2.1.1" />
+		<PackageReference Include="KMIDI" Version="1.0.0" />
+		<!-- <ProjectReference Include="../../KMIDI/KMIDI/KMIDI.csproj" /> -->
+
+		<!-- Comment out these lines below if debugging and researching NAudio.Core and NAudio.Wasapi and using as Project References -->
+		<PackageReference Include="NAudio.Core" Version="3.0.0-preview.19" /> 
+		<PackageReference Include="NAudio.Wasapi" Version="3.0.0-preview.19" />
+		<PackageReference Include="NAudio.Alsa" Version="3.0.0-preview.19" />
+
+		<PackageReference Include="SoundFlow" Version="1.4.1" />
+
+		<PackageReference Include="YamlDotNet" Version="18.1.0" />
+
+		<PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux')) And '$(Platform)' != 'ARM64'" Include="org.portaudio.runtime.linux-x64" Version="19.7.5.1" />
+		<PackageReference Condition="$([MSBuild]::IsOSPlatform('OSX')) And '$(Platform)' != 'ARM64'" Include="org.portaudio.runtime.osx-x64" Version="19.7.5" />
+		<PackageReference Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(Platform)' != 'ARM64'" Include="org.portaudio.runtime.win-x64" Version="19.7.5" />
+		<!-- <ProjectReference Include="../../PLMIDI2VG/PLMIDI2VG/PLMIDI2VG.csproj" /> -->
+		<PackageReference Include="PLMIDI2VG" Version="0.0.1" />
+
+		<!-- If debugging and researching NAudio, uncomment these lines and comment out the PackageReferences of NAudio.Core and NAudio.Wasapi to prevent conflicts -->
+		<!-- <ProjectReference Include="..\..\NAudio\NAudio.Core\NAudio.Core.csproj" />
+		<ProjectReference Include="..\..\NAudio\NAudio.Wasapi\NAudio.Wasapi.csproj" /> -->
+
 		<Reference Include="DLS2">
 			<HintPath>Dependencies\DLS2.dll</HintPath>
-		</Reference>
-		<Reference Include="KMIDI">
-			<HintPath>Dependencies\KMIDI.dll</HintPath>
 		</Reference>
 		<Reference Include="SoundFont2">
 			<HintPath>Dependencies\SoundFont2.dll</HintPath>

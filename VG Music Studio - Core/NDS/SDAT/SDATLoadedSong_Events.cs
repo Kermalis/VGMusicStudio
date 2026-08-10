@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using static System.Buffers.Binary.BinaryPrimitives;
 
@@ -16,7 +17,17 @@ internal sealed partial class SDATLoadedSong
 	}
 	private bool EventExists(byte trackIndex, long cmdOffset)
 	{
-		return Events[trackIndex]!.Exists(e => e.Offset == cmdOffset);
+		if (Events is not null && Events[trackIndex] is not null) // A more readable and easier to understand way to find if the event exists, rather than using lambda
+		{
+			foreach (var e in Events[trackIndex]!)
+			{
+				if (e.Offset == cmdOffset)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private int ReadArg(ref int dataOffset, ArgType type)
@@ -24,40 +35,40 @@ internal sealed partial class SDATLoadedSong
 		switch (type)
 		{
 			case ArgType.Byte:
-			{
-				return _sseq.Data[dataOffset++];
-			}
-			case ArgType.Short:
-			{
-				short s = ReadInt16LittleEndian(_sseq.Data.AsSpan(dataOffset));
-				dataOffset += 2;
-				return s;
-			}
-			case ArgType.VarLen:
-			{
-				int numRead = 0;
-				int value = 0;
-				byte b;
-				do
 				{
-					b = _sseq.Data[dataOffset++];
-					value = (value << 7) | (b & 0x7F);
-					numRead++;
+					return _sseq.Data[dataOffset++];
 				}
-				while (numRead < 4 && (b & 0x80) != 0);
-				return value;
-			}
+			case ArgType.Short:
+				{
+					short s = ReadInt16LittleEndian(_sseq.Data.AsSpan(dataOffset));
+					dataOffset += 2;
+					return s;
+				}
+			case ArgType.VarLen:
+				{
+					int numRead = 0;
+					int value = 0;
+					byte b;
+					do
+					{
+						b = _sseq.Data[dataOffset++];
+						value = (value << 7) | (b & 0x7F);
+						numRead++;
+					}
+					while (numRead < 4 && (b & 0x80) != 0);
+					return value;
+				}
 			case ArgType.Rand:
-			{
-				// Combine min and max into one int
-				int minMax = ReadInt32LittleEndian(_sseq.Data.AsSpan(dataOffset));
-				dataOffset += 4;
-				return minMax;
-			}
+				{
+					// Combine min and max into one int
+					int minMax = ReadInt32LittleEndian(_sseq.Data.AsSpan(dataOffset));
+					dataOffset += 4;
+					return minMax;
+				}
 			case ArgType.PlayerVar:
-			{
-				return _sseq.Data[dataOffset++]; // Return var index
-			}
+				{
+					return _sseq.Data[dataOffset++]; // Return var index
+				}
 			default: throw new Exception();
 		}
 	}
@@ -65,7 +76,7 @@ internal sealed partial class SDATLoadedSong
 	private void AddTrackEvents(byte trackIndex, int trackStartOffset)
 	{
 		ref List<SongEvent>? trackEvents = ref Events[trackIndex];
-		trackEvents ??= new List<SongEvent>();
+		trackEvents ??= []; // The [] essentially is just a simplified "new List<SongEvent>()"
 
 		int callStackDepth = 0;
 		AddEvents(trackIndex, trackStartOffset, ref callStackDepth);
@@ -93,13 +104,13 @@ internal sealed partial class SDATLoadedSong
 					case 0x80: HandleCmdGroup0x80(trackIndex, ref dataOffset, cmdOffset, cmd, argOverrideType); break;
 					case 0x90: HandleCmdGroup0x90(trackIndex, ref dataOffset, ref callStackDepth, cmdOffset, cmd, argOverrideType, ref @if, ref cont); break;
 					case 0xA0:
-					{
-						if (HandleCmdGroup0xA0(trackIndex, ref cmdOffset, cmd, ref argOverrideType, ref @if))
 						{
-							goto again;
+							if (HandleCmdGroup0xA0(trackIndex, ref cmdOffset, cmd, ref argOverrideType, ref @if))
+							{
+								goto again;
+							}
+							break;
 						}
-						break;
-					}
 					case 0xB0: HandleCmdGroup0xB0(trackIndex, ref dataOffset, cmdOffset, cmd, argOverrideType); break;
 					case 0xC0: HandleCmdGroup0xC0(trackIndex, ref dataOffset, cmdOffset, cmd, argOverrideType); break;
 					case 0xD0: HandleCmdGroup0xD0(trackIndex, ref dataOffset, cmdOffset, cmd, argOverrideType); break;
@@ -125,21 +136,21 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0x80:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new RestCommand { Rest = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new RestCommand { Rest = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0x81: // RAND PROGRAM: [BW2 (2249)]
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VoiceCommand { Voice = arg }, argOverrideType); // TODO: Bank change
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VoiceCommand { Voice = arg }, argOverrideType); // TODO: Bank change
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(trackIndex, cmdOffset, cmd);
 		}
 	}
@@ -148,54 +159,54 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0x93:
-			{
-				byte openTrackIndex = _sseq.Data[dataOffset++];
-				int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new OpenTrackCommand { Track = openTrackIndex, Offset = offset24bit }, argOverrideType);
-					AddTrackEvents(openTrackIndex, offset24bit);
+					byte openTrackIndex = _sseq.Data[dataOffset++];
+					int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new OpenTrackCommand { Track = openTrackIndex, Offset = offset24bit }, argOverrideType);
+						AddTrackEvents(openTrackIndex, offset24bit);
+					}
+					break;
 				}
-				break;
-			}
 			case 0x94:
-			{
-				int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new JumpCommand { Offset = offset24bit }, argOverrideType);
-					if (!EventExists(trackIndex, offset24bit))
+					int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
+					if (!EventExists(trackIndex, cmdOffset))
 					{
-						AddEvents(trackIndex, offset24bit, ref callStackDepth);
+						AddEvent(trackIndex, cmdOffset, new JumpCommand { Offset = offset24bit }, argOverrideType);
+						if (!EventExists(trackIndex, offset24bit))
+						{
+							AddEvents(trackIndex, offset24bit, ref callStackDepth);
+						}
 					}
+					if (!@if)
+					{
+						cont = false;
+					}
+					break;
 				}
-				if (!@if)
-				{
-					cont = false;
-				}
-				break;
-			}
 			case 0x95:
-			{
-				int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new CallCommand { Offset = offset24bit }, argOverrideType);
-				}
-				if (callStackDepth < 3)
-				{
-					if (!EventExists(trackIndex, offset24bit))
+					int offset24bit = _sseq.Data[dataOffset++] | (_sseq.Data[dataOffset++] << 8) | (_sseq.Data[dataOffset++] << 16);
+					if (!EventExists(trackIndex, cmdOffset))
 					{
-						callStackDepth++;
-						AddEvents(trackIndex, offset24bit, ref callStackDepth);
+						AddEvent(trackIndex, cmdOffset, new CallCommand { Offset = offset24bit }, argOverrideType);
 					}
+					if (callStackDepth < 3)
+					{
+						if (!EventExists(trackIndex, offset24bit))
+						{
+							callStackDepth++;
+							AddEvents(trackIndex, offset24bit, ref callStackDepth);
+						}
+					}
+					else
+					{
+						throw new SDATTooManyNestedCallsException(trackIndex);
+					}
+					break;
 				}
-				else
-				{
-					throw new SDATTooManyNestedCallsException(trackIndex);
-				}
-				break;
-			}
 			default: throw Invalid(trackIndex, cmdOffset, cmd);
 		}
 	}
@@ -204,35 +215,35 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xA0: // [New Super Mario Bros (BGM_AMB_CHIKA)] [BW2 (1917, 1918)]
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ModRandCommand(), argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ModRandCommand(), argOverrideType);
+					}
+					argOverrideType = ArgType.Rand;
+					cmdOffset++;
+					return true;
 				}
-				argOverrideType = ArgType.Rand;
-				cmdOffset++;
-				return true;
-			}
 			case 0xA1: // [New Super Mario Bros (BGM_AMB_SABAKU)]
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ModVarCommand(), argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ModVarCommand(), argOverrideType);
+					}
+					argOverrideType = ArgType.PlayerVar;
+					cmdOffset++;
+					return true;
 				}
-				argOverrideType = ArgType.PlayerVar;
-				cmdOffset++;
-				return true;
-			}
 			case 0xA2: // [Mario Kart DS (75)] [BW2 (1917, 1918)]
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ModIfCommand(), argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ModIfCommand(), argOverrideType);
+					}
+					@if = true;
+					cmdOffset++;
+					return true;
 				}
-				@if = true;
-				cmdOffset++;
-				return true;
-			}
 			default: throw Invalid(trackIndex, cmdOffset, cmd);
 		}
 	}
@@ -243,109 +254,109 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xB0:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarSetCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarSetCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB1:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarAddCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarAddCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB2:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarSubCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarSubCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB3:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarMulCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarMulCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB4:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarDivCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarDivCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB5:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarShiftCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarShiftCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB6: // [Mario Kart DS (75)]
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarRandCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarRandCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB8:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarCmpEECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarCmpEECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB9:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarCmpGECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarCmpGECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBA:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarCmpGGCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarCmpGGCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBB:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarCmpLECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarCmpLECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBC:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarCmpLLCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarCmpLLCommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBD:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarCmpNECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarCmpNECommand { Variable = varIndex, Argument = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(trackIndex, cmdOffset, cmd);
 		}
 	}
@@ -355,133 +366,133 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xC0:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PanpotCommand { Panpot = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PanpotCommand { Panpot = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC1:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new TrackVolumeCommand { Volume = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new TrackVolumeCommand { Volume = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC2:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PlayerVolumeCommand { Volume = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PlayerVolumeCommand { Volume = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC3:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new TransposeCommand { Transpose = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new TransposeCommand { Transpose = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC4:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PitchBendCommand { Bend = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PitchBendCommand { Bend = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC5:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PitchBendRangeCommand { Range = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PitchBendRangeCommand { Range = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC6:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PriorityCommand { Priority = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PriorityCommand { Priority = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC7:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new MonophonyCommand { Mono = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new MonophonyCommand { Mono = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC8:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new TieCommand { Tie = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new TieCommand { Tie = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC9:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PortamentoControlCommand { Portamento = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PortamentoControlCommand { Portamento = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCA:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new LFODepthCommand { Depth = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new LFODepthCommand { Depth = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCB:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new LFOSpeedCommand { Speed = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new LFOSpeedCommand { Speed = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCC:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new LFOTypeCommand { Type = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new LFOTypeCommand { Type = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCD:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new LFORangeCommand { Range = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new LFORangeCommand { Range = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCE:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PortamentoToggleCommand { Portamento = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PortamentoToggleCommand { Portamento = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCF:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new PortamentoTimeCommand { Time = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new PortamentoTimeCommand { Time = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 		}
 	}
 	private void HandleCmdGroup0xD0(byte trackIndex, ref int dataOffset, int cmdOffset, byte cmd, ArgType argOverrideType)
@@ -490,61 +501,61 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xD0:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ForceAttackCommand { Attack = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ForceAttackCommand { Attack = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD1:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ForceDecayCommand { Decay = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ForceDecayCommand { Decay = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD2:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ForceSustainCommand { Sustain = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ForceSustainCommand { Sustain = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD3:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ForceReleaseCommand { Release = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ForceReleaseCommand { Release = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD4:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new LoopStartCommand { NumLoops = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new LoopStartCommand { NumLoops = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD5:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new TrackExpressionCommand { Expression = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new TrackExpressionCommand { Expression = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD6:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new VarPrintCommand { Variable = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new VarPrintCommand { Variable = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(trackIndex, cmdOffset, cmd);
 		}
 	}
@@ -554,29 +565,29 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xE0:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new LFODelayCommand { Delay = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new LFODelayCommand { Delay = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xE1:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new TempoCommand { Tempo = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new TempoCommand { Tempo = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xE3:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new SweepPitchCommand { Pitch = arg }, argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new SweepPitchCommand { Pitch = arg }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(trackIndex, cmdOffset, cmd);
 		}
 	}
@@ -585,51 +596,93 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xFC: // [HGSS(1353)]
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new LoopEndCommand(), argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new LoopEndCommand(), argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xFD:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new ReturnCommand(), argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new ReturnCommand(), argOverrideType);
+					}
+					if (!@if && callStackDepth != 0)
+					{
+						cont = false;
+						callStackDepth--;
+					}
+					break;
 				}
-				if (!@if && callStackDepth != 0)
-				{
-					cont = false;
-					callStackDepth--;
-				}
-				break;
-			}
 			case 0xFE:
-			{
-				ushort bits = (ushort)ReadArg(ref dataOffset, ArgType.Short);
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new AllocTracksCommand { Tracks = bits }, argOverrideType);
+					ushort bits = (ushort)ReadArg(ref dataOffset, ArgType.Short);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new AllocTracksCommand { Tracks = bits }, argOverrideType);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xFF:
-			{
-				if (!EventExists(trackIndex, cmdOffset))
 				{
-					AddEvent(trackIndex, cmdOffset, new FinishCommand(), argOverrideType);
+					if (!EventExists(trackIndex, cmdOffset))
+					{
+						AddEvent(trackIndex, cmdOffset, new FinishCommand(), argOverrideType);
+					}
+					if (!@if)
+					{
+						cont = false;
+					}
+					break;
 				}
-				if (!@if)
-				{
-					cont = false;
-				}
-				break;
-			}
 			default: throw Invalid(trackIndex, cmdOffset, cmd);
 		}
 	}
 
+	private bool MatchTrack(Span<bool> done)
+	{
+		foreach (var t in _player.Tracks)
+		{
+			if (t.Allocated && t.Enabled && !done[t.Index])
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	private static SongEvent GetSongEventAtOffset(List<SongEvent> songEvents, int dataOffset)
+	{
+		SongEvent? foundEvent = null;
+		foreach (var ev in songEvents)
+		{
+			if (ev.Offset == dataOffset)
+			{
+				if (foundEvent is not null)
+				{
+					throw new DuplicateNameException("DuplicateNameException:\nThis Song Event is a duplicate of an existing Song Event in the same list entry. A Sequence cannot have the same Song Event in the same list entry with identical values.");
+				}
+				foundEvent = ev;
+			}
+		}
+		if (foundEvent is null)
+		{
+			throw new NullReferenceException("NullReferenceException:\nThere are no Song Events in this entry. Each Song Event entry in the Sequence must have at least 1 Song Event before it can be used.");
+		}
+		return foundEvent;
+	}
+	private static bool IsDoneCallingTracks(Span<byte> callStackLoops)
+	{
+		foreach (byte l in callStackLoops)
+		{
+			if (l != 0)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 	public void SetTicks()
 	{
 		// TODO: (NSMB 81) (Spirit Tracks 18) does not count all ticks because the songs keep jumping backwards while changing vars and then using ModIfCommand to change events
@@ -642,8 +695,8 @@ internal sealed partial class SDATLoadedSong
 		}
 		_player.InitEmulation();
 
-		bool[] done = new bool[0x10]; // We use this instead of track.Stopped just to be certain that emulating Monophony works as intended
-		while (Array.Exists(_player.Tracks, t => t.Allocated && t.Enabled && !done[t.Index]))
+		Span<bool> done = stackalloc bool[0x10]; // We use this instead of track.Stopped just to be certain that emulating Monophony works as intended
+		while (MatchTrack(done))
 		{
 			while (_player.TempoStack >= 240)
 			{
@@ -660,7 +713,7 @@ internal sealed partial class SDATLoadedSong
 					track.Tick();
 					while (track.Rest == 0 && !track.WaitingForNoteToFinishBeforeContinuingXD && !track.Stopped)
 					{
-						SongEvent e = evs.Single(ev => ev.Offset == track.DataOffset);
+						SongEvent e = GetSongEventAtOffset(evs, track.DataOffset);
 						ExecuteNext(track);
 						if (done[trackIndex])
 						{
@@ -675,9 +728,9 @@ internal sealed partial class SDATLoadedSong
 						}
 						else
 						{
-							SongEvent newE = evs.Single(ev => ev.Offset == track.DataOffset);
+							SongEvent newE = GetSongEventAtOffset(evs, track.DataOffset);
 							b = (track.CallStackDepth == 0 && newE.Ticks.Count > 0) // If we already counted the tick of this event and we're not looping/calling
-							|| (track.CallStackDepth != 0 && track.CallStackLoops.All(l => l == 0) && newE.Ticks.Count > 0); // If we have "LoopStart (0)" and already counted the tick of this event
+							|| (track.CallStackDepth != 0 && IsDoneCallingTracks(track.CallStackLoops) && newE.Ticks.Count > 0); // If we have "LoopStart (0)" and already counted the tick of this event
 						}
 						if (b)
 						{
@@ -693,7 +746,7 @@ internal sealed partial class SDATLoadedSong
 				_player.ElapsedTicks++;
 			}
 			_player.TempoStack += _player.Tempo;
-			_player.SMixer.ChannelTick();
+			_player.SMixer!.ChannelTick();
 			_player.SMixer.EmulateProcess();
 		}
 		for (int trackIndex = 0; trackIndex < 0x10; trackIndex++)
@@ -732,7 +785,7 @@ internal sealed partial class SDATLoadedSong
 				}
 			}
 			_player.TempoStack += _player.Tempo;
-			_player.SMixer.ChannelTick();
+			_player.SMixer!.ChannelTick();
 			_player.SMixer.EmulateProcess();
 		}
 	finish:

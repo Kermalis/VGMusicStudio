@@ -32,43 +32,43 @@ internal sealed class AlphaDreamSquareChannel : AlphaDreamChannel
 		switch (State)
 		{
 			case EnvelopeState.Attack:
-			{
-				int next = _velocity + _adsr.A;
-				if (next >= 0xF)
 				{
-					State = EnvelopeState.Decay;
-					_velocity = 0xF;
+					int next = _velocity + _adsr.A;
+					if (next >= 0xF)
+					{
+						State = EnvelopeState.Decay;
+						_velocity = 0xF;
+					}
+					else
+					{
+						_velocity = (byte)next;
+					}
+					break;
 				}
-				else
-				{
-					_velocity = (byte)next;
-				}
-				break;
-			}
 			case EnvelopeState.Decay:
-			{
-				int next = (_velocity * _adsr.D) >> 3;
-				if (next <= _adsr.S)
 				{
-					State = EnvelopeState.Sustain;
-					_velocity = _adsr.S;
+					int next = (_velocity * _adsr.D) >> 3;
+					if (next <= _adsr.S)
+					{
+						State = EnvelopeState.Sustain;
+						_velocity = _adsr.S;
+					}
+					else
+					{
+						_velocity = (byte)next;
+					}
+					break;
 				}
-				else
-				{
-					_velocity = (byte)next;
-				}
-				break;
-			}
 			case EnvelopeState.Release:
-			{
-				int next = (_velocity * _adsr.R) >> 3;
-				if (next < 0)
 				{
-					next = 0;
+					int next = (_velocity * _adsr.R) >> 3;
+					if (next < 0)
+					{
+						next = 0;
+					}
+					_velocity = (byte)next;
+					break;
 				}
-				_velocity = (byte)next;
-				break;
-			}
 		}
 	}
 
@@ -77,9 +77,11 @@ internal sealed class AlphaDreamSquareChannel : AlphaDreamChannel
 		StepEnvelope();
 
 		ChannelVolume vol = GetVolume();
-		float interStep = _frequency * _mixer.SampleRateReciprocal;
-
-		int bufPos = 0; int samplesPerBuffer = _mixer.SamplesPerBuffer;
+		float interStep;
+		int bufPos = 0;
+		int samplesPerBuffer;
+		interStep = _frequency * _mixer.SampleRateReciprocal;
+		samplesPerBuffer = _mixer.SamplesPerBuffer;
 		do
 		{
 			float samp = _pat[_pos];

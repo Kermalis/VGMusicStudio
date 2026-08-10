@@ -1,4 +1,5 @@
 using Kermalis.EndianBinaryIO;
+using System;
 using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
@@ -12,19 +13,17 @@ internal sealed class SSEQ
 
 	public byte[] Data;
 
-	public SSEQ(byte[] bytes)
+	public SSEQ(Span<byte> bytes)
 	{
-		using (var stream = new MemoryStream(bytes))
-		{
-			var er = new EndianBinaryReader(stream, ascii: true);
-			FileHeader = new SDATFileHeader(er);
-			BlockType = er.ReadString_Count(4);
-			BlockSize = er.ReadInt32();
-			DataOffset = er.ReadInt32();
+        using var stream = new MemoryStream(bytes.ToArray());
+        var er = new EndianBinaryReader(stream, ascii: true);
+        FileHeader = new SDATFileHeader(er);
+        BlockType = er.ReadString_Count(4);
+        BlockSize = er.ReadInt32();
+        DataOffset = er.ReadInt32();
 
-			Data = new byte[FileHeader.FileSize - DataOffset];
-			stream.Position = DataOffset;
-			er.ReadBytes(Data);
-		}
-	}
+        Data = new byte[FileHeader.FileSize - DataOffset];
+        stream.Position = DataOffset;
+        er.ReadBytes(Data);
+    }
 }

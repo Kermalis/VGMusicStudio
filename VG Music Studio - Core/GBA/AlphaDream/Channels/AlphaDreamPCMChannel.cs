@@ -35,43 +35,43 @@ internal sealed class AlphaDreamPCMChannel : AlphaDreamChannel
 		switch (State)
 		{
 			case EnvelopeState.Attack:
-			{
-				int nextVel = _velocity + _adsr.A;
-				if (nextVel >= 0xFF)
 				{
-					State = EnvelopeState.Decay;
-					_velocity = 0xFF;
+					int nextVel = _velocity + _adsr.A;
+					if (nextVel >= 0xFF)
+					{
+						State = EnvelopeState.Decay;
+						_velocity = 0xFF;
+					}
+					else
+					{
+						_velocity = (byte)nextVel;
+					}
+					break;
 				}
-				else
-				{
-					_velocity = (byte)nextVel;
-				}
-				break;
-			}
 			case EnvelopeState.Decay:
-			{
-				int nextVel = (_velocity * _adsr.D) >> 8;
-				if (nextVel <= _adsr.S)
 				{
-					State = EnvelopeState.Sustain;
-					_velocity = _adsr.S;
+					int nextVel = (_velocity * _adsr.D) >> 8;
+					if (nextVel <= _adsr.S)
+					{
+						State = EnvelopeState.Sustain;
+						_velocity = _adsr.S;
+					}
+					else
+					{
+						_velocity = (byte)nextVel;
+					}
+					break;
 				}
-				else
-				{
-					_velocity = (byte)nextVel;
-				}
-				break;
-			}
 			case EnvelopeState.Release:
-			{
-				int next = (_velocity * _adsr.R) >> 8;
-				if (next < 0)
 				{
-					next = 0;
+					int next = (_velocity * _adsr.R) >> 8;
+					if (next < 0)
+					{
+						next = 0;
+					}
+					_velocity = (byte)next;
+					break;
 				}
-				_velocity = (byte)next;
-				break;
-			}
 		}
 	}
 

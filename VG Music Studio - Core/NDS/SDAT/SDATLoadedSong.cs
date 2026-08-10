@@ -15,6 +15,7 @@ internal sealed partial class SDATLoadedSong : ILoadedSong
 	public readonly SDAT.INFO.SequenceInfo SEQInfo; // TODO: Not public
 	private readonly SSEQ _sseq;
 	private readonly SBNK _sbnk;
+	public SoundBank Bank { get; }
 
 	public SDATLoadedSong(SDATPlayer player, SDAT.INFO.SequenceInfo seqInfo)
 	{

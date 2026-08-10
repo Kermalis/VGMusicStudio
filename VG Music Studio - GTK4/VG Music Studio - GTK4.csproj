@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<OutputPath>..\Build\GTK4</OutputPath>
+		<ApplicationIcon>..\Icons\Icon.ico</ApplicationIcon>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="GirCore.Adw-1" Version="0.8.1" />
+		<PackageReference Condition="$([MSBuild]::IsOSPlatform('Windows')) And ('$(Platform)' == 'x64' Or '$(Platform)' == 'AnyCPU')" Include="org.adwaita.native.win-x64" Version="1.6.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="**\*.xml">
+			<LogicalName>%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\VG Music Studio - Core\VG Music Studio - Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ContentWithTargetPath Include="../VG Music Studio - Core/*.yaml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<TargetPath>%(Filename)%(Extension)</TargetPath>
+		</ContentWithTargetPath>
+	</ItemGroup>
+
+	<Target Name="PostBuild" Condition="$([MSBuild]::IsOSPlatform('Linux')) And ('$(Platform)' == 'x64' Or '$(Platform)' == 'AnyCPU')" AfterTargets="PostBuildEvent">
+		<Exec Command="glib-compile-resources --target=org.Kermalis.VGMusicStudio.GTK4.gresource org.Kermalis.VGMusicStudio.GTK4.gresource.xml" WorkingDirectory="./Properties" />
+		<Exec Condition="!Exists('$(OutDir)share/org.Kermalis.VGMusicStudio.GTK4/')" Command="mkdir -p $(OutDir)share/org.Kermalis.VGMusicStudio.GTK4/" WorkingDirectory="./" />
+		<Exec Command="mv org.Kermalis.VGMusicStudio.GTK4.gresource ../$(OutDir)share/org.Kermalis.VGMusicStudio.GTK4/org.Kermalis.VGMusicStudio.GTK4.gresource" WorkingDirectory="./Properties" />
+	</Target>
+
+</Project>

@@ -7,86 +7,109 @@ namespace Kermalis.VGMusicStudio.Core;
 
 public abstract class Config : IDisposable
 {
-	public readonly struct Song
-	{
-		public readonly int Index;
-		public readonly string Name;
+    public virtual byte[]? ROM { get; }
+    public long[]? SongTableOffset { get; internal set; }
+    public virtual HSLColor[]? Colors { get; protected set; }
 
-		public Song(int index, string name)
-		{
-			Index = index;
-			Name = name;
-		}
+    public readonly struct Song
+    {
+        public readonly int Index;
+        public readonly string Name;
 
-		public static bool operator ==(Song left, Song right)
-		{
-			return left.Equals(right);
-		}
-		public static bool operator !=(Song left, Song right)
-		{
-			return !(left == right);
-		}
+        public Song(int index, string name)
+        {
+            Index = index;
+            Name = name;
+        }
 
-		public override bool Equals(object? obj)
-		{
-			return obj is Song other && other.Index == Index;
-		}
-		public override int GetHashCode()
-		{
-			return Index.GetHashCode();
-		}
-		public override string ToString()
-		{
-			return Name;
-		}
-	}
-	public sealed class Playlist
-	{
-		public string Name;
-		public List<Song> Songs;
+        public static bool operator ==(Song left, Song right)
+        {
+            return left.Equals(right);
+        }
+        public static bool operator !=(Song left, Song right)
+        {
+            return !(left == right);
+        }
 
-		public Playlist(string name, List<Song> songs)
-		{
-			Name = name;
-			Songs = songs;
-		}
+        public override bool Equals(object? obj)
+        {
+            return obj is Song other && other.Index == Index;
+        }
+        public override int GetHashCode()
+        {
+            return Index.GetHashCode();
+        }
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+    public sealed class InternalSongName
+    {
+        public string Name;
+        public List<Song> Songs;
 
-		public override string ToString()
-		{
-			int num = Songs.Count;
-			return string.Format("{0} - ({1:N0} {2})", Name, num, LanguageUtils.HandlePlural(num, Strings.Song_s_));
-		}
-	}
+        public InternalSongName(string name, List<Song> songs)
+        {
+            Name = name;
+            Songs = songs;
+        }
 
-	public readonly List<Playlist> Playlists;
+        public override string ToString()
+        {
+            int num = Songs.Count;
+            return string.Format("{0} - ({1:N0} {2})", num, LanguageUtils.HandlePlural(num, Strings.Song_s_));
+        }
+    }
+    public sealed class Playlist
+    {
+        public string Name;
+        public List<Song> Songs;
 
-	protected Config()
-	{
-		Playlists = new List<Playlist>();
-	}
+        public Playlist(string name, List<Song> songs)
+        {
+            Name = name;
+            Songs = songs;
+        }
 
-	public bool TryGetFirstSong(int index, out Song song)
-	{
-		foreach (Playlist p in Playlists)
-		{
-			foreach (Song s in p.Songs)
-			{
-				if (s.Index == index)
-				{
-					song = s;
-					return true;
-				}
-			}
-		}
-		song = default;
-		return false;
-	}
+        public override string ToString()
+        {
+            int num = Songs.Count;
+            return string.Format("{0} - ({1:N0} {2})", Name, num, LanguageUtils.HandlePlural(num, Strings.Song_s_));
+        }
+    }
 
-	public abstract string GetGameName();
-	public abstract string GetSongName(int index);
+    public readonly List<InternalSongName> InternalSongNames;
+    public readonly List<Playlist> Playlists;
 
-	public virtual void Dispose()
-	{
-		//
-	}
+    protected Config()
+    {
+        InternalSongNames = new List<InternalSongName>();
+        Playlists = new List<Playlist>();
+    }
+
+    public bool TryGetFirstSong(int index, out Song song)
+    {
+        foreach (Playlist p in Playlists)
+        {
+            foreach (Song s in p.Songs)
+            {
+                if (s.Index == index)
+                {
+                    song = s;
+                    return true;
+                }
+            }
+        }
+        song = default;
+        return false;
+    }
+
+    public abstract string GetGameName();
+    public abstract string GetSongName(int index);
+
+    public virtual void Dispose()
+    {
+        //
+    }
 }

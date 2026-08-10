@@ -1,4 +1,5 @@
 using Kermalis.EndianBinaryIO;
+using System;
 using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
@@ -40,26 +41,24 @@ internal sealed class SWAR
 
 	public SWAV[] Waves;
 
-	public SWAR(byte[] bytes)
+	public SWAR(Span<byte> bytes)
 	{
-		using (var stream = new MemoryStream(bytes))
-		{
-			var er = new EndianBinaryReader(stream, ascii: true);
-			FileHeader = new SDATFileHeader(er);
-			BlockType = er.ReadString_Count(4);
-			BlockSize = er.ReadInt32();
-			Padding = new byte[32];
-			er.ReadBytes(Padding);
-			NumWaves = er.ReadInt32();
-			WaveOffsets = new int[NumWaves];
-			er.ReadInt32s(WaveOffsets);
+        using var stream = new MemoryStream(bytes.ToArray());
+        var er = new EndianBinaryReader(stream, ascii: true);
+        FileHeader = new SDATFileHeader(er);
+        BlockType = er.ReadString_Count(4);
+        BlockSize = er.ReadInt32();
+        Padding = new byte[32];
+        er.ReadBytes(Padding);
+        NumWaves = er.ReadInt32();
+        WaveOffsets = new int[NumWaves];
+        er.ReadInt32s(WaveOffsets);
 
-			Waves = new SWAV[NumWaves];
-			for (int i = 0; i < NumWaves; i++)
-			{
-				stream.Position = WaveOffsets[i];
-				Waves[i] = new SWAV(er);
-			}
-		}
-	}
+        Waves = new SWAV[NumWaves];
+        for (int i = 0; i < NumWaves; i++)
+        {
+            stream.Position = WaveOffsets[i];
+            Waves[i] = new SWAV(er);
+        }
+    }
 }

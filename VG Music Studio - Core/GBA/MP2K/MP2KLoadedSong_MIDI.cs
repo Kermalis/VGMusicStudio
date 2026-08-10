@@ -92,7 +92,7 @@ internal sealed partial class MP2KLoadedSong
 				{
 					case CallCommand c:
 					{
-						int callCmd = trackEvents.FindIndex(ev => ev.Offset == c.Offset);
+						int callCmd = trackEvents.FindIndex(ev => ev.Offset == c.Pointer.Offset);
 						endOfPattern = i;
 						endOfPatternTicks = e.Ticks[0];
 						i = callCmd - 1; // -1 for incoming ++
@@ -128,7 +128,7 @@ internal sealed partial class MP2KLoadedSong
 					{
 						if (trackIndex == 0)
 						{
-							int jumpCmd = trackEvents.FindIndex(ev => ev.Offset == c.Offset);
+							int jumpCmd = trackEvents.FindIndex(ev => ev.Offset == c.Pointer.Offset);
 							metaTrack.InsertMessage((int)trackEvents[jumpCmd].Ticks[0], MetaMessage.CreateTextMessage(MetaMessageType.Marker, "["));
 							metaTrack.InsertMessage(ticks, MetaMessage.CreateTextMessage(MetaMessageType.Marker, "]"));
 						}
@@ -156,14 +156,14 @@ internal sealed partial class MP2KLoadedSong
 					}
 					case LibraryCommand c:
 					{
-						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)30, c.Command));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)30, (byte)c.LibraryCommandType));
 						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)29, c.Argument));
 						break;
 					}
 					case MemoryAccessCommand c:
 					{
-						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.EffectControl2, c.Operator));
-						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)14, c.Address));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.EffectControl2, (byte)c.Operator));
+						track.InsertMessage(ticks, new ControllerMessage(trackIndex, (ControllerType)14, c.MemoryAreaAddress));
 						track.InsertMessage(ticks, new ControllerMessage(trackIndex, ControllerType.EffectControl1, c.Data));
 						break;
 					}

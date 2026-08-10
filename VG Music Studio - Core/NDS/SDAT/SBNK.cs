@@ -1,4 +1,5 @@
 using Kermalis.EndianBinaryIO;
+using System;
 using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
@@ -128,9 +129,9 @@ internal sealed class SBNK
 
 	public SWAR[] SWARs { get; }
 
-	public SBNK(byte[] bytes)
+	public SBNK(Span<byte> bytes)
 	{
-		using (var stream = new MemoryStream(bytes))
+		using (var stream = new MemoryStream(bytes.ToArray()))
 		{
 			var er = new EndianBinaryReader(stream, ascii: true);
 			FileHeader = new SDATFileHeader(er);

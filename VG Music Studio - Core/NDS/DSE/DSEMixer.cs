@@ -1,6 +1,9 @@
-﻿using Kermalis.VGMusicStudio.Core.NDS.SDAT;
+﻿using Kermalis.VGMusicStudio.Core.Formats;
+using Kermalis.VGMusicStudio.Core.NDS.SDAT;
 using Kermalis.VGMusicStudio.Core.Util;
 using NAudio.Wave;
+using SoundFlow.Structs;
+using SoundFlow.Enums;
 using System;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
@@ -10,16 +13,31 @@ public sealed class DSEMixer : Mixer
 	private const int NUM_CHANNELS = 0x20; // Actual value unknown for now
 
 	private readonly float _samplesReciprocal;
-	private readonly int _samplesPerBuffer;
+	internal override int SamplesPerBuffer { get; }
 	private bool _isFading;
 	private long _fadeMicroFramesLeft;
 	private float _fadePos;
 	private float _fadeStepPerMicroframe;
 
 	private readonly DSEChannel[] _channels;
-	private readonly BufferedWaveProvider _buffer;
+	private readonly AudioBackend DSEPlaybackBackend;
 
-	protected override WaveFormat WaveFormat => _buffer.WaveFormat;
+	#region MiniAudio Fields
+	// MiniAudio Fields
+	private readonly AudioFormat _formatSoundFlow;
+	protected override AudioFormat SoundFlowFormat => _formatSoundFlow;
+	#endregion
+
+	#region PortAudio Fields
+	// PortAudio Fields
+	private readonly Wave? _bufferPortAudio;
+	#endregion
+
+	#region NAudio Fields
+	// NAudio Fields
+	private readonly BufferedWaveProvider? _bufferNAudio;
+	protected override WaveFormat? WaveFormat => _bufferNAudio!.WaveFormat;
+	#endregion
 
 	public DSEMixer()
 	{
@@ -27,8 +45,8 @@ public sealed class DSEMixer : Mixer
 		// - gbatek
 		// I'm not using either of those because the samples per buffer leads to an overflow eventually
 		const int sampleRate = 65_456;
-		_samplesPerBuffer = 341; // TODO
-		_samplesReciprocal = 1f / _samplesPerBuffer;
+		SamplesPerBuffer = 341; // TODO
+		_samplesReciprocal = 1f / SamplesPerBuffer;
 
 		_channels = new DSEChannel[NUM_CHANNELS];
 		for (byte i = 0; i < NUM_CHANNELS; i++)
@@ -36,12 +54,41 @@ public sealed class DSEMixer : Mixer
 			_channels[i] = new DSEChannel(i);
 		}
 
-		_buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
+		DSEPlaybackBackend = PlaybackBackend;
+		switch (PlaybackBackend)
 		{
-			DiscardOnBufferOverflow = true,
-			BufferLength = _samplesPerBuffer * 64,
-		};
-		Init(_buffer);
+			case AudioBackend.MiniAudio:
+				{
+					_formatSoundFlow = new AudioFormat
+					{
+						Channels = 2,
+						SampleRate = sampleRate,
+						Format = SoundFlow.Enums.SampleFormat.F32
+					};
+					Init();
+					break;
+				}
+			case AudioBackend.PortAudio:
+				{
+					_bufferPortAudio = new Wave()
+					{
+						DiscardOnBufferOverflow = true,
+						BufferLength = SamplesPerBuffer * 64,
+					};
+					_bufferPortAudio.CreateIeeeFloatWave(sampleRate, 2, 16);
+					Init(waveData: _bufferPortAudio, PortAudio.SampleFormat.Int16);
+					break;
+				}
+			case AudioBackend.NAudio:
+				{
+					_bufferNAudio = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
+					{
+						DiscardOnBufferOverflow = true
+					};
+					Init(waveProvider: _bufferNAudio);
+					break;
+				}
+		}
 	}
 
 	internal DSEChannel? AllocateChannel()
@@ -85,20 +132,26 @@ public sealed class DSEMixer : Mixer
 			chan.Volume = (byte)chan.StepEnvelope();
 			if (chan.NoteLength == 0 && !DSEUtils.IsStateRemovable(chan.State))
 			{
-				chan.SetEnvelopePhase7_2074ED8();
+				chan.SetEnvelopeRelease();
 			}
-			int vol = SDATUtils.SustainTable[chan.NoteVelocity] + SDATUtils.SustainTable[chan.Volume] + SDATUtils.SustainTable[chan.Owner.Volume] + SDATUtils.SustainTable[chan.Owner.Expression];
+			int vol = DSEUtils.SustainTable[chan.NoteVelocity] + DSEUtils.SustainTable[chan.Volume] + DSEUtils.SustainTable[chan.Owner.Volume] + DSEUtils.SustainTable[chan.Owner.Expression];
 			//int pitch = ((chan.Key - chan.BaseKey) << 6) + chan.SweepMain() + chan.Owner.GetPitch(); // "<< 6" is "* 0x40"
-			int pitch = (chan.Key - chan.RootKey) << 6; // "<< 6" is "* 0x40"
+			int pitch = ((chan.Key - chan.RootKey) << 6) + chan.SweepMain() + chan.Owner.GetPitch(); // "<< 6" is "* 0x40"
+			// switch (chan.Owner.LFOType)
+			// {
+			// 	case LFOType.Pitch: pitch += chan.LFOParam; break;
+			// 	case LFOType.Volume: vol += chan.LFOParam; break;
+			// 	case LFOType.Panpot: pan += chan.LFOParam; break;
+			// }
 			if (DSEUtils.IsStateRemovable(chan.State) && vol <= -92544)
 			{
 				chan.Stop();
 			}
 			else
 			{
-				chan.Volume = SDATUtils.GetChannelVolume(vol);
+				chan.Volume = DSEUtils.GetChannelVolume(vol);
 				chan.Panpot = chan.Owner.Panpot;
-				chan.Timer = SDATUtils.GetChannelTimer(chan.BaseTimer, pitch);
+				chan.Timer = DSEUtils.GetChannelTimer(chan.BaseTimer, pitch);
 			}
 		}
 	}
@@ -132,6 +185,7 @@ public sealed class DSEMixer : Mixer
 	}
 
 	private readonly byte[] _b = new byte[4];
+	private readonly float[] _f = new float[2];
 	internal void Process(bool output, bool recording)
 	{
 		float masterStep;
@@ -156,7 +210,7 @@ public sealed class DSEMixer : Mixer
 			masterStep = (toMaster - fromMaster) * _samplesReciprocal;
 			masterLevel = fromMaster;
 		}
-		for (int i = 0; i < _samplesPerBuffer; i++)
+		for (int i = 0; i < SamplesPerBuffer; i++)
 		{
 			int left = 0,
 				right = 0;
@@ -188,6 +242,7 @@ public sealed class DSEMixer : Mixer
 			left = (int)f;
 			_b[0] = (byte)left;
 			_b[1] = (byte)(left >> 8);
+			_f[0] = left / (float)short.MaxValue;
 			f = right * masterLevel;
 			if (f < short.MinValue)
 			{
@@ -200,14 +255,49 @@ public sealed class DSEMixer : Mixer
 			right = (int)f;
 			_b[2] = (byte)right;
 			_b[3] = (byte)(right >> 8);
+			_f[1] = right / (float)short.MaxValue;
 			masterLevel += masterStep;
 			if (output)
 			{
-				_buffer.AddSamples(_b, 0, 4);
+				switch (DSEPlaybackBackend)
+				{
+					case AudioBackend.MiniAudio:
+						{
+							DataProvider!.AddSamples(_f);
+							break;
+						}
+					case AudioBackend.PortAudio:
+						{
+							_bufferPortAudio!.AddSamples(_b, 0, 4);
+							break;
+						}
+					case AudioBackend.NAudio:
+						{
+							_bufferNAudio!.AddSamples(_b, 0, 4);
+							break;
+						}
+				}
 			}
 			if (recording)
 			{
-				_waveWriter!.Write(_b, 0, 4);
+				switch (DSEPlaybackBackend)
+				{
+					case AudioBackend.MiniAudio:
+						{
+							_soundFlowEncoder!.Encode(_f);
+							break;
+						}
+					case AudioBackend.PortAudio:
+						{
+							_waveWriterPortAudio!.Write(_b, 0, 4);
+							break;
+						}
+					case AudioBackend.NAudio:
+						{
+							_waveWriterNAudio!.Write(_b, 0, 4);
+							break;
+						}
+				}
 			}
 		}
 	}

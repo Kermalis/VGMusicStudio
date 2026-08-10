@@ -24,7 +24,7 @@ public sealed class SDATConfig : Config
 				songs.Add(new Song(i, sdat.SYMBBlock?.SequenceSymbols.Entries[i] ?? i.ToString()));
 			}
 		}
-		Playlists.Add(new Playlist(Strings.PlaylistMusic, songs));
+		InternalSongNames.Add(new InternalSongName(Strings.InternalSongName, songs));
 	}
 
 	public override string GetGameName()

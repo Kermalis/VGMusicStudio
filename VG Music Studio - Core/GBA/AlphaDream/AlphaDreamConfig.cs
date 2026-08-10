@@ -14,7 +14,7 @@ public sealed class AlphaDreamConfig : Config
 {
 	private const string CONFIG_FILE = "AlphaDream.yaml";
 
-	internal readonly byte[] ROM;
+	public override byte[] ROM { get; }
 	internal readonly EndianBinaryReader Reader; // TODO: Need?
 	internal readonly string GameCode;
 	internal readonly byte Version;

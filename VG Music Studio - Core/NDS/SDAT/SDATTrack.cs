@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
@@ -158,7 +159,7 @@ internal sealed class SDATTrack
 
 	public void StopAllChannels()
 	{
-		SDATChannel[] chans = Channels.ToArray();
+		Span<SDATChannel> chans = Channels.ToArray();
 		for (int i = 0; i < chans.Length; i++)
 		{
 			chans[i].Stop();
@@ -193,13 +194,13 @@ internal sealed class SDATTrack
 		return (sbyte)p;
 	}
 
-	public void UpdateSongState(SongState.Track tin, SDATLoadedSong loadedSong, string?[] voiceTypeCache)
+	public void UpdateSongState(SongState.Track tin, SDATLoadedSong loadedSong, Span<string> voiceTypeCache)
 	{
 		tin.Position = DataOffset;
 		tin.Rest = Rest;
 		tin.Voice = Voice;
 		tin.LFO = LFODepth * LFORange;
-		ref string? cache = ref voiceTypeCache[Voice];
+		ref string cache = ref voiceTypeCache[Voice];
 		if (cache is null)
 		{
 			loadedSong.UpdateInstrumentCache(Voice, out cache);
@@ -210,7 +211,7 @@ internal sealed class SDATTrack
 		tin.Extra = Portamento ? PortamentoTime : (byte)0;
 		tin.Panpot = GetPan();
 
-		SDATChannel[] channels = Channels.ToArray();
+		Span<SDATChannel> channels = [.. Channels];
 		if (channels.Length == 0)
 		{
 			tin.Keys[0] = byte.MaxValue;
@@ -225,19 +226,22 @@ internal sealed class SDATTrack
 			for (int j = 0; j < channels.Length; j++)
 			{
 				SDATChannel c = channels[j];
-				if (c.State != EnvelopeState.Release)
+				if (c is not null) // Nullability check
 				{
-					tin.Keys[numKeys++] = c.Note;
-				}
-				float a = (float)(-c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
-				if (a > left)
-				{
-					left = a;
-				}
-				a = (float)(c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
-				if (a > right)
-				{
-					right = a;
+					if (c.State != EnvelopeState.Release)
+					{
+						tin.Keys[numKeys++] = c.Note;
+					}
+					float a = (float)(-c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+					if (a > left)
+					{
+						left = a;
+					}
+					a = (float)(c.Pan + 0x40) / 0x80 * c.Volume / 0x7F;
+					if (a > right)
+					{
+						right = a;
+					}
 				}
 			}
 			tin.Keys[numKeys] = byte.MaxValue; // There's no way for numKeys to be after the last index in the array

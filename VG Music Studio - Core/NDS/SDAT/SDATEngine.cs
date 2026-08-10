@@ -8,6 +8,8 @@ public sealed class SDATEngine : Engine
 	public override SDATMixer Mixer { get; }
 	public override SDATPlayer Player { get; }
 
+	public override bool IsFileSystemFormat { get; } = true;
+
 	public SDATEngine(SDAT sdat)
 	{
 		Config = new SDATConfig(sdat);
@@ -18,6 +20,12 @@ public sealed class SDATEngine : Engine
 		Instance = this;
 	}
 
+	public override void Reload()
+	{
+		var config = Config;
+		Dispose();
+		_ = new SDATEngine(config.SDAT);
+	}
 	public override void Dispose()
 	{
 		base.Dispose();

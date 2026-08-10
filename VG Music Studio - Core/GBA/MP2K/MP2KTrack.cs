@@ -7,6 +7,7 @@ internal sealed class MP2KTrack
 	public readonly byte Index;
 	private readonly int _startOffset;
 	public byte Voice;
+	public short Pitch;
 	public byte PitchBendRange;
 	public byte Priority;
 	public byte Volume;
@@ -23,19 +24,29 @@ internal sealed class MP2KTrack
 	public sbyte Transpose;
 	public bool Ready;
 	public bool Stopped;
-	public int DataOffset;
-	public int[] CallStack = new int[3];
+	public long ROMOffset;
+	public int EventPosition;
+	public long[][] CallStack = new long[2][];
 	public byte CallStackDepth;
-	public byte RunCmd;
+	public bool RepeatActivated = false;
+	public byte RepeatTimes;
+	public ICommand RunCmd = null!;
 	public byte PrevNote;
 	public byte PrevVelocity;
+	public byte PrevDuration;
+    internal byte PseudoEchoVolume;
+    internal byte PseudoEchoLength;
+	public MP2KReverb Reverb = null!;
+	internal bool UpdateVolume;
+	internal bool UpdatePitch;
 
-	public readonly List<MP2KChannel> Channels = new();
+    public readonly List<MP2KChannel> Channels = [];
+	public float[] Buffer = [];
 
-	public int GetPitch()
+	public short GetPitch()
 	{
 		int lfo = LFOType == LFOType.Pitch ? (MP2KUtils.Tri(LFOPhase) * LFODepth) >> 8 : 0;
-		return (PitchBend * PitchBendRange) + Tune + lfo;
+		return (short)((PitchBend * PitchBendRange) + Tune + lfo);
 	}
 	public byte GetVolume()
 	{
@@ -66,33 +77,56 @@ internal sealed class MP2KTrack
 		return (sbyte)p;
 	}
 
-	public MP2KTrack(byte i, int startOffset)
+	internal void ResetLFOValue()
+	{
+		LFOPhase = 0;
+
+		if (LFOType == LFOType.Pitch)
+		{
+			UpdatePitch = true;
+		}
+		else
+		{
+			UpdateVolume = true;
+		}
+	}
+
+	public MP2KTrack(byte i, int startOffset, int samplesPerBuffer)
 	{
 		Index = i;
 		_startOffset = startOffset;
+		Buffer = new float[samplesPerBuffer * 2];
+		CallStack[0] = new long[3];
+		CallStack[1] = new long[3];
 	}
 	public void Init()
 	{
 		Voice = 0;
+		Pitch = 0;
 		Priority = 0;
 		Rest = 0;
 		LFODelay = 0;
 		LFODelayCount = 0;
 		LFOPhase = 0;
 		LFODepth = 0;
+		PseudoEchoVolume = 0;
+		PseudoEchoLength = 0;
 		CallStackDepth = 0;
 		PitchBend = 0;
 		Tune = 0;
 		Panpot = 0;
 		Transpose = 0;
-		DataOffset = _startOffset;
-		RunCmd = 0;
+		ROMOffset = _startOffset;
+		EventPosition = 0;
 		PrevNote = 0;
 		PrevVelocity = 0x7F;
+		PrevDuration = 0;
 		PitchBendRange = 2;
 		LFOType = LFOType.Pitch;
 		Ready = false;
 		Stopped = false;
+		UpdateVolume = false;
+		UpdatePitch = false;
 		LFOSpeed = 22;
 		Volume = 100;
 		StopAllChannels();
@@ -155,14 +189,14 @@ internal sealed class MP2KTrack
 		MP2KChannel[] chans = Channels.ToArray();
 		for (int i = 0; i < chans.Length; i++)
 		{
-			chans[i].Stop();
+			chans[i].Kill();
 		}
 	}
 	public void UpdateChannels()
 	{
 		byte vol = GetVolume();
 		sbyte pan = GetPanpot();
-		int pitch = GetPitch();
+		short pitch = GetPitch();
 		for (int i = 0; i < Channels.Count; i++)
 		{
 			MP2KChannel c = Channels[i];
@@ -173,7 +207,7 @@ internal sealed class MP2KTrack
 
 	public void UpdateSongState(SongState.Track tin, MP2KLoadedSong loadedSong, string?[] voiceTypeCache)
 	{
-		tin.Position = DataOffset;
+		tin.Position = ROMOffset;
 		tin.Rest = Rest;
 		tin.Voice = Voice;
 		tin.LFO = LFODepth;
@@ -186,6 +220,7 @@ internal sealed class MP2KTrack
 		tin.Volume = GetVolume();
 		tin.PitchBend = GetPitch();
 		tin.Panpot = GetPanpot();
+		// tin.Reverb = Reverb = loadedSong.Header.Reverb;
 
 		MP2KChannel[] channels = Channels.ToArray();
 		if (channels.Length == 0)
@@ -202,18 +237,25 @@ internal sealed class MP2KTrack
 			for (int j = 0; j < channels.Length; j++)
 			{
 				MP2KChannel c = channels[j];
-				if (c.State < EnvelopeState.Releasing)
+				if (c is not null)
 				{
-					tin.Keys[numKeys++] = c.Note.OriginalNote;
-				}
-				ChannelVolume vol = c.GetVolume();
-				if (vol.LeftVol > left)
-				{
-					left = vol.LeftVol;
-				}
-				if (vol.RightVol > right)
-				{
-					right = vol.RightVol;
+					if (c.State < EnvelopeState.Releasing)
+					{
+						tin.Keys[numKeys] = c.Note.OriginalNote;
+						if (numKeys < tin.Keys.Length - 1)
+						{
+							numKeys++;
+						}
+					}
+					ChannelVolume vol = c.GetVolume();
+					if (vol.FromVolLeft > left)
+					{
+						left = vol.FromVolLeft;
+					}
+					if (vol.FromVolRight > right)
+					{
+						right = vol.FromVolRight;
+					}
 				}
 			}
 			tin.Keys[numKeys] = byte.MaxValue; // There's no way for numKeys to be after the last index in the array

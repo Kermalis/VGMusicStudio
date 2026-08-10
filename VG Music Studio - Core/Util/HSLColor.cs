@@ -5,7 +5,8 @@ namespace Kermalis.VGMusicStudio.Core.Util;
 
 // https://www.rapidtables.com/convert/color/rgb-to-hsl.html
 // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-// Not really used right now, but will be very useful if we are going to use OpenGL
+// Currently being used for the Cairo colors in the GTK4 GUI, as it uses 0.0 to 1.0, like OpenGL.
+// It's also useful for OpenGL-specific tasks too
 public readonly struct HSLColor
 {
 	/// <summary>[0, 1)</summary>
@@ -14,21 +15,29 @@ public readonly struct HSLColor
 	public readonly double Saturation;
 	/// <summary>[0, 1]</summary>
 	public readonly double Lightness;
+	/// <summary>[0, 1]</summary>
+	public readonly double R;
+	/// <summary>[0, 1]</summary>
+	public readonly double G;
+	/// <summary>[0, 1]</summary>
+	public readonly double B;
 
 	public HSLColor(double h, double s, double l)
 	{
 		Hue = h;
 		Saturation = s;
 		Lightness = l;
+		
+		ToRGB(h, s, l, out R, out G, out B);
 	}
 	public HSLColor(in Color c)
 	{
-		double nR = c.R / 255.0;
-		double nG = c.G / 255.0;
-		double nB = c.B / 255.0;
+		R = c.R / 255.0;
+		G = c.G / 255.0;
+		B = c.B / 255.0;
 
-		double max = Math.Max(Math.Max(nR, nG), nB);
-		double min = Math.Min(Math.Min(nR, nG), nB);
+		double max = Math.Max(Math.Max(R, G), B);
+		double min = Math.Min(Math.Min(R, G), B);
 		double delta = max - min;
 
 		Lightness = (min + max) * 0.5;
@@ -37,17 +46,17 @@ public readonly struct HSLColor
 		{
 			Hue = 0;
 		}
-		else if (max == nR)
+		else if (max == R)
 		{
-			Hue = (nG - nB) / delta % 6 / 6;
+			Hue = (G - B) / delta % 6 / 6;
 		}
-		else if (max == nG)
+		else if (max == G)
 		{
-			Hue = (((nB - nR) / delta) + 2) / 6;
+			Hue = (((B - R) / delta) + 2) / 6;
 		}
-		else // max == nB
+		else // max == B
 		{
-			Hue = (((nR - nG) / delta) + 4) / 6;
+			Hue = (((R - G) / delta) + 4) / 6;
 		}
 
 		if (delta == 0)

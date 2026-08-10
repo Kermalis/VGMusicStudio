@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Kermalis.VGMusicStudio.Core;
 
-internal sealed class Assembler : IDisposable
+public sealed class Assembler : IDisposable
 {
 	private sealed class Pair // Must be a class
 	{

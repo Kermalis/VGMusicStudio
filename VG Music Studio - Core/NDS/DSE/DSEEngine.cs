@@ -1,4 +1,6 @@
-﻿namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
+﻿using System;
+
+namespace Kermalis.VGMusicStudio.Core.NDS.DSE;
 
 public sealed class DSEEngine : Engine
 {
@@ -8,9 +10,11 @@ public sealed class DSEEngine : Engine
 	public override DSEMixer Mixer { get; }
 	public override DSEPlayer Player { get; }
 
-	public DSEEngine(string bgmPath)
+	public override bool IsFileSystemFormat { get; } = true;
+
+	public DSEEngine(string mainSWDFile, string smdPath, bool useNewUI = false)
 	{
-		Config = new DSEConfig(bgmPath);
+		Config = new DSEConfig(mainSWDFile, smdPath, useNewUI);
 		Mixer = new DSEMixer();
 		Player = new DSEPlayer(Config, Mixer);
 
@@ -18,6 +22,12 @@ public sealed class DSEEngine : Engine
 		Instance = this;
 	}
 
+	public override void Reload()
+	{
+		var config = Config;
+		Dispose();
+		_ = new DSEEngine(config.MainSWDFile, config.SMDPath, true);
+	}
 	public override void Dispose()
 	{
 		base.Dispose();

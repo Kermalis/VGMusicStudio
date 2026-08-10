@@ -144,6 +144,9 @@
   <data name="MenuSaveMIDI" xml:space="preserve">
     <value>Экспортировать мелодию в формате MIDI</value>
   </data>
+  <data name="MenuSaveASM" xml:space="preserve">
+    <value>Экспортировать мелодию в формате ASM</value>
+  </data>
   <data name="PlayerRest" xml:space="preserve">
     <value>Длительность</value>
   </data>
@@ -161,6 +164,9 @@
   </data>
   <data name="PlayerStop" xml:space="preserve">
     <value>Остановить</value>
+  </data>
+  <data name="PlayerRecord" xml:space="preserve">
+    <value>Запись песни</value>
   </data>
   <data name="PlayerTempo" xml:space="preserve">
     <value>Темп</value>
@@ -198,11 +204,11 @@
   <data name="FilterOpenSDAT" xml:space="preserve">
     <value>SDAT-файлы</value>
   </data>
+  <data name="MenuPlayPlaylist" xml:space="preserve">
+    <value>Проиграть плейлист</value>
+  </data>
   <data name="MenuEndPlaylist" xml:space="preserve">
     <value>Отключить плейлист</value>
-  </data>
-  <data name="MenuOpenDSE" xml:space="preserve">
-    <value>Открыть DSE-папку</value>
   </data>
   <data name="MenuOpenAlphaDream" xml:space="preserve">
     <value>Открыть GBA-ROM (AlphaDream)</value>
@@ -213,25 +219,28 @@
   <data name="MenuPlaylist" xml:space="preserve">
     <value>Плейлист</value>
   </data>
-  <data name="PlaylistMusic" xml:space="preserve">
-    <value>Музыка</value>
+  <data name="InternalSongName" xml:space="preserve">
+    <value>Внутреннее название песни</value>
   </data>
-  <data name="TrackViewerArguments" xml:space="preserve">
+  <data name="PlaylistMusic" xml:space="preserve">
+    <value>Все песни</value>
+  </data>
+  <data name="TrackEditorArguments" xml:space="preserve">
     <value>Аргументы</value>
   </data>
-  <data name="TrackViewerEvent" xml:space="preserve">
+  <data name="TrackEditorEvent" xml:space="preserve">
     <value>Событие</value>
   </data>
-  <data name="TrackViewerOffset" xml:space="preserve">
+  <data name="TrackEditorOffset" xml:space="preserve">
     <value>Адрес</value>
   </data>
-  <data name="TrackViewerTicks" xml:space="preserve">
+  <data name="TrackEditorTicks" xml:space="preserve">
     <value>Такты</value>
   </data>
-  <data name="TrackViewerTitle" xml:space="preserve">
+  <data name="TrackEditorTitle" xml:space="preserve">
     <value>Просмотр трека</value>
   </data>
-  <data name="TrackViewerTrackX" xml:space="preserve">
+  <data name="TrackEditorTrackX" xml:space="preserve">
     <value>Трек {0}</value>
   </data>
   <data name="ConfigKeySubkey" xml:space="preserve">
@@ -265,7 +274,7 @@
     <value>Недопустимая команда в треке {0} по адресу 0x{1:X}: 0x{2:X}</value>
   </data>
   <data name="ErrorDSENoSequences" xml:space="preserve">
-    <value>Файлы типа "bgm(NNNN).smd" отсутствуют.</value>
+    <value>Файлы типа SMD отсутствуют.</value>
   </data>
   <data name="ErrorGlobalConfig" xml:space="preserve">
     <value>Ошибка загрузки глобальной конфигурвции</value>
@@ -341,5 +350,8 @@
   </data>
   <data name="Song(s)" xml:space="preserve">
     <value>мелодий|0_0|мелодия|1_1|мелодии|2_4|мелодий|5_*|</value>
+  </data>
+  <data name="MenuOpenDSE" xml:space="preserve">
+    <value>Открыть DSE-папку</value>
   </data>
 </root>

@@ -41,44 +41,44 @@ internal sealed partial class SDATLoadedSong
 		switch (type)
 		{
 			case ArgType.Byte:
-			{
-				return _sseq.Data[track.DataOffset++];
-			}
-			case ArgType.Short:
-			{
-				return _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8);
-			}
-			case ArgType.VarLen:
-			{
-				int read = 0, value = 0;
-				byte b;
-				do
 				{
-					b = _sseq.Data[track.DataOffset++];
-					value = (value << 7) | (b & 0x7F);
-					read++;
+					return _sseq.Data[track.DataOffset++];
 				}
-				while (read < 4 && (b & 0x80) != 0);
-				return value;
-			}
+			case ArgType.Short:
+				{
+					return _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8);
+				}
+			case ArgType.VarLen:
+				{
+					int read = 0, value = 0;
+					byte b;
+					do
+					{
+						b = _sseq.Data[track.DataOffset++];
+						value = (value << 7) | (b & 0x7F);
+						read++;
+					}
+					while (read < 4 && (b & 0x80) != 0);
+					return value;
+				}
 			case ArgType.Rand:
-			{
-				short min = (short)(_sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8));
-				short max = (short)(_sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8));
-				return _rand!.Next(min, max + 1);
-			}
+				{
+					short min = (short)(_sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8));
+					short max = (short)(_sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8));
+					return _rand!.Next(min, max + 1);
+				}
 			case ArgType.PlayerVar:
-			{
-				byte varIndex = _sseq.Data[track.DataOffset++];
-				return _player.Vars[varIndex];
-			}
+				{
+					byte varIndex = _sseq.Data[track.DataOffset++];
+					return _player.Vars[varIndex];
+				}
 			default: throw new Exception();
 		}
 	}
 	private void TryStartChannel(SBNK.InstrumentData inst, SDATTrack track, byte note, byte velocity, int duration, out SDATChannel? channel)
 	{
 		InstrumentType type = inst.Type;
-		channel = _player.SMixer.AllocateChannel(type, track);
+		channel = _player.SMixer!.AllocateChannel(type, track);
 		if (channel is null)
 		{
 			return;
@@ -99,28 +99,28 @@ internal sealed partial class SDATLoadedSong
 		switch (type)
 		{
 			case InstrumentType.PCM:
-			{
-				ushort[] info = param.Info;
-				SWAR.SWAV? swav = _sbnk.GetSWAV(info[1], info[0]);
-				if (swav is not null)
 				{
-					channel.StartPCM(swav, duration);
-					started = true;
+					Span<ushort> info = param.Info;
+					SWAR.SWAV? swav = _sbnk.GetSWAV(info[1], info[0]);
+					if (swav is not null)
+					{
+						channel.StartPCM(swav, duration);
+						started = true;
+					}
+					break;
 				}
-				break;
-			}
 			case InstrumentType.PSG:
-			{
-				channel.StartPSG((byte)param.Info[0], duration);
-				started = true;
-				break;
-			}
+				{
+					channel.StartPSG((byte)param.Info[0], duration);
+					started = true;
+					break;
+				}
 			case InstrumentType.Noise:
-			{
-				channel.StartNoise(duration);
-				started = true;
-				break;
-			}
+				{
+					channel.StartNoise(duration);
+					started = true;
+					break;
+				}
 		}
 		channel.Stop();
 		if (!started)
@@ -268,22 +268,22 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0x80: // Rest
-			{
-				if (track.DoCommandWork)
 				{
-					track.Rest = arg;
+					if (track.DoCommandWork)
+					{
+						track.Rest = arg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0x81: // Program Change
-			{
-				if (track.DoCommandWork && arg <= byte.MaxValue)
 				{
-					track.Voice = (byte)arg;
+					if (track.DoCommandWork && arg <= byte.MaxValue)
+					{
+						track.Voice = (byte)arg;
+					}
+					break;
 				}
-				break;
-			}
-			throw Invalid(track.Index, track.DataOffset - 1, cmd);
+				throw Invalid(track.Index, track.DataOffset - 1, cmd);
 		}
 	}
 	private void ExecuteCmdGroup0x90(SDATTrack track, byte cmd)
@@ -291,41 +291,41 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0x93: // Open Track
-			{
-				int index = _sseq.Data[track.DataOffset++];
-				int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
-				if (track.DoCommandWork && track.Index == 0)
 				{
-					SDATTrack other = _player.Tracks[index];
-					if (other.Allocated && !other.Enabled)
+					int index = _sseq.Data[track.DataOffset++];
+					int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
+					if (track.DoCommandWork && track.Index == 0)
 					{
-						other.Enabled = true;
-						other.DataOffset = offset24bit;
+						SDATTrack other = _player.Tracks[index];
+						if (other.Allocated && !other.Enabled)
+						{
+							other.Enabled = true;
+							other.DataOffset = offset24bit;
+						}
 					}
+					break;
 				}
-				break;
-			}
 			case 0x94: // Jump
-			{
-				int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
-				if (track.DoCommandWork)
 				{
-					track.DataOffset = offset24bit;
+					int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
+					if (track.DoCommandWork)
+					{
+						track.DataOffset = offset24bit;
+					}
+					break;
 				}
-				break;
-			}
 			case 0x95: // Call
-			{
-				int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
-				if (track.DoCommandWork && track.CallStackDepth < 3)
 				{
-					track.CallStack[track.CallStackDepth] = track.DataOffset;
-					track.CallStackLoops[track.CallStackDepth] = byte.MaxValue; // This is only necessary for SetTicks() to deal with LoopStart (0)
-					track.CallStackDepth++;
-					track.DataOffset = offset24bit;
+					int offset24bit = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8) | (_sseq.Data[track.DataOffset++] << 16);
+					if (track.DoCommandWork && track.CallStackDepth < 3)
+					{
+						track.CallStack[track.CallStackDepth] = track.DataOffset;
+						track.CallStackLoops[track.CallStackDepth] = byte.MaxValue; // This is only necessary for SetTicks() to deal with LoopStart (0)
+						track.CallStackDepth++;
+						track.DataOffset = offset24bit;
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(track.Index, track.DataOffset - 1, cmd);
 		}
 	}
@@ -334,32 +334,32 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xA0: // Rand Mod
-			{
-				if (track.DoCommandWork)
 				{
-					track.ArgOverrideType = ArgType.Rand;
-					resetOverride = false;
+					if (track.DoCommandWork)
+					{
+						track.ArgOverrideType = ArgType.Rand;
+						resetOverride = false;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xA1: // Var Mod
-			{
-				if (track.DoCommandWork)
 				{
-					track.ArgOverrideType = ArgType.PlayerVar;
-					resetOverride = false;
+					if (track.DoCommandWork)
+					{
+						track.ArgOverrideType = ArgType.PlayerVar;
+						resetOverride = false;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xA2: // If Mod
-			{
-				if (track.DoCommandWork)
 				{
-					track.DoCommandWork = track.VariableFlag;
-					resetCmdWork = false;
+					if (track.DoCommandWork)
+					{
+						track.DoCommandWork = track.VariableFlag;
+						resetCmdWork = false;
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(track.Index, track.DataOffset - 1, cmd);
 		}
 	}
@@ -370,121 +370,121 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xB0: // VarSet
-			{
-				if (track.DoCommandWork)
 				{
-					_player.Vars[varIndex] = mathArg;
+					if (track.DoCommandWork)
+					{
+						_player.Vars[varIndex] = mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB1: // VarAdd
-			{
-				if (track.DoCommandWork)
 				{
-					_player.Vars[varIndex] += mathArg;
+					if (track.DoCommandWork)
+					{
+						_player.Vars[varIndex] += mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB2: // VarSub
-			{
-				if (track.DoCommandWork)
 				{
-					_player.Vars[varIndex] -= mathArg;
+					if (track.DoCommandWork)
+					{
+						_player.Vars[varIndex] -= mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB3: // VarMul
-			{
-				if (track.DoCommandWork)
 				{
-					_player.Vars[varIndex] *= mathArg;
+					if (track.DoCommandWork)
+					{
+						_player.Vars[varIndex] *= mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB4: // VarDiv
-			{
-				if (track.DoCommandWork && mathArg != 0)
 				{
-					_player.Vars[varIndex] /= mathArg;
+					if (track.DoCommandWork && mathArg != 0)
+					{
+						_player.Vars[varIndex] /= mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB5: // VarShift
-			{
-				if (track.DoCommandWork)
 				{
-					ref short v = ref _player.Vars[varIndex];
-					v = mathArg < 0 ? (short)(v >> -mathArg) : (short)(v << mathArg);
+					if (track.DoCommandWork)
+					{
+						ref short v = ref _player.Vars[varIndex];
+						v = mathArg < 0 ? (short)(v >> -mathArg) : (short)(v << mathArg);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB6: // VarRand
-			{
-				if (track.DoCommandWork)
 				{
-					bool negate = false;
-					if (mathArg < 0)
+					if (track.DoCommandWork)
 					{
-						negate = true;
-						mathArg = (short)-mathArg;
+						bool negate = false;
+						if (mathArg < 0)
+						{
+							negate = true;
+							mathArg = (short)-mathArg;
+						}
+						short val = (short)_rand!.Next(mathArg + 1);
+						if (negate)
+						{
+							val = (short)-val;
+						}
+						_player.Vars[varIndex] = val;
 					}
-					short val = (short)_rand!.Next(mathArg + 1);
-					if (negate)
-					{
-						val = (short)-val;
-					}
-					_player.Vars[varIndex] = val;
+					break;
 				}
-				break;
-			}
 			case 0xB8: // VarCmpEE
-			{
-				if (track.DoCommandWork)
 				{
-					track.VariableFlag = _player.Vars[varIndex] == mathArg;
+					if (track.DoCommandWork)
+					{
+						track.VariableFlag = _player.Vars[varIndex] == mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xB9: // VarCmpGE
-			{
-				if (track.DoCommandWork)
 				{
-					track.VariableFlag = _player.Vars[varIndex] >= mathArg;
+					if (track.DoCommandWork)
+					{
+						track.VariableFlag = _player.Vars[varIndex] >= mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBA: // VarCmpGG
-			{
-				if (track.DoCommandWork)
 				{
-					track.VariableFlag = _player.Vars[varIndex] > mathArg;
+					if (track.DoCommandWork)
+					{
+						track.VariableFlag = _player.Vars[varIndex] > mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBB: // VarCmpLE
-			{
-				if (track.DoCommandWork)
 				{
-					track.VariableFlag = _player.Vars[varIndex] <= mathArg;
+					if (track.DoCommandWork)
+					{
+						track.VariableFlag = _player.Vars[varIndex] <= mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBC: // VarCmpLL
-			{
-				if (track.DoCommandWork)
 				{
-					track.VariableFlag = _player.Vars[varIndex] < mathArg;
+					if (track.DoCommandWork)
+					{
+						track.VariableFlag = _player.Vars[varIndex] < mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xBD: // VarCmpNE
-			{
-				if (track.DoCommandWork)
 				{
-					track.VariableFlag = _player.Vars[varIndex] != mathArg;
+					if (track.DoCommandWork)
+					{
+						track.VariableFlag = _player.Vars[varIndex] != mathArg;
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(track.Index, track.DataOffset - 1, cmd);
 		}
 	}
@@ -494,144 +494,144 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xC0: // Panpot
-			{
-				if (track.DoCommandWork)
 				{
-					track.Panpot = (sbyte)(cmdArg - 0x40);
+					if (track.DoCommandWork)
+					{
+						track.Panpot = (sbyte)(cmdArg - 0x40);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC1: // Track Volume
-			{
-				if (track.DoCommandWork)
 				{
-					track.Volume = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.Volume = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC2: // Player Volume
-			{
-				if (track.DoCommandWork)
 				{
-					_player.Volume = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						_player.Volume = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC3: // Transpose
-			{
-				if (track.DoCommandWork)
 				{
-					track.Transpose = (sbyte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.Transpose = (sbyte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC4: // Pitch Bend
-			{
-				if (track.DoCommandWork)
 				{
-					track.PitchBend = (sbyte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.PitchBend = (sbyte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC5: // Pitch Bend Range
-			{
-				if (track.DoCommandWork)
 				{
-					track.PitchBendRange = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.PitchBendRange = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC6: // Priority
-			{
-				if (track.DoCommandWork)
 				{
-					track.Priority = (byte)(_player.Priority + (byte)cmdArg);
+					if (track.DoCommandWork)
+					{
+						track.Priority = (byte)(_player.Priority + (byte)cmdArg);
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC7: // Mono
-			{
-				if (track.DoCommandWork)
 				{
-					track.Mono = cmdArg == 1;
+					if (track.DoCommandWork)
+					{
+						track.Mono = cmdArg == 1;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC8: // Tie
-			{
-				if (track.DoCommandWork)
 				{
-					track.Tie = cmdArg == 1;
-					track.StopAllChannels();
+					if (track.DoCommandWork)
+					{
+						track.Tie = cmdArg == 1;
+						track.StopAllChannels();
+					}
+					break;
 				}
-				break;
-			}
 			case 0xC9: // Portamento Control
-			{
-				if (track.DoCommandWork)
 				{
-					int k = cmdArg + track.Transpose;
-					if (k < 0)
+					if (track.DoCommandWork)
 					{
-						k = 0;
+						int k = cmdArg + track.Transpose;
+						if (k < 0)
+						{
+							k = 0;
+						}
+						else if (k > 0x7F)
+						{
+							k = 0x7F;
+						}
+						track.PortamentoNote = (byte)k;
+						track.Portamento = true;
 					}
-					else if (k > 0x7F)
-					{
-						k = 0x7F;
-					}
-					track.PortamentoNote = (byte)k;
-					track.Portamento = true;
+					break;
 				}
-				break;
-			}
 			case 0xCA: // LFO Depth
-			{
-				if (track.DoCommandWork)
 				{
-					track.LFODepth = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.LFODepth = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCB: // LFO Speed
-			{
-				if (track.DoCommandWork)
 				{
-					track.LFOSpeed = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.LFOSpeed = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCC: // LFO Type
-			{
-				if (track.DoCommandWork)
 				{
-					track.LFOType = (LFOType)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.LFOType = (LFOType)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCD: // LFO Range
-			{
-				if (track.DoCommandWork)
 				{
-					track.LFORange = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.LFORange = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCE: // Portamento Toggle
-			{
-				if (track.DoCommandWork)
 				{
-					track.Portamento = cmdArg == 1;
+					if (track.DoCommandWork)
+					{
+						track.Portamento = cmdArg == 1;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xCF: // Portamento Time
-			{
-				if (track.DoCommandWork)
 				{
-					track.PortamentoTime = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.PortamentoTime = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 		}
 	}
 	private void ExecuteCmdGroup0xD0(SDATTrack track, byte cmd)
@@ -640,55 +640,55 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xD0: // Forced Attack
-			{
-				if (track.DoCommandWork)
 				{
-					track.Attack = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.Attack = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD1: // Forced Decay
-			{
-				if (track.DoCommandWork)
 				{
-					track.Decay = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.Decay = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD2: // Forced Sustain
-			{
-				if (track.DoCommandWork)
 				{
-					track.Sustain = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.Sustain = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD3: // Forced Release
-			{
-				if (track.DoCommandWork)
 				{
-					track.Release = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.Release = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD4: // Loop Start
-			{
-				if (track.DoCommandWork && track.CallStackDepth < 3)
 				{
-					track.CallStack[track.CallStackDepth] = track.DataOffset;
-					track.CallStackLoops[track.CallStackDepth] = (byte)cmdArg;
-					track.CallStackDepth++;
+					if (track.DoCommandWork && track.CallStackDepth < 3)
+					{
+						track.CallStack[track.CallStackDepth] = track.DataOffset;
+						track.CallStackLoops[track.CallStackDepth] = (byte)cmdArg;
+						track.CallStackDepth++;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xD5: // Track Expression
-			{
-				if (track.DoCommandWork)
 				{
-					track.Expression = (byte)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.Expression = (byte)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(track.Index, track.DataOffset - 1, cmd);
 		}
 	}
@@ -698,29 +698,29 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xE0: // LFO Delay
-			{
-				if (track.DoCommandWork)
 				{
-					track.LFODelay = (ushort)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.LFODelay = (ushort)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xE1: // Tempo
-			{
-				if (track.DoCommandWork)
 				{
-					_player.Tempo = (ushort)cmdArg;
+					if (track.DoCommandWork)
+					{
+						_player.Tempo = (ushort)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 			case 0xE3: // Sweep Pitch
-			{
-				if (track.DoCommandWork)
 				{
-					track.SweepPitch = (short)cmdArg;
+					if (track.DoCommandWork)
+					{
+						track.SweepPitch = (short)cmdArg;
+					}
+					break;
 				}
-				break;
-			}
 		}
 	}
 	private void ExecuteCmdGroup0xF0(SDATTrack track, byte cmd)
@@ -728,59 +728,59 @@ internal sealed partial class SDATLoadedSong
 		switch (cmd)
 		{
 			case 0xFC: // Loop End
-			{
-				if (track.DoCommandWork && track.CallStackDepth != 0)
 				{
-					byte count = track.CallStackLoops[track.CallStackDepth - 1];
-					if (count != 0)
+					if (track.DoCommandWork && track.CallStackDepth != 0)
 					{
-						count--;
-						track.CallStackLoops[track.CallStackDepth - 1] = count;
-						if (count == 0)
+						byte count = track.CallStackLoops[track.CallStackDepth - 1];
+						if (count != 0)
 						{
-							track.CallStackDepth--;
-							break;
+							count--;
+							track.CallStackLoops[track.CallStackDepth - 1] = count;
+							if (count == 0)
+							{
+								track.CallStackDepth--;
+								break;
+							}
 						}
+						track.DataOffset = track.CallStack[track.CallStackDepth - 1];
 					}
-					track.DataOffset = track.CallStack[track.CallStackDepth - 1];
+					break;
 				}
-				break;
-			}
 			case 0xFD: // Return
-			{
-				if (track.DoCommandWork && track.CallStackDepth != 0)
 				{
-					track.CallStackDepth--;
-					track.DataOffset = track.CallStack[track.CallStackDepth];
-					track.CallStackLoops[track.CallStackDepth] = 0; // This is only necessary for SetTicks() to deal with LoopStart (0)
-				}
-				break;
-			}
-			case 0xFE: // Alloc Tracks
-			{
-				// Must be in the beginning of the first track to work
-				if (track.DoCommandWork && track.Index == 0 && track.DataOffset == 1) // == 1 because we read cmd already
-				{
-					// Track 1 enabled = bit 1 set, Track 4 enabled = bit 4 set, etc
-					int trackBits = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8);
-					for (int i = 0; i < 0x10; i++)
+					if (track.DoCommandWork && track.CallStackDepth != 0)
 					{
-						if ((trackBits & (1 << i)) != 0)
+						track.CallStackDepth--;
+						track.DataOffset = track.CallStack[track.CallStackDepth];
+						track.CallStackLoops[track.CallStackDepth] = 0; // This is only necessary for SetTicks() to deal with LoopStart (0)
+					}
+					break;
+				}
+			case 0xFE: // Alloc Tracks
+				{
+					// Must be in the beginning of the first track to work
+					if (track.DoCommandWork && track.Index == 0 && track.DataOffset == 1) // == 1 because we read cmd already
+					{
+						// Track 1 enabled = bit 1 set, Track 4 enabled = bit 4 set, etc
+						int trackBits = _sseq.Data[track.DataOffset++] | (_sseq.Data[track.DataOffset++] << 8);
+						for (int i = 0; i < 0x10; i++)
 						{
-							_player.Tracks[i].Allocated = true;
+							if ((trackBits & (1 << i)) != 0)
+							{
+								_player.Tracks[i].Allocated = true;
+							}
 						}
 					}
+					break;
 				}
-				break;
-			}
 			case 0xFF: // Finish
-			{
-				if (track.DoCommandWork)
 				{
-					track.Stopped = true;
+					if (track.DoCommandWork)
+					{
+						track.Stopped = true;
+					}
+					break;
 				}
-				break;
-			}
 			default: throw Invalid(track.Index, track.DataOffset - 1, cmd);
 		}
 	}

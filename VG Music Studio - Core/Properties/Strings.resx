@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
+  <!--  
     Microsoft ResX Schema 
     
     Version 2.0
@@ -128,10 +128,16 @@
     <value>Error Exporting MIDI</value>
   </data>
   <data name="FilterOpenGBA" xml:space="preserve">
-    <value>GBA Files</value>
+    <value>Game Boy Advance ROM (*.gba, *.srl)</value>
   </data>
   <data name="FilterSaveMIDI" xml:space="preserve">
-    <value>MIDI Files</value>
+    <value>MIDI Format (*.mid, *.midi)</value>
+  </data>
+  <data name="MenuEdit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MenuPreferences" xml:space="preserve">
+    <value>Preferences</value>
   </data>
   <data name="MenuData" xml:space="preserve">
     <value>Data</value>
@@ -162,6 +168,9 @@
   </data>
   <data name="PlayerStop" xml:space="preserve">
     <value>Stop</value>
+  </data>
+  <data name="PlayerRecord" xml:space="preserve">
+    <value>Record Song</value>
   </data>
   <data name="PlayerTempo" xml:space="preserve">
     <value>Tempo</value>
@@ -199,13 +208,16 @@
     <value>Error Loading SDAT File</value>
   </data>
   <data name="FilterOpenSDAT" xml:space="preserve">
-    <value>SDAT Files</value>
+    <value>Nitro Soundmaker Sound Data (*.sdat)</value>
+  </data>
+  <data name="MenuPlayPlaylist" xml:space="preserve">
+    <value>Play Current Playlist</value>
   </data>
   <data name="MenuEndPlaylist" xml:space="preserve">
     <value>End Current Playlist</value>
   </data>
-  <data name="MenuOpenDSE" xml:space="preserve">
-    <value>Open DSE Folder</value>
+  <data name="MenuOpenSMD" xml:space="preserve">
+    <value>Open Folder Containing SMD Files</value>
   </data>
   <data name="MenuOpenAlphaDream" xml:space="preserve">
     <value>Open GBA ROM (AlphaDream)</value>
@@ -216,25 +228,28 @@
   <data name="MenuPlaylist" xml:space="preserve">
     <value>Playlist</value>
   </data>
-  <data name="PlaylistMusic" xml:space="preserve">
-    <value>Music</value>
+  <data name="InternalSongName" xml:space="preserve">
+    <value>Internal Song Name</value>
   </data>
-  <data name="TrackViewerArguments" xml:space="preserve">
+  <data name="PlaylistMusic" xml:space="preserve">
+    <value>All Songs</value>
+  </data>
+  <data name="TrackEditorArguments" xml:space="preserve">
     <value>Arguments</value>
   </data>
-  <data name="TrackViewerEvent" xml:space="preserve">
+  <data name="TrackEditorEvent" xml:space="preserve">
     <value>Event</value>
   </data>
-  <data name="TrackViewerOffset" xml:space="preserve">
+  <data name="TrackEditorOffset" xml:space="preserve">
     <value>Offset</value>
   </data>
-  <data name="TrackViewerTicks" xml:space="preserve">
+  <data name="TrackEditorTicks" xml:space="preserve">
     <value>Ticks</value>
   </data>
-  <data name="TrackViewerTitle" xml:space="preserve">
-    <value>Track Viewer</value>
+  <data name="TrackEditorTitle" xml:space="preserve">
+    <value>Track Editor</value>
   </data>
-  <data name="TrackViewerTrackX" xml:space="preserve">
+  <data name="TrackEditorTrackX" xml:space="preserve">
     <value>Track {0}</value>
     <comment>{0} is the track number.</comment>
   </data>
@@ -279,7 +294,14 @@
     <comment>{0} is the track number, {1} is the offset, {2} is the command.</comment>
   </data>
   <data name="ErrorDSENoSequences" xml:space="preserve">
-    <value>There are no "bgm(NNNN).smd" files.</value>
+    <value>There are no SMD files.</value>
+  </data>
+  <data name="ErrorDSEVoiceIndexOutOfRange" xml:space="preserve">
+    <value>There's not enough Program Infos (instruments) in the loaded SWD to load this song.
+    
+    Voice key index requested: {0}
+    Number of ProgramInfos (Voices): {1}</value>
+    <comment>{0} is the requested voice key index, {1} is the length of ProgramInfos.</comment>
   </data>
   <data name="ErrorGlobalConfig" xml:space="preserve">
     <value>Error Loading Global Config</value>
@@ -331,7 +353,7 @@
     <value>Error Exporting WAV</value>
   </data>
   <data name="FilterSaveWAV" xml:space="preserve">
-    <value>WAV Files</value>
+    <value>RIFF Wave (*.wav)</value>
   </data>
   <data name="MenuSaveWAV" xml:space="preserve">
     <value>Export Song as WAV</value>
@@ -344,7 +366,7 @@
     <value>Error Exporting SF2</value>
   </data>
   <data name="FilterSaveSF2" xml:space="preserve">
-    <value>SF2 Files</value>
+    <value>SoundFont2 Format (*.sf2)</value>
   </data>
   <data name="MenuSaveSF2" xml:space="preserve">
     <value>Export VoiceTable as SF2</value>
@@ -357,7 +379,7 @@
     <value>Error Exporting DLS</value>
   </data>
   <data name="FilterSaveDLS" xml:space="preserve">
-    <value>DLS Files</value>
+    <value>DLS Format (*.dls)</value>
   </data>
   <data name="MenuSaveDLS" xml:space="preserve">
     <value>Export VoiceTable as DLS</value>
@@ -368,5 +390,136 @@
   </data>
   <data name="Song(s)" xml:space="preserve">
     <value>songs|0_0|song|1_1|songs|2_*|</value>
+  </data>
+  <data name="FilterOpenSWD" xml:space="preserve">
+    <value>Wave Data</value>
+  </data>
+  <data name="FilterAllFiles" xml:space="preserve">
+    <value>All files (*.*)</value>
+  </data>
+  <data name="MenuOpenDSE" xml:space="preserve">
+    <value>Open DSE Files</value>
+  </data>
+  <data name="MenuOpenSWD" xml:space="preserve">
+    <value>Open Main SWD File</value>
+  </data>
+  <data name="MIDIConverterError" xml:space="preserve">
+    <value>There was an error converting the MIDI file:{0}</value>
+    <comment>{0} is newline followed by the error.</comment>
+  </data>
+  <data name="MIDIConverterPreviewSong" xml:space="preserve">
+    <value>Preview Song</value>
+  </data>
+  <data name="MIDIConverterTitle" xml:space="preserve">
+    <value>MIDI Converter</value>
+  </data>
+  <data name="MIDIConverterTitleError" xml:space="preserve">
+    <value>Error Converting MIDI</value>
+  </data>
+  <data name="AssemblerDefinition" xml:space="preserve">
+    <value>Definition</value>
+  </data>
+  <data name="AssemblerErrorDefinitionDigit" xml:space="preserve">
+    <value>Definitions cannot start with a digit.</value>
+  </data>
+  <data name="AssemblerErrorInvalidValue" xml:space="preserve">
+    <value>Invalid value: {0}</value>
+    <comment>{0} is the value.</comment>
+  </data>
+  <data name="AssemblerOpenFile" xml:space="preserve">
+    <value>Open File</value>
+  </data>
+  <data name="AssemblerPreviewSong" xml:space="preserve">
+    <value>Preview Song</value>
+  </data>
+  <data name="AssemblerSizeInBytes" xml:space="preserve">
+    <value>Size in bytes: {0}</value>
+    <comment>{0} is the size.</comment>
+  </data>
+  <data name="AssemblerTitle" xml:space="preserve">
+    <value>ASM Assembler</value>
+  </data>
+  <data name="AssemblerValue" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="FilterOpenASM" xml:space="preserve">
+    <value>ASM files</value>
+  </data>
+  <data name="FilterOpenMIDI" xml:space="preserve">
+    <value>MIDI files</value>
+  </data>
+  <data name="FilterSaveASM" xml:space="preserve">
+    <value>ASM file</value>
+  </data>
+  <data name="MenuOpenASM" xml:space="preserve">
+    <value>Open ASM</value>
+  </data>
+  <data name="MenuOpenMIDI" xml:space="preserve">
+    <value>Open MIDI</value>
+  </data>
+  <data name="MenuSaveASM" xml:space="preserve">
+    <value>Export Song as ASM</value>
+  </data>
+  <data name="MIDIConverterOpenFile" xml:space="preserve">
+    <value>Open MIDI</value>
+  </data>
+  <data name="TitleOpenASM" xml:space="preserve">
+    <value>Open ASM</value>
+  </data>
+  <data name="TitleOpenMIDI" xml:space="preserve">
+    <value>Open MIDI</value>
+  </data>
+  <data name="TitleSaveASM" xml:space="preserve">
+    <value>Export ASM File</value>
+  </data>
+  <data name="ErrorEngineOpenMIDI" xml:space="preserve">
+    <value>Converting MIDI files to this game engine is not supported at this time.</value>
+  </data>
+  <data name="ErrorEngineSaveASM" xml:space="preserve">
+    <value>Exporting to ASM from this game engine is not supported at this time.</value>
+  </data>
+  <data name="ErrorSaveASM" xml:space="preserve">
+    <value>Error Exporting ASM</value>
+  </data>
+  <data name="SuccessSaveASM" xml:space="preserve">
+    <value>ASM saved to {0}.</value>
+    <comment>{0} is the file name.</comment>
+  </data>
+  <data name="SoundBankEditorAddress" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="SoundBankEditorTitle" xml:space="preserve">
+    <value>Sound Bank Editor</value>
+  </data>
+  <data name="ErrorTitleAssembler" xml:space="preserve">
+    <value>Error Assembling File</value>
+  </data>
+  <data name="TrackEditorAddEvent" xml:space="preserve">
+    <value>Add Event</value>
+  </data>
+  <data name="TrackEditorArgX" xml:space="preserve">
+    <value>Arg. {0}</value>
+    <comment>{0} is the argument number.</comment>
+  </data>
+  <data name="TrackEditorRemoveEvent" xml:space="preserve">
+    <value>Remove Event</value>
+  </data>
+  <data name="TrackEditorFrom" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="TrackEditorTo" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="TrackEditorChangeVoices" xml:space="preserve">
+    <value>Change Voices</value>
+  </data>
+  <data name="TrackEditorArgEditor" xml:space="preserve">
+    <value>Argument Editor</value>
+  </data>
+  <data name="MenuVoiceGroupSoundBankEditor" xml:space="preserve">
+    <value>Voice Group / Sound Bank Editor</value>
+  </data>
+  <data name="VoiceGroupEditorTitle" xml:space="preserve">
+    <value>Voice Group Editor</value>
   </data>
 </root>

@@ -2,7 +2,7 @@ A2NE_00:
   Name: "Sonic Advance 2 (USA)"
   SongTableOffsets: 0xAD4F4C
   SongTableSizes: 507
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -20,7 +20,7 @@ A2UJ_00:
   Name: "Mother 1 + 2 (Japan)"
   SongTableOffsets: 0x10B530
   SongTableSizes: 451
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -30,7 +30,7 @@ A3UJ_00:
   Name: "Mother 3 (Japan)"
   SongTableOffsets: 0x120E94
   SongTableSizes: 1968
-  SampleRate: 4
+  FrequencyIndex: 4
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -40,7 +40,7 @@ A4AE_00:
   Name: "The Simpson's Road Rage (USA)"
   SongTableOffsets: 0x125FD8
   SongTableSizes: 112
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 11
@@ -55,7 +55,7 @@ A7KE_00:
   Name: "Kirby: Nightmare in Dream Land (USA)"
   SongTableOffsets: 0x60B460
   SongTableSizes: 579
-  SampleRate: 4
+  FrequencyIndex: 4
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -128,27 +128,27 @@ A7KP_00:
   SongTableOffsets: 0x843B50
   Copy: "A7KE_00"
 A88E_00:
-  Name: "Mario & Luigi - Superstar Saga (USA)"
+  Name: "Mario Bros. (Mario & Luigi: Superstar Saga) (USA)"
   SongTableOffsets: 0xFB5DA4
   SongTableSizes: 323
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
 A88J_00:
-  Name: "Mario & Luigi - Superstar Saga (Japan)"
+  Name: "Mario Bros. (Mario & Luigi RPG) (Japan)"
   SongTableOffsets: 0xFB5E00
   Copy: "A88E_00"
 A88P_00:
-  Name: "Mario & Luigi - Superstar Saga (Europe)"
+  Name: "Mario Bros. (Mario & Luigi: Superstar Saga) (Europe)"
   Copy: "A88E_00"
 AE7E_00:
   Name: "Fire Emblem: The Blazing Blade (USA)"
   SongTableOffsets: 0x69D6D8
   SongTableSizes: 1001
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 13
@@ -169,7 +169,7 @@ AEFJ_00:
   Name: "Fire Emblem: The Binding Blade (Japan)"
   SongTableOffsets: 0x3994D8
   SongTableSizes: 621
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 13
@@ -179,7 +179,7 @@ AFXE_00:
   Name: "Final Fantasy Tactics Advance (USA)"
   SongTableOffsets: 0x14BB48
   SongTableSizes: 640
-  SampleRate: 4
+  FrequencyIndex: 4
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -245,7 +245,7 @@ AFZE_00:
   Name: "F-Zero: Maximum Velocity (USA)"
   SongTableOffsets: 0x54BF8
   SongTableSizes: 72
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 10
@@ -262,7 +262,7 @@ AGFE_00:
   Name: "Golden Sun: The Lost Age (USA)"
   SongTableOffsets: 0x1C4530
   SongTableSizes: 800
-  SampleRate: 8
+  FrequencyIndex: 8
   ReverbType: "Camelot2"
   Reverb: 0
   Volume: 15
@@ -284,7 +284,7 @@ AGLJ_00:
   Name: "Tomato Adventure (Japan)"
   SongTableOffsets: 0x4B11A4
   SongTableSizes: 244
-  SampleRate: 4
+  FrequencyIndex: 4
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -298,7 +298,7 @@ AGSE_00:
   Name: "Golden Sun (USA)"
   SongTableOffsets: 0xFC684
   SongTableSizes: 312
-  SampleRate: 6
+  FrequencyIndex: 6
   ReverbType: "Camelot1"
   Reverb: 0
   Volume: 15
@@ -323,7 +323,7 @@ AINJ_00:
   Name: "Initial D: Another Stage (Japan)"
   SongTableOffsets: 0x648B38
   SongTableSizes: 88
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 13
@@ -345,7 +345,7 @@ AMKE_00:
   Name: "Mario Kart: Super Circuit (USA)"
   SongTableOffsets: 0x102498
   SongTableSizes: 403
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -394,7 +394,7 @@ AMKE_00:
       44: "SNES Vanilla Lake"
       45: "SNES Ghost Valley"
       46: "SNES Rainbow Road"
-      47: "SNES Bowser's Castle"
+      47: "SNES Bowser Castle"
       48: "SNES Koopa Beach"
       51: "Night Opening"
       52: "Title Screen"
@@ -420,7 +420,7 @@ AMTE_00:
   Name: "Metroid Fusion (USA)"
   SongTableOffsets: 0xA8D3C
   SongTableSizes: 745
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -505,7 +505,7 @@ AMZE_00:
   Name: "Super Mario Advance (USA)"
   SongTableOffsets: 0xF40D4
   SongTableSizes: 447
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -519,7 +519,7 @@ AWAE_00:
   Name: "Wario Land 4 (USA)"
   SongTableOffsets: 0x98028
   SongTableSizes: 819
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -699,7 +699,7 @@ AXVE_00:
   Name: "Pokémon Ruby Version (USA)"
   SongTableOffsets: 0x45548C
   SongTableSizes: 468
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 12
@@ -816,16 +816,17 @@ AXVE_00:
       455: "Ending Theme"
       456: "The End"
     Other Music:
-      350: "Unused - TETSUJI"
-      351: "Unused - Route 38"
       352: "Victory! (Wild Pokémon) (No Intro)"
-      356: "Unused - Pokémon Center (2)"
-      357: "Unused - Viridian City"
-      358: "Unused - Battle! (Entei/Raikou/Suicune)"
       393: "Pokémon Contest! (Multiplayer - Player 1)"
       394: "Pokémon Contest! (Multiplayer - Player 2)"
       395: "Pokémon Contest! (Multiplayer - Player 3)"
       396: "Pokémon Contest! (Multiplayer - Player 4)"
+    Unused Early Prototype Music:
+      350: "Unused - TETSUJI"
+      351: "Unused - Route 38"
+      356: "Unused - Pokémon Communication Center"
+      357: "Unused - Pewter City"
+      358: "Unused - Battle! (Entei/Raikou/Suicune)"
       467: "Unused - Team Rocket Appears!"
 AXVE_01:
   SongTableOffsets: 0x4554A0
@@ -855,28 +856,28 @@ AXVS_00:
 AXVS_01:
   Copy: "AXVS_00"
 AZLE_00:
-  Name: "The Legend of Zelda: A Link to the Past and Four Swords (USA)"
+  Name: "The Legend of Zelda: Four Swords (The Legend of Zelda: A Link to the Past and Four Swords) (USA)"
   SongTableOffsets: 0x3C3BBC
   SongTableSizes: 545
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
   HasGoldenSunSynths: False
   HasPokemonCompression: False
 AZLJ_00:
-  Name: "The Legend of Zelda: A Link to the Past and Four Swords (Japan)"
+  Name: "The Legend of Zelda: Four Swords (The Legend of Zelda: A Link to the Past and Four Swords) (Japan)"
   SongTableOffsets: 0x3E7A54
   Copy: "AZLE_00"
 AZLP_00:
-  Name: "The Legend of Zelda: A Link to the Past and Four Swords (Europe)"
+  Name: "The Legend of Zelda: Four Swords (The Legend of Zelda: A Link to the Past and Four Swords) (Europe)"
   SongTableOffsets: 0x43F8AC
   Copy: "AZLE_00"
 B24E_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (USA)"
   SongTableOffsets: 0x1E866BC
   SongTableSizes: 940
-  SampleRate: 5
+  FrequencyIndex: 5
   ReverbType: "Normal"
   Reverb: 0
   Volume: 14
@@ -997,7 +998,7 @@ B8KE_00:
   Name: "Kirby & The Amazing Mirror (USA)"
   SongTableOffsets: 0xB59ED0
   SongTableSizes: 620
-  SampleRate: 4
+  FrequencyIndex: 4
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1015,7 +1016,7 @@ BE8E_00:
   Name: "Fire Emblem: The Sacred Stones (USA)"
   SongTableOffsets: 0x224470
   SongTableSizes: 1000
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 13
@@ -1033,7 +1034,7 @@ BFFE_00:
   Name: "Final Fantasy I & II - Dawn of Souls (USA)"
   SongTableOffsets: 0x8D3058
   SongTableSizes: 717
-  SampleRate: 5
+  FrequencyIndex: 5
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1051,7 +1052,7 @@ BFTJ_00:
   Name: "F-Zero Climax (Japan)"
   SongTableOffsets: 0x9EE84
   SongTableSizes: 439
-  SampleRate: 5
+  FrequencyIndex: 5
   ReverbType: "Normal"
   Reverb: 0
   Volume: 14
@@ -1061,7 +1062,7 @@ BFZE_00:
   Name: "F-Zero: GP Legend (USA)"
   SongTableOffsets: 0x97B44
   SongTableSizes: 352
-  SampleRate: 5
+  FrequencyIndex: 5
   ReverbType: "Normal"
   Reverb: 0
   Volume: 14
@@ -1083,7 +1084,7 @@ BMXE_00:
   Name: "Metroid: Zero Mission (USA)"
   SongTableOffsets: 0x8F2C0
   SongTableSizes: 708
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1167,7 +1168,7 @@ BPEE_00:
   Name: "Pokémon Emerald Version (USA)"
   SongTableOffsets: 0x6B49F0
   SongTableSizes: 610
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 12
@@ -1181,8 +1182,8 @@ BPEE_00:
       353: "Victory! (Wild Pokémon)"
       354: "Victory! (Gym Leader)"
       355: "Victory! (Wallace)"
-      356: "Unused - Pokémon Center (2)"
-      357: "Unused - Viridian City"
+      356: "Unused - Pokémon Communications Center"
+      357: "Unused - Pewter City"
       358: "Unused - Battle! (Entei/Raikou/Suicune)"
       359: "Route 101"
       360: "Route 110"
@@ -1359,7 +1360,7 @@ BPEE_00:
       531: "Fanfare: Pokémon Caught"
       532: "Pokémon Printer (FRLG)"
       533: "Game Freak Logo (FRLG)"
-      534: "Fanfare: Pokémon Caught (No Intro) (FRLG)"
+      534: "Victory! (Wild Pokémon) (No Intro) (FRLG)"
       535: "Game Tutorial (1) (FRLG)"
       536: "Game Tutorial (2) (FRLG)"
       537: "Game Tutorial (3) (FRLG)"
@@ -1429,7 +1430,7 @@ BPFP_00:
   Name: "Puyo Pop Fever (USA)"
   SongTableOffsets: 0xA0994
   SongTableSizes: 1436
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1466,7 +1467,7 @@ BPPE_00:
   Name: "Pokémon Pinball: Ruby and Sapphire (USA)"
   SongTableOffsets: 0x534E04
   SongTableSizes: 333
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 14
@@ -1491,12 +1492,360 @@ BPRE_00:
   Name: "Pokémon Fire Red Version (USA)"
   SongTableOffsets: 0x4A32CC
   SongTableSizes: 347
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 12
   HasGoldenSunSynths: False
   HasPokemonCompression: True
+  InternalSongNames:
+    0: "MUS_DUMMY"
+    1: "SE_KAIFUKU"
+    2: "SE_PC_LOGIN"
+    3: "SE_PC_OFF"
+    4: "SE_PC_ON"
+    5: "SE_SELECT"
+    6: "SE_WIN_OPEN"
+    7: "SE_WALL_HIT"
+    8: "SE_DOOR"
+    9: "SE_KAIDAN"
+    10: "SE_DANSA"
+    11: "SE_JITENSYA"
+    12: "SE_KOUKA_L"
+    13: "SE_KOUKA_M"
+    14: "SE_KOUKA_H"
+    15: "SE_BOWA2"
+    16: "SE_POKE_DEAD"
+    17: "SE_NIGERU"
+    18: "SE_JIDO_DOA"
+    19: "SE_NAMINORI"
+    20: "SE_BAN"
+    21: "SE_PIN"
+    22: "SE_BOO"
+    23: "SE_BOWA"
+    24: "SE_JYUNI"
+    25: "SE_SEIKAI"
+    26: "SE_HAZURE"
+    27: "SE_EXP"
+    28: "SE_JITE_PYOKO"
+    29: "SE_MU_PACHI"
+    30: "SE_TK_KASYA"
+    31: "SE_FU_ZAKU"
+    32: "SE_FU_ZAKU2"
+    33: "SE_FU_ZUZUZU"
+    34: "SE_RU_GASHIN"
+    35: "SE_RU_GASYAN"
+    36: "SE_RU_BARI"
+    37: "SE_RU_HYUU"
+    38: "SE_KI_GASYAN"
+    39: "SE_TK_WARPIN"
+    40: "SE_TK_WARPOUT"
+    41: "SE_TU_SAA"
+    42: "SE_HI_TURUN"
+    43: "SE_TRACK_MOVE"
+    44: "SE_TRACK_STOP"
+    45: "SE_TRACK_HAIKI"
+    46: "SE_TRACK_DOOR"
+    47: "SE_MOTER"
+    48: "SE_SAVE"
+    49: "SE_KON"
+    50: "SE_KON2"
+    51: "SE_KON3"
+    52: "SE_KON4"
+    53: "SE_SUIKOMU"
+    54: "SE_NAGERU"
+    55: "SE_TOY_C"
+    56: "SE_TOY_D"
+    57: "SE_TOY_E"
+    58: "SE_TOY_F"
+    59: "SE_TOY_G"
+    60: "SE_TOY_A"
+    61: "SE_TOY_B"
+    62: "SE_TOY_C1"
+    63: "SE_MIZU"
+    64: "SE_HASHI"
+    65: "SE_DAUGI"
+    66: "SE_PINPON"
+    67: "SE_FUUSEN1"
+    68: "SE_FUUSEN2"
+    69: "SE_FUUSEN3"
+    70: "SE_TOY_KABE"
+    71: "SE_TOY_DANGO"
+    72: "SE_DOKU"
+    73: "SE_ESUKA"
+    74: "SE_T_AME"
+    75: "SE_T_AME_E"
+    76: "SE_T_OOAME"
+    77: "SE_T_OOAME_E"
+    78: "SE_T_KOAME"
+    79: "SE_T_KOAME_E"
+    80: "SE_T_KAMI"
+    81: "SE_T_KAMI2"
+    82: "SE_ELEBETA"
+    83: "SE_HINSI"
+    84: "SE_EXPMAX"
+    85: "SE_TAMAKORO"
+    86: "SE_TAMAKORO_E"
+    87: "SE_BASABASA"
+    88: "SE_REGI"
+    89: "SE_C_GAJI"
+    90: "SE_C_MAKU_U"
+    91: "SE_C_MAKU_D"
+    92: "SE_C_PASI"
+    93: "SE_C_SYU"
+    94: "SE_C_PIKON"
+    95: "SE_REAPOKE"
+    96: "SE_OP_BASYU"
+    97: "SE_BT_START"
+    98: "SE_DENDOU"
+    99: "SE_JIHANKI"
+    100: "SE_TAMA"
+    101: "SE_Z_SCROLL"
+    102: "SE_Z_PAGE"
+    103: "SE_PN_ON"
+    104: "SE_PN_OFF"
+    105: "SE_Z_SEARCH"
+    106: "SE_TAMAGO"
+    107: "SE_TB_START"
+    108: "SE_TB_KON"
+    109: "SE_TB_KARA"
+    110: "SE_BIDORO"
+    111: "SE_W085"
+    112: "SE_W085B"
+    113: "SE_W231"
+    114: "SE_W171"
+    115: "SE_W233"
+    116: "SE_W233B"
+    117: "SE_W145"
+    118: "SE_W145B"
+    119: "SE_W145C"
+    120: "SE_W240"
+    121: "SE_W015"
+    122: "SE_W081"
+    123: "SE_W081B"
+    124: "SE_W088"
+    125: "SE_W016"
+    126: "SE_W016B"
+    127: "SE_W003"
+    128: "SE_W104"
+    129: "SE_W013"
+    130: "SE_W196"
+    131: "SE_W086"
+    132: "SE_W004"
+    133: "SE_W025"
+    134: "SE_W025B"
+    135: "SE_W152"
+    136: "SE_W026"
+    137: "SE_W172"
+    138: "SE_W172B"
+    139: "SE_W053"
+    140: "SE_W007"
+    141: "SE_W092"
+    142: "SE_W221"
+    143: "SE_W221B"
+    144: "SE_W052"
+    145: "SE_W036"
+    146: "SE_W059"
+    147: "SE_W059B"
+    148: "SE_W010"
+    149: "SE_W011"
+    150: "SE_W017"
+    151: "SE_W019"
+    152: "SE_W028"
+    153: "SE_W013B"
+    154: "SE_W044"
+    155: "SE_W029"
+    156: "SE_W057"
+    157: "SE_W056"
+    158: "SE_W250"
+    159: "SE_W030"
+    160: "SE_W039"
+    161: "SE_W054"
+    162: "SE_W077"
+    163: "SE_W020"
+    164: "SE_W082"
+    165: "SE_W047"
+    166: "SE_W195"
+    167: "SE_W006"
+    168: "SE_W091"
+    169: "SE_W146"
+    170: "SE_W120"
+    171: "SE_W153"
+    172: "SE_W071B"
+    173: "SE_W071"
+    174: "SE_W103"
+    175: "SE_W062"
+    176: "SE_W062B"
+    177: "SE_W048"
+    178: "SE_W187"
+    179: "SE_W118"
+    180: "SE_W155"
+    181: "SE_W122"
+    182: "SE_W060"
+    183: "SE_W185"
+    184: "SE_W014"
+    185: "SE_W043"
+    186: "SE_W207"
+    187: "SE_W207B"
+    188: "SE_W215"
+    189: "SE_W109"
+    190: "SE_W173"
+    191: "SE_W280"
+    192: "SE_W202"
+    193: "SE_W060B"
+    194: "SE_W076"
+    195: "SE_W080"
+    196: "SE_W100"
+    197: "SE_W107"
+    198: "SE_W166"
+    199: "SE_W129"
+    200: "SE_W115"
+    201: "SE_W112"
+    202: "SE_W197"
+    203: "SE_W199"
+    204: "SE_W236"
+    205: "SE_W204"
+    206: "SE_W268"
+    207: "SE_W070"
+    208: "SE_W063"
+    209: "SE_W127"
+    210: "SE_W179"
+    211: "SE_W151"
+    212: "SE_W201"
+    213: "SE_W161"
+    214: "SE_W161B"
+    215: "SE_W227"
+    216: "SE_W227B"
+    217: "SE_W226"
+    218: "SE_W208"
+    219: "SE_W213"
+    220: "SE_W213B"
+    221: "SE_W234"
+    222: "SE_W260"
+    223: "SE_W328"
+    224: "SE_W320"
+    225: "SE_W255"
+    226: "SE_W291"
+    227: "SE_W089"
+    228: "SE_W239"
+    229: "SE_W230"
+    230: "SE_W281"
+    231: "SE_W327"
+    232: "SE_W287"
+    233: "SE_W257"
+    234: "SE_W253"
+    235: "SE_W258"
+    236: "SE_W322"
+    237: "SE_W298"
+    238: "SE_W287B"
+    239: "SE_W114"
+    240: "SE_W063B"
+    241: "MUS_W_DOOR"
+    242: "SE_CARD1"
+    243: "SE_CARD2"
+    244: "SE_CARD3"
+    245: "SE_BAG1"
+    246: "SE_BAG2"
+    247: "SE_GETTING"
+    248: "SE_SHOP"
+    249: "SE_KITEKI"
+    250: "SE_HELP_OP"
+    251: "SE_HELP_CL"
+    252: "SE_HELP_NG"
+    253: "SE_DEOMOV"
+    254: "SE_EXCELLENT"
+    255: "SE_NAWAMISS"
+    256: "MUS_ME_ASA"
+    257: "MUS_FANFA1"
+    258: "MUS_FANFA4"
+    259: "MUS_FANFA5"
+    260: "MUS_ME_BACHI"
+    261: "MUS_ME_WAZA"
+    262: "MUS_ME_KINOMI"
+    263: "MUS_ME_SHINKA"
+    264: "MUS_SHINKA"
+    265: "MUS_BATTLE32"
+    266: "MUS_BATTLE20"
+    267: "MUS_P_SCHOOL"
+    268: "MUS_ME_B_BIG"
+    269: "MUS_ME_B_SMALL"
+    270: "MUS_ME_WASURE"
+    271: "MUS_ME_ZANNEN"
+    272: "MUS_ANNAI"
+    273: "MUS_SLOT"
+    274: "MUS_AJITO"
+    275: "MUS_GYM"
+    276: "MUS_PURIN"
+    277: "MUS_DEMO"
+    278: "MUS_TITLE"
+    279: "MUS_GUREN"
+    280: "MUS_SHION"
+    281: "MUS_KAIHUKU"
+    282: "MUS_CYCLING"
+    283: "MUS_ROCKET"
+    284: "MUS_SHOUJO"
+    285: "MUS_SHOUNEN"
+    286: "MUS_DENDOU"
+    287: "MUS_T_MORI"
+    288: "MUS_OTSUKIMI"
+    289: "MUS_POKEYASHI"
+    290: "MUS_ENDING"
+    291: "MUS_LOAD01"
+    292: "MUS_OPENING"
+    293: "MUS_LOAD02"
+    294: "MUS_LOAD03"
+    295: "MUS_CHAMP_R"
+    296: "MUS_VS_GYM"
+    297: "MUS_VS_TORE"
+    298: "MUS_VS_YASEI"
+    299: "MUS_VS_LAST"
+    300: "MUS_MASARA"
+    301: "MUS_KENKYU"
+    302: "MUS_OHKIDO"
+    303: "MUS_POKECEN"
+    304: "MUS_SANTOAN"
+    305: "MUS_NAMINORI"
+    306: "MUS_P_TOWER"
+    307: "MUS_SHIRUHU"
+    308: "MUS_HANADA"
+    309: "MUS_TAMAMUSI"
+    310: "MUS_WIN_TRE"
+    311: "MUS_WIN_YASEI"
+    312: "MUS_WIN_GYM"
+    313: "MUS_KUCHIBA"
+    314: "MUS_NIBI"
+    315: "MUS_RIVAL1"
+    316: "MUS_RIVAL2"
+    317: "MUS_FAN2"
+    318: "MUS_FAN5"
+    319: "MUS_FAN6"
+    320: "MUS_ME_PHOTO"
+    321: "MUS_TITLEROG"
+    322: "MUS_GET_YASEI"
+    323: "MUS_SOUSA"
+    324: "MUS_SEKAIKAN"
+    325: "MUS_SEIBETU"
+    326: "MUS_JUMP"
+    327: "MUS_UNION"
+    328: "MUS_NETWORK"
+    329: "MUS_OKURIMONO"
+    330: "MUS_KINOMIKUI"
+    331: "MUS_NANADUNGEON"
+    332: "MUS_OSHIE_TV"
+    333: "MUS_NANASHIMA"
+    334: "MUS_NANAISEKI"
+    335: "MUS_NANA123"
+    336: "MUS_NANA45"
+    337: "MUS_NANA67"
+    338: "MUS_POKEFUE"
+    339: "MUS_VS_DEO"
+    340: "MUS_VS_MYU2"
+    341: "MUS_VS_DEN"
+    342: "MUS_EXEYE"
+    343: "MUS_DEOEYE"
+    344: "MUS_T_TOWER"
+    345: "MUS_SLOWMASARA"
+    346: "MUS_TVNOIZE"
   Playlists:
     Disc 1:
       321: "Game Freak Logo"
@@ -1586,7 +1935,7 @@ BPRE_00:
       267: "Unused - Trainers' School (RS)"
       281: "Unused - Pokémon Healed (2)"
       316: "A Rival Appears (No Intro)"
-      322: "Fanfare: Pokémon Caught (No Intro)"
+      322: "Victory! (Wild Pokémon) (No Intro)"
       331: "Mt. Ember"
       332: "Teachy TV Lesson"
       334: "Tanoby Chambers"
@@ -1618,7 +1967,7 @@ BZ4E_00:
   Name: "Final Fantasy IV Advance (USA)"
   SongTableOffsets: 0x3DC894
   SongTableSizes: 221
-  SampleRate: 5
+  FrequencyIndex: 5
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1639,7 +1988,7 @@ BZ5E_00:
   Name: "Final Fantasy V Advance (USA)"
   SongTableOffsets: 0x3F2CB4
   SongTableSizes: 290
-  SampleRate: 5
+  FrequencyIndex: 5
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1657,7 +2006,7 @@ BZ6E_00:
   Name: "Final Fantasy VI Advance (USA)"
   SongTableOffsets: 0x1C6A94
   SongTableSizes: 371
-  SampleRate: 5
+  FrequencyIndex: 5
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1675,7 +2024,7 @@ BZME_00:
   Name: "The Legend of Zelda: The Minish Cap (USA)"
   SongTableOffsets: 0xA11DBC
   SongTableSizes: 546
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1693,7 +2042,7 @@ KYGE_00:
   Name: "Yoshi Topsy-Turvy (USA)"
   SongTableOffsets: 0x4A5E94
   SongTableSizes: 347
-  SampleRate: 2
+  FrequencyIndex: 2
   ReverbType: "Normal"
   Reverb: 0
   Volume: 10
@@ -1704,14 +2053,14 @@ KYGJ_00:
   SongTableOffsets: 0x4A79D8
   Copy: "KYGE_00"
 KYGP_00:
-  Name: "Yoshi Topsy-Turvy (Europe)"
+  Name: "Yoshi's Universal Gravitation (Europe)"
   SongTableOffsets: 0x619658
   Copy: "KYGE_00"
 U32E_00:
   Name: "Boktai 2 - Solar Boy Django (USA)"
   SongTableOffsets: 0x25EEA8
   SongTableSizes: 1000
-  SampleRate: 6
+  FrequencyIndex: 6
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1725,7 +2074,7 @@ U3IE_00:
   Name: "Boktai - The Sun is in Your Hand (USA)"
   SongTableOffsets: 0x1EC904
   SongTableSizes: 906
-  SampleRate: 6
+  FrequencyIndex: 6
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1739,7 +2088,7 @@ U33J_00:
   Name: "Boktai 3 - Sabata's Counterattack (Japan)"
   SongTableOffsets: 0x26456C
   SongTableSizes: 1483
-  SampleRate: 6
+  FrequencyIndex: 6
   ReverbType: "Normal"
   Reverb: 0
   Volume: 15
@@ -1749,7 +2098,7 @@ V49E_00:
   Name: "Drill Dozer (USA)"
   SongTableOffsets: 0x5079B8
   SongTableSizes: 387
-  SampleRate: 3
+  FrequencyIndex: 3
   ReverbType: "Normal"
   Reverb: 0
   Volume: 10

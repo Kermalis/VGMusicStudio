@@ -1,5 +1,7 @@
-﻿using Kermalis.VGMusicStudio.Core.Util;
+﻿using Kermalis.VGMusicStudio.Core.Formats;
+using Kermalis.VGMusicStudio.Core.Util;
 using NAudio.Wave;
+using SoundFlow.Structs;
 using System;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
@@ -7,16 +9,30 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
 public sealed class SDATMixer : Mixer
 {
 	private readonly float _samplesReciprocal;
-	private readonly int _samplesPerBuffer;
+	internal override int SamplesPerBuffer { get; }
 	private bool _isFading;
 	private long _fadeMicroFramesLeft;
 	private float _fadePos;
 	private float _fadeStepPerMicroframe;
 
 	internal SDATChannel[] Channels;
-	private readonly BufferedWaveProvider _buffer;
+	private readonly AudioBackend SDATPlaybackBackend;
 
-	protected override WaveFormat WaveFormat => _buffer.WaveFormat;
+	#region MiniAudio Fields
+	// MiniAudio Fields
+	private readonly AudioFormat _formatSoundFlow;
+	protected override AudioFormat SoundFlowFormat => _formatSoundFlow;
+	#endregion
+
+	#region PortAudio Fields
+	// PortAudio Fields
+	private readonly Wave? _bufferPortAudio;
+	#endregion
+
+	#region NAudio Fields
+	private readonly BufferedWaveProvider? _bufferNAudio;
+	protected override WaveFormat? WaveFormat => _bufferNAudio!.WaveFormat;
+	#endregion
 
 	internal SDATMixer()
 	{
@@ -24,8 +40,8 @@ public sealed class SDATMixer : Mixer
 		// - gbatek
 		// I'm not using either of those because the samples per buffer leads to an overflow eventually
 		const int sampleRate = 65456;
-		_samplesPerBuffer = 341; // TODO
-		_samplesReciprocal = 1f / _samplesPerBuffer;
+		SamplesPerBuffer = 341; // TODO
+		_samplesReciprocal = 1f / SamplesPerBuffer;
 
 		Channels = new SDATChannel[0x10];
 		for (byte i = 0; i < 0x10; i++)
@@ -33,20 +49,50 @@ public sealed class SDATMixer : Mixer
 			Channels[i] = new SDATChannel(i);
 		}
 
-		_buffer = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
+		SDATPlaybackBackend = PlaybackBackend;
+		switch (PlaybackBackend)
 		{
-			DiscardOnBufferOverflow = true,
-			BufferLength = _samplesPerBuffer * 64
-		};
-		Init(_buffer);
+			case AudioBackend.MiniAudio:
+				{
+					_formatSoundFlow = new AudioFormat
+					{
+						Channels = 2,
+						SampleRate = sampleRate,
+						Format = SoundFlow.Enums.SampleFormat.F32
+					};
+					Init();
+					break;
+				}
+			case AudioBackend.PortAudio:
+				{
+					_bufferPortAudio = new Wave()
+					{
+						DiscardOnBufferOverflow = true,
+						BufferLength = SamplesPerBuffer * 64
+					};
+					_bufferPortAudio.CreateIeeeFloatWave(sampleRate, 2, 16);
+
+					Init(waveData: _bufferPortAudio, PortAudio.SampleFormat.Int16);
+					break;
+				}
+			case AudioBackend.NAudio:
+				{
+					_bufferNAudio = new BufferedWaveProvider(new WaveFormat(sampleRate, 16, 2))
+					{
+						DiscardOnBufferOverflow = true
+					};
+					Init(waveProvider: _bufferNAudio);
+					break;
+				}
+		}
 	}
 
-	private static readonly int[] _pcmChanOrder = new int[] { 4, 5, 6, 7, 2, 0, 3, 1, 8, 9, 10, 11, 14, 12, 15, 13 };
-	private static readonly int[] _psgChanOrder = new int[] { 8, 9, 10, 11, 12, 13 };
-	private static readonly int[] _noiseChanOrder = new int[] { 14, 15 };
+	private static readonly int[] _pcmChanOrder = [4, 5, 6, 7, 2, 0, 3, 1, 8, 9, 10, 11, 14, 12, 15, 13];
+	private static readonly int[] _psgChanOrder = [8, 9, 10, 11, 12, 13];
+	private static readonly int[] _noiseChanOrder = [14, 15];
 	internal SDATChannel? AllocateChannel(InstrumentType type, SDATTrack track)
 	{
-		int[] allowedChannels;
+		Span<int> allowedChannels;
 		switch (type)
 		{
 			case InstrumentType.PCM: allowedChannels = _pcmChanOrder; break;
@@ -149,7 +195,7 @@ public sealed class SDATMixer : Mixer
 
 	internal void EmulateProcess()
 	{
-		for (int i = 0; i < _samplesPerBuffer; i++)
+		for (int i = 0; i < SamplesPerBuffer; i++)
 		{
 			for (int j = 0; j < 0x10; j++)
 			{
@@ -162,6 +208,7 @@ public sealed class SDATMixer : Mixer
 		}
 	}
 	private readonly byte[] _b = new byte[4];
+	private readonly float[] _f = new float[2];
 	internal void Process(bool output, bool recording)
 	{
 		float masterStep;
@@ -186,7 +233,7 @@ public sealed class SDATMixer : Mixer
 			masterStep = (toMaster - fromMaster) * _samplesReciprocal;
 			masterLevel = fromMaster;
 		}
-		for (int i = 0; i < _samplesPerBuffer; i++)
+		for (int i = 0; i < SamplesPerBuffer; i++)
 		{
 			int left = 0,
 				right = 0;
@@ -218,6 +265,7 @@ public sealed class SDATMixer : Mixer
 			left = (int)f;
 			_b[0] = (byte)left;
 			_b[1] = (byte)(left >> 8);
+			_f[0] = left / (float)short.MaxValue;
 			f = right * masterLevel;
 			if (f < short.MinValue)
 			{
@@ -230,14 +278,49 @@ public sealed class SDATMixer : Mixer
 			right = (int)f;
 			_b[2] = (byte)right;
 			_b[3] = (byte)(right >> 8);
+			_f[1] = right / (float)short.MaxValue;
 			masterLevel += masterStep;
 			if (output)
 			{
-				_buffer.AddSamples(_b, 0, 4);
+				switch (SDATPlaybackBackend)
+				{
+					case AudioBackend.MiniAudio:
+						{
+							DataProvider!.AddSamples(_f);
+							break;
+						}
+					case AudioBackend.PortAudio:
+						{
+							_bufferPortAudio!.AddSamples(_b, 0, 4);
+							break;
+						}
+					case AudioBackend.NAudio:
+						{
+							_bufferNAudio!.AddSamples(_b, 0, 4);
+							break;
+						}
+				}
 			}
 			if (recording)
 			{
-				_waveWriter!.Write(_b, 0, 4);
+				switch (SDATPlaybackBackend)
+				{
+					case AudioBackend.MiniAudio:
+						{
+							_soundFlowEncoder!.Encode(_f);
+							break;
+						}
+					case AudioBackend.PortAudio:
+						{
+							_waveWriterPortAudio!.Write(_b, 0, 4);
+							break;
+						}
+					case AudioBackend.NAudio:
+						{
+							_waveWriterNAudio!.Write(_b, 0, 4);
+							break;
+						}
+				}
 			}
 		}
 	}

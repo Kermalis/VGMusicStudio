@@ -1,4 +1,5 @@
 using System;
+using Kermalis.VGMusicStudio.Core.Codec;
 
 namespace Kermalis.VGMusicStudio.Core.NDS.SDAT;
 
@@ -49,7 +50,7 @@ internal sealed class SDATChannel
 	// PCM8, PCM16
 	private int _dataOffset;
 	// ADPCM
-	private ADPCMDecoder _adpcmDecoder;
+	private IMAADPCM _adpcmDecoder;
 	private short _adpcmLoopLastSample;
 	private short _adpcmLoopStepIndex;
 	// PSG
