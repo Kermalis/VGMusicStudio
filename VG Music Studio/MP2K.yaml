@@ -961,6 +961,16 @@ B24J_00:
 B24P_00:
   Name: "Pokémon Mystery Dungeon: Red Rescue Team (Europe)"
   Copy: "B24E_00"
+B3CJ_00:
+  Name: "Summon Night - Craft Sword Monogatari ~ Hajimari no Ishi"
+  SongTableOffsets: 0xC62D0
+  SongTableSizes: 1829
+  SampleRate: 4
+  ReverbType: "Normal"
+  Reverb: 0
+  Volume: 15
+  HasGoldenSunSynths: False
+  HasPokemonCompression: False
 BE8E_00:
   Name: "Fire Emblem: The Sacred Stones (USA)"
   SongTableOffsets: 0x224470

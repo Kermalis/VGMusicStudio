@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Sanford.Multimedia.Midi</id>
+        <version>6.4.0</version>
+        <title>MIDI Toolkit</title>
+        <authors>Leslie Sanford,Tebjan Halm,Andreas Grimme,Andres Fernandez de Prado</authors>
+        <owners>Leslie Sanford</owners>
+        <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+        <projectUrl>http://www.codeproject.com/Articles/6228/C-MIDI-Toolkit</projectUrl>
+        <iconUrl>https://raw.githubusercontent.com/tebjan/Sanford.Multimedia.Midi/master/Source/Icon_-_General_MIDI.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A toolkit for creating MIDI applications with .NET
+Source code on github: https://github.com/tebjan/Sanford.Multimedia.Midi</description>
+        <summary>A toolkit for creating MIDI applications with .NET</summary>
+        <releaseNotes>Reworked messages and events a bit. there is now an event for all messages as well as all ShortMessage (was Raw and might break some code if you used it before).
+General Improvements:
+Now also works on mono       	
+64-bit compatible
+Windows 8 and 10 compatible
+Does not require additional assemblies
+Faster midi file reading in Release build</releaseNotes>
+        <copyright>Leslie Sanford 2006</copyright>
+        <language>en</language>
+    </metadata>
+    <files>
+        <file src="..\bin\Release\Sanford.Multimedia.Midi.dll" target="lib\net20\Sanford.Multimedia.Midi.dll" />
+        <file src="..\bin\Release\Sanford.Multimedia.Midi.pdb" target="lib\net20\Sanford.Multimedia.Midi.pdb" />
+        <file src="..\bin\Release\Sanford.Multimedia.Midi.XML" target="lib\net20\Sanford.Multimedia.Midi.XML" />
+    </files>
+</package>

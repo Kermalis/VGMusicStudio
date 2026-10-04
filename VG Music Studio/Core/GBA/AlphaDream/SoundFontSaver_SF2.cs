@@ -10,17 +10,17 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
         public static void Save(Config config, string path)
         {
             var sf2 = new SF2();
-            AddInfo(config, sf2.InfoChunk);
+            AddInfo(config, sf2);
             Dictionary<int, (SampleHeader, int)> sampleDict = AddSamples(config, sf2);
             AddInstruments(config, sf2, sampleDict);
             sf2.Save(path);
         }
 
-        private static void AddInfo(Config config, InfoListChunk chunk)
+        private static void AddInfo(Config config, SF2 sf2)
         {
-            chunk.Bank = config.Name;
-            //chunk.Copyright = config.Creator;
-            chunk.Tools = Util.Utils.ProgramName + " by Kermalis";
+            sf2.InfoChunk.Bank = config.Name;
+            //sf2.InfoChunk.Copyright = config.Creator;
+            sf2.InfoChunk.Tools = Util.Utils.ProgramName + " by Kermalis";
         }
 
         private static Dictionary<int, (SampleHeader, int)> AddSamples(Config config, SF2 sf2)

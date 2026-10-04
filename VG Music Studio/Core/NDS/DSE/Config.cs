@@ -22,8 +22,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             var songs = new Song[BGMFiles.Length];
             for (int i = 0; i < BGMFiles.Length; i++)
             {
-                using (var reader = new EndianBinaryReader(File.OpenRead(BGMFiles[i])))
+                using (var readfile = File.OpenRead(BGMFiles[i]))
                 {
+                    var reader = new EndianBinaryReader(readfile);
                     SMD.Header header = reader.ReadObject<SMD.Header>();
                     songs[i] = new Song(i, $"{Path.GetFileNameWithoutExtension(BGMFiles[i])} - {new string(header.Label.TakeWhile(c => c != '\0').ToArray())}");
                 }

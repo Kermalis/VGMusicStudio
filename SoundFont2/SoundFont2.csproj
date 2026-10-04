@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Authors>Kermalis</Authors>
+    <Company />
+    <PackageId>SoundFont2</PackageId>
+    <Product>SoundFont2</Product>
+    <AssemblyName>SoundFont2</AssemblyName>
+    <RootNamespace>Kermalis.SoundFont2</RootNamespace>
+    <Version>1.0.0.0</Version>
+    <OutputPath>..\Build</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EndianBinaryIO\EndianBinaryIO.csproj" />
+  </ItemGroup>
+
+</Project>

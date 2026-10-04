@@ -45,8 +45,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public SWAR(byte[] bytes)
         {
-            using (var er = new EndianBinaryReader(new MemoryStream(bytes)))
+            using (var stream = new MemoryStream(bytes))
             {
+                var er = new EndianBinaryReader(stream);
                 FileHeader = er.ReadObject<FileHeader>();
                 BlockType = er.ReadString(4, false);
                 BlockSize = er.ReadInt32();

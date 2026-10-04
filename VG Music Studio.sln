@@ -1,9 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2002
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VG Music Studio", "VG Music Studio\VG Music Studio.csproj", "{97C8ACF8-66A3-4321-91D6-3E94EACA577F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VG Music Studio", "VG Music Studio\VG Music Studio.csproj", "{97C8ACF8-66A3-4321-91D6-3E94EACA577F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanford.Multimedia.Midi.Core", "Sanford.Multimedia.Midi.Core\Sanford.Multimedia.Midi.Core.csproj", "{C54D7E26-82EC-43BA-9CE7-A5BA1F851EDA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EndianBinaryIO", "EndianBinaryIO\EndianBinaryIO.csproj", "{32FDD6E5-60A9-4FE4-AE73-AE6C41D81D26}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DLS2", "DLS2\DLS2.csproj", "{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoundFont2", "SoundFont2\SoundFont2.csproj", "{53B52F18-AEB4-47C8-A07B-9F3082A45964}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectListView2019", "ObjectListView\ObjectListView2019.csproj", "{6220611C-85D7-45B5-9857-45C0F0FE62A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +25,26 @@ Global
 		{97C8ACF8-66A3-4321-91D6-3E94EACA577F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97C8ACF8-66A3-4321-91D6-3E94EACA577F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97C8ACF8-66A3-4321-91D6-3E94EACA577F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C54D7E26-82EC-43BA-9CE7-A5BA1F851EDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C54D7E26-82EC-43BA-9CE7-A5BA1F851EDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C54D7E26-82EC-43BA-9CE7-A5BA1F851EDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C54D7E26-82EC-43BA-9CE7-A5BA1F851EDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32FDD6E5-60A9-4FE4-AE73-AE6C41D81D26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32FDD6E5-60A9-4FE4-AE73-AE6C41D81D26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32FDD6E5-60A9-4FE4-AE73-AE6C41D81D26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32FDD6E5-60A9-4FE4-AE73-AE6C41D81D26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DEFE207-7C02-4AF5-9710-06536A1EB2AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53B52F18-AEB4-47C8-A07B-9F3082A45964}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6220611C-85D7-45B5-9857-45C0F0FE62A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6220611C-85D7-45B5-9857-45C0F0FE62A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6220611C-85D7-45B5-9857-45C0F0FE62A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6220611C-85D7-45B5-9857-45C0F0FE62A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

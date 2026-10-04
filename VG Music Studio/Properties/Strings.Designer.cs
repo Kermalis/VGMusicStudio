@@ -59,7 +59,18 @@ namespace Kermalis.VGMusicStudio.Properties {
                 resourceCulture = value;
             }
         }
-        
+
+        /// <summary>
+        ///   Informs whenever an audio output device was removed.
+        /// </summary>
+        internal static string AudioDeviceRemoved
+        {
+            get
+            {
+                return ResourceManager.GetString("AudioDeviceRemoved", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to {0} key.
         /// </summary>

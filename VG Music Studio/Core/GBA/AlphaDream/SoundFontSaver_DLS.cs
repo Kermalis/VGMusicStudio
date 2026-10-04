@@ -1,5 +1,4 @@
 ﻿using Kermalis.DLS2;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -8,16 +7,16 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
     internal sealed class SoundFontSaver_DLS
     {
         // Since every key will use the same articulation data, just store one instance
-        private static readonly Level2ArticulatorChunk _art2 = new Level2ArticulatorChunk
+        private static readonly Level2ArticulatorChunk _art2 = new Level2ArticulatorChunk()
         {
-            new Level2ArticulatorConnectionBlock { Destination = Level2ArticulatorDestination.LFOFrequency, Scale = 2786 },
-            new Level2ArticulatorConnectionBlock { Destination = Level2ArticulatorDestination.VIBFrequency, Scale = 2786 },
-            new Level2ArticulatorConnectionBlock { Source = Level2ArticulatorSource.KeyNumber, Destination = Level2ArticulatorDestination.Pitch },
-            new Level2ArticulatorConnectionBlock { Source = Level2ArticulatorSource.Vibrato, Control = Level2ArticulatorSource.Modulation_CC1, Destination = Level2ArticulatorDestination.Pitch, BipolarSource = true, Scale = 0x320000 },
-            new Level2ArticulatorConnectionBlock { Source = Level2ArticulatorSource.Vibrato, Control = Level2ArticulatorSource.ChannelPressure, Destination = Level2ArticulatorDestination.Pitch, BipolarSource = true, Scale = 0x320000 },
-            new Level2ArticulatorConnectionBlock { Source = Level2ArticulatorSource.Pan_CC10, Destination = Level2ArticulatorDestination.Pan, BipolarSource = true, Scale = 0xFE0000 },
-            new Level2ArticulatorConnectionBlock { Source = Level2ArticulatorSource.ChorusSend_CC91, Destination = Level2ArticulatorDestination.Reverb, Scale = 0xC80000 },
-            new Level2ArticulatorConnectionBlock { Source = Level2ArticulatorSource.Reverb_SendCC93, Destination = Level2ArticulatorDestination.Chorus, Scale = 0xC80000 }
+            new Level2ArticulatorConnectionBlock() { Destination = Level2ArticulatorDestination.LFOFrequency, Scale = 2786 },
+            new Level2ArticulatorConnectionBlock() { Destination = Level2ArticulatorDestination.VIBFrequency, Scale = 2786 },
+            new Level2ArticulatorConnectionBlock() { Source = Level2ArticulatorSource.KeyNumber, Destination = Level2ArticulatorDestination.Pitch },
+            new Level2ArticulatorConnectionBlock() { Source = Level2ArticulatorSource.Vibrato, Control = Level2ArticulatorSource.Modulation_CC1, Destination = Level2ArticulatorDestination.Pitch, BipolarSource = true, Scale = 0x320000 },
+            new Level2ArticulatorConnectionBlock() { Source = Level2ArticulatorSource.Vibrato, Control = Level2ArticulatorSource.ChannelPressure, Destination = Level2ArticulatorDestination.Pitch, BipolarSource = true, Scale = 0x320000 },
+            new Level2ArticulatorConnectionBlock() { Source = Level2ArticulatorSource.Pan_CC10, Destination = Level2ArticulatorDestination.Pan, BipolarSource = true, Scale = 0xFE0000 },
+            new Level2ArticulatorConnectionBlock() { Source = Level2ArticulatorSource.ChorusSend_CC91, Destination = Level2ArticulatorDestination.Reverb, Scale = 0xC80000 },
+            new Level2ArticulatorConnectionBlock() { Source = Level2ArticulatorSource.Reverb_SendCC93, Destination = Level2ArticulatorDestination.Chorus, Scale = 0xC80000 }
         };
 
         public static void Save(Config config, string path)
@@ -62,7 +61,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 fmt.WaveInfo.BlockAlign = 1;
                 fmt.FormatInfo.BitsPerSample = 8;
                 // Create wave sample chunk and add loop if there is one
-                var wsmp = new WaveSampleChunk
+                var wsmp = new WaveSampleChunk()
                 {
                     UnityNote = 60,
                     Options = WaveSampleOptions.NoTruncation | WaveSampleOptions.NoCompression
@@ -78,7 +77,7 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                 }
                 // Get PCM sample
                 byte[] pcm = new byte[sh.Length];
-                Array.Copy(config.ROM, ofs + 0x10, pcm, 0, sh.Length);
+                System.Array.Copy(config.ROM, ofs + 0x10, pcm, 0, sh.Length);
 
                 // Add
                 int dlsIndex = waves.Count;
@@ -145,13 +144,13 @@ namespace Kermalis.VGMusicStudio.Core.GBA.AlphaDream
                         lrgn.Add(new ListChunk("rgn2")
                         {
                             rgnh,
-                            new WaveSampleChunk
+                            new WaveSampleChunk()
                             {
                                 UnityNote = baseKey,
                                 Options = WaveSampleOptions.NoTruncation | WaveSampleOptions.NoCompression,
                                 Loop = value.Item1.Loop
                             },
-                            new WaveLinkChunk
+                            new WaveLinkChunk()
                             {
                                 Channels = WaveLinkChannels.Left,
                                 TableIndex = (uint)value.Item2

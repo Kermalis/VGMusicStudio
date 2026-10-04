@@ -323,8 +323,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
 
         public SWD(string path)
         {
-            using (var reader = new EndianBinaryReader(new MemoryStream(File.ReadAllBytes(path))))
+            using (var stream = new MemoryStream(File.ReadAllBytes(path)))
             {
+                var reader = new EndianBinaryReader(stream);
                 Type = reader.ReadString(4, false);
                 Unknown = reader.ReadBytes(4);
                 Length = reader.ReadUInt32();

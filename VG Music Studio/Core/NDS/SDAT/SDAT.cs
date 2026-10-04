@@ -209,8 +209,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.SDAT
 
         public SDAT(byte[] bytes)
         {
-            using (var er = new EndianBinaryReader(new MemoryStream(bytes)))
+            using (var stream = new MemoryStream(bytes))
             {
+                var er = new EndianBinaryReader(stream);
                 FileHeader = er.ReadObject<FileHeader>();
                 SYMBOffset = er.ReadInt32();
                 SYMBLength = er.ReadInt32();

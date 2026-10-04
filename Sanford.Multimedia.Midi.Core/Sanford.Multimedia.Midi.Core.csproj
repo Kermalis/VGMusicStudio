@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ProjectType>Local</ProjectType>
+    <ApplicationIcon />
+    <StartupObject />
+    <Version>7.0.0</Version>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>docs\Sanford.Multimedia.Midi.XML</DocumentationFile>
+  </PropertyGroup>
+</Project>

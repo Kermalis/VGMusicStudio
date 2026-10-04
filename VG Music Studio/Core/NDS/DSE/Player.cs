@@ -119,8 +119,9 @@ namespace Kermalis.VGMusicStudio.Core.NDS.DSE
             string bgm = _config.BGMFiles[index];
             _localSWD = new SWD(Path.ChangeExtension(bgm, "swd"));
             _smdFile = File.ReadAllBytes(bgm);
-            using (var reader = new EndianBinaryReader(new MemoryStream(_smdFile)))
+            using (var stream = new MemoryStream(_smdFile))
             {
+                var reader = new EndianBinaryReader(stream);
                 SMD.Header header = reader.ReadObject<SMD.Header>();
                 SMD.ISongChunk songChunk;
                 switch (header.Version)
